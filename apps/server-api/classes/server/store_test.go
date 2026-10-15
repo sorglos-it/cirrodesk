@@ -293,18 +293,22 @@ func TestARoundThatIsNotDrivingIsNoFailure(t *testing.T) {
 // rounds share: minute and hour both go through it.
 func TestABrokenRoundDoesNotStopTheBeat(t *testing.T) {
 	srv, _, _ := newServer(t)
-	before := guard.Panics()
-	srv.once(func() { panic("a programming error in a background round") })
-	if got := guard.Panics(); got != before+1 {
-		t.Fatalf("the counter went %d -> %d; the round's panic must count once", before, got)
-	}
-	// The lock is free again and the next round runs. Both halves at once: a
-	// catch that kept the lock would hang here just as a missing catch would
-	// have killed the binary above.
-	ran := false
-	srv.once(func() { ran = true })
-	if !ran {
-		t.Fatal("the round after the broken one never ran -- the beat stopped")
+	// Each round has a lock of its own (Server.hourly), so each is held: a
+	// catch that kept either one would stop that round's beat for good.
+	for name, mu := range map[string]*sync.Mutex{"minute": &srv.round, "hour": &srv.hourly} {
+		before := guard.Panics()
+		srv.once(mu, func() { panic("a programming error in a background round") })
+		if got := guard.Panics(); got != before+1 {
+			t.Fatalf("%s: the counter went %d -> %d; the round's panic must count once", name, before, got)
+		}
+		// The lock is free again and the next round runs. Both halves at once:
+		// a catch that kept the lock would hang here just as a missing catch
+		// would have killed the binary above.
+		ran := false
+		srv.once(mu, func() { ran = true })
+		if !ran {
+			t.Fatalf("%s: the round after the broken one never ran -- the beat stopped", name)
+		}
 	}
 }
 
@@ -380,7 +384,7 @@ func TestTheHousekeepingRoundSaysTheCountOfCaughtErrors(t *testing.T) {
 	srv.minute(ctx)
 	said.Reset()
 
-	srv.once(func() { panic("a programming error in a background round") })
+	srv.once(&srv.round, func() { panic("a programming error in a background round") })
 	total := guard.Panics()
 	said.Reset() // the ERROR line of the catch is not what is measured here
 
