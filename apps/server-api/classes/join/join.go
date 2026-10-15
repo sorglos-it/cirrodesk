@@ -17,6 +17,7 @@ import (
 	"net/http"
 
 	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
 	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/httpapi"
 	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
 	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
@@ -99,11 +100,25 @@ func (j *Join) NewJoinCode(ctx context.Context) (tunnel.JoinCode, int64, error) 
 // (docs/messungen-m1-m3.md, M3). audit.Log.Pairing says why the line hangs on
 // the code being spent and not on the request arriving.
 func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
 	body, ok := httpapi.Body(w, r)
 	if !ok {
 		return
 	}
+	// The deadline of a path somebody is waiting on, and it is set HERE
+	// rather than on the route because this path is one of the four that do
+	// not go over httpapi.Routes.Mux (server.routes) -- so the deadline point
+	// 49 gave the five session routes never reached it. Without one a store
+	// call below waits busy_timeout times maxTries, 80,6 s measured (point
+	// 48), and then answers the word for a database that is AWAY.
+	//
+	// After Body and not before it, which is the one thing this does better
+	// than the route does: Body may take httpapi.readLimit (15 s) for a body
+	// that trickles in, and a deadline started before it would spend itself on
+	// the reading and then call a slow client's database busy. Point 49 named
+	// that as the price of setting it on the route; here it costs nothing to
+	// avoid.
+	ctx, cancel := dbwait.User(r.Context())
+	defer cancel()
 	req, err := tunnel.ParseJoinRequest(body)
 	if err != nil {
 		httpapi.Fail(w, wire.CodeProtocol)
@@ -123,6 +138,19 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Unknown, expired and already used are one answer: telling them apart
 		// would say whether a hash was ever a secret of this installation.
+		//
+		// A database that did not come free is NOT one of those three, and
+		// answering E_VERIFY for it told a server that is joining correctly
+		// that its code was wrong -- measured, 403 while a second program
+		// held the file, and an admin would have made a new code for nothing.
+		// Busy here opens no oracle: the deadline runs out before there is an
+		// answer about any row, so it runs out alike for a hash that exists
+		// and one that never did. TestAcceptSaysNothingAboutWhetherACodeExists
+		// holds that with the store calls, the headers and the body.
+		if dbwait.Busy(err) {
+			httpapi.FailCoded(w, wire.CodeUnreachable, err)
+			return
+		}
 		httpapi.Fail(w, wire.CodeVerify)
 		return
 	}
@@ -157,10 +185,20 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 		return
 	case !errors.Is(err, dbapi.ErrNotFound):
 		j.note(ctx, wire.CodeUnreachable, reason.DB)
-		httpapi.Fail(w, wire.CodeUnreachable)
+		httpapi.FailCoded(w, wire.CodeUnreachable, err)
 		return
 	}
 	if _, err := j.S.DB.OnceUse(ctx, dbapi.OnceJoin, hash, j.S.Now()); err != nil {
+		// THE busy arm of this path. OncePeek and BlobGet are reads, and a
+		// read passes a second program's write lock (WAL); OnceUse is the first
+		// write, so this is where a busy database really stops a server that
+		// is joining correctly. Only a request that holds the secret gets here
+		// -- the MAC is checked above -- so the answer tells nobody anything
+		// about a code he does not already hold.
+		if dbwait.Busy(err) {
+			httpapi.FailCoded(w, wire.CodeUnreachable, err)
+			return
+		}
 		// Another request with the same secret spent it between the peek and
 		// here, or it ran out in that moment: the one answer for a code that
 		// is not there.
@@ -171,7 +209,13 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 		// The code is gone and nothing was kept: the admin waits for a
 		// request that will never show up in cd.users/pending-api.
 		j.note(ctx, wire.CodeUnreachable, reason.DB)
-		httpapi.Fail(w, wire.CodeUnreachable)
+		// The code is the same E_UNREACHABLE as before -- a word of its own
+		// for a busy database is a new wire.Code, and that list is in frozen
+		// shared/wire (BLOCKED, P9 of the v1.3 row). What the error adds is
+		// the Retry-After and the reason in the log, which is the whole of
+		// what tells busy from away for a client that reads headers and for a
+		// human who reads the log.
+		httpapi.FailCoded(w, wire.CodeUnreachable, err)
 		return
 	}
 	j.note(ctx, "", reason.None)
