@@ -233,5 +233,6 @@ func Open(cfg config.DB) (dbapi.Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	sqlstore.LogDrift(db, sqlstore.MariaDB)
 	return New(db), nil
 }
