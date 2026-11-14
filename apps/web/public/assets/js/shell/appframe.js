@@ -27,6 +27,7 @@ import { validName, validPath } from "../contracts/text.js";
 import { CODES, MAX_PARAMS, validParams, message as codeMessage } from "../contracts/wire.js";
 import { sha256 } from "../../vendor/noble-hashes/sha2.js";
 import { effectiveTheme, onThemeChange } from "./theme.js";
+import { language } from "./lang.js";
 
 // Where an app window comes from. It is a document of this server and not a
 // srcdoc frame, because only a document fetched over http gets a policy of
@@ -858,6 +859,10 @@ function buildDocument(app, files, token, library) {
   const lib = doc.createElement("script");
   lib.setAttribute("src", dataURL("text/javascript", new TextEncoder().encode(library)));
   lib.dataset.token = token;
+  // The shell's language, so an app speaks the one the person chose and not
+  // whatever its own page or the browser says (ngc.lang).
+  lib.dataset.lang = language();
+  doc.documentElement.setAttribute("lang", language());
   csp.after(lib);
 
   // The painter, right behind the library and before anything of the app's:

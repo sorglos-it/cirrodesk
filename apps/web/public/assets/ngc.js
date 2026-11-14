@@ -72,7 +72,14 @@
     return id;
   }
 
+  // The language the shell speaks: one of de, en, fr, it, es (shell/lang.js
+  // LANGS). Anything else - an old shell, a page opened by hand - is "en",
+  // the shell's own fallback.
+  var lang = (script && script.dataset && script.dataset.lang) || "";
+  if (["de", "en", "fr", "it", "es"].indexOf(lang) < 0) lang = "en";
+
   var ngc = {
+    lang: lang,
     version: 1,
     // What the shell looks like right now. The shell writes it into the
     // document before the app's own scripts run, so the first paint is
