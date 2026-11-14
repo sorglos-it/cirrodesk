@@ -486,3 +486,22 @@ func silentListener(t *testing.T) string {
 	t.Cleanup(func() { ln.Close(); <-done })
 	return ln.Addr().String()
 }
+
+// TestRunNamesAWaitingName holds that the joining server tells a refusal for
+// a name that already waits apart from a spent code.
+func TestRunNamesAWaitingName(t *testing.T) {
+	j, _ := newJoin(t)
+	srv, client := serveAPI(t, j)
+	code := codeFor(t, j, srv)
+	dir := t.TempDir()
+	var out syncBuffer
+	cfg := runConfig(t, dir, code, client, &out)
+	cfg.Timeout = 10 * time.Second
+	if err := j.S.DB.BlobPut(ctx, dbapi.Blob{Kind: dbapi.BlobJoin, ID: cfg.Node,
+		Data: []byte("{}"), Updated: testNow}); err != nil {
+		t.Fatalf("put: %v", err)
+	}
+	if err := Run(ctx, cfg); !errors.Is(err, ErrJoinNameWaits) {
+		t.Fatalf("Run answered %v, want ErrJoinNameWaits", err)
+	}
+}

@@ -106,6 +106,7 @@ const (
 	// joining.
 	PairProof Reason = "Der Nachweis zum Kopplungscode eines Controllers stimmt nicht."
 	JoinProof Reason = "Der Nachweis zum Beitrittscode eines API-Servers stimmt nicht."
+	JoinWaits Reason = "Unter diesem Namen wartet schon ein API-Server auf Annahme; die zweite Anfrage ist abgewiesen."
 
 	// The backstops. Each one names the layer, which is the least a line may
 	// say; a refusal that gets one of these is a place this package has not
@@ -122,7 +123,7 @@ var all = []Reason{Trust, Defect, Link, DB, Result, Deliver, OwnTask, OwnProof,
 	TaskSpent, WithParams,
 	UserUnknown, RoleUnknown, RowGone, ProofGone, Factor, FactorBusy, TrustRefused,
 	StoreAnswer, Signature, License, NodeAway, NodeRefused, PairProof, JoinProof,
-	InsideAPI, InsideNode}
+	JoinWaits, InsideAPI, InsideNode}
 
 // All returns the whole list. It is a copy, so no caller can bend the list a
 // case measures.

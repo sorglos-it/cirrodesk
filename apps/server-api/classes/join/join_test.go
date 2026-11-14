@@ -455,3 +455,63 @@ func TestAJoinAttemptThatSpendsNoCodeLeavesNoLine(t *testing.T) {
 		t.Fatalf("the reachability check left %d lines", len(got))
 	}
 }
+
+// TestASecondRequestForAWaitingNameIsRefused holds Frage 24 (a): a second
+// request under a name that already waits is refused, the first one stays as
+// it was, and the log says why.
+func TestASecondRequestForAWaitingNameIsRefused(t *testing.T) {
+	j, fx := newJoin(t)
+	send := func(req tunnel.JoinRequest, secret []byte) *httptest.ResponseRecorder {
+		t.Helper()
+		body, err := json.Marshal(req)
+		if err != nil {
+			t.Fatalf("body: %v", err)
+		}
+		h := sha256.Sum256(secret)
+		w := httptest.NewRecorder()
+		j.Accept(w, post(enc.B64.EncodeToString(h[:]), body))
+		return w
+	}
+	first, _, err := j.NewJoinCode(ctx)
+	if err != nil {
+		t.Fatalf("new code: %v", err)
+	}
+	firstReq := fx.request(first.Secret)
+	if w := send(firstReq, first.Secret); w.Code != http.StatusNoContent {
+		t.Fatalf("first request answered %d (%s)", w.Code, w.Body)
+	}
+	second, _, err := j.NewJoinCode(ctx)
+	if err != nil {
+		t.Fatalf("new code: %v", err)
+	}
+	// Another server under the same name: other Noise key, valid MAC.
+	other := fx.request(second.Secret)
+	other.Noise = bytes.Repeat([]byte{0x5A}, len(other.Noise))
+	other.MAC = enc.Bytes(tunnel.JoinMAC(second.Secret, other.Node, other.Noise, other.Sign, other.TLS,
+		fx.APIPub, other.URL))
+	w := send(other, second.Secret)
+	if w.Code != http.StatusForbidden {
+		t.Fatalf("second request answered %d (%s), want 403", w.Code, w.Body)
+	}
+	c, err := wire.ParseClose(w.Body.Bytes())
+	if err != nil || c.Code != wire.CodeForbidden {
+		t.Fatalf("second request answered %s (%v), want E_FORBIDDEN", w.Body, err)
+	}
+	rows, err := j.Waiting(ctx)
+	if err != nil {
+		t.Fatalf("waiting: %v", err)
+	}
+	if len(rows) != 1 || !bytes.Equal(rows[0].Noise, firstReq.Noise) {
+		t.Fatalf("the waiting request was replaced: %+v", rows)
+	}
+	got := joinLog(t, j)
+	found := false
+	for _, e := range got {
+		if e.Detail == string(reason.JoinWaits) && e.Result == string(wire.CodeForbidden) {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("no log line names the waiting name: %+v", got)
+	}
+}
