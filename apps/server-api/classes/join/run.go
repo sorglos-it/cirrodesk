@@ -23,6 +23,7 @@ import (
 
 	"github.com/sorglos-it/nextgencloud/shared/enc"
 	"github.com/sorglos-it/nextgencloud/shared/noisep"
+	"github.com/sorglos-it/nextgencloud/shared/session"
 	"github.com/sorglos-it/nextgencloud/shared/trust"
 	"github.com/sorglos-it/nextgencloud/shared/tunnel"
 	"github.com/sorglos-it/nextgencloud/shared/wire"
@@ -54,6 +55,10 @@ var ErrJoinInput = errors.New("join: node, URL or TLS pin of this server is not 
 // status any more: a status is an answer of that server, and this side says
 // only that an answer came and that it was no.
 var ErrJoinRefused = errors.New("join: the running API refused the join request")
+
+// ErrJoinNameWaits reports that the running API already holds a waiting
+// request under this server's node ID and refused the second one (Frage 24).
+var ErrJoinNameWaits = errors.New("join: a request under this node ID already waits")
 
 // What is left of a failed join, and all of it carries NO value. Measured on
 // 17.10.2026 against the code before this: what came back read
@@ -244,11 +249,18 @@ func postRequest(ctx context.Context, client *http.Client, base string, secret [
 	// The answer carries nothing this side needs; it is read away so the
 	// connection can be reused, and bounded so a talkative server cannot fill
 	// memory.
-	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4<<10))
-	if resp.StatusCode != http.StatusNoContent {
-		return ErrJoinRefused
+	answer, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<10))
+	if resp.StatusCode == http.StatusNoContent {
+		return nil
 	}
-	return nil
+	// E_FORBIDDEN is the one refusal Accept gives after the proof held: the
+	// name already waits. The admin's next step is another name, not a new
+	// code, so it gets its own word.
+	if c, err := wire.ParseClose(answer); err == nil && c.Code == wire.CodeForbidden &&
+		resp.StatusCode == session.HTTPStatus(wire.CodeForbidden) {
+		return ErrJoinNameWaits
+	}
+	return ErrJoinRefused
 }
 
 // waitForKeys tries PathKeys until an admin has listed this server, the

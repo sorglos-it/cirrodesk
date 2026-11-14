@@ -98,6 +98,7 @@ func TestJoinAnswersEachFailureWithItsOwnLine(t *testing.T) {
 		{join.ErrJoinTooSlow, msgJoinTooSlow, false},
 		{join.ErrJoinWrongAPI, msgJoinWrongAPI, false},
 		{join.ErrJoinRefused, msgJoinRefused, false},
+		{join.ErrJoinNameWaits, msgJoinNameWaits, false},
 		{join.ErrJoinSecret, msgJoinSecret, false},
 		{join.ErrJoinTimeout, msgJoinNotListed, false},
 		{errors.New("something nobody wrote a line for"), msgJoinFailed, false},
@@ -116,10 +117,10 @@ func TestJoinAnswersEachFailureWithItsOwnLine(t *testing.T) {
 		}
 		seen[got] = c.err
 	}
-	// Eight categories plus the cautious line. Two that fell together would
+	// Nine categories plus the cautious line. Two that fell together would
 	// be a category that tells the admin nothing new.
-	if len(seen) != 9 {
-		t.Errorf("the lines are %d different ones, want 9", len(seen))
+	if len(seen) != 10 {
+		t.Errorf("the lines are %d different ones, want 10", len(seen))
 	}
 }
 
@@ -143,7 +144,8 @@ func TestJoinNamesNoValueWhateverGoesWrong(t *testing.T) {
 	lines := []string{msgJoinFailed}
 	for _, err := range []error{
 		join.ErrJoinInput, tunnel.ErrJoinCode, join.ErrJoinNoAnswer, join.ErrJoinTooSlow,
-		join.ErrJoinWrongAPI, join.ErrJoinRefused, join.ErrJoinSecret, join.ErrJoinTimeout,
+		join.ErrJoinWrongAPI, join.ErrJoinRefused, join.ErrJoinNameWaits, join.ErrJoinSecret,
+		join.ErrJoinTimeout,
 	} {
 		lines = append(lines, joinFailure(err))
 	}

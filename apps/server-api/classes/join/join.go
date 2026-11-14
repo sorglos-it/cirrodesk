@@ -13,6 +13,7 @@ import (
 	"crypto/ecdh"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
@@ -137,6 +138,23 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 		// did not hold its secret.
 		j.note(ctx, wire.CodeVerify, reason.JoinProof)
 		httpapi.Fail(w, wire.CodeVerify)
+		return
+	}
+	switch _, err := j.S.DB.BlobGet(ctx, dbapi.BlobJoin, req.Node); {
+	case err == nil:
+		// Frage 24 (a): a request already waits under this name, and
+		// overwriting it would let the admin sign a server other than the one
+		// he is waiting for without noticing. The first one stays; the new
+		// server is told, so its admin can sort the name out.
+		// shortcut: two APIs taking two requests for one name at the same
+		// instant can still both pass this read; fine while joins are rare and
+		// by hand, a conditional put in dbapi would close it.
+		j.note(ctx, wire.CodeForbidden, reason.JoinWaits)
+		httpapi.Fail(w, wire.CodeForbidden)
+		return
+	case !errors.Is(err, dbapi.ErrNotFound):
+		j.note(ctx, wire.CodeUnreachable, reason.DB)
+		httpapi.Fail(w, wire.CodeUnreachable)
 		return
 	}
 	if err := j.keep(ctx, req); err != nil {
