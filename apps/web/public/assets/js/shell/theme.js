@@ -10,6 +10,7 @@ const KEY_THEME = "ngc.theme";
 const KEY_ACCENT = "ngc.accent";
 const KEY_WALLPAPER = "ngc.wallpaper";
 const KEY_DENSITY = "ngc.density";
+const KEY_GLASS = "ngc.glass";
 
 // The two designs there are. A name outside this list never reaches the
 // document, and applyTheme refuses it.
@@ -60,6 +61,28 @@ export const DENSITIES = [
   { id: "luftig", name: "Luftig" },
 ];
 export const DEFAULT_DENSITY = "normal";
+
+// How much glass the floating surfaces show - band, dock, menus (the "liquid
+// glass" of WhiteSur and macOS). The same shape as the density: "normal"
+// writes no attribute, the values of :root are it.
+export const GLASSES = [
+  { id: "aus", name: "Kein Glas" },
+  { id: "normal", name: "Glas" },
+  { id: "stark", name: "Viel Glas" },
+];
+export const DEFAULT_GLASS = "normal";
+
+export function currentGlass() {
+  const g = document.documentElement.dataset.glass;
+  return GLASSES.some((x) => x.id === g) ? g : DEFAULT_GLASS;
+}
+
+export function applyGlass(id) {
+  if (!GLASSES.some((x) => x.id === id)) return;
+  if (id === DEFAULT_GLASS) delete document.documentElement.dataset.glass;
+  else document.documentElement.dataset.glass = id;
+  write(KEY_GLASS, id);
+}
 
 const listeners = new Set();
 
@@ -254,4 +277,7 @@ export function initTheme() {
   } else {
     delete document.documentElement.dataset.density;
   }
+  const g = read(KEY_GLASS);
+  if (GLASSES.some((x) => x.id === g) && g !== DEFAULT_GLASS) document.documentElement.dataset.glass = g;
+  else delete document.documentElement.dataset.glass;
 }
