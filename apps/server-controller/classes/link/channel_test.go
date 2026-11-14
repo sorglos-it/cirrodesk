@@ -1413,3 +1413,50 @@ func TestAPanickingHandlerEndsOnlyItsOwnChannel(t *testing.T) {
 		t.Fatalf("the value of the panic reached the log: %q", line)
 	}
 }
+
+// The API answers the CLOSE of this side as soon as the frame reaches it, and
+// it may reuse the number at once - before the write of that CLOSE has come
+// back here. The OPEN that follows is a channel and not a stray frame. Held
+// deterministically: the write of the first CLOSE does not return until the
+// second channel has run. Until 14.11.2026 the number was freed only behind the
+// write, and the OPEN was dropped without an answer (the CI flake of
+// TestChannelNumberFreeOnlyAfterBothCloses).
+func TestOpenWhileOwnCloseIsStillBeingWritten(t *testing.T) {
+	inWrite := make(chan struct{})
+	release := make(chan struct{})
+	var closes atomic.Int64
+	send := func(f wire.Frame) error {
+		if f.Type == wire.TypeClose && f.Channel == 1 && closes.Add(1) == 1 {
+			close(inWrite)
+			<-release
+		}
+		return nil
+	}
+	var opened atomic.Int64
+	second := make(chan struct{})
+	h := opener(func(_ context.Context, _ *Channel, _ tunnel.Opened) error {
+		if opened.Add(1) == 2 {
+			close(second)
+		}
+		return nil
+	})
+	ctx, stop := context.WithCancel(context.Background())
+	defer stop()
+	c := newChannels(ctx, h, send, slog.New(slog.DiscardHandler))
+	if err := c.take(openFrame(t, 1, wire.MinWindow)); err != nil {
+		t.Fatalf("OPEN: %v", err)
+	}
+	<-inWrite
+	if err := c.take(closeFrame(t, 1, wire.Close{Status: wire.StatusOK})); err != nil {
+		t.Fatalf("CLOSE of the API: %v", err)
+	}
+	if err := c.take(openFrame(t, 1, wire.MinWindow)); err != nil {
+		t.Fatalf("second OPEN: %v", err)
+	}
+	select {
+	case <-second:
+	case <-time.After(answer):
+		t.Fatal("the OPEN after both closes opened no channel while the own CLOSE was in its write")
+	}
+	close(release)
+}

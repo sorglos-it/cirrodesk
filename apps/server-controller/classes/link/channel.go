@@ -568,6 +568,18 @@ func (c *channels) route(f wire.Frame) (*Channel, tunnel.Opened, what, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	ch, known := c.m[f.Channel]
+	if known && ch.spent() {
+		// Both closes are in and the CLOSE of this side has been handed to
+		// the write, which finish frees the number behind - but only once the
+		// write has come back. The API reacts to the frame itself, so its
+		// CLOSE and its next OPEN can be here before that: a frame on the
+		// number after the CLOSE of the API is only legal once it has read
+		// ours, so ours is out and the number is free. Waiting for finish
+		// dropped that OPEN in silence (TestChannelNumberFreeOnlyAfterBothCloses
+		// on CI, 14.11.2026).
+		c.drop(ch)
+		known = false
+	}
 	if !known {
 		// A number that is free. It is taken from here on, whatever the frame
 		// was: an OPEN opens a channel, everything else is answered and the
@@ -695,6 +707,14 @@ const queueCost = 32
 // might not be somewhere else. With the smallest window that is 130 waiting
 // frames.
 func (ch *Channel) room() bool { return uint64(len(ch.queue)) < (ch.in+ch.bytes)/queueCost+2 }
+
+// spent says that both closes of ch are in and the write of this side's CLOSE
+// is taken. The caller holds c.mu.
+func (ch *Channel) spent() bool {
+	ch.mu.Lock()
+	defer ch.mu.Unlock()
+	return ch.closing && ch.peer && ch.answer == nil
+}
 
 // hold puts a number into the state of this tunnel. The caller holds mu.
 func (c *channels) hold(num uint32) *Channel {
