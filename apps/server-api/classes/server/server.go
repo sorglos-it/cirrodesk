@@ -267,10 +267,10 @@ func Build(ctx context.Context, cfg *config.API, version string) (*Server, error
 	// controllers.Server.control -- "my service has died" reached no shell and
 	// left nothing behind either.
 	ctl.OnNotice = srv.notice
-	srv.handler = srv.routes(httpapi.Routes{
+	srv.handler = requestLog(cfg.Node, srv.routes(httpapi.Routes{
 		Setup: sh.Serve, Login: lh.Start, Finish: lh.Finish, Logout: lh.Logout,
 		Trust: lh.Trust, Socket: bs.Socket,
-	}.Mux(), ctl, jn)
+	}.Mux(), ctl, jn))
 	if err := srv.sweepSpool(); err != nil {
 		return nil, errors.New("das Zwischenlager für Pakete lässt sich nicht anlegen oder räumen")
 	}
