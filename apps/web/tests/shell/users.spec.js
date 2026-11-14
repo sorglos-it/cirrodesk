@@ -2173,3 +2173,49 @@ test("without a session the two forms say what is missing, not that something br
       await expect(box).not.toContainText("antwortet gerade nicht");
     }
   });
+
+// ------------------------------------------------------------ passkey, create
+//
+// "Passkey hinzufügen" driven by a click, with Chromium's virtual
+// authenticator (CDP WebAuthn) in front of navigator.credentials.create.
+// Only Chromium has that domain; the key building itself runs in all three
+// engines in passkey-add.spec.js.
+//
+// THE PAGE IS SERVED AS https://localhost, routed to the php server: a passkey
+// needs an origin url.validOrigin takes (https only), and the shell refuses to
+// make one anywhere else. The fake-link route of serveWorld stays in force
+// through route.fallback.
+test("a passkey made by a click goes out as one version with one passkey key", async ({ page, baseURL, browserName }) => {
+  test.skip(browserName !== "chromium", "the virtual authenticator is CDP, which only Chromium has");
+  await skipWithoutLogin(page);
+  await page.route("https://localhost/**", async (route) => {
+    if (route.request().url().includes("/assets/js/shell/fake-link.js")) return route.fallback();
+    const url = route.request().url().replace("https://localhost", baseURL);
+    return route.fulfill({ response: await route.fetch({ url }) });
+  });
+  await page.goto("https://localhost/");
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("WebAuthn.enable");
+  await cdp.send("WebAuthn.addVirtualAuthenticator", { options: {
+    protocol: "ctap2", transport: "internal", hasResidentKey: true,
+    hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true,
+  } });
+  await mount(page, { signable: true });
+  await openTab(page, "Benutzer");
+  await app(page).getByRole("button", { name: "Passkey für mich hinzufügen" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Weiter" }).click();
+  await sign(page);
+  await expect(app(page).locator(".panel.users .note")).toHaveText("Der Passkey ist eingetragen.");
+  const sent = await page.evaluate(async () => {
+    const trust = await import("/assets/js/contracts/trust.js");
+    const one = window.__ngcSent[window.__ngcSent.length - 1];
+    const l = await trust.parseList(trust.parseSigned(one.bytes).payload);
+    const me = l.users.find((u) => u.name === "admin");
+    return {
+      count: window.__ngcSent.length, rp: l.rp,
+      keys: me.keys.map((k) => k.kind + "/" + k.alg + "/" + (k.credId.length > 0)),
+    };
+  });
+  expect(sent).toEqual({ count: 1, rp: { id: "localhost", origins: ["https://localhost"] },
+    keys: ["password/EdDSA/false", "passkey/ES256/true"] });
+});
