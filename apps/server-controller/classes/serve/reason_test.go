@@ -15,6 +15,7 @@ import (
 	"github.com/flynn/noise"
 
 	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/nextgencloud/shared/dbapi"
 	"github.com/sorglos-it/nextgencloud/shared/noisep"
 	"github.com/sorglos-it/nextgencloud/shared/wire"
 )
@@ -384,12 +385,55 @@ func TestEveryReasonIsFromTheClosedList(t *testing.T) {
 	// the code and not to the list falls here; the cases above are what says
 	// that the right one of them reaches the journal.
 	for _, r := range []string{ReasonPlan, ReasonRunDir, ReasonContainer, ReasonTooLarge,
-		ReasonCut, ReasonService, ReasonInternal} {
+		ReasonCut, ReasonService, ReasonInternal, ReasonLicense, ReasonLicenseIO} {
 		if !slices.Contains(reasons, r) {
 			t.Errorf("the reason %q is used but not in the list", r)
 		}
 	}
-	if len(reasons) != 7 {
-		t.Errorf("the list holds %d reasons, want the 7 this case names", len(reasons))
+	if len(reasons) != 9 {
+		t.Errorf("the list holds %d reasons, want the 9 this case names", len(reasons))
+	}
+}
+
+// An app whose licence ran out reaches no container: the channel ends
+// E_LICENSE and says so (R6, A9). An unreadable licence ends E_INTERNAL.
+func TestAnAppWithoutALicenceReachesNoContainer(t *testing.T) {
+	for _, c := range []struct {
+		name   string
+		ok     bool
+		err    error
+		code   wire.Code
+		reason string
+	}{
+		{"expired", false, nil, wire.CodeLicense, ReasonLicense},
+		{"unreadable", false, errors.New("state: disk"), wire.CodeInternal, ReasonLicenseIO},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			envHere(t)
+			w := newWorld(t)
+			l := &lines{}
+			w.rebuild(func(d *Deps) {
+				d.Log = slog.New(l)
+				d.Licensed = func(context.Context, dbapi.App) (bool, error) { return c.ok, c.err }
+			})
+			payload, hs := w.appOpen(t, nil)
+			ended := w.tunnel(t, func(a *apiSide) {
+				sh := start(t, a, 1, payload, hs)
+				sh.inner(wire.E2EEnd, nil)
+				_, end := sh.out()
+				wantCode(t, end, c.code)
+				a.shut(1)
+				a.bye()
+			})
+			if err := waitFor(t, ended); err != nil {
+				t.Fatalf("Run = %v, want an orderly end after bye", err)
+			}
+			if n := w.eng.starts.Load(); n != 0 {
+				t.Errorf("the container was started %d times, want none", n)
+			}
+			if r := onlyCut(t, l); r["grund"] != c.reason {
+				t.Errorf("grund = %q, want %q", r["grund"], c.reason)
+			}
+		})
 	}
 }

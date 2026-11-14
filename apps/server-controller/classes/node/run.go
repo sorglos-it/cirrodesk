@@ -674,6 +674,7 @@ func wireUp(version string, cfg *config.Controller, key noise.DHKey, st *state.S
 		// installer reaches for it.
 		Installer: installer{cfg: cfg, version: version, state: st, engine: engine,
 			node: nodeID},
+		Licensed: licensed,
 	})
 	c := RunConfig{State: st, Chain: keeper, Report: rep, Listed: listed}
 	for _, a := range cfg.APIs {

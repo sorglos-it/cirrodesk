@@ -62,6 +62,7 @@ import (
 	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
 	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
 	"github.com/sorglos-it/nextgencloud/shared/core"
+	"github.com/sorglos-it/nextgencloud/shared/dbapi"
 	"github.com/sorglos-it/nextgencloud/shared/trust"
 	"github.com/sorglos-it/nextgencloud/shared/tunnel"
 	"github.com/sorglos-it/nextgencloud/shared/wire"
@@ -174,6 +175,11 @@ type Deps struct {
 	// controller that wires nothing here is a controller whose apps die with
 	// the next boot of the machine.
 	Prepare func(ctx context.Context, app string) error
+	// Licensed says whether an app may run at all (license.Allowed). An app
+	// channel asks it before the container: false ends E_LICENSE and starts
+	// nothing, an error ends E_INTERNAL. nil: every app may, which is for a
+	// case only - node.wireUp always sets it.
+	Licensed func(ctx context.Context, a dbapi.App) (bool, error)
 	// Log is where this package writes. nil: slog.Default(). Nothing a peer
 	// brings about is written here more than once, and almost all of it not at
 	// all (see the doc of this package).
