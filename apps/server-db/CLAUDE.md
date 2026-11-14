@@ -3,7 +3,7 @@
 Dein Ordner: `apps/server-db/`, dazu `scripts/ngc-db.sh` im ulh-Repo (`shared/ulh.md`).
 Verträge: V4, V6.
 
-Aufbau: kein eigenes Programm. `classes/` enthält die Umsetzungen von `dbapi`, je ein Go-Paket
+Aufbau: das Programm `ngc-db` (`main.go`, Logik in `classes/dbcli/`) sichert und spielt den MariaDB-Knoten des Rechners mit `mariabackup` zurück (`ngc-db backup|restore <Ordner>`); SQLite sichert `ngc-api backup`. `classes/` enthält die Umsetzungen von `dbapi`, je ein Go-Paket
 als Unterordner (`classes/mariadb/`, `classes/sqlite/`), damit jedes Programm nur den Treiber
 bekommt, den es braucht. `sql/` enthält die nummerierten Migrationen.
 

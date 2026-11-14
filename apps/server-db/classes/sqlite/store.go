@@ -46,5 +46,6 @@ func Open(cfg config.DB, owner string, now int64) (dbapi.Store, error) {
 		write.Close()
 		return nil, err
 	}
+	sqlstore.LogDrift(read, sqlstore.SQLite)
 	return NewSplit(write, read), nil
 }
