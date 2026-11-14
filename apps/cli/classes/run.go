@@ -34,6 +34,8 @@ Aufrufe:
   ngc-store check <Verzeichnis> <Teil> <Architektur>  Release prüfen wie verify.sh
   ngc-store check -store <Store> <Verzeichnis>    ganzen Store prüfen
   ngc-store contents <Verzeichnis>                Inhalt der Release-Tars prüfen
+  ngc-store key <Schlüsseldatei>                  öffentlichen Schlüssel eines Stores nennen
+                                                  (storeKey der Installation, NGC_STORE_KEY)
 
 Von null zu einem geprüften Release:
   1. Die Archive mit genau diesen Namen in ein leeres Verzeichnis legen:
@@ -174,6 +176,27 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return runRelease(args[1:], stdout, stderr)
 	case "check":
 		return runCheck(args[1:], stdout, stderr)
+	case "key":
+		if len(args) != 2 {
+			fmt.Fprint(stderr, Usage)
+			return 2
+		}
+		// The value an installation needs (config storeKey, ulh NGC_STORE_KEY)
+		// was printed only once, when the key file was created; whoever sets
+		// up a second installation had no way to read it again.
+		if _, err := os.Stat(args[1]); errors.Is(err, os.ErrNotExist) {
+			fmt.Fprintf(stderr, "Schlüsseldatei fehlt: %s\n", args[1])
+			return 1
+		}
+		priv, err := readStoreKey(args[1])
+		if err != nil {
+			fmt.Fprintf(stderr, "Schlüsseldatei nicht gelesen: %v\n", err)
+			return 1
+		}
+		pub := priv.Public().(ed25519.PublicKey)
+		clear(priv)
+		fmt.Fprintf(stdout, "Öffentlicher Schlüssel: %s\nKennung: %s\n", enc.B64.EncodeToString(pub), sign.KeyID(pub))
+		return 0
 	case "contents":
 		if len(args) != 2 {
 			fmt.Fprint(stderr, Usage)

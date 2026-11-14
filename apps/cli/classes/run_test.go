@@ -3,6 +3,7 @@ package classes
 import (
 	"bytes"
 	"crypto/ecdh"
+	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -58,7 +59,7 @@ func TestRunKnowsItsSubcommands(t *testing.T) {
 	// it now holds is that no subcommand answers with that sentence and that
 	// a bare name is a call of the wrong shape (exit 2), not a missing
 	// feature (exit 1).
-	for _, name := range []string{"pack", "encrypt", "catalog", "license", "release", "check"} {
+	for _, name := range []string{"pack", "encrypt", "catalog", "license", "release", "check", "key"} {
 		var stdout, stderr bytes.Buffer
 		if code := Run([]string{name}, &stdout, &stderr); code != 2 {
 			t.Errorf("%s: exit %d, want 2 for a call without arguments", name, code)
@@ -254,5 +255,33 @@ func TestEverySigningSubcommandCreatesAMissingKeyFile(t *testing.T) {
 				t.Errorf("%s does not name the key file it made: %q", c.name, stdout.String())
 			}
 		})
+	}
+}
+
+func TestRunNamesThePublicKeyOfAnExistingStoreKey(t *testing.T) {
+	keyFile := filepath.Join(t.TempDir(), "store.key")
+	priv, err := NewStoreKey(keyFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pub := priv.Public().(ed25519.PublicKey)
+	var stdout, stderr bytes.Buffer
+	if code := Run([]string{"key", keyFile}, &stdout, &stderr); code != 0 {
+		t.Fatalf("exit %d, %s", code, stderr.String())
+	}
+	want := "Öffentlicher Schlüssel: " + enc.B64.EncodeToString(pub) + "\nKennung: " + sign.KeyID(pub) + "\n"
+	if stdout.String() != want {
+		t.Errorf("stdout %q, want %q", stdout.String(), want)
+	}
+	if strings.Contains(stdout.String(), enc.B64.EncodeToString(priv.Seed())) {
+		t.Error("seed printed")
+	}
+	stdout.Reset()
+	missing := filepath.Join(t.TempDir(), "none.key")
+	if code := Run([]string{"key", missing}, &stdout, &stderr); code != 1 {
+		t.Errorf("missing key file: exit %d, want 1", code)
+	}
+	if _, err := os.Stat(missing); err == nil {
+		t.Error("key created a key file; it must only read one")
 	}
 }
