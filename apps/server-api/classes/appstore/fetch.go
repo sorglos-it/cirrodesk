@@ -31,9 +31,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
@@ -88,6 +90,13 @@ var ErrStore = errors.New("appstore: store answered something unusable")
 
 // Stores fetches and verifies catalogs and releases.
 type Stores struct {
+	// said is what the journal last heard about each store (A5, Punkt 79):
+	// a failed round used to land only in the store's row, and a store gone
+	// for a week knocked 168 times without one line a person finds without
+	// looking. Only a CHANGE is said, so a dead store is one line and not
+	// 168. Guarded by saidMu.
+	saidMu sync.Mutex
+	said   map[string]string
 	S      *state.State
 	Client *http.Client
 	// Log is where a change to a store or a catalog is written down. It is the
@@ -179,6 +188,7 @@ func (st *Stores) Refresh(ctx context.Context) error {
 	}
 	for _, s := range v.List.Stores {
 		err := st.refreshOne(ctx, s)
+		st.journal(s.ID, err)
 		// The reason is shown to admins in ngc.store/sources, in German, and
 		// writing it down must not swallow the next store either.
 		_ = st.note(ctx, s.ID, err)
@@ -186,6 +196,31 @@ func (st *Stores) Refresh(ctx context.Context) error {
 	// Forgetting comes last, and it must not cost the catalogs above either.
 	_ = st.forget(ctx, v.List.Stores)
 	return nil
+}
+
+// journal writes one line when the state of a store changes: the first
+// failure, a different reason, or the first good round after a failure. The
+// text is reasonFor's fixed sentence, never the error itself, which may carry
+// the store's address with a query.
+func (st *Stores) journal(id string, err error) {
+	now := ""
+	if err != nil {
+		now = reasonFor(err)
+	}
+	st.saidMu.Lock()
+	before, known := st.said[id]
+	if st.said == nil {
+		st.said = map[string]string{}
+	}
+	st.said[id] = now
+	st.saidMu.Unlock()
+	switch {
+	case now == before:
+	case now != "":
+		slog.Warn("store could not be fetched, the last good catalog stays", "store", id, "reason", now)
+	case known:
+		slog.Info("store answers again", "store", id)
+	}
 }
 
 // forget drops the catalog of every store that is no longer in the trust
