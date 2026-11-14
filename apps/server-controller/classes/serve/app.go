@@ -242,11 +242,21 @@ func (s *Server) runApp(ctx context.Context, ch *link.Channel, sess *e2e.Session
 		o.say(s, d.App.ID, ReasonPlan, *cl)
 		return s.answer(ctx, ch, o, d.App.ID, sess, *cl)
 	}
-	// Here the licence of the app belongs, between the handshake that stands
-	// and the container that is started: an app whose licence has run out
-	// ends with E_LICENSE and reaches no container at all. Task 17 brings the
-	// licence and this is the one place it goes; until then no app channel is
-	// refused for one, and no E_LICENSE leaves this package.
+	// The licence, between the handshake that stands and the container: an
+	// app whose licence ran out past its grace reaches no container at all.
+	if s.d.Licensed != nil {
+		ok, err := s.d.Licensed(ctx, d.App)
+		if err != nil {
+			cl := refuse(wire.CodeInternal)
+			o.say(s, d.App.ID, ReasonLicenseIO, *cl)
+			return s.answer(ctx, ch, o, d.App.ID, sess, *cl)
+		}
+		if !ok {
+			cl := refuse(wire.CodeLicense)
+			o.say(s, d.App.ID, ReasonLicense, *cl)
+			return s.answer(ctx, ch, o, d.App.ID, sess, *cl)
+		}
+	}
 	if cl, reason := s.ensure(ctx, d.App.ID, p.container,
 		runtime.Limits{CPU: d.Manifest.CPU, Memory: d.Manifest.Memory}); cl != nil {
 		o.say(s, d.App.ID, reason, *cl)

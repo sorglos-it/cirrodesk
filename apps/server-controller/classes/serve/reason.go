@@ -56,12 +56,14 @@ const (
 	ReasonCut       = "Die Verbindung brach ab, bevor das Ende des Dienstes hinausging."
 	ReasonService   = "Der Dienst der App endete mit einem Fehler."
 	ReasonInternal  = "Die Verbindung konnte serverseitig nicht geführt werden."
+	ReasonLicense   = "Die Lizenz der App ist abgelaufen oder nicht gültig."
+	ReasonLicenseIO = "Die Lizenz der App konnte nicht gelesen werden."
 )
 
 // reasons is the whole list, so a case can show that nothing else ever reaches
 // an administrator (TestEveryReasonIsFromTheClosedList).
 var reasons = []string{ReasonPlan, ReasonRunDir, ReasonContainer, ReasonTooLarge, ReasonCut,
-	ReasonService, ReasonInternal}
+	ReasonService, ReasonInternal, ReasonLicense, ReasonLicenseIO}
 
 // once is the ONE line a channel may leave. It belongs to one app channel and
 // is touched only by the goroutine of that channel.
