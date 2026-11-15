@@ -93,7 +93,7 @@ export class WorldError extends Error {
   }
 }
 
-const NO_ACTION = "Diese Anfrage kennt NGC nicht.";
+const NO_ACTION = "Diese Anfrage kennt CirroDesk nicht.";
 const WRONG_WAY = "Diese Anfrage geht so nicht.";
 const NO_NODE = "Diese App sagt nicht, auf welchem Rechner ihr Dienst läuft.";
 // No session key pair in this adapter. It is NOT a missing feature any more -
@@ -106,7 +106,7 @@ const NO_SESSION_KEY = "Diese Anmeldung kann den eigenen Dienst einer App nicht 
 // no list to ask, so nothing is known about this server either way, and
 // "this server is not in your trust list" would be a sentence about the server
 // that says nothing true about it.
-const NO_TRUST_LIST = "NGC hat die Vertrauensliste dieser Anlage nicht geöffnet. "
+const NO_TRUST_LIST = "CirroDesk hat die Vertrauensliste dieser Anlage nicht geöffnet. "
   + "Bitte die Seite neu laden.";
 // A step the server will only run on a signed task, and no session here that
 // could sign one. The sentence names what helps, like the one above it.
@@ -124,11 +124,11 @@ const NOT_CONFIRMED = "Nicht bestätigt. Die App wurde nicht geöffnet.";
 const NO_CONTROLLER_KEY = NOT_TRUSTED;
 
 // rowFor finds the action of three texts. null means "this is no action of
-// NGC's own" - the own service of an app, which goes to appChannel below.
+// CirroDesk's own" - the own service of an app, which goes to appChannel below.
 //
 // A row the shell may not open at all (core.shellOpens) is refused:
-// ngc.users/controller/trust, ngc.store/controller/stage and
-// ngc.store/controller/license, which only the API opens and which the API
+// cd.users/controller/trust, cd.store/controller/stage and
+// cd.store/controller/license, which only the API opens and which the API
 // answers a shell's OPEN for with E_FORBIDDEN. Refusing it here costs a
 // channel less and tells the truth one round trip earlier.
 function rowFor(app, service, name) {
@@ -139,7 +139,7 @@ function rowFor(app, service, name) {
 }
 
 // appChannel opens the end-to-end channel of an app's own service - the one
-// thing the surfaces ask for that is no action of NGC's own. Until Task 28 it
+// thing the surfaces ask for that is no action of CirroDesk's own. Until Task 28 it
 // always threw; what it does now is put the eight arguments of
 // channel.openE2E together, and refuse while one of them is not there.
 //
@@ -475,7 +475,7 @@ function own(bytes, what) {
 //
 // THE SECOND ARGUMENT IS THE WORLD AROUND THE LINK, and only an app's own
 // service needs it: {sessionDH, trust, session}. An adapter built without it still
-// answers every action of NGC's own - those go to the API over the session that
+// answers every action of CirroDesk's own - those go to the API over the session that
 // is already open - and refuses an app's own service with the word for the
 // piece it has not got. realWorld below is what hands both over.
 export function adapterFor(link, world = {}) {
@@ -516,7 +516,7 @@ export function adapterFor(link, world = {}) {
       }
       const taskBytes = own(o.taskBytes, "task");
       const confirmBytes = own(o.confirmBytes, "confirmation");
-      // o.node is NOT read for an action of NGC's own, and that is right: those
+      // o.node is NOT read for an action of CirroDesk's own, and that is right: those
       // channels go to the API, and where a root task names a controller the
       // node travels inside the SIGNED task (task.buildTask), never in the
       // OPEN. An adapter that put it in the OPEN as well would offer the API a
@@ -560,7 +560,7 @@ export function adapterFor(link, world = {}) {
     // message 2 has come back in the first grant and the transport is split. A
     // channel that cannot be opened therefore THROWS from here, where the frame
     // catches it, instead of being reported later through onClose on a stream
-    // that never was one. (public/assets/ngc.js cannot do that - a postMessage
+    // that never was one. (public/assets/cd.js cannot do that - a postMessage
     // bridge has nothing to wait for and hands the app its stream at once, and
     // onClose is what tells it afterwards. Here there is something to wait for,
     // so we wait.)

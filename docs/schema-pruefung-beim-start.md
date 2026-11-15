@@ -1,5 +1,7 @@
 # Spaltentypen beim Start prüfen – Befund und Entwurf
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Stand 30.10.2026. Zweig `schema-pruefung`, gemessen auf `origin/main` 25b8f24e.
 Alle Zahlen unten sind gemessen; der Befehl steht jeweils dabei.
 

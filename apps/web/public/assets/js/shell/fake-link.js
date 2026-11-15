@@ -56,15 +56,15 @@ import { CODES } from "../contracts/wire.js";
 
 const enc = new TextEncoder();
 
-// The two apps that ship with NGC and really run in the frame. Their ids are
-// NOT "ngc.terminal" and "ngc.calc": core.AppParams refuses a core app ("ngc.")
-// for both ngc.desktop/ui and ngc.desktop/ui-proof, so an app of NGC's own can
+// The two apps that ship with CirroDesk and really run in the frame. Their ids are
+// NOT "cd.terminal" and "cd.calc": core.AppParams refuses a core app ("cd.")
+// for both cd.desktop/ui and cd.desktop/ui-proof, so an app of CirroDesk's own can
 // never be asked for a user interface at all. shared/testdata calls them
 // org.sorglos.terminal and org.sorglos.calculator, and so does this.
 //
 // WHAT STANDS IN HERE SINCE TASK 25: both are apps a person ACTIVATES (design
 // 4.2 and 4.4 - "Zum Aktivieren: Rechner und Terminal"), so in operation their
-// user interfaces arrive as the ui/ of an app package, over ngc.desktop/ui,
+// user interfaces arrive as the ui/ of an app package, over cd.desktop/ui,
 // against a checksum a store's catalog signed. The source of those files is the
 // web interface's own (apps/web/assets/apps/<app>/, design 22.09.2026: "ihre
 // Oberflächen baut das Webinterface"), and nothing in this repository packs them
@@ -87,7 +87,7 @@ const SHIPPED = new Map([[TERMINAL, "terminal"], [CALCULATOR, "calculator"]]);
 // the one the manifest names.
 const SHIPPED_FILES = ["index.html", "app.css", "app.js"];
 // Where the test harness hands them over (tests/mock/api.js). It is not an
-// address of NGC: nothing but this stand-in ever asks for it, and outside a
+// address of CirroDesk: nothing but this stand-in ever asks for it, and outside a
 // test run nothing answers it.
 const SHIPPED_DOOR = "/mock/ui/";
 const STORE = "global";
@@ -98,16 +98,16 @@ const VERSION = "1.0.0";
 // case and the world cannot drift apart over it.
 export const PASSWORD = "geheim";
 
-// The apps the stand-in reports for "ngc.desktop/apps". Every field of
+// The apps the stand-in reports for "cd.desktop/apps". Every field of
 // core.DesktopApp stands here, because these bytes go through
 // core.parseResult like the real answer and a missing field is refused.
 const APPS = [
   {
-    id: "ngc.store", name: "App-Store", version: "1.0.0", icon: "", entry: "",
+    id: "cd.store", name: "App-Store", version: "1.0.0", icon: "", entry: "",
     width: 760, height: 520, actions: [], state: "ok", core: true, node: "",
   },
   {
-    id: "ngc.users", name: "Benutzer und Rechte", version: "1.0.0", icon: "", entry: "",
+    id: "cd.users", name: "Benutzer und Rechte", version: "1.0.0", icon: "", entry: "",
     width: 760, height: 520, actions: [], state: "ok", core: true, node: "",
   },
   // The calculator has no service and no node: it reckons in the browser, and
@@ -255,7 +255,7 @@ function terminalStream(h) {
   const die = () => {
     if (dead) return;
     dead = true;
-    window.__ngcTermFrames.push({ kind: "bad" });
+    window.__cdTermFrames.push({ kind: "bad" });
     s.onClose?.("error", "Dienst nicht erreichbar.");
   };
   const answer = (text) => {
@@ -285,7 +285,7 @@ function terminalStream(h) {
       // A TEST HOOK, and it leaves with this file: the bytes of this one write,
       // before anything has read them. A case about the format needs the bytes
       // as they went out, not what a parser made of them.
-      window.__ngcTermRaw.push([...bytes]);
+      window.__cdTermRaw.push([...bytes]);
       const all = new Uint8Array(rest.length + bytes.length);
       all.set(rest, 0);
       all.set(bytes, rest.length);
@@ -298,14 +298,14 @@ function terminalStream(h) {
         const body = all.subarray(at + TERM_HEADER, at + TERM_HEADER + n);
         if (all[at] === TERM_KEYS) {
           if (n === 0) { die(); return; }
-          window.__ngcTermFrames.push({ kind: "keys", len: n, text: dec.decode(body.slice()) });
+          window.__cdTermFrames.push({ kind: "keys", len: n, text: dec.decode(body.slice()) });
           keys(body.slice());
         } else if (all[at] === TERM_RESIZE) {
           if (n !== TERM_RESIZE_SIZE) { die(); return; }
           const cols = (body[0] << 8) | body[1];
           const rows = (body[2] << 8) | body[3];
           if (cols === 0 || rows === 0 || cols > TERM_MAX_DIM || rows > TERM_MAX_DIM) { die(); return; }
-          window.__ngcTermFrames.push({ kind: "resize", len: n, cols, rows });
+          window.__cdTermFrames.push({ kind: "resize", len: n, cols, rows });
         } else {
           die();
           return;
@@ -324,7 +324,7 @@ function terminalStream(h) {
     close() {
       // A TEST HOOK, and it leaves with this file: how many of these channels
       // the shell has given up. A real channel is counted by the session.
-      window.__ngcStreamsClosed++;
+      window.__cdStreamsClosed++;
     },
   };
   // A controller that fell over: the channel ends without an "ok". The text is
@@ -332,7 +332,7 @@ function terminalStream(h) {
   // code as well, and nothing on the app's side reads either.
   // An ending with no sentence at all is sent with no second argument, and
   // not with "": that is what the real bridge does for a close that carries
-  // none (public/assets/ngc.js hands m.message on as it is).
+  // none (public/assets/cd.js hands m.message on as it is).
   if (h.cut) {
     setTimeout(() => (h.said === "" ? s.onClose?.("error") : s.onClose?.("error", h.said)), 0);
   }
@@ -350,9 +350,9 @@ function terminalStream(h) {
 // shell against a document no store could ever send.
 function catalogDoc(uiHashes, evilName) {
   const pkg = (version, ui, encrypted) => ({
-    version, url: "pakete/" + version + ".ngc", size: 5000000,
+    version, url: "pakete/" + version + ".cd", size: 5000000,
     sha256: b64encode(new Uint8Array(32).fill(2)), ui: b64encode(ui),
-    encrypted, needs: [], minNgc: "",
+    encrypted, needs: [], minCd: "",
   });
   return {
     store: STORE, seq: 1, issued: 1790000000,
@@ -381,7 +381,7 @@ function catalogDoc(uiHashes, evilName) {
         description: "Passwörter sicher aufbewahren.",
         price: {
           model: "buy", per: "site", amount: 4900, currency: "EUR", period: "",
-          shop: "https://store.ngc.test/tresor",
+          shop: "https://store.cd.test/tresor",
         },
         versions: [pkg("2.0.0", new Uint8Array(32).fill(4), true)],
       },
@@ -396,7 +396,7 @@ async function world(knobs) {
   const pair = await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]);
   const pub = new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey));
   const kid = await keyIDAsync(pub);
-  const store = { id: STORE, name: "NGC Store", url: "https://store.ngc.test", key: pub };
+  const store = { id: STORE, name: "CirroDesk Store", url: "https://store.cd.test", key: pub };
   // The contract's own rule on a store entry, asked here so that a stand-in
   // cannot quietly hand the shell something no trust list would hold.
   if (!validStore(store)) throw new Error("fake-link: this store would not stand in a trust list");
@@ -459,7 +459,7 @@ async function world(knobs) {
 // swapUI: otherwise a case meant for the entry rule would die at the checksum
 // and prove nothing about the rule it is named after.
 function hooks() {
-  const t = window.__ngcTest ?? {};
+  const t = window.__cdTest ?? {};
   return {
     swap: t.swapUI === true,
     entry: typeof t.entry === "string" && t.entry !== "" ? t.entry : "index.html",
@@ -476,7 +476,7 @@ function hooks() {
 // this world to look like. It is read once, when the world is built, so a
 // case sets it with addInitScript before the page is loaded.
 function knobsOf() {
-  const k = window.__ngcStore;
+  const k = window.__cdStore;
   return k !== null && typeof k === "object" ? k : {};
 }
 
@@ -493,7 +493,7 @@ function listOf(store, admin, level) {
     prev: new Uint8Array(0),
     issued: 1790000000,
     installation: b64encode(new Uint8Array(16).fill(9)),
-    rp: { id: "ngc.example.org", origins: ["https://ngc.example.org"] },
+    rp: { id: "cd.example.org", origins: ["https://cd.example.org"] },
     users: [admin],
     roles: [{ name: "admin", level, black: [], white: [], passkeyOnly: false, passwordToo: false }],
     nodes: [
@@ -511,7 +511,7 @@ function listOf(store, admin, level) {
 // stand here as base64url text, because that is what they are in the
 // document, and a case that overrides a row writes it the same way.
 const SOURCES = [
-  { id: STORE, name: "NGC Store", url: "https://store.ngc.test", seq: 1, checked: 1790000000, error: "" },
+  { id: STORE, name: "CirroDesk Store", url: "https://store.cd.test", seq: 1, checked: 1790000000, error: "" },
 ];
 const INSTALLED = [
   { id: TERMINAL, version: VERSION, store: STORE, node: "pi-1", active: true,
@@ -525,7 +525,7 @@ const NODES = [
   { node: "api-1", online: true, roles: ["api"], version: "1.0.0", arch: "amd64" },
 ];
 const UPDATES = [
-  { target: "ngc-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
+  { target: "cd-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
     sha256: b64encode(new Uint8Array(32).fill(6)), key: "", mode: "semi", window: "", state: "downloaded" },
   { target: TERMINAL, node: "pi-1", installed: "1.0.0", available: "1.1.0",
     sha256: b64encode(new Uint8Array(32).fill(7)), key: "", mode: "notify", window: "", state: "needsgrants" },
@@ -548,22 +548,22 @@ export async function fakeWorld() {
   const knobs = knobsOf();
   const { store, proofFor, catalogFor } = await world(knobs);
 
-  window.__ngcTest = { swapUI: false, entry: "", module: false, terminalOutput: "", terminalCut: false };
+  window.__cdTest = { swapUI: false, entry: "", module: false, terminalOutput: "", terminalCut: false };
   // A TEST HOOK as well: how many channels the shell has opened, and how many of
   // the terminal's it has closed again. The real session counts its own channels
   // and needs no such numbers.
-  window.__ngcChannelsOpened = 0;
-  window.__ngcStreamsClosed = 0;
+  window.__cdChannelsOpened = 0;
+  window.__cdStreamsClosed = 0;
   // A TEST HOOK as well, and the measuring point of the terminal's format: the
   // frames this stand-in has read, and the raw bytes of every write before any
   // parser touched them. A real service reads its own frames and counts
   // nothing.
-  window.__ngcTermFrames = [];
-  window.__ngcTermRaw = [];
+  window.__cdTermFrames = [];
+  window.__cdTermRaw = [];
   // A TEST HOOK as well: what the shell handed this link, in the order it
   // handed it over. Params, task and confirmation are JSON and stand here as
   // the text they are; a body is bytes and stands as base64url.
-  window.__ngcSent = [];
+  window.__cdSent = [];
 
   // The admin of this world, with a password key.
   //
@@ -599,7 +599,7 @@ export async function fakeWorld() {
   // TWO VERSIONS, NOT ONE, AND THAT IS THE WHOLE POINT OF THIS BLOCK.
   //
   // `kept` is what the API stores; `inForce` is what THIS BROWSER has
-  // verified. A real installation has exactly that gap: ngc.users/api/trust
+  // verified. A real installation has exactly that gap: cd.users/api/trust
   // takes a version and answers with its number, and the browser's own list
   // moves only when TrustStore.refresh follows the chain over
   // GET /api/v1/trust. Until this round both were one variable here, the
@@ -627,19 +627,19 @@ export async function fakeWorld() {
   // store built needs the version it started from, and asking fakeWorld()
   // again would build a DIFFERENT world (a new store key, a new version 1)
   // and clear the record of what was sent along the way.
-  window.__ngcListFirst = inForce;
+  window.__cdListFirst = inForce;
 
   // The release key of the initial setup: what a standing approval for an
-  // NGC part is signed with. Task 19 reads it out of the setup offer; here
+  // CirroDesk part is signed with. Task 19 reads it out of the setup offer; here
   // it is a key of this page, exposed so a case can name it.
   const releasePair = await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]);
   const releaseKey = new Uint8Array(await crypto.subtle.exportKey("raw", releasePair.publicKey));
 
   const installKey = { installation: first.installation, key: b64encode(new Uint8Array(32).fill(13)) };
-  window.__ngcStoreKey = b64encode(store.key);
-  window.__ngcReleaseKey = b64encode(releaseKey);
-  window.__ngcLiarKey = b64encode(new Uint8Array(32).fill(0xee));
-  window.__ngcInstallKey = installKey;
+  window.__cdStoreKey = b64encode(store.key);
+  window.__cdReleaseKey = b64encode(releaseKey);
+  window.__cdLiarKey = b64encode(new Uint8Array(32).fill(0xee));
+  window.__cdInstallKey = installKey;
 
   const or = (name, fallback) => (Array.isArray(knobs[name]) ? knobs[name] : fallback);
 
@@ -673,37 +673,37 @@ export async function fakeWorld() {
 
   const results = {
     __proto__: null,
-    "ngc.desktop/apps": async () => enc.encode(JSON.stringify(APPS)),
-    "ngc.desktop/ui-proof": async (_body, params) => await proofFor(appOf(params), uiHashes()),
+    "cd.desktop/apps": async () => enc.encode(JSON.stringify(APPS)),
+    "cd.desktop/ui-proof": async (_body, params) => await proofFor(appOf(params), uiHashes()),
 
-    "ngc.users/nodes": async () => enc.encode(JSON.stringify(or("nodes", NODES))),
+    "cd.users/nodes": async () => enc.encode(JSON.stringify(or("nodes", NODES))),
     // A new version of the trust list is READ with the contract and KEPT -
     // and it does not become the version in force here. That is the API's
     // side of the split: it stores the version and answers with its number,
     // and nothing else. Whether this browser follows is the browser's own
     // business, and it is exactly what Fixrunde 1 found missing.
-    "ngc.users/trust": async (body) => {
+    "cd.users/trust": async (body) => {
       const s = parseSigned(body);
       const next = await parseList(s.payload);
       kept = { list: next, signed: s, hash: await listHash(s) };
       return enc.encode(JSON.stringify({ seq: next.seq }));
     },
-    "ngc.store/sources": async () => enc.encode(JSON.stringify(or("sources", SOURCES))),
+    "cd.store/sources": async () => enc.encode(JSON.stringify(or("sources", SOURCES))),
     // knob noCatalog: the API has no catalog row for this store yet, which is
     // every installation for the first hour (V1.2 point 66). The real
     // dispatcher answers that with E_NOTFOUND out of appstore.CodeFor over
     // dbapi.ErrNotFound, and the error the shell catches is the link's own
     // ChannelError - the same class and the same code the wire builds, not a
     // shape of the test's own.
-    "ngc.store/catalog": async () => {
+    "cd.store/catalog": async () => {
       if (knobs.noCatalog === true) throw new ChannelError(CODES.NOTFOUND, "");
       return await catalogFor(uiHashes());
     },
-    "ngc.store/installed": async () => enc.encode(JSON.stringify(or("installed", INSTALLED))),
-    "ngc.store/updates": async () => enc.encode(JSON.stringify(or("updates", UPDATES))),
-    "ngc.store/install-key": async () => enc.encode(JSON.stringify(installKey)),
-    "ngc.store/license": async () => enc.encode(JSON.stringify({ app: TERMINAL, state: "valid" })),
-    "ngc.store/set-update": async () => enc.encode("{}"),
+    "cd.store/installed": async () => enc.encode(JSON.stringify(or("installed", INSTALLED))),
+    "cd.store/updates": async () => enc.encode(JSON.stringify(or("updates", UPDATES))),
+    "cd.store/install-key": async () => enc.encode(JSON.stringify(installKey)),
+    "cd.store/license": async () => enc.encode(JSON.stringify({ app: TERMINAL, state: "valid" })),
+    "cd.store/set-update": async () => enc.encode("{}"),
     // A refusal that carries the CONTROLLER'S OWN WORDS, which is the one
     // thing a code alone cannot say: knobs.refuseActivate is the sentence and
     // knobs.refuseActivateCode the code under it, E_INTERNAL unless a case
@@ -719,7 +719,7 @@ export async function fakeWorld() {
     // does NOT go through is the frame, so parseClose never sees the sentence
     // here - that step is measured where the frame is, in
     // shell/closemessage.spec.js, with the contract's own encoder.
-    "ngc.store/activate": async () => {
+    "cd.store/activate": async () => {
       const said = typeof knobs.refuseActivate === "string" ? knobs.refuseActivate : "";
       const code = typeof knobs.refuseActivateCode === "string" && knobs.refuseActivateCode !== ""
         ? knobs.refuseActivateCode
@@ -727,16 +727,16 @@ export async function fakeWorld() {
       if (said !== "") throw new ChannelError(code, said);
       return enc.encode("{}");
     },
-    "ngc.store/deactivate": async () => enc.encode("{}"),
-    "ngc.store/uninstall": async () => enc.encode("{}"),
-    "ngc.store/delete-data": async () => enc.encode("{}"),
-    "ngc.store/install": async () => enc.encode("{}"),
+    "cd.store/deactivate": async () => enc.encode("{}"),
+    "cd.store/uninstall": async () => enc.encode("{}"),
+    "cd.store/delete-data": async () => enc.encode("{}"),
+    "cd.store/install": async () => enc.encode("{}"),
     // The upload is the one answer this stand-in WORKS OUT instead of making
     // up: it reads the package the shell streamed with the same
     // pack.packageUI the shell used. So an answer that agrees is an answer
     // that really agrees, and the case about a mismatch has to bend it by
     // hand (uploadTwist) instead of getting one for free.
-    "ngc.store/upload": async (body) => {
+    "cd.store/upload": async (body) => {
       const u = await packageUI(new Blob([body]).stream());
       const r = {
         id: u.manifest.id, version: u.manifest.version,
@@ -772,11 +772,11 @@ export async function fakeWorld() {
 
   const link = {
     async call(app, service, name, params, opts) {
-      window.__ngcChannelsOpened++;
+      window.__cdChannelsOpened++;
       const o = opts ?? {};
       const body = await collect(o.stream);
       o.onProgress?.(body.length);
-      window.__ngcSent.push({
+      window.__cdSent.push({
         app, service, name,
         params: params ? new TextDecoder().decode(params) : "",
         task: o.taskBytes ? new TextDecoder().decode(o.taskBytes) : "",
@@ -792,7 +792,7 @@ export async function fakeWorld() {
     // frames. For the terminal it stays open and answers every line, which is
     // what a stream is for.
     async open(app, service, name, params) {
-      window.__ngcChannelsOpened++;
+      window.__cdChannelsOpened++;
       const h = hooks();
       // An open that THROWS, with a sentence of the shell's own kind. The real
       // one does that since 23.10.2026: net/world.js signs a task for a
@@ -800,7 +800,7 @@ export async function fakeWorld() {
       // throws a WorldError whose sentence says what the person can do. It is
       // shell/appframe.js that has to carry that sentence to the app
       // (whyOpenFailed), and this knob is how a case reaches that way.
-      if (h.openFails !== "" && app !== "ngc.desktop") {
+      if (h.openFails !== "" && app !== "cd.desktop") {
         const e = new Error(h.openFails);
         e.name = "WorldError";
         throw e;
@@ -810,13 +810,13 @@ export async function fakeWorld() {
       // showing. The frame turns the code into its German sentence
       // (whyOpenFailed); the code of the error is what travels, never its
       // message.
-      if (h.openFailsCode !== "" && app !== "ngc.desktop") {
+      if (h.openFailsCode !== "" && app !== "cd.desktop") {
         const e = new Error("fake-link: this message may not reach the app");
         e.name = "ChannelError";
         e.code = h.openFailsCode;
         throw e;
       }
-      if (`${app}/${name}` === "ngc.desktop/ui") {
+      if (`${app}/${name}` === "cd.desktop/ui") {
         const files = shipped.get(appOf(params));
         if (files === undefined) throw new Error(`fake-link: no ui for ${appOf(params)}`);
         const bytes = h.swap
@@ -848,7 +848,7 @@ export async function fakeWorld() {
   // 4 that member decides WHERE the message is shown - over the app's own
   // window, or in the strip for what no app owns - so a hook that could only
   // send "" could not drive the case at all.
-  window.__ngcSendNotice = (level, text, app = "") => {
+  window.__cdSendNotice = (level, text, app = "") => {
     const body = enc.encode(JSON.stringify({ level, text, app }));
     for (const fn of notices) fn(body);
   };

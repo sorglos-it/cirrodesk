@@ -188,7 +188,7 @@ test("everything the keyboard can reach shows a ring while it is there", async (
 test("every control of the desktop has a name a screen reader can read", async ({ shell }) => {
   await shell.getByRole("button", { name: "Start" }).click();
   await shell.getByRole("menuitem", { name: "Rechner", exact: true }).click();
-  await shell.evaluate(() => window.__ngcSendNotice("warn", "Eine Meldung."));
+  await shell.evaluate(() => window.__cdSendNotice("warn", "Eine Meldung."));
   await shell.getByRole("button", { name: "Start" }).click();
   const nameless = await shell.evaluate(() => {
     const out = [];
@@ -259,7 +259,7 @@ test("the place a notice appears in can be found before there is a notice", asyn
   // a second one built when the news arrives.
   const mark = await shell.evaluate(() => {
     document.querySelector(".status").dataset.mark = "one";
-    window.__ngcSendNotice("warn", "Eine Meldung.");
+    window.__cdSendNotice("warn", "Eine Meldung.");
     return document.querySelector(".status").dataset.mark;
   });
   expect(mark).toBe("one");

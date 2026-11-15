@@ -31,8 +31,8 @@ const GOOD = {
   anchor: JSON.parse(
     readFileSync(new URL("../trust-anchor.json", import.meta.url), "utf8"),
   ),
-  rp: { id: "ngc.example.org", origins: ["https://ngc.example.org"] },
-  apis: ["https://api-1.ngc.test:7443", "https://api-2.ngc.test:7443"],
+  rp: { id: "cd.example.org", origins: ["https://cd.example.org"] },
+  apis: ["https://api-1.cd.test:7443", "https://api-2.cd.test:7443"],
 };
 
 const body = (over) => JSON.stringify({ ...GOOD, ...over });
@@ -83,9 +83,9 @@ test("the configuration the server really sends is taken, and its anchor comes o
     // trust.open compares the anchor hash against a SHA-256 it computes
     // itself, so it has to arrive as 32 bytes and not as 43 characters.
     hashBytes: 32,
-    rpId: "ngc.example.org",
-    origins: ["https://ngc.example.org"],
-    apis: ["https://api-1.ngc.test:7443", "https://api-2.ngc.test:7443"],
+    rpId: "cd.example.org",
+    origins: ["https://cd.example.org"],
+    apis: ["https://api-1.cd.test:7443", "https://api-2.cd.test:7443"],
   });
 });
 
@@ -109,12 +109,12 @@ test("every field is held to its grammar", async ({ shell }) => {
   const got = await taken(shell, [
     // Addresses: trust.ValidWebURL and nothing else. The first is a downgrade
     // of one character, and it is the whole point of checking here.
-    ["http instead of https", body({ apis: ["http://api-1.ngc.test:7443"] })],
-    ["an address with a path", body({ apis: ["https://api-1.ngc.test:7443/x"] })],
-    ["an address in upper case", body({ apis: ["https://API-1.ngc.test:7443"] })],
-    ["an address without a port", body({ apis: ["https://api-1.ngc.test"] })],
+    ["http instead of https", body({ apis: ["http://api-1.cd.test:7443"] })],
+    ["an address with a path", body({ apis: ["https://api-1.cd.test:7443/x"] })],
+    ["an address in upper case", body({ apis: ["https://API-1.cd.test:7443"] })],
+    ["an address without a port", body({ apis: ["https://api-1.cd.test"] })],
     // Apache would balance over it twice and pin two keys for one server.
-    ["the same address twice", body({ apis: ["https://api-1.ngc.test:7443", "https://api-1.ngc.test:7443"] })],
+    ["the same address twice", body({ apis: ["https://api-1.cd.test:7443", "https://api-1.cd.test:7443"] })],
     ["no address at all", body({ apis: [] })],
     // The anchor is what the whole trust list hangs from.
     ["an anchor hash of 31 bytes", body({ anchor: { seq: 1, hash: "q6urq6urq6urq6urq6urq6urq6urq6urq6urq6ur" } })],
@@ -122,19 +122,19 @@ test("every field is held to its grammar", async ({ shell }) => {
     ["an anchor at sequence 0", body({ anchor: { seq: 0, hash: GOOD.anchor.hash } })],
     // rp.id goes to navigator.credentials.get, so it is a DNS name and never
     // free text.
-    ["an rp id in upper case", body({ rp: { id: "NGC.example.org", origins: GOOD.rp.origins } })],
-    ["an rp id with a scheme", body({ rp: { id: "https://ngc.example.org", origins: GOOD.rp.origins } })],
-    ["an origin with a trailing slash", body({ rp: { id: "ngc.example.org", origins: ["https://ngc.example.org/"] } })],
-    ["an id without origins", body({ rp: { id: "ngc.example.org", origins: [] } })],
-    ["origins without an id", body({ rp: { id: "", origins: ["https://ngc.example.org"] } })],
+    ["an rp id in upper case", body({ rp: { id: "CirroDesk.example.org", origins: GOOD.rp.origins } })],
+    ["an rp id with a scheme", body({ rp: { id: "https://cd.example.org", origins: GOOD.rp.origins } })],
+    ["an origin with a trailing slash", body({ rp: { id: "cd.example.org", origins: ["https://cd.example.org/"] } })],
+    ["an id without origins", body({ rp: { id: "cd.example.org", origins: [] } })],
+    ["origins without an id", body({ rp: { id: "", origins: ["https://cd.example.org"] } })],
     ["a version that is no version", body({ version: "0.1" })],
     // Strict JSON, which res.json() never was.
     ["a member name twice", '{"version":"0.1.0","anchor":null,"rp":{"id":"","origins":[]},'
-      + '"apis":["https://api-1.ngc.test:7443"],"apis":["https://evil.example:443"]}'],
+      + '"apis":["https://api-1.cd.test:7443"],"apis":["https://evil.example:443"]}'],
     ["a member nobody reads", body({}).replace(/}$/, ',"extra":1}')],
     ["a sequence past 2^53-1", '{"version":"","anchor":{"seq":9007199254740993,'
       + `"hash":"${GOOD.anchor.hash}"},"rp":{"id":"","origins":[]},`
-      + '"apis":["https://api-1.ngc.test:7443"]}'],
+      + '"apis":["https://api-1.cd.test:7443"]}'],
     ["trailing data", body({}) + "x"],
     ["an array where the object belongs", "[]"],
     // The spelling index.php used to send for an unpaired installation.
@@ -159,7 +159,7 @@ test("what the server really sends is what the parser takes", async ({ shell }) 
     return { apis: c.apis, seq: c.anchor === null ? null : c.anchor.seq };
   });
   expect(got).toEqual({
-    apis: ["https://api-1.ngc.test:7443", "https://api-2.ngc.test:7443"],
+    apis: ["https://api-1.cd.test:7443", "https://api-2.cd.test:7443"],
     seq: 1,
   });
 });
@@ -213,15 +213,15 @@ async function boot(page, text) {
 // The addresses out of a configuration are the only reason to check it before
 // using it, so "nothing was asked of it" is the half that matters. It is
 // measured over every request the page made, not assumed from the message.
-const OF_THE_CONFIG = /api-\d\.ngc\.test|evil\.example|\/api\/v1\//;
+const OF_THE_CONFIG = /api-\d\.cd\.test|evil\.example|\/api\/v1\//;
 
 test("a configuration whose address is no address is refused, and nothing was asked of it", async ({ page }) => {
   await onPage(page);
   await skipWithoutShell(page);
-  const asked = await boot(page, body({ apis: ["http://api-1.ngc.test:7443"] }));
+  const asked = await boot(page, body({ apis: ["http://api-1.cd.test:7443"] }));
   // The same sentence a missing setup gets: the person must not have to
   // guess, and must learn nothing about the shape either.
-  await expect(page.locator(".msg")).toHaveText("NGC ist nicht eingerichtet.");
+  await expect(page.locator(".msg")).toHaveText("CirroDesk ist nicht eingerichtet.");
   await expect(page.locator("#taskbar")).toHaveCount(0);
   expect(asked.filter((u) => OF_THE_CONFIG.test(u))).toEqual([]);
 });
@@ -233,9 +233,9 @@ test("a configuration with a member name twice is refused, and nothing was asked
   // the file down to the first "apis" and the shell would not be looking at
   // the same addresses.
   const asked = await boot(page, '{"version":"0.1.0","anchor":null,'
-    + '"rp":{"id":"ngc.example.org","origins":["https://ngc.example.org"]},'
-    + '"apis":["https://api-1.ngc.test:7443"],"apis":["https://evil.example:443"]}');
-  await expect(page.locator(".msg")).toHaveText("NGC ist nicht eingerichtet.");
+    + '"rp":{"id":"cd.example.org","origins":["https://cd.example.org"]},'
+    + '"apis":["https://api-1.cd.test:7443"],"apis":["https://evil.example:443"]}');
+  await expect(page.locator(".msg")).toHaveText("CirroDesk ist nicht eingerichtet.");
   await expect(page.locator("#taskbar")).toHaveCount(0);
   expect(asked.filter((u) => OF_THE_CONFIG.test(u))).toEqual([]);
 });
@@ -248,5 +248,5 @@ test("a good configuration brings the desktop up and leaves nothing on window", 
   await expectDesktop(page);
   // Nothing reads a global, so nothing puts one there: the configuration is
   // handed on instead.
-  expect(await page.evaluate(() => window.__ngcConfig)).toBeUndefined();
+  expect(await page.evaluate(() => window.__cdConfig)).toBeUndefined();
 });

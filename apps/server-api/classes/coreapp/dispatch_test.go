@@ -7,11 +7,11 @@ import (
 	"io"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 func TestCallAnswersAndCloses(t *testing.T) {
@@ -61,7 +61,7 @@ func TestInputOfTheLimitIsRead(t *testing.T) {
 	fx := newFixture(t)
 	action, ok := core.Lookup(core.AppUsers, core.ServiceAPI, core.ActTrust)
 	if !ok {
-		t.Fatal("no action ngc.users/api/trust")
+		t.Fatal("no action cd.users/api/trust")
 	}
 	var got int
 	fx.D.Register(core.AppUsers, core.ServiceAPI, core.ActTrust,
@@ -94,7 +94,7 @@ func TestInputBeyondMaxInCloses(t *testing.T) {
 	fx := newFixture(t)
 	action, ok := core.Lookup(core.AppUsers, core.ServiceAPI, core.ActTrust)
 	if !ok {
-		t.Fatal("no action ngc.users/api/trust")
+		t.Fatal("no action cd.users/api/trust")
 	}
 	fx.D.Register(core.AppUsers, core.ServiceAPI, core.ActTrust,
 		func(_ context.Context, _ *Call) ([]byte, error) { return []byte(`{}`), nil })
@@ -111,11 +111,11 @@ func TestInputBeyondMaxInCloses(t *testing.T) {
 // Without this case a dispatcher that answered E_INTERNAL there would pass.
 //
 // The action it names has to be one THIS dispatcher registers nothing for, and
-// that is where it had to move. It was ngc.users/list until task 16 gave that
-// one a handler, then ngc.store/sources, which stopped meaning anything the
+// that is where it had to move. It was cd.users/list until task 16 gave that
+// one a handler, then cd.store/sources, which stopped meaning anything the
 // moment the app store's handlers were registered -- every action of the
 // contract has a handler or a relay now. So what it points at is
-// ngc.store/sources on a dispatcher built WITHOUT the app store
+// cd.store/sources on a dispatcher built WITHOUT the app store
 // (Deps.Store nil), which is a state of its own and not a hole: a seam nobody
 // wired says E_NOTFOUND, not E_INTERNAL, and nothing of it blames the
 // installation.
@@ -132,7 +132,7 @@ func TestAnActionWithoutAHandlerIsNotFound(t *testing.T) {
 	}
 	// The same for the other seam, because the two are registered apart: a
 	// dispatcher with the app store and without the updates serves sources and
-	// not ngc.store/updates.
+	// not cd.store/updates.
 	c2 := fx.OpenAdmin(t, wire.Open{App: core.AppStore, Service: core.ServiceAPI,
 		Action: core.ActUpdates, Window: wire.MinWindow})
 	if cl := c2.closed(t); cl.Code != wire.CodeNotFound {

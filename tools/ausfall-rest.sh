@@ -9,7 +9,7 @@
 set -uo pipefail
 
 PVE=root@10.2.3.2
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 A1=10.2.3.210
 S1=10.2.3.213
@@ -59,10 +59,10 @@ container() { # knoten
 # meldete "command not found" wie ein Ergebnis. python3 ist da und bringt das
 # Modul mit; geoeffnet wird nur lesend (mode=ro).
 speicher() { # knoten
-  $SSH "root@$1" 'findmnt -no SOURCE,FSTYPE --target /var/lib/ngc/apps 2>/dev/null | tr -d "\n"; echo -n "   "; python3 - <<PY
+  $SSH "root@$1" 'findmnt -no SOURCE,FSTYPE --target /var/lib/cd/apps 2>/dev/null | tr -d "\n"; echo -n "   "; python3 - <<PY
 import sqlite3,glob,os
 out=[]
-for d in sorted(glob.glob("/var/lib/ngc/apps/org.sorglos.*/")):
+for d in sorted(glob.glob("/var/lib/cd/apps/org.sorglos.*/")):
     p=os.path.join(d,".local/share/containers/storage/db.sql")
     n=os.path.basename(d.rstrip("/"))
     if not os.path.exists(p): out.append(n+"=keine db.sql"); continue
@@ -74,7 +74,7 @@ print(" ".join(out) or "keine App-Verzeichnisse")
 PY' 2>&1 | tail -1
 }
 tunnel() { # knoten
-  $SSH "root@$1" 'systemctl is-active ngc-controller 2>/dev/null' 2>&1 | tr -d '\n'
+  $SSH "root@$1" 'systemctl is-active cd-controller 2>/dev/null' 2>&1 | tr -d '\n'
 }
 
 runde() {
@@ -112,7 +112,7 @@ echo
 runde "WAEHREND $NAME aus ist (sofort, bevor Apache es merken kann)"
 echo
 echo "    Was api-1 dazu sagt:"
-$SSH "root@$A1" "journalctl -u ngc-api --since '$VOR' --no-pager 2>/dev/null | tail -6 | sed 's/^/      /'; grep -ciE 'proxy|balancer' /var/log/apache2/error.log 2>/dev/null | sed 's/^/      Apache-Zeilen zu proxy\/balancer insgesamt: /'" 2>&1
+$SSH "root@$A1" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | tail -6 | sed 's/^/      /'; grep -ciE 'proxy|balancer' /var/log/apache2/error.log 2>/dev/null | sed 's/^/      Apache-Zeilen zu proxy\/balancer insgesamt: /'" 2>&1
 $SSH "root@$A1" "tail -5 /var/log/apache2/error.log 2>/dev/null | sed 's/^/      /'" 2>&1
 
 echo
@@ -127,8 +127,8 @@ runde "NACHHER, von selbst"
 if [ "$NAME" != api-2 ]; then
   echo "    App-Speicher $NAME : $(speicher $ADDR)"
   echo "    TasksCurrent/Max auf $NAME:"
-  $SSH "root@$ADDR" 'systemctl show -p TasksCurrent -p TasksMax --value ngc-controller | tr "\n" "/"; echo' 2>&1
+  $SSH "root@$ADDR" 'systemctl show -p TasksCurrent -p TasksMax --value cd-controller | tr "\n" "/"; echo' 2>&1
   echo "    Journal des Controllers seit dem Hochfahren:"
-  $SSH "root@$ADDR" "journalctl -u ngc-controller --since '$AUS' --no-pager 2>/dev/null | tail -8 | sed 's/^/      /'" 2>&1
+  $SSH "root@$ADDR" "journalctl -u cd-controller --since '$AUS' --no-pager 2>/dev/null | tail -8 | sed 's/^/      /'" 2>&1
 fi
 echo "=========== Ende $NAME ==========="

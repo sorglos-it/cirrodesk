@@ -18,9 +18,9 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // answer bounds the wait for one frame of the controller. A test that waits
@@ -61,7 +61,7 @@ func serving(t *testing.T, h Handler, after func(*apiSide)) (*Tunnel, <-chan err
 // hop's business.
 func openPayload(t testing.TB, window uint32) []byte {
 	t.Helper()
-	inner, err := json.Marshal(wire.Open{App: "ngc.desktop", Service: "core", Action: "json", Window: wire.MinWindow})
+	inner, err := json.Marshal(wire.Open{App: "cd.desktop", Service: "core", Action: "json", Window: wire.MinWindow})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1341,7 +1341,7 @@ func (s *syncBuf) String() string {
 // panicSecret is what a panic value carries by accident: whatever the caller
 // that panicked had in hand. The case below looks for it in the log, so a line
 // that began printing the value shows up as a failure and not as a nicer log.
-const panicSecret = "NGC-TEST-SECRET-0123456789"
+const panicSecret = "CirroDesk-TEST-SECRET-0123456789"
 
 // TestAPanickingHandlerEndsOnlyItsOwnChannel is V1.2 point 38 on this side of
 // the link, and the API's own case of that name is its twin.

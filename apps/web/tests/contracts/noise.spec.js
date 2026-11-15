@@ -110,7 +110,7 @@ test("split() refuses a second call on the same handshake", async ({ shell }) =>
 // The only path ever exercised elsewhere in this file is forTest(), which
 // ships in the production module but exists for noise.json alone. Nothing
 // proved that newKeypair(), of() and a real (non-fixed) ephemeral - the path
-// NGC actually takes at runtime - agree with each other, end to end.
+// CirroDesk actually takes at runtime - agree with each other, end to end.
 test("newKeypair(), of() and a fresh ephemeral complete a real handshake", async ({ shell }) => {
   await skipWithoutHandshake(shell);
   const got = await shell.evaluate(async () => {

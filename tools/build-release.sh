@@ -3,7 +3,7 @@
 # into each one. It holds no key and signs nothing.
 #
 # Usage: build-release.sh <version> [-ref <git ref>] [outdir]
-#   <version>  the NGC version of this release, MAJOR.MINOR.PATCH.
+#   <version>  the CirroDesk version of this release, MAJOR.MINOR.PATCH.
 #   -ref       the git ref the WHOLE release is built from, binaries and web
 #              tree alike; default HEAD. For a PUBLISHED release this must be a
 #              TAG - a name moves.
@@ -19,13 +19,13 @@
 # network and no work tree.
 #
 # It writes the five archives a release lists and nothing else:
-#   ngc-web-all.tar          through tools/pack-release.sh
-#   ngc-api-amd64.tar        exactly ngc-api and ngc-store, no folders
-#   ngc-api-arm64.tar        the same two
-#   ngc-controller-amd64.tar exactly ngc-controller
-#   ngc-controller-arm64.tar the same one
+#   cd-web-all.tar          through tools/pack-release.sh
+#   cd-api-amd64.tar        exactly cd-api and cd-store, no folders
+#   cd-api-arm64.tar        the same two
+#   cd-controller-amd64.tar exactly cd-controller
+#   cd-controller-arm64.tar the same one
 # The shape is the contract's (docs/vertraege-v1.2.md, Punkt 60): two plain
-# files for ngc-api, one for ngc-controller, and NO "./" entry - ngc-store
+# files for cd-api, one for cd-controller, and NO "./" entry - cd-store
 # contents refuses one, measured on 18.10.2026 when a hand-built web archive
 # carried it.
 #
@@ -33,13 +33,13 @@
 # WHY THIS SCRIPT EXISTS. The published release v0.2.0 was built by hand, and
 # the hand forgot one flag. Measured on 19.10.2026 on the Debian VM, from the
 # binaries of that very release:
-#     ngc-api 0.0.0-dev (contract 1)
-#     ngc-controller 0.0.0-dev (contract 1)
+#     cd-api 0.0.0-dev (contract 1)
+#     cd-controller 0.0.0-dev (contract 1)
 # "0.0.0-dev" is the default of main.Version (apps/server-api/main.go:44), and
 # it is what a build without -ldflags "-X main.Version=..." leaves in place.
 #
 # That is not cosmetic. The controller sends its version in the hello, the API
-# hands it on in ngc.users/nodes, and the web interface checks it with
+# hands it on in cd.users/nodes, and the web interface checks it with
 # validVersion (apps/web/public/assets/js/contracts/text.js:84). A single
 # invalid field throws the WHOLE answer away, so the manager reads "Die
 # Rechner konnten nicht geladen werden." and nobody can install an app from a
@@ -61,7 +61,7 @@
 # Debian VM, go1.27.2: a binary built with -ldflags "-X main.Version=0.2.0" has
 # a build record of -buildmode=exe, -compiler=gc, -trimpath=true, CGO_ENABLED=0,
 # GOARCH=amd64, GOOS=linux - and NO -ldflags line at all, while the same binary
-# answers "ngc-api 0.2.0 (contract 1)". Go does not record -ldflags. The first
+# answers "cd-api 0.2.0 (contract 1)". Go does not record -ldflags. The first
 # version of this script asked the record for it and went red on a correctly
 # stamped binary. So there is no cheap paper check for the stamp: the only proof
 # is the program's own answer, for every architecture, which is why qemu-user is
@@ -197,15 +197,15 @@ cd -- "$root"
 # main.Version variables they stamp sit in apps/server-api/main.go:44,
 # apps/cli/main.go:14 and apps/server-controller/main.go:12.
 #
-# The grouping is the archive shape of the contract: ngc-api travels WITH
-# ngc-store, because ngc-all.sh needs the tool beside the server.
-api_progs="ngc-api ngc-store"
-controller_progs="ngc-controller"
+# The grouping is the archive shape of the contract: cd-api travels WITH
+# cd-store, because cd-all.sh needs the tool beside the server.
+api_progs="cd-api cd-store"
+controller_progs="cd-controller"
 pkg_for() {
 	case $1 in
-	ngc-api) printf './apps/server-api' ;;
-	ngc-store) printf './apps/cli' ;;
-	ngc-controller) printf './apps/server-controller' ;;
+	cd-api) printf './apps/server-api' ;;
+	cd-store) printf './apps/cli' ;;
+	cd-controller) printf './apps/server-controller' ;;
 	*) return 1 ;;
 	esac
 }
@@ -268,7 +268,7 @@ A release of this binary makes the manager read \"Die Rechner konnten nicht gela
 
 # pack writes one archive from the files that are already in $p_dir, by NAME and
 # in the given order. Names and no path is what keeps "./" out: tar adds that
-# entry when it is handed a directory, and ngc-store contents refuses it.
+# entry when it is handed a directory, and cd-store contents refuses it.
 pack() {
 	p_tar=$1
 	p_dir=$2
@@ -288,7 +288,7 @@ $(cat "$work/entries.v")"
 	printf '%s\n' "$@" >"$work/entries.want"
 	cmp -s "$work/entries" "$work/entries.want" || die "$p_tar does not carry exactly $* - it carries:
 $(sed 's/^/  /' "$work/entries")
-A release archive of any other shape is refused by ngc-store contents, and an entry \"./\" is the one that got a release as far as being built on 18.10.2026."
+A release archive of any other shape is refused by cd-store contents, and an entry \"./\" is the one that got a release as far as being built on 18.10.2026."
 }
 
 # The date of the commit apps/web is archived from, so one source always gives
@@ -328,19 +328,19 @@ for arch in amd64 arm64; do
 		echo "  $arch/$prog   $(sed -n '1p' "$work/ver.out")"
 	done
 	# shellcheck disable=SC2086
-	pack "$out/ngc-api-$arch.tar" "$bindir" $api_progs
+	pack "$out/cd-api-$arch.tar" "$bindir" $api_progs
 	# shellcheck disable=SC2086
-	pack "$out/ngc-controller-$arch.tar" "$bindir" $controller_progs
-	echo "  $out/ngc-api-$arch.tar"
-	echo "  $out/ngc-controller-$arch.tar"
+	pack "$out/cd-controller-$arch.tar" "$bindir" $controller_progs
+	echo "  $out/cd-api-$arch.tar"
+	echo "  $out/cd-controller-$arch.tar"
 done
 
 echo "== web"
 # pack-release.sh writes release.payload.json for the web part ALONE. A release
-# lists five files, and ngc-store release builds that payload over the whole
+# lists five files, and cd-store release builds that payload over the whole
 # directory, so the single-part payload is removed again: a stale one beside
 # five archives is a trap.
-NGC_STORE="$work/$host_arch/ngc-store" sh "$self/pack-release.sh" "$ref" 1 "$out" ||
+CD_STORE="$work/$host_arch/cd-store" sh "$self/pack-release.sh" "$ref" 1 "$out" ||
 	die "the web archive could not be packed"
 rm -f -- "$out/release.payload.json"
 # AND THEREFORE ITS CLOSING HINT DOES NOT APPLY HERE, and that has to be said in
@@ -349,16 +349,16 @@ rm -f -- "$out/release.payload.json"
 # on its own - it leaves the payload that script needs. Run from here the payload
 # is gone one line later, so the call dies with "release.payload.json is missing
 # in <dir>" (measured 29.10.2026, Punkt 96). The two ways also take different
-# key files: sign-release.sh wants an openssl Ed25519 PEM, ngc-store wants its
+# key files: sign-release.sh wants an openssl Ed25519 PEM, cd-store wants its
 # own key file and writes one when the path is empty.
 echo "  IGNORE the sign-release.sh line above: it belongs to pack-release.sh run"
 echo "  on its own. From here the payload of the WHOLE release is built by"
-echo "  ngc-store release, named at the end of this run."
+echo "  cd-store release, named at the end of this run."
 
 echo "== shape of all five, through the tool the user runs"
-"$work/$host_arch/ngc-store" contents "$out" || die "ngc-store contents refuses this release"
+"$work/$host_arch/cd-store" contents "$out" || die "cd-store contents refuses this release"
 
 echo
 echo "built $version into $out"
 echo "Nothing is signed. Sign it on the machine that holds the private release key:"
-echo "  ngc-store release -version $version -seq <n> $out <key.pem>"
+echo "  cd-store release -version $version -seq <n> $out <key.pem>"

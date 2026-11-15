@@ -1,5 +1,7 @@
 # Der Release-Weg
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Stand 12.10.2026.** Alles hier ist **gemessen**, im Arbeitsbaum auf der **lokalen Platte C:**,
 auf `main` = `0bc2659`. Je Aussage steht die Stufe dabei:
 

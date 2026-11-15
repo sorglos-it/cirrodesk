@@ -1,6 +1,6 @@
 // Package migraterun is the runner of the migrations: it picks the driver out
 // of the configuration, opens the database, plays the migrations in and
-// closes again. That is the whole of what "ngc-api migrate" does - one
+// closes again. That is the whole of what "cd-api migrate" does - one
 // controller with role db starts it before the new API, with the migrate
 // account from its controller.json.
 //
@@ -16,11 +16,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/mariadb"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migrate"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/mariadb"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migrate"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // open picks the driver from the configuration and gives back the dialect
@@ -40,7 +40,7 @@ func open(cfg config.DB) (*sql.DB, sqlstore.Dialect, error) {
 }
 
 // Run plays every missing migration in and returns how many it played. It is
-// the one call ngc-api migrate needs. owner shows up in the migration lock so
+// the one call cd-api migrate needs. owner shows up in the migration lock so
 // an admin sees which server is migrating, now is the time it records.
 func Run(ctx context.Context, cfg config.DB, owner string, now int64) (int, error) {
 	db, d, err := open(cfg)
@@ -61,7 +61,7 @@ func Run(ctx context.Context, cfg config.DB, owner string, now int64) (int, erro
 //
 // The branch worth reading twice is the error of migrate.Level, and what it
 // covers is LESS than it looks. A database that never saw a migration has no
-// ngc_schema, so Level fails there - but so does one whose ngc_schema is
+// cd_schema, so Level fails there - but so does one whose cd_schema is
 // broken, and (as a guess, not measured here) a MariaDB account without
 // SELECT on it, or a context that ran out between the ping and the query.
 // Every one of those comes back as "yes, migrate".
@@ -70,7 +70,7 @@ func Run(ctx context.Context, cfg config.DB, owner string, now int64) (int, erro
 // database that cannot be read at all - a wrong key, a file that is no
 // database, a node that does not answer - is reported as the error it is
 // instead of as "none ever ran". The rest is caught one step later and
-// loudly: measured, Run on a database with a broken ngc_schema comes back
+// loudly: measured, Run on a database with a broken cd_schema comes back
 // with "migrate: 0001-core.sql: … no such column: step" and plays nothing in.
 // TestNeededTakesABrokenSchemaForAMissingOne holds both halves of that.
 func Needed(ctx context.Context, cfg config.DB) (bool, error) {

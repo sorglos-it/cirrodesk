@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // sharedGrammar is the contract's own grammar for a signed download link,
@@ -49,13 +49,13 @@ func sharedGrammar(u string) bool {
 //
 // The base is fixed to a valid store address, so every failure is about u.
 func FuzzPackageURL(f *testing.F) {
-	const base = "https://store.ngc.test:8443"
+	const base = "https://store.cd.test:8443"
 
 	// Something valid, and something a hair off.
-	f.Add("apps/mail/1.2.3.ngc")
-	f.Add("apps/mail/1.2.3.ngc\x00")
-	f.Add("https://store.ngc.test:8443/apps/mail/1.2.3.ngc?token=x")
-	f.Add("https://127.0.0.1:1/x.ngc")
+	f.Add("apps/mail/1.2.3.cd")
+	f.Add("apps/mail/1.2.3.cd\x00")
+	f.Add("https://store.cd.test:8443/apps/mail/1.2.3.cd?token=x")
+	f.Add("https://127.0.0.1:1/x.cd")
 
 	f.Fuzz(func(t *testing.T, u string) {
 		full, ok := PackageURL(base, u)
@@ -97,7 +97,7 @@ func FuzzPackageURL(f *testing.F) {
 // (shared/store/catalog.go:208). Until that exists this test is green; the day
 // it exists this test goes red and should be deleted together with the gap.
 func TestPackageURLAcceptsWhatTheContractRefuses(t *testing.T) {
-	const base = "https://store.ngc.test:8443"
+	const base = "https://store.cd.test:8443"
 	// Every one of these carries a byte store.validHTTPSURL refuses in a path.
 	for _, u := range []string{
 		"https://a/ ",

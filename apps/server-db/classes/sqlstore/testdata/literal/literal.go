@@ -18,12 +18,12 @@ func (conn) QueryContext(ctx any, stmt string, args ...any) (*row, error) { retu
 func (conn) QueryRowContext(ctx any, stmt string, args ...any) *row { return nil }
 
 const (
-	blobSelect = "SELECT seq, data FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobUpdate = "UPDATE ngc_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
-	blobInsert = "INSERT INTO ngc_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
-	blobFrom   = "SELECT id, seq FROM ngc_blob WHERE kind = ? AND seq >= ?"
-	blobDelete = "DELETE FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobCount  = "SELECT count(*) FROM ngc_blob WHERE kind = ?"
+	blobSelect = "SELECT seq, data FROM cd_blob WHERE kind = ? AND id = ?"
+	blobUpdate = "UPDATE cd_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
+	blobInsert = "INSERT INTO cd_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
+	blobFrom   = "SELECT id, seq FROM cd_blob WHERE kind = ? AND seq >= ?"
+	blobDelete = "DELETE FROM cd_blob WHERE kind = ? AND id = ?"
+	blobCount  = "SELECT count(*) FROM cd_blob WHERE kind = ?"
 )
 
 type store struct {
@@ -76,7 +76,7 @@ func (s *store) Delete(ctx any, kind, id string) error {
 // bodies of function declarations never reads it, and the statement below is
 // put together at run time and goes straight to the driver.
 var Erase = func(ctx any, s *store, kind string) error {
-	stmt := "DELETE FROM ngc_blob WHERE kind = '" + kind + "'"
+	stmt := "DELETE FROM cd_blob WHERE kind = '" + kind + "'"
 	_, err := s.db.ExecContext(ctx, stmt)
 	return err
 }

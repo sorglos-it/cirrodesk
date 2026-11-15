@@ -47,17 +47,17 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/httpapi"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/login"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/httpapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/login"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // ErrGrant reports a credit this side may not grant: zero, or one that would

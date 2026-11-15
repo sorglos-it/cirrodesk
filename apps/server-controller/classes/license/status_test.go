@@ -15,9 +15,9 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/license"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/node"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/license"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/node"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // An app whose licence ran out is unlicensed in the status, not stopped.

@@ -12,16 +12,16 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // IdleTimeout bounds the quiet time on a tunnel, and it is the one deadline
@@ -151,7 +151,7 @@ func (srv *Server) staticKey() (noise.DHKey, error) {
 // The one line it writes is the only word this API ever says about a tunnel,
 // and it was missing. Measured on 18.10.2026 at the running pair: the network
 // between controller and API was cut for 210 seconds, the controller wrote
-// nine lines about it, and ngc-api wrote NONE -- not when the tunnel died, not
+// nine lines about it, and cd-api wrote NONE -- not when the tunnel died, not
 // when it came back. The side the admin and the shell talk to had nothing to
 // show that a server had fallen off. It is one line per ended tunnel, so the
 // flood of point 63 (12 289 lines out of one burst) cannot grow here: nothing
@@ -408,5 +408,5 @@ func (t *Tunnel) SendControl(ctx context.Context, kind string, body any) error {
 // End closes the whole tunnel in order.
 func (t *Tunnel) End(reason string) { _ = t.link.Close(websocket.StatusNormalClosure, reason) }
 
-// Version is the NGC version this API reports in its hello; main.go sets it.
+// Version is the CirroDesk version this API reports in its hello; main.go sets it.
 var Version = "0.0.0-dev"

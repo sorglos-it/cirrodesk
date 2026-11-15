@@ -29,9 +29,9 @@ import {
 import { MAX_CALL_RESULT, MAX_MESSAGE_TEXT, MAX_PARAMS, CODES } from "./wire.js";
 
 // Core apps, services, rights.
-export const APP_DESKTOP = "ngc.desktop";
-export const APP_USERS = "ngc.users";
-export const APP_STORE = "ngc.store";
+export const APP_DESKTOP = "cd.desktop";
+export const APP_USERS = "cd.users";
+export const APP_STORE = "cd.store";
 
 export const SERVICE_API = "api";
 export const SERVICE_CONTROLLER = "controller";
@@ -163,14 +163,14 @@ export const ACTIONS = Object.freeze([
 export const lookup = (app, service, name) =>
   ACTIONS.find((a) => a.app === app && a.service === service && a.name === name) || null;
 
-// lookupByKey finds an action by the key core.json uses ("ngc.desktop/apps"):
+// lookupByKey finds an action by the key core.json uses ("cd.desktop/apps"):
 // among the actions of that app with that name, the one of service api, else
 // the one of service controller.
 export const lookupByKey = (app, name) =>
   lookup(app, SERVICE_API, name) || lookup(app, SERVICE_CONTROLLER, name);
 
 // The shell opens every action of service api, and the root tasks of service
-// controller; stage, license and ngc.users/controller/trust only the API opens,
+// controller; stage, license and cd.users/controller/trust only the API opens,
 // without a user, and refuses a shell's OPEN for them with E_FORBIDDEN.
 //
 // Go takes an Action by value and can be handed nothing else. Here a caller
@@ -216,7 +216,7 @@ export function validRight(r) {
   return validApp(app) && (action === RIGHT_USE || validName(action));
 }
 
-// validApp is Go's validApp: an app id that is not one of NGC's own.
+// validApp is Go's validApp: an app id that is not one of CirroDesk's own.
 const validApp = (app) => validAppID(app) && !coreApp(app);
 
 // ---------------------------------------------------------------- parameters
@@ -351,25 +351,25 @@ const KIND_INSTALL = {
 };
 
 // Which action takes which parameters (Go: the Params column of core.actions).
-// The key is app/service/name, because ngc.store/api/license takes none and
-// ngc.store/controller/license takes an app.
+// The key is app/service/name, because cd.store/api/license takes none and
+// cd.store/controller/license takes an app.
 const PARAMS_OF = {
   __proto__: null,
-  "ngc.desktop/api/ui-proof": KIND_APP,
-  "ngc.desktop/api/ui": KIND_APP,
-  "ngc.desktop/api/totp-confirm": KIND_CODE,
-  "ngc.desktop/api/totp-off": KIND_CODE,
-  "ngc.users/api/set-rights": KIND_ROLE_RIGHTS,
-  "ngc.users/api/log": KIND_LOG_QUERY,
-  "ngc.store/api/catalog": KIND_STORE,
-  "ngc.store/api/set-update": KIND_UPDATE_SETTING,
-  "ngc.store/controller/activate": KIND_ACTIVATE,
-  "ngc.store/controller/deactivate": KIND_APP,
-  "ngc.store/controller/uninstall": KIND_UNINSTALL,
-  "ngc.store/controller/delete-data": KIND_APP,
-  "ngc.store/controller/stage": KIND_STAGE,
-  "ngc.store/controller/install": KIND_INSTALL,
-  "ngc.store/controller/license": KIND_APP,
+  "cd.desktop/api/ui-proof": KIND_APP,
+  "cd.desktop/api/ui": KIND_APP,
+  "cd.desktop/api/totp-confirm": KIND_CODE,
+  "cd.desktop/api/totp-off": KIND_CODE,
+  "cd.users/api/set-rights": KIND_ROLE_RIGHTS,
+  "cd.users/api/log": KIND_LOG_QUERY,
+  "cd.store/api/catalog": KIND_STORE,
+  "cd.store/api/set-update": KIND_UPDATE_SETTING,
+  "cd.store/controller/activate": KIND_ACTIVATE,
+  "cd.store/controller/deactivate": KIND_APP,
+  "cd.store/controller/uninstall": KIND_UNINSTALL,
+  "cd.store/controller/delete-data": KIND_APP,
+  "cd.store/controller/stage": KIND_STAGE,
+  "cd.store/controller/install": KIND_INSTALL,
+  "cd.store/controller/license": KIND_APP,
 };
 
 // kindOf answers with the parameter kind of a, null for an action that takes
@@ -474,7 +474,7 @@ const UPDATE_STATES = new Set([UPDATE_AVAILABLE, UPDATE_DOWNLOADED, UPDATE_INSTA
   UPDATE_ROLLEDBACK, UPDATE_FAILED, UPDATE_REJECTED, UPDATE_NEEDSGRANTS]);
 // The result of a log entry is "ok" or one of wire's codes, and nothing else.
 const LOG_RESULTS = new Set(["ok", ...Object.values(CODES)]);
-// The roles a server carries and the machines NGC is built for (Go:
+// The roles a server carries and the machines CirroDesk is built for (Go:
 // tunnel.ValidRole, tunnel.Hello.Arch).
 const NODE_ROLES = new Set(["web", "api", "db", "services"]);
 const ARCHS = new Set(["amd64", "arm64"]);
@@ -539,7 +539,7 @@ const uiProofShape = S({
   catalog: envelopePointer, task: envelopePointer, client: bytes, proof: proofPointer,
 });
 
-// The results, one entry per action key ("ngc.users/list"): the form a
+// The results, one entry per action key ("cd.users/list"): the form a
 // document decodes into, the array limits its budget needs and the rules its
 // fields are then held to. One table, so a shape and the rules that go with
 // it cannot drift apart.
@@ -548,33 +548,33 @@ const uiProofShape = S({
 // of a root array stand at "*", and a member of one of them at "*/<name>".
 const RESULTS = {
   __proto__: null,
-  "ngc.desktop/me": { shape: meShape, items: { roles: trust.MAX_ROLES }, check: checkMe },
-  "ngc.desktop/ui-proof": { shape: uiProofShape, items: {}, check: checkUIProofResult },
-  "ngc.desktop/apps": {
+  "cd.desktop/me": { shape: meShape, items: { roles: trust.MAX_ROLES }, check: checkMe },
+  "cd.desktop/ui-proof": { shape: uiProofShape, items: {}, check: checkUIProofResult },
+  "cd.desktop/apps": {
     shape: A(desktopAppShape),
     items: { "": MAX_DESKTOP_APPS, "*/actions": MAX_ACTIONS },
     check: (v) => every(v, checkDesktopApp) && unique(v, (a) => a.id),
   },
-  "ngc.desktop/ui": { shape: noneShape, items: {}, check: () => true },
-  "ngc.desktop/totp-begin": { shape: totpBeginShape, items: {}, check: checkTOTPBegin },
-  "ngc.desktop/totp-confirm": { shape: noneShape, items: {}, check: () => true },
-  "ngc.desktop/totp-off": { shape: noneShape, items: {}, check: () => true },
+  "cd.desktop/ui": { shape: noneShape, items: {}, check: () => true },
+  "cd.desktop/totp-begin": { shape: totpBeginShape, items: {}, check: checkTOTPBegin },
+  "cd.desktop/totp-confirm": { shape: noneShape, items: {}, check: () => true },
+  "cd.desktop/totp-off": { shape: noneShape, items: {}, check: () => true },
 
-  "ngc.users/list": {
+  "cd.users/list": {
     shape: A(userInfoShape),
     items: { "": trust.MAX_USERS, "*/roles": trust.MAX_ROLES },
     check: (v) => every(v, checkUserInfo) && unique(v, (u) => u.id),
   },
-  "ngc.users/rights": {
+  "cd.users/rights": {
     shape: A(roleRightsShape),
     items: { "": trust.MAX_ROLES, "*/rights": MAX_RIGHTS },
     check: (v) => every(v, checkRoleRights) && unique(v, (r) => r.role),
   },
-  "ngc.users/set-rights": { shape: noneShape, items: {}, check: () => true },
-  "ngc.users/trust": { shape: trustResultShape, items: {}, check: () => true },
-  "ngc.users/pair-code": { shape: pairCodeShape, items: {}, check: (v) => checkCode(v, "ngc-pair:") },
-  "ngc.users/join-code": { shape: pairCodeShape, items: {}, check: (v) => checkCode(v, "ngc-join:") },
-  "ngc.users/pending": {
+  "cd.users/set-rights": { shape: noneShape, items: {}, check: () => true },
+  "cd.users/trust": { shape: trustResultShape, items: {}, check: () => true },
+  "cd.users/pair-code": { shape: pairCodeShape, items: {}, check: (v) => checkCode(v, "cd-pair:") },
+  "cd.users/join-code": { shape: pairCodeShape, items: {}, check: (v) => checkCode(v, "cd-join:") },
+  "cd.users/pending": {
     shape: A(pendingShape), items: { "": trust.MAX_NODES },
     check: (v) => every(v, checkPending) && unique(v, (p) => b64encode(p.key)),
   },
@@ -582,59 +582,59 @@ const RESULTS = {
   // over ONE named field, it says which, so the window can name it instead of
   // saying only that nothing arrived. It is never a second set of rules -
   // check here is derived from the same function.
-  "ngc.users/pending-api": {
+  "cd.users/pending-api": {
     shape: A(pendingAPIShape), items: { "": trust.MAX_NODES },
     check: (v) => every(v, checkPendingAPI) && unique(v, (p) => p.node),
     fault: (v) => faultOfRows(v, pendingAPIFault, (p) => p.node),
   },
-  "ngc.users/nodes": {
+  "cd.users/nodes": {
     shape: A(nodeInfoShape), items: { "": trust.MAX_NODES, "*/roles": MAX_NODE_ROLES },
     soften: softenNodes,
     check: (v) => every(v, checkNodeInfo) && unique(v, (n) => n.node),
     fault: (v) => faultOfRows(v, nodeInfoFault, (n) => n.node),
   },
-  "ngc.users/log": {
+  "cd.users/log": {
     shape: A(logEntryShape), items: { "": MAX_LOG_LIMIT },
     check: (v) => every(v, checkLogEntry) && unique(v, (e) => e.id),
   },
 
-  "ngc.store/sources": {
+  "cd.store/sources": {
     shape: A(sourceInfoShape), items: { "": trust.MAX_STORES },
     check: (v) => every(v, checkSourceInfo) && unique(v, (s) => s.id),
   },
   // refresh answers exactly like sources: the stores after fetching each now.
-  "ngc.store/refresh": {
+  "cd.store/refresh": {
     shape: A(sourceInfoShape), items: { "": trust.MAX_STORES },
     check: (v) => every(v, checkSourceInfo) && unique(v, (s) => s.id),
   },
-  "ngc.store/catalog": {
+  "cd.store/catalog": {
     shape: catalogResultShape, items: {},
     check: (v) => validateEnvelope(v.catalog, MAX_PAYLOAD),
   },
-  "ngc.store/installed": {
+  "cd.store/installed": {
     shape: A(installedAppShape), items: { "": MAX_APPS },
     check: (v) => every(v, checkInstalledApp),
   },
-  "ngc.store/upload": { shape: uploadResultShape, items: {}, check: checkUploadResult },
-  "ngc.store/license": {
+  "cd.store/upload": { shape: uploadResultShape, items: {}, check: checkUploadResult },
+  "cd.store/license": {
     shape: licenseResultShape, items: {},
     check: (v) => validApp(v.app) && LICENSE_STATES.has(v.state),
   },
-  "ngc.store/install-key": {
+  "cd.store/install-key": {
     shape: installKeyShape, items: {},
     check: (v) => validID(v.installation) && v.key.length === KEY_SIZE,
   },
-  "ngc.store/updates": {
+  "cd.store/updates": {
     shape: A(updateInfoShape), items: { "": MAX_CATALOG_VERSIONS },
     check: (v) => every(v, checkUpdateInfo),
   },
-  "ngc.store/set-update": { shape: noneShape, items: {}, check: () => true },
-  "ngc.store/activate": { shape: noneShape, items: {}, check: () => true },
-  "ngc.store/deactivate": { shape: noneShape, items: {}, check: () => true },
-  "ngc.store/uninstall": { shape: noneShape, items: {}, check: () => true },
-  "ngc.store/delete-data": { shape: noneShape, items: {}, check: () => true },
-  "ngc.store/stage": { shape: noneShape, items: {}, check: () => true },
-  "ngc.store/install": { shape: noneShape, items: {}, check: () => true },
+  "cd.store/set-update": { shape: noneShape, items: {}, check: () => true },
+  "cd.store/activate": { shape: noneShape, items: {}, check: () => true },
+  "cd.store/deactivate": { shape: noneShape, items: {}, check: () => true },
+  "cd.store/uninstall": { shape: noneShape, items: {}, check: () => true },
+  "cd.store/delete-data": { shape: noneShape, items: {}, check: () => true },
+  "cd.store/stage": { shape: noneShape, items: {}, check: () => true },
+  "cd.store/install": { shape: noneShape, items: {}, check: () => true },
 };
 
 // RESULT_SHAPES is the form of every action's result, taken out of the one
@@ -716,7 +716,7 @@ function checkDesktopApp(v) {
 // The price: an API that one day writes the secret in another alphabet, or
 // longer, or the URI with another scheme, sends something legitimate that the
 // shell refuses - and then nobody can switch TOTP on at all, because
-// ngc.desktop/totp-begin is the only way in. It is a refusal and never a hole,
+// cd.desktop/totp-begin is the only way in. It is a refusal and never a hole,
 // so it is the safe side; but if the secret ever changes shape, this line
 // changes with it, and the failure will look like a broken server.
 function checkTOTPBegin(v) {
@@ -740,7 +740,7 @@ function checkRoleRights(v) {
 // shown to the admin for different jobs and a swapped pair would have them
 // paste the wrong one into the wrong script.
 //
-// The price: if the API ever answers ngc.users/pair-code with a code of
+// The price: if the API ever answers cd.users/pair-code with a code of
 // another kind - or the prefixes in tunnel change - the shell refuses an
 // answer that is perfectly good, and no controller can be paired until this
 // line follows. A refusal, never a hole.
@@ -911,7 +911,7 @@ export function parseUIProof(b) {
 // of l signed p.catalog and its catalog lists app at version, whose ui is the
 // hash - any store of l may vouch, whichever store the app came from. An
 // uploaded app: the user's proof over the client certificate holds against l,
-// the task it carries is ngc.store/controller/activate on a node where that
+// the task it carries is cd.store/controller/activate on a node where that
 // user may run root tasks, and its parameters name this app, this version and
 // the local store; their ui is the hash.
 //
@@ -1028,8 +1028,8 @@ const every = (v, check) => v.every((e) => check(e));
 // refused, and the page stays empty instead of showing something. So the field
 // is the one the actions name and never the whole row, and a list whose rows
 // are legitimately keyed by two things is NOT held to this rule:
-// ngc.store/installed carries an app AND a node in Go, the same app may run on
-// two controllers, and it is left out here for that reason. ngc.users/pending
+// cd.store/installed carries an app AND a node in Go, the same app may run on
+// two controllers, and it is left out here for that reason. cd.users/pending
 // is held to its key and not to its name, because two controllers an admin has
 // not added yet may well be called the same and are told apart by the
 // fingerprint of that key. A refusal, never a hole.

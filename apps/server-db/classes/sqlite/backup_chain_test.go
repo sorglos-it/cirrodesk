@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // fillForJournal makes the file carry a journal of its own at the moment

@@ -1,5 +1,7 @@
 # Der Laden der ersten Einzel-Anlage — als Beleg, nicht als Werkzeug
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Diese zwei Dateien kommen von der **ersten wirklich laufenden NGC-Anlage** (`ssh ngc`,
 10.2.3.208, Name `ngc.test`). Diese Maschine ist am 24.10.2026 um 12:37 vom Proxmox-Wirt aus
 angehalten und danach samt Platte und Schnappschuss gelöscht worden (Punkte 75 und 83).

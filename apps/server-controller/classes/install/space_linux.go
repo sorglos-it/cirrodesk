@@ -24,7 +24,7 @@ func freeSpace(dir string) (int64, error) {
 		err := syscall.Statfs(dir, &st)
 		if err == nil {
 			// Bavail is in blocks of Bsize. Both are unsigned on every
-			// architecture NGC is built for, and the product of them is the
+			// architecture CirroDesk is built for, and the product of them is the
 			// size of a disk, so it fits an int64 by a wide margin.
 			return int64(st.Bavail) * int64(st.Bsize), nil
 		}

@@ -43,18 +43,18 @@ test("an app runs only when its ui-tar fits the signed proof", async ({ shell })
 });
 
 test("a ui-tar that does not fit the proof is refused", async ({ shell }) => {
-  await shell.evaluate(() => { window.__ngcTest.swapUI = true; });
+  await shell.evaluate(() => { window.__cdTest.swapUI = true; });
   await openTerminal(shell);
   await expect(shell.getByRole("alert")).toHaveText(
-    "Die Oberfläche dieser App ist nicht echt. NGC führt sie nicht aus.");
+    "Die Oberfläche dieser App ist nicht echt. CirroDesk führt sie nicht aus.");
   await expect(shell.locator(".appframe")).toHaveCount(0);
 });
 
 test("an entry page that is not in the ui-tar is refused", async ({ shell }) => {
-  await shell.evaluate(() => { window.__ngcTest.entry = "nichtda.html"; });
+  await shell.evaluate(() => { window.__cdTest.entry = "nichtda.html"; });
   await openTerminal(shell);
   await expect(shell.getByRole("alert")).toHaveText(
-    "Die Startseite dieser App fehlt. NGC führt sie nicht aus.");
+    "Die Startseite dieser App fehlt. CirroDesk führt sie nicht aus.");
   await expect(shell.locator(".appframe")).toHaveCount(0);
 });
 
@@ -134,33 +134,33 @@ test("a message that does not come from the frame is ignored", async ({ shell })
   const token = await frame.locator("script[data-token]").getAttribute("data-token");
   expect(token, "the frame's document carries the word the bridge asks for").toBeTruthy();
   const out = await shell.evaluate(async (t) => {
-    const before = window.__ngcChannelsOpened;
+    const before = window.__cdChannelsOpened;
     window.postMessage(
-      { ngc: 1, token: t, id: 1, op: "call", service: "terminal", action: "shell" }, "*");
+      { cd: 1, token: t, id: 1, op: "call", service: "terminal", action: "shell" }, "*");
     await new Promise((r) => setTimeout(r, 100));
-    return window.__ngcChannelsOpened - before;
+    return window.__cdChannelsOpened - before;
   }, token);
   expect(out).toBe(0);
 });
 
-// The frame is the one place in NGC that builds a document out of bytes, so
+// The frame is the one place in CirroDesk that builds a document out of bytes, so
 // what it refuses to build is worth its own case: a module cannot load
 // another module out of a data: address, and an app that ships one would
 // fail silently halfway through instead of at the start.
 test("an app whose entry page needs modules is refused", async ({ shell }) => {
-  await shell.evaluate(() => { window.__ngcTest.module = true; });
+  await shell.evaluate(() => { window.__cdTest.module = true; });
   await openTerminal(shell);
   await expect(shell.getByRole("alert")).toHaveText("Diese App braucht klassische Skripte.");
   await expect(shell.locator(".appframe")).toHaveCount(0);
 });
 
 // The app talks to its own services and to nothing else, and it talks through
-// ngc.js. This is the round trip: the app asks, the shell answers, the app
+// cd.js. This is the round trip: the app asks, the shell answers, the app
 // puts the answer on screen.
 // THE SECOND WAY, and it was open for the length of one task. The user
-// interfaces of the apps NGC ships are files of this repository, and the first
+// interfaces of the apps CirroDesk ships are files of this repository, and the first
 // draft of task 25 put them under public/ - so
-// /assets/apps/terminal/index.html was a page of NGC's OWN origin: reachable by
+// /assets/apps/terminal/index.html was a page of CirroDesk's OWN origin: reachable by
 // its address, with the shell's storage, cookies and session in reach, and
 // without one of the walls this file builds. csp.spec.js found it by walking
 // the web root; this case asks the SERVER, because a file that is not in the
@@ -192,7 +192,7 @@ test("an app's own files are no document of the shell's origin", async ({ shell 
   expect(door.sniff).toBe("nosniff");
 });
 
-test("an app reaches its own service through ngc.js", async ({ shell }) => {
+test("an app reaches its own service through cd.js", async ({ shell }) => {
   await openTerminal(shell);
   const frame = shell.frameLocator(".appframe");
   const input = frame.getByRole("textbox", { name: "Eingabe" });

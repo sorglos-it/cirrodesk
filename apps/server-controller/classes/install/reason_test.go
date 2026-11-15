@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // journal collects what this Manager wrote, as a handler and not as text: a
@@ -116,7 +116,7 @@ func TestNoTextOfAnErrorReachesTheJournal(t *testing.T) {
 	}
 	line := j.only(t)
 	for k, v := range line {
-		for _, bad := range []string{"removed by the admin", "ngc-controller:", "every app"} {
+		for _, bad := range []string{"removed by the admin", "cd-controller:", "every app"} {
 			if strings.Contains(v, bad) {
 				t.Fatalf("the journal line carries the error's own text in %s=%q", k, v)
 			}

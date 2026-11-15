@@ -59,7 +59,7 @@ test("every error code carries its German message", async ({ shell }) => {
     E_TOOLARGE: "Zu viele Daten.",
     E_LOGIN: "Anmeldung fehlgeschlagen.",
     E_LOCKED: "Zu viele Fehlversuche. Bitte später erneut versuchen.",
-    E_NOT_SET_UP: "NGC ist noch nicht eingerichtet.",
+    E_NOT_SET_UP: "CirroDesk ist noch nicht eingerichtet.",
   });
 });
 
@@ -369,12 +369,12 @@ test("a document whose length lies is refused by every parser", async ({ shell }
     const takes = (fn) => { try { fn(); return true; } catch { return false; } };
     const rows = [
       [22063, w.MAX_BROWSER_OPEN,
-        '{"app":"ngc.desktop","service":"api","action":"apps","params":{"a":1},"window":262144',
+        '{"app":"cd.desktop","service":"api","action":"apps","params":{"a":1},"window":262144',
         (x) => w.parseOpen(x)],
       [70027, w.MAX_PAYLOAD, '{"t":"bye"', (x) => w.parseControl(x)],
       [5015, w.MAX_CLOSE_PAYLOAD, '{"status":"error","code":"E_EXIT"', (x) => w.parseClose(x)],
     ];
-    const open = utf8('{"app":"ngc.desktop","service":"api","action":"apps","window":262144,"params":{"a":1}}');
+    const open = utf8('{"app":"cd.desktop","service":"api","action":"apps","window":262144,"params":{"a":1}}');
     return {
       over: rows.map(([n, , head, fn]) => takes(() => fn(padded(n, head)))),
       lied: rows.map(([n, , head, fn]) => takes(() => fn(lying(padded(n, head))))),
@@ -441,12 +441,12 @@ test("grant and parseGrant split the same way as Go", async ({ shell }) => {
 test("parseOpen decides the edges the way Go decides them", async ({ shell }) => {
   const cases = [
     // [name, payload, valid]
-    ["empty params object", '{"app":"ngc.desktop","service":"api","action":"apps","params":{},"window":262144}', true],
-    ["params with white space", '{"app":"ngc.desktop","service":"api","action":"apps","params":{ },"window":262144}', true],
-    ["params as a string", '{"app":"ngc.desktop","service":"api","action":"apps","params":"{}","window":262144}', false],
-    ["core app with an empty e2e", '{"app":"ngc.desktop","service":"api","action":"apps","window":262144,"e2e":""}', true],
-    ["no window", '{"app":"ngc.desktop","service":"api","action":"apps"}', false],
-    ["nested params", '{"app":"ngc.desktop","service":"api","action":"apps","params":{"a":{"b":{"c":1}}},"window":262144}', true],
+    ["empty params object", '{"app":"cd.desktop","service":"api","action":"apps","params":{},"window":262144}', true],
+    ["params with white space", '{"app":"cd.desktop","service":"api","action":"apps","params":{ },"window":262144}', true],
+    ["params as a string", '{"app":"cd.desktop","service":"api","action":"apps","params":"{}","window":262144}', false],
+    ["core app with an empty e2e", '{"app":"cd.desktop","service":"api","action":"apps","window":262144,"e2e":""}', true],
+    ["no window", '{"app":"cd.desktop","service":"api","action":"apps"}', false],
+    ["nested params", '{"app":"cd.desktop","service":"api","action":"apps","params":{"a":{"b":{"c":1}}},"window":262144}', true],
   ];
   const got = await shell.evaluate(async (list) => {
     const w = await import("/assets/js/contracts/wire.js");
@@ -493,22 +493,22 @@ test("validateOpen asks of a task what Go asks", async ({ shell }) => {
       throwing: w.validateOpen(throwing),
       // The object form of the same check, for a caller that builds an OPEN.
       objects: [
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", params: null,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", params: null,
           window: 262144, e2e: new Uint8Array(0), task: null, confirm: null }),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", params: null,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", params: null,
           window: 262144, e2e: new Uint8Array(0), task: null,
           confirm: { kind: "password", kid: "Q0NDQ0NDQ0NDQ0NDQ0NDQw", sig: new Uint8Array(64),
             authData: new Uint8Array(0), clientData: new Uint8Array(0) } }),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144,
           e2e: new Uint8Array(0), task: { payload: new Uint8Array(1), kid: "x", sig: new Uint8Array(64) } }),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144,
           e2e: new Uint8Array(0), task: { payload: new Uint8Array(0), kid: "x", sig: new Uint8Array(64) } }),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144,
           e2e: new Uint8Array(0), task: { payload: new Uint8Array(1), kid: "x", sig: new Uint8Array(63) } }),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144,
           e2e: new Uint8Array(0), task: { payload: new Uint8Array(16 * 1024 + 1), kid: "x", sig: new Uint8Array(64) } }),
         w.validateOpen(null),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144, e2e: "" }),
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144, e2e: "" }),
       ],
       // Nothing, no bytes, an object, an array, one byte over MaxParams, a
       // string that is no bytes, and a caller who handed over nothing at all.
@@ -538,7 +538,7 @@ test("encodeOpen writes an OPEN that parseOpen takes", async ({ shell }) => {
     const params = new TextEncoder().encode('{"cols":80,"rows":24}');
     const full = w.encodeOpen({ app: "org.sorglos.terminal", service: "terminal", action: "shell",
       params, window: w.DEFAULT_WINDOW, e2e });
-    const core = w.encodeOpen({ app: "ngc.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW });
+    const core = w.encodeOpen({ app: "cd.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW });
     const back = w.parseOpen(full);
     const tries = (o) => { try { w.encodeOpen(o); return true; } catch { return false; } };
     return {
@@ -551,12 +551,12 @@ test("encodeOpen writes an OPEN that parseOpen takes", async ({ shell }) => {
         tries({ app: "Terminal", service: "terminal", action: "shell", window: w.DEFAULT_WINDOW, e2e }),
         tries({ app: "org.sorglos.terminal", service: "terminal", action: "shell", window: 4095, e2e }),
         tries({ app: "org.sorglos.terminal", service: "terminal", action: "shell", window: w.DEFAULT_WINDOW }),
-        tries({ app: "ngc.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW, e2e }),
-        tries({ app: "ngc.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW,
+        tries({ app: "cd.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW, e2e }),
+        tries({ app: "cd.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW,
           params: new TextEncoder().encode("[1]") }),
-        tries({ app: "ngc.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW,
+        tries({ app: "cd.desktop", service: "api", action: "apps", window: w.DEFAULT_WINDOW,
           params: new TextEncoder().encode('{"a":1,"a":2}') }),
-        tries({ app: "ngc.desktop", service: "api", action: "apps", window: 1.5 }),
+        tries({ app: "cd.desktop", service: "api", action: "apps", window: 1.5 }),
         tries({ app: undefined, service: "api", action: "apps", window: w.DEFAULT_WINDOW }),
         tries(null),
       ],
@@ -565,7 +565,7 @@ test("encodeOpen writes an OPEN that parseOpen takes", async ({ shell }) => {
   expect(got.full).toBe('{"app":"org.sorglos.terminal","service":"terminal","action":"shell"'
     + ',"params":{"cols":80,"rows":24},"window":262144'
     + ',"e2e":"BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH"}');
-  expect(got.core).toBe('{"app":"ngc.desktop","service":"api","action":"apps","window":262144}');
+  expect(got.core).toBe('{"app":"cd.desktop","service":"api","action":"apps","window":262144}');
   expect(got.e2eBack).toBe("BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH");
   expect(got.paramsBack).toBe('{"cols":80,"rows":24}');
   expect(got.windowBack).toBe(262144);
@@ -706,7 +706,7 @@ test("parseControl and encodeControl keep Go's rules", async ({ shell }) => {
         w.controlAllowed(w.LINK_SESSION, false, w.CTL_BYE),
         w.controlAllowed("other", true, w.CTL_BYE),
       ],
-      coreApp: [w.CORE_APP("ngc.desktop"), w.CORE_APP("org.sorglos.terminal"), w.CORE_APP(undefined)],
+      coreApp: [w.CORE_APP("cd.desktop"), w.CORE_APP("org.sorglos.terminal"), w.CORE_APP(undefined)],
     };
   }, cases);
   const wrong = cases.filter(([, valid], i) => valid !== got.decides[i]).map(([p]) => p);
@@ -796,18 +796,18 @@ test("validParams asks the whole question Go's ValidParams asks", async ({ shell
       // the shape alone: an OPEN a caller built with params that break off is
       // refused here, where until this round it was taken.
       open: [
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144,
           e2e: new Uint8Array(0), params: utf8('{"a":1}') }),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144,
           e2e: new Uint8Array(0), params: utf8('{"a":') }),
-        w.validateOpen({ app: "ngc.desktop", service: "api", action: "apps", window: 262144,
+        w.validateOpen({ app: "cd.desktop", service: "api", action: "apps", window: 262144,
           e2e: new Uint8Array(0), params: utf8('{"a":1,"a":2}') }),
       ],
       // parseOpen keeps Go's other way through, validate(false): the decoder
       // has read these params already, and the answer is the same.
       parses: (() => {
         try {
-          w.parseOpen(utf8('{"app":"ngc.desktop","service":"api","action":"apps","params":{"a":1},"window":262144}'));
+          w.parseOpen(utf8('{"app":"cd.desktop","service":"api","action":"apps","params":{"a":1},"window":262144}'));
           return true;
         } catch { return false; }
       })(),
@@ -896,7 +896,7 @@ test("no error repeats what it was given", async ({ shell }) => {
     call("open app", () => w.parseOpen(utf8('{"app":"' + m + '","service":"api","action":"apps","window":262144}')));
     call("open member", () => w.parseOpen(utf8('{"' + m + '":1}')));
     call("open app written", () => w.encodeOpen({ app: m, service: "api", action: "apps", window: 262144 }));
-    call("open params written", () => w.encodeOpen({ app: "ngc.desktop", service: "api", action: "apps",
+    call("open params written", () => w.encodeOpen({ app: "cd.desktop", service: "api", action: "apps",
       window: 262144, params: utf8('{"' + m + '"') }));
     call("frame bytes", () => w.decodeFrame(utf8(m)));
     call("frame type", () => w.encodeFrame({ type: m, channel: 1, payload: new Uint8Array(0) }));

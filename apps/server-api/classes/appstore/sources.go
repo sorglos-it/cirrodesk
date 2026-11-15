@@ -5,13 +5,13 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // maxReason bounds a reason in core.SourceInfo.Error. It is roomy enough for
@@ -19,7 +19,7 @@ import (
 // in it -- which cannot happen anyway, because the texts are a closed list.
 const maxReason = 120
 
-// The reasons ngc.store/sources shows, in German. They are a closed list and
+// The reasons cd.store/sources shows, in German. They are a closed list and
 // not the error of the store, because an administrator reads this line: a text
 // a stranger could fill is a tool against that reader, and a line break in it
 // would forge a second row. Each one says what nobody can mend by asking
@@ -91,8 +91,8 @@ func (st *Stores) readSource(ctx context.Context, id string) (sourceState, error
 	return s, nil
 }
 
-// Sources answers ngc.store/sources: one row per store of the trust list, in
-// the order of the list (sorted by ID). A store NGC never reached is listed
+// Sources answers cd.store/sources: one row per store of the trust list, in
+// the order of the list (sorted by ID). A store CirroDesk never reached is listed
 // too, with nothing seen -- the row an administrator needs most is the one of
 // the store that is silent.
 func (st *Stores) Sources(ctx context.Context) ([]core.SourceInfo, error) {
@@ -113,7 +113,7 @@ func (st *Stores) Sources(ctx context.Context) ([]core.SourceInfo, error) {
 		} else if !errors.Is(err, dbapi.ErrNotFound) {
 			// A row that does not read is not a reason to hide the store: the
 			// store is listed, and what the row claimed is dropped for this
-			// package's own text. A store NGC has not tried yet has no row at
+			// package's own text. A store CirroDesk has not tried yet has no row at
 			// all, and that one keeps an empty line.
 			row.Error = ReasonOther
 		}
@@ -122,7 +122,7 @@ func (st *Stores) Sources(ctx context.Context) ([]core.SourceInfo, error) {
 	return out, nil
 }
 
-// Catalog answers ngc.store/catalog: the stored envelope of one store of the
+// Catalog answers cd.store/catalog: the stored envelope of one store of the
 // trust list, and the catalog inside it.
 //
 // The envelope is verified once more on the way out, against the key the trust

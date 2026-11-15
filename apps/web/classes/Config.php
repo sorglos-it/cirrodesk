@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Ngc;
+namespace CirroDesk;
 
 use RuntimeException;
 
@@ -10,8 +10,8 @@ use RuntimeException;
 require_once __DIR__ . '/Url.php';
 require_once __DIR__ . '/ConfigError.php';
 
-// Config reads the two files ngc-web and the controller with role web write:
-// /etc/ngc/web.json (config.Web) and /etc/ngc/trust-anchor.json (trust.Anchor).
+// Config reads the two files cd-web and the controller with role web write:
+// /etc/cd/web.json (config.Web) and /etc/cd/trust-anchor.json (trust.Anchor).
 // It only reads and checks; nothing here ever writes them.
 //
 // Every pattern ends in \z, never in $: PHP lets $ match before a closing

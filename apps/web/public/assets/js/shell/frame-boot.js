@@ -1,4 +1,4 @@
-// THE ONE PLACE IN NGC THAT TURNS TEXT INTO A DOCUMENT.
+// THE ONE PLACE IN CirroDesk THAT TURNS TEXT INTO A DOCUMENT.
 //
 // Everywhere else the rule is absolute: no innerHTML, no insertAdjacentHTML,
 // no document.write, no eval, no new Function. Here document.write is used
@@ -18,10 +18,10 @@
 //     written here is built from those bytes and from nothing else.
 //  2. This document is in an origin of its own. /frame.html is served with
 //     "Content-Security-Policy: sandbox allow-scripts", so the browser gives
-//     it an opaque origin NO MATTER HOW IT IS LOADED - in NGC's frame, in
+//     it an opaque origin NO MATTER HOW IT IS LOADED - in CirroDesk's frame, in
 //     somebody else's frame, or opened on its own. The check below refuses to
 //     write anything if that is not so, which is the line that keeps this
-//     file from ever becoming a way to run markup in NGC's own origin.
+//     file from ever becoming a way to run markup in CirroDesk's own origin.
 //  3. The document may do nothing but show itself. Its policy is
 //     default-src 'none' with data: for scripts, styles, pictures, fonts and
 //     media, and connect-src 'none': the app makes no connection of its own,
@@ -35,7 +35,7 @@
 (function () {
   "use strict";
 
-  // An opaque origin answers "null" here. A document of NGC's own origin
+  // An opaque origin answers "null" here. A document of CirroDesk's own origin
   // answers with that origin, and then this file does nothing at all: without
   // the sandbox, writing text from a message would be a way to run somebody
   // else's markup where the session keys live. It fails shut, so a future
@@ -49,7 +49,7 @@
     // holds a handle to this one, and the check costs a line.
     if (e.source !== parent) return;
     var m = e.data;
-    if (!m || m.ngc !== 1 || m.op !== "doc" || typeof m.html !== "string") return;
+    if (!m || m.cd !== 1 || m.op !== "doc" || typeof m.html !== "string") return;
     // Once. A second document would be an app replaced under a window the
     // person already trusts.
     if (written) return;
@@ -62,5 +62,5 @@
   // The frame says it is there. The shell waits for this rather than for the
   // load event, because the listener above has to stand before the document
   // arrives.
-  parent.postMessage({ ngc: 1, op: "ready" }, "*");
+  parent.postMessage({ cd: 1, op: "ready" }, "*");
 })();

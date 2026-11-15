@@ -14,18 +14,18 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()
@@ -90,7 +90,7 @@ func newServer(t *testing.T) (*Server, fixture) {
 		SecretKey:    config.NewSecret(make([]byte, 32)),
 		ChallengeKey: config.NewSecret(bytes.Repeat([]byte{7}, 32)),
 		ReleaseKey:   enc.Bytes(make([]byte, 32)), StoreKey: enc.Bytes(make([]byte, 32)),
-		StoreURL: "https://store.ngc.test", SessionLifetime: 43200, IdleTimeout: 1800,
+		StoreURL: "https://store.cd.test", SessionLifetime: 43200, IdleTimeout: 1800,
 	}
 	s := state.New(cfg, memstore.New(), box, apiPin)
 	s.Now = func() int64 { return testNow }

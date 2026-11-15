@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 var (
@@ -69,7 +69,7 @@ type State struct {
 	Pin []byte // trust.TLSPin of this API's TLS key
 
 	// AnchorFile is the trust anchor outside the database
-	// (config.AnchorFile, "/etc/ngc/trust-anchor.json"). Empty means that
+	// (config.AnchorFile, "/etc/cd/trust-anchor.json"). Empty means that
 	// file; a test names its own. Whether the file EXISTS decides what it
 	// does: while it does not, the root of the chain anchors itself out of
 	// the same database as before, and nothing changes. Once it does, the

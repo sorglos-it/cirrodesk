@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/chain"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/chain"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// trust carries out ngc.users/controller/trust: the API sends the bytes of a
+// trust carries out cd.users/controller/trust: the API sends the bytes of a
 // session.TrustChain, this controller verifies every version in it from the
 // anchor of its own configuration on, keeps what it verified in its local
 // state and answers with the number of the newest version it now holds

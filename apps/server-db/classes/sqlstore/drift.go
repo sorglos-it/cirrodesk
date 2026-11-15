@@ -13,7 +13,7 @@ import (
 
 // Drift is one column whose type in the database is not the one in
 // ColumnType. It carries names and types only, never a value: a value from
-// ngc_session or ngc_user is a secret.
+// cd_session or cd_user is a secret.
 type Drift struct {
 	Table, Column, Want, Found string
 }

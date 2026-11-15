@@ -2,7 +2,7 @@
 
 Quelle: `@noble/hashes` **2.4.0**, MIT, <https://github.com/paulmillr/noble-hashes>.
 Von Hand kopiert am 24.09.2026 aus der veröffentlichten Fassung der Registry
-`registry.npmjs.org`. NGC installiert nichts mit npm: die Dateien liegen im Repo und werden
+`registry.npmjs.org`. CirroDesk installiert nichts mit npm: die Dateien liegen im Repo und werden
 von uns gepflegt. Geändert wurde nichts – die Dateien stehen Byte für Byte so da, wie sie
 veröffentlicht wurden.
 
@@ -41,7 +41,7 @@ Der Auftrag nannte 1.8.0. Deren veröffentlichte ES-Module lassen sich im Browse
 laden**: `esm/utils.js` beginnt mit `import { crypto } from '@noble/hashes/crypto'`, einem
 Namen ohne Pfad, den ein Browser ohne Bündelwerkzeug oder Import-Map nicht auflösen kann.
 Die Bibliothek schreibt das selbst in ihren Kommentar („Makes the utils un-importable in
-browsers without a bundler"). NGC hat keinen Bauschritt, und in einem Modul-Worker – dort
+browsers without a bundler"). CirroDesk hat keinen Bauschritt, und in einem Modul-Worker – dort
 läuft Argon2id – wirkt eine Import-Map gar nicht. Die Bibliothek ändern wir nicht, also ist
 die Fassung zu nehmen, die als Ganzes lädt: 2.4.0 hat nur noch relative Importe und holt sich
 den Zufallszahlengeber direkt über `globalThis.crypto`.

@@ -8,10 +8,10 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Prices, limits and update states. Times in seconds.
@@ -32,9 +32,9 @@ const (
 
 	// Release files name software components, the same names as update
 	// targets and tunnel.Components.
-	ReleaseWeb        = trust.AutoWeb        // "ngc-web", arch "all"
-	ReleaseAPI        = trust.AutoAPI        // "ngc-api"; includes ngc-store and the database migrations
-	ReleaseController = trust.AutoController // "ngc-controller"
+	ReleaseWeb        = trust.AutoWeb        // "cd-web", arch "all"
+	ReleaseAPI        = trust.AutoAPI        // "cd-api"; includes cd-store and the database migrations
+	ReleaseController = trust.AutoController // "cd-controller"
 
 	ModeAuto   = "auto"   // install in the maintenance window (default); needs a standing approval
 	ModeSemi   = "semi"   // download and check in advance, install on click
@@ -90,15 +90,15 @@ type Package struct {
 	// needs are not Granted by the app's grants is not installed without a new
 	// activation (UpdateNeedsGrants).
 	Needs []string `json:"needs,omitempty"`
-	// MinNGC is the oldest NGC version the app needs, as in the manifest
-	// (SupportsMinNGC). A manifest field that NGC version X introduces may
-	// appear only in packages whose minNgc (in the manifest and in the catalog
-	// entry) is at least X: an older NGC never offers such a version, because
+	// MinCD is the oldest CirroDesk version the app needs, as in the manifest
+	// (SupportsMinCD). A manifest field that CirroDesk version X introduces may
+	// appear only in packages whose minCd (in the manifest and in the catalog
+	// entry) is at least X: an older CirroDesk never offers such a version, because
 	// it could not read the manifest (strict JSON).
-	MinNGC string `json:"minNgc,omitempty"`
+	MinCD string `json:"minCd,omitempty"`
 }
 
-// Price of a paid app. Payment happens on the store's shop page, never in NGC.
+// Price of a paid app. Payment happens on the store's shop page, never in CirroDesk.
 type Price struct {
 	Model    string `json:"model"`
 	Per      string `json:"per"`
@@ -135,11 +135,11 @@ type LicenseState int
 
 const (
 	LicenseValid   LicenseState = iota
-	LicenseGrace                // expired, but within the grace period: runs, NGC warns
+	LicenseGrace                // expired, but within the grace period: runs, CirroDesk warns
 	LicenseExpired              // controllers stop the app's services and start none (tunnel.StateUnlicensed)
 )
 
-// Release is a signed NGC version.
+// Release is a signed CirroDesk version.
 type Release struct {
 	Seq     uint64 `json:"seq"`
 	Issued  int64  `json:"issued"`
@@ -148,7 +148,7 @@ type Release struct {
 	Files   []File `json:"files"`
 }
 
-// File is one software component of NGC (ReleaseWeb, ReleaseAPI,
+// File is one software component of CirroDesk (ReleaseWeb, ReleaseAPI,
 // ReleaseController) for one architecture ("all" for ReleaseWeb).
 type File struct {
 	Part   string    `json:"part"`
@@ -194,7 +194,7 @@ func validURL(u string) bool {
 	return ValidPath(u)
 }
 
-// validHTTPSURL reports whether u is an address NGC fetches a package or a
+// validHTTPSURL reports whether u is an address CirroDesk fetches a package or a
 // release file from, or shows as a shop link: "https://", a host by
 // trust.ValidHost with an optional ":" and port (trust.ValidHostPort), then
 // nothing, or "/" and a path and query of printable ASCII (0x21 to 0x7e)
@@ -202,7 +202,7 @@ func validURL(u string) bool {
 //
 // It follows the address grammar of trust and calls it, so a host is judged
 // the same everywhere. Unlike trust.ValidStoreURL it allows a query, since
-// stores sign download links, but it allows no fragment: NGC fetches these
+// stores sign download links, but it allows no fragment: CirroDesk fetches these
 // addresses, and a fragment says nothing to a server. User info cannot pass:
 // it is part of the authority, and neither host rule allows "@".
 func validHTTPSURL(u string) bool {
@@ -257,7 +257,7 @@ func (e Entry) valid() bool {
 	for i, p := range e.Versions {
 		if !ValidVersion(p.Version) || (i > 0 && !Newer(p.Version, e.Versions[i-1].Version)) || !validURL(p.URL) ||
 			p.Size <= 0 || p.Size > MaxPackage || len(p.SHA256) != 32 || len(p.UI) != 32 || p.Encrypted != (e.Price != nil) ||
-			!validNeeds(p.Needs) || (p.MinNGC != "" && !ValidVersion(p.MinNGC)) {
+			!validNeeds(p.Needs) || (p.MinCD != "" && !ValidVersion(p.MinCD)) {
 			return false
 		}
 	}
@@ -456,7 +456,7 @@ func VerifyRelease(env sign.Envelope, key ed25519.PublicKey, lastSeq uint64) (*R
 	return r, nil
 }
 
-// ValidTarget reports whether t names something that can be updated: an NGC
+// ValidTarget reports whether t names something that can be updated: a CirroDesk
 // part (trust.AutoWeb, AutoAPI, AutoController), the system packages
 // (trust.AutoSystem) or an app.
 func ValidTarget(t string) bool {

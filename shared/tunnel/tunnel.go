@@ -14,13 +14,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Paths on the API listener, names and limits. Times in seconds.
@@ -28,9 +28,9 @@ const (
 	PathTunnel     = "/tunnel"      // WebSocket; query key=<Fingerprint of the controller's Noise key>; TLS verified with PinnedTLS, Noise authenticates
 	PathPair       = "/tunnel/pair" // POST PairRequest
 	PathJoin       = "/tunnel/join" // POST JoinRequest
-	Subprotocol    = "ngc.tunnel.v1"
-	PairPrefix     = "ngc-pair:"
-	JoinPrefix     = "ngc-join:"
+	Subprotocol    = "cd.tunnel.v1"
+	PairPrefix     = "cd-pair:"
+	JoinPrefix     = "cd-join:"
 	SecretSize     = 16
 	PairLifetime   = 86400
 	MaxPairCode    = 1024 // also for join codes
@@ -60,10 +60,10 @@ func ValidRole(r string) bool {
 	return r == RoleWeb || r == RoleAPI || r == RoleDB || r == RoleServices
 }
 
-// Components returns the NGC software a server with these roles runs, sorted:
-// always trust.AutoController ("ngc-controller"), plus trust.AutoAPI for
+// Components returns the CirroDesk software a server with these roles runs, sorted:
+// always trust.AutoController ("cd-controller"), plus trust.AutoAPI for
 // RoleAPI and trust.AutoWeb for RoleWeb. RoleDB runs the migrations from the
-// ngc-api release file without installing it; RoleServices runs app containers.
+// cd-api release file without installing it; RoleServices runs app containers.
 func Components(roles []string) []string {
 	c := []string{trust.AutoController}
 	if slices.Contains(roles, RoleAPI) {
@@ -123,7 +123,7 @@ type JoinRequest struct {
 
 // Hello is the first message on channel 0, in both directions.
 type Hello struct {
-	Version  string `json:"version"` // NGC version of the sender
+	Version  string `json:"version"` // CirroDesk version of the sender
 	Contract int    `json:"contract"`
 	// Node is the node whose Noise key made this tunnel; the API ends the
 	// tunnel when it names another; empty until the controller is in the
@@ -296,7 +296,7 @@ func (c JoinCode) Check(v trust.Version) error { return code(c).check(v) }
 // PairMAC binds a controller key and an API key to the pairing secret.
 func PairMAC(secret, controllerKey, apiKey []byte) []byte {
 	m := hmac.New(sha256.New, secret)
-	m.Write([]byte("ngc/pair/v1"))
+	m.Write([]byte("cd/pair/v1"))
 	m.Write([]byte{0})
 	m.Write(controllerKey)
 	m.Write(apiKey)
@@ -324,12 +324,12 @@ func (r PairRequest) Verify(secret, apiKey []byte) error {
 	return nil
 }
 
-// JoinMAC = HMAC-SHA256(secret, "ngc/join/v1" 0x00 node 0x00 noise signKey
+// JoinMAC = HMAC-SHA256(secret, "cd/join/v1" 0x00 node 0x00 noise signKey
 // tlsPin apiKey url): node is a node ID (wire.ValidName), which holds no zero
 // byte; noise, signKey, tlsPin and apiKey have 32 bytes each; url comes last.
 func JoinMAC(secret []byte, node string, noise, signKey, tlsPin, apiKey []byte, url string) []byte {
 	m := hmac.New(sha256.New, secret)
-	m.Write([]byte("ngc/join/v1"))
+	m.Write([]byte("cd/join/v1"))
 	m.Write([]byte{0})
 	m.Write([]byte(node))
 	m.Write([]byte{0})
@@ -343,12 +343,12 @@ func JoinMAC(secret []byte, node string, noise, signKey, tlsPin, apiKey []byte, 
 
 // JoinFingerprint names what a joining API asks to be listed with, for the
 // admin to compare: base64url of the first 16 bytes of SHA-256 over
-// "ngc/join-fingerprint/v1", a zero byte, node, a zero byte, noise, signKey,
+// "cd/join-fingerprint/v1", a zero byte, node, a zero byte, noise, signKey,
 // tlsPin and url. The new server's ulh script shows it; the shell computes it
 // from core.PendingAPI.
 func JoinFingerprint(node string, noise, signKey, tlsPin []byte, url string) string {
 	h := sha256.New()
-	h.Write([]byte("ngc/join-fingerprint/v1"))
+	h.Write([]byte("cd/join-fingerprint/v1"))
 	h.Write([]byte{0})
 	h.Write([]byte(node))
 	h.Write([]byte{0})
@@ -386,7 +386,7 @@ func Fingerprint(key []byte) string { return sign.KeyID(key) }
 // errPin refuses a TLS server whose key is none of the pins.
 var errPin = errors.New("tunnel: TLS key does not match the pin")
 
-// PinnedTLS returns the client configuration for NGC's TLS links to an API
+// PinnedTLS returns the client configuration for CirroDesk's TLS links to an API
 // (tunnel, pairing and join requests, and the web server's controller
 // fetching certificates for Apache): the server's leaf certificate must hold
 // a key whose trust.TLSPin is one of pins; who signed it and its names do
@@ -459,8 +459,8 @@ var statusBudget = enc.Budget{Size: wire.MaxPayload, Items: map[string]int{
 
 // ParseStatus decodes and checks the body of a status message: at most
 // MaxStatusApps apps, each with a valid non-core app ID (no duplicates),
-// store.ValidVersion and a known AppState; Components keys only ngc-web,
-// ngc-api, ngc-controller with store.ValidVersion values; DiskFree >= 0.
+// store.ValidVersion and a known AppState; Components keys only cd-web,
+// cd-api, cd-controller with store.ValidVersion values; DiskFree >= 0.
 func ParseStatus(b []byte) (Status, error) {
 	var s Status
 	if statusBudget.Decode(b, &s) != nil || len(s.Apps) > MaxStatusApps || s.DiskFree < 0 {

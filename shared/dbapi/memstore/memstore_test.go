@@ -3,9 +3,9 @@ package memstore_test
 import (
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/dbtest"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/dbtest"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
 )
 
 func TestMemstore(t *testing.T) {

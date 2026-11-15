@@ -38,11 +38,11 @@ import (
 	"log/slog"
 	"os/exec"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // ErrSystem says apt-get did not finish: a package manager that is locked, a
@@ -51,7 +51,7 @@ import (
 // machine (store.UpdateFailed) and not that anything was refused.
 var ErrSystem = errors.New("update: the system packages could not be updated")
 
-// aptDefault is where apt-get lives on Debian and Ubuntu, the two systems NGC
+// aptDefault is where apt-get lives on Debian and Ubuntu, the two systems CirroDesk
 // is built for. The absolute path is the point: a bare name would be looked up
 // in PATH, and this program runs as root.
 const aptDefault = "/usr/bin/apt-get"

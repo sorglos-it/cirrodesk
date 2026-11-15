@@ -1,6 +1,6 @@
 # Aussehen nach LordOS „Lord Flow"
 
-Thomas' Auftrag: die NGC-Oberfläche soll aussehen und sich anfühlen wie macOS, und das Design
+Thomas' Auftrag: die CirroDesk-Oberfläche soll aussehen und sich anfühlen wie macOS, und das Design
 kommt aus **LordOS**, das er lizenziert hat.
 
 Dieses Blatt ist die **Beschreibung**, nicht der Bau. Es nennt jede Zahl, jede Farbe und jede
@@ -42,7 +42,7 @@ ein AGPL-Werk aufgenommen und als Ganzes unter AGPL weitergegeben werden.
 | Name „LordOS", „Lord Flow", „Lumo", das Maskottchen, die Krone | **nein**. Marke |
 | Schriften und Marken von Apple | **nein**, und zwar gar nicht. Keine San Francisco, kein Apfel, keine Namen wie „Finder" oder „Launchpad" |
 
-**Bevor die erste Datei aus LordOS in NGC liegt**, bekommt sie eine Zeile in `THIRD-PARTY.md`
+**Bevor die erste Datei aus LordOS in CirroDesk liegt**, bekommt sie eine Zeile in `THIRD-PARTY.md`
 (Modul, Fassung, Lizenz, wofür, Übernahmedatum) — so wie jeder andere Fremdcode dort. Solange nur
 Zahlen aus diesem Blatt umgesetzt werden, ist keine Zeile fällig: es liegt keine fremde Datei im
 Baum.
@@ -76,7 +76,7 @@ Belegt am Akzent, der sichtbarsten Farbe. Dieselbe Farbe steht an **sechs** Orte
 | 1 | `shell.css`, `--accent` | die Vorgabe |
 | 2 | `shell/theme.js`, `ACCENTS` | die **sechs**, aus denen der Benutzer aussucht |
 | 3 | `shell/desktop.js`, `ACCENT_NAMES` | ihre Namen, fest verdrahtet auf Deutsch |
-| 4 | `public/assets/ngc.js` | ein Rückfallwert |
+| 4 | `public/assets/cd.js` | ein Rückfallwert |
 | 5 | `tests/shell/desktop-look.spec.js` | die Erwartung `#2f7de1` |
 | 6 | `assets/apps/calculator/app.css`, `terminal/app.css` | **je eine ganze Kopie** von `--win-bg`, `--win-fg`, `--win-border`, `--title-bg`, `--field-bg`, `--muted`, `--accent` |
 
@@ -84,7 +84,7 @@ Gemessen: das LordOS-Blau allein in `shell.css` machte einen Prüffall rot und l
 des Rechners im alten Blau stehen.
 
 **Das ist NICHT erledigt, auch wenn es niemandem mehr wehtut.** Thomas hat am 30.10.2026 entschieden,
-dass die sechs NGC-Farben bleiben (Abschnitt 3). Damit muss heute **keine** Farbe mehr durch alle
+dass die sechs CirroDesk-Farben bleiben (Abschnitt 3). Damit muss heute **keine** Farbe mehr durch alle
 sechs Orte — es gibt keine neue, die dort anzukommen hätte. **Die sechs Orte sind trotzdem alle
 noch da**, mit demselben Wert sechsmal geschrieben. Die nächste Farbe, die sich ändert, läuft in
 genau denselben Befund. Wer hier später „erledigt" liest, liest falsch: erledigt ist der Anlass,
@@ -130,20 +130,20 @@ Spalte **Quelle**: `LordOS` = aus `themes/default/tokens.js`, Zeile für Zeile a
 
 **Entschieden von Thomas am 30.10.2026, wörtlich:**
 
-> FARBEN: bleiben, wie sie sind. Die sechs NGC-Farben — Blau, Türkis, Pink, Orange, Violett, Grün —
+> FARBEN: bleiben, wie sie sind. Die sechs CirroDesk-Farben — Blau, Türkis, Pink, Orange, Violett, Grün —
 > werden NICHT durch die LordOS-Palette ersetzt. Werte unverändert. Damit ist der Akzent-Schritt vom
 > Tisch: nimm aus LordOS nur Form, Flächen, Ränder, Abstände, Schatten, Ecken — keine Farbwerte.
 
-Es bleiben also die sechs, die NGC hat, mit den Werten, die NGC hat:
+Es bleiben also die sechs, die CirroDesk hat, mit den Werten, die CirroDesk hat:
 
 | Name | Wert | Quelle |
 |---|---|---|
-| Blau (Vorgabe) | `#2f7de1` | NGC, `shell/theme.js` |
-| Türkis | `#16d1c3` | NGC |
-| Pink | `#e14f8a` | NGC |
-| Orange | `#f0a020` | NGC |
-| Violett | `#8b5cf6` | NGC |
-| Grün | `#22c55e` | NGC |
+| Blau (Vorgabe) | `#2f7de1` | CirroDesk, `shell/theme.js` |
+| Türkis | `#16d1c3` | CirroDesk |
+| Pink | `#e14f8a` | CirroDesk |
+| Orange | `#f0a020` | CirroDesk |
+| Violett | `#8b5cf6` | CirroDesk |
+| Grün | `#22c55e` | CirroDesk |
 
 Die LordOS-Palette (`accents.azul` `#0a84ff`, `violeta` `#bf5af2`, `rosa` `#ff375f`, `naranja`
 `#ff9f0a`, `verde` `#30d158`, `grafito` `#8e8e93`) steht hier nur noch als Quellenangabe. **Sie wird
@@ -179,9 +179,9 @@ nicht mehr.
 | `--off` Schalter aus | `#4a4a50` | `#c8c8cc` | LordOS `lightOff` |
 | `--scroll` Rollbalken | `rgba(255,255,255,.32)` | `rgba(0,0,0,.3)` | LordOS `scrollThumb` |
 | `--scroll-hover` | `rgba(255,255,255,.5)` | `rgba(0,0,0,.45)` | LordOS `scrollThumbHover` |
-| `--page-bg` Schreibtisch unter der Tapete | `#0d1017` | `#e7ecf4` | heute in NGC, bleibt |
-| `--alarm` | `#ff7b72` | `#b3261e` | heute in NGC, bleibt |
-| `--alarm-veil` | `rgba(6,9,16,.86)` | `rgba(22,32,46,.62)` | heute in NGC, bleibt |
+| `--page-bg` Schreibtisch unter der Tapete | `#0d1017` | `#e7ecf4` | heute in CirroDesk, bleibt |
+| `--alarm` | `#ff7b72` | `#b3261e` | heute in CirroDesk, bleibt |
+| `--alarm-veil` | `rgba(6,9,16,.86)` | `rgba(22,32,46,.62)` | heute in CirroDesk, bleibt |
 
 `--title-bg-active` hat LordOS nicht: dort trägt der Unterschied zwischen vorn und hinten der
 **Schatten**, nicht die Farbe der Titelzeile (siehe Punkt 6). **Erledigt am 03.11.2026:** die Marke
@@ -191,8 +191,8 @@ verschieden, und keiner der beiden ist `none`.
 
 ### Die drei Knöpfe der Titelzeile
 
-**Erst eine Korrektur dieses Blattes, gemessen am 30.10.2026.** Hier stand, NGC habe die drei runden
-Lichter von LordOS, 13 × 13 Pixel. **Das hatte NGC nie.** Die drei Knöpfe sind `.wbtn` in
+**Erst eine Korrektur dieses Blattes, gemessen am 30.10.2026.** Hier stand, CirroDesk habe die drei runden
+Lichter von LordOS, 13 × 13 Pixel. **Das hatte CirroDesk nie.** Die drei Knöpfe sind `.wbtn` in
 `shell.css`, sie tragen Text und kein Licht, und sie waren **44 breit und 36 hoch**. Ein Blatt, das
 eine Vorlage beschreibt, die im eigenen Code nicht vorkommt, hätte den Umbau auf eine Annahme
 gestellt.
@@ -203,7 +203,7 @@ gestellt.
 > Abweichung mit Begründung (Finger) ins Blatt.
 
 **Abweichung von LordOS, mit Begründung.** LordOS zeichnet drei runde Lichter von 13 × 13 Pixeln;
-das ist eine Maus-Größe. NGC wird mit dem Finger bedient, und ein Finger braucht ungefähr 40. Also
+das ist eine Maus-Größe. CirroDesk wird mit dem Finger bedient, und ein Finger braucht ungefähr 40. Also
 40 × 40.
 
 Die 40 steht **einmal**: in der Breite von `.wbtn`. Die Höhe kommt aus der Titelzeile, und die
@@ -213,7 +213,7 @@ zwei Stellen.
 | | Wert | Quelle |
 |---|---|---|
 | Größe | **40 × 40 px** | Thomas, 30.10.2026 — Abweichung von LordOS (13 × 13) |
-| Form | Text, kein rundes Licht | NGC, wie gehabt |
+| Form | Text, kein rundes Licht | CirroDesk, wie gehabt |
 | Schließen / Kleiner / Größer in Farbe | **nicht übernommen** | LordOS `Window.jsx`: `#ff5f57`, `#febc2e`, `#28c840` — Farbwerte, und Farbwerte kommen nach Thomas' Entscheidung 3 nicht aus LordOS |
 
 ---
@@ -250,7 +250,7 @@ Höhe hat, rechnet 1 Pixel dazu.
 LordOS benutzt **Inter** in 400 / 500 / 600 (700 nur für sehr kurze Betonung) und **JetBrains Mono**
 für Terminal und Code. Beide SIL OFL 1.1, beide dürfen wir mitbringen.
 
-Heute steht in NGC `font: var(--fs)/1.45 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif`.
+Heute steht in CirroDesk `font: var(--fs)/1.45 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif`.
 Das wird `Inter`, mit derselben Kette dahinter, falls die Datei fehlt. **Keine Apple-Schrift**:
 `-apple-system` fällt aus der Kette.
 
@@ -265,8 +265,8 @@ Die Größen aus LordOS `docs/DESIGN.md`:
 | `--fs-title` | 17 | 600 | Titel eines Felds, wenn der Platz knapp ist |
 | `--fs-large` | 22 | 600 | Titel einer Übersicht |
 
-**Hier weiche ich von LordOS ab, und es ist eine Wahl, keine Messung:** `--fs` steht heute in NGC
-auf 14 Pixel, LordOS hat 13. Ich lasse **14** stehen. Grund: `--fs` ist in NGC die Marke, an der die
+**Hier weiche ich von LordOS ab, und es ist eine Wahl, keine Messung:** `--fs` steht heute in CirroDesk
+auf 14 Pixel, LordOS hat 13. Ich lasse **14** stehen. Grund: `--fs` ist in CirroDesk die Marke, an der die
 Dichte hängt (`docs/gestaltung.md` Punkt 5), und 14 Pixel sind das, was gemessen und geprüft wurde.
 Die Stufen bleiben `12,5` eng und `15,5` luftig. Wer das auf 13 ziehen will, zieht eine Zahl an
 einer Stelle — aber dann sind alle Messungen der Oberfläche neu zu machen.
@@ -279,7 +279,7 @@ suchen, die zufällig mit ihr übereinstimmte. Jetzt gibt es fünf Marken: `--fs
 `--fs-callout` (12), `--fs-chrome` (13), `--fs-headline` (15), `--fs-title` (17).
 
 **`--fs-chrome` heißt nicht `--fs`, und das ist Absicht.** LordOS nennt seine 13er-Stufe `--fs` und
-macht sie zur Grundschrift; NGC steht auf 14, und daran hängt die Dichte. Die 13 ist hier die Größe
+macht sie zur Grundschrift; CirroDesk steht auf 14, und daran hängt die Dichte. Die 13 ist hier die Größe
 der **Hülle** — Band, Menüs, Aufschriften —, die bewusst eine Stufe unter dem Text in einem Fenster
 sitzt. Zwei verschiedene Dinge dürfen nicht denselben Namen tragen.
 
@@ -362,7 +362,7 @@ Alle Zahlen aus LordOS `themes/default/components/Window.jsx`.
 
 | | Wert | Quelle |
 |---|---|---|
-| Ecken | 12 px (`--radius`) | LordOS. Heute steht in NGC 10 |
+| Ecken | 12 px (`--radius`) | LordOS. Heute steht in CirroDesk 10 |
 | Ecken, wenn das Fenster den Schirm füllt | 0 | LordOS |
 | Höhe der Titelzeile | 40 px (`--title-h`) | LordOS `TITLE_H` |
 | Titel | mittig, Zeilenhöhe = Titelhöhe | LordOS |
@@ -373,7 +373,7 @@ Alle Zahlen aus LordOS `themes/default/components/Window.jsx`.
 | Rand | 1 px, `--win-border` | LordOS |
 | Schatten **vorn** | `0 24px 56px rgba(0,0,0,.55)` | LordOS |
 | Schatten **hinten** | `0 10px 28px rgba(0,0,0,.32)` | LordOS |
-| Kleinste Größe | 240 × 150 px (`--win-min-w`, `--win-min-h`) | heute in NGC, **bleibt** |
+| Kleinste Größe | 240 × 150 px (`--win-min-w`, `--win-min-h`) | heute in CirroDesk, **bleibt** |
 
 **Der Titel steht mittig im Fenster, nicht nur im Rest** (gemessen am 03.11.2026). Die Knöpfe nehmen
 links 3 × 40 = 120 px. Rechts steht darum ein leerer Kasten derselben Breite, abzüglich der 8 px
@@ -391,7 +391,7 @@ minimierte. Sie hängen jetzt an ihrer Klasse. Eine Wache hält das fest.
 **Vorn und hinten unterscheidet der Schatten**, nicht die Farbe. Das Fenster vorn liegt höher: ein
 doppelt so weicher und doppelt so weit geworfener Schatten.
 
-Heute hat NGC `--shadow: 0 18px 50px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4)` — eine Marke für
+Heute hat CirroDesk `--shadow: 0 18px 50px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4)` — eine Marke für
 beide Fälle. Daraus werden zwei: `--shadow` (vorn) und `--shadow-back` (hinten).
 
 Für hell rechne ich die beiden Schatten um, denn ein Schwarz mit 55 Prozent über einer hellen Seite
@@ -414,10 +414,10 @@ Aus LordOS `themes/default/index.jsx` und `components/MenuBar.jsx`.
 | Schrift im Band | 13 px, Gewicht 500; der Name der App vorn 700 | LordOS |
 | Aufgeklapptes Menü | 260 px breit, 2 px unter dem Band | LordOS |
 
-**Korrektur, am Bild und am Quelltext nachgesehen (30.10.2026):** Hier stand, NGC habe die Leiste
+**Korrektur, am Bild und am Quelltext nachgesehen (30.10.2026):** Hier stand, CirroDesk habe die Leiste
 **unten**. Das ist falsch. `#taskbar` ist `position:fixed; top:0` mit `backdrop-filter:blur(18px)
 saturate(150%)` — die Leiste sitzt **schon oben und ist schon durchscheinend mit Unschärfe
-dahinter**. NGC ist damit näher an Lord Flow, als dieses Blatt zuerst behauptet hat.
+dahinter**. CirroDesk ist damit näher an Lord Flow, als dieses Blatt zuerst behauptet hat.
 
 Was an der Leiste wirklich zu tun bleibt, ist deshalb weniger:
 
@@ -465,9 +465,9 @@ eine Zahl, nicht zwei — die Größe einer Fingerspitze.
 Die Lupe behält das Verhältnis von LordOS statt einer zweiten eigenen Zahl: 86 ÷ 54 = 1,59, also
 **64 px** unter dem Zeiger (40 × 1,6).
 
-**Was hier noch nicht entschieden ist:** was „genug" über sieben hinaus heißt, wenn NGC mehr Apps
+**Was hier noch nicht entschieden ist:** was „genug" über sieben hinaus heißt, wenn CirroDesk mehr Apps
 bekommt, als ins Dock passen. Das Dock ist dann eine Auswahl und keine Liste — die Frage gehört zum
-Dock-Schritt, nicht hierher. Heute hat NGC zwei Apps.
+Dock-Schritt, nicht hierher. Heute hat CirroDesk zwei Apps.
 
 ### Was LordOS vorgibt
 
@@ -623,9 +623,9 @@ Bei `@media (prefers-reduced-motion: reduce)` wird `--motion: 0ms`, und die Lupe
 - **Die Zeichen der Apps.** Eigener Auftrag, eigene Sitzung, eigener Satz SVGs. Dieses Blatt sagt
   nur, wie groß sie im Dock stehen (40, unter dem Zeiger 64 — Abschnitt 8).
 - **Die Tapeten.** Die elf aus `assets/wallpapers/` sind Marke und fallen weg (Punkt 1). Die vier
-  Verläufe sind frei, brauchen aber keine Datei: ob NGC sie als `linear-gradient` nachbaut oder
+  Verläufe sind frei, brauchen aber keine Datei: ob CirroDesk sie als `linear-gradient` nachbaut oder
   eigene bekommt, ist eine Frage für den Bau-Auftrag.
-- **Das Kontrollzentrum und der App-Starter.** Lord Flow hat beide; was NGC darin zeigt, ist eine
+- **Das Kontrollzentrum und der App-Starter.** Lord Flow hat beide; was CirroDesk darin zeigt, ist eine
   eigene Frage.
 - **Der Weg aufs Handy** (Punkt 12.1).
 - **Ob die VM 208 eine weitergehende Lizenz trägt.** Liegt bei Thomas.
@@ -646,10 +646,10 @@ Bei `@media (prefers-reduced-motion: reduce)` wird `--motion: 0ms`, und die Lupe
 | Die Schriftlizenzen | LordOS `THIRD_PARTY.md`, Abschnitt „Data files" |
 | Die elf Tapeten sind Marke | `assets/wallpapers/README.md`, Zeile 3: „part of the LordOS brand assets" |
 | Die vier Verläufe sind eigenes Werk | `tools/gen-wallpaper.py`, Kopf: „PNG, standard library only"; die vier Farbsätze stehen als Zahlen in `PALETTES` |
-| NGC-Ist-Stand | `apps/web/public/assets/css/shell.css` auf `origin/main`, 530 Zeilen, Marken in `:root` Zeile 3–45 |
+| CirroDesk-Ist-Stand | `apps/web/public/assets/css/shell.css` auf `origin/main`, 530 Zeilen, Marken in `:root` Zeile 3–45 |
 
 Alles am 30.10.2026 nachgesehen, LordOS-Stand `pushed_at` 2026-10-30.
 
 **Nichts davon ist am Bild geprüft.** Dieses Blatt ist eine Beschreibung aus Quelltext und
-Beschreibung der Quelle. Was die Oberfläche von NGC nach dem Umbau wirklich zeigt, wird je Schritt
+Beschreibung der Quelle. Was die Oberfläche von CirroDesk nach dem Umbau wirklich zeigt, wird je Schritt
 im Browser gemessen und mit einem Bild belegt — nicht mit diesem Blatt.

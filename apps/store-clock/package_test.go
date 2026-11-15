@@ -1,5 +1,5 @@
 // Package storeclock holds no Go code: the app is ui/ and manifest.json.
-// This test proves the directory is a store app - ngc-store packs it, signs a
+// This test proves the directory is a store app - cd-store packs it, signs a
 // catalog with a test key, checks the store, and the package passes
 // store.Walk, which the controller accepts packages with (install.Accept).
 package storeclock
@@ -13,22 +13,22 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/cli/classes"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/apps/cli/classes"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 func run(t *testing.T, args ...string) string {
 	t.Helper()
 	var out, errb bytes.Buffer
 	if rc := classes.Run(args, &out, &errb); rc != 0 {
-		t.Fatalf("ngc-store %s: exit %d: %s", strings.Join(args, " "), rc, errb.String())
+		t.Fatalf("cd-store %s: exit %d: %s", strings.Join(args, " "), rc, errb.String())
 	}
 	return out.String()
 }
 
 func TestPackage(t *testing.T) {
 	dir := t.TempDir()
-	pkg := filepath.Join(dir, "org.sorglos.clock-1.0.0.ngc")
+	pkg := filepath.Join(dir, "org.sorglos.clock-1.0.0.cd")
 	if out := run(t, "pack", ".", pkg); !strings.HasPrefix(out, "org.sorglos.clock 1.0.0\n") {
 		t.Fatalf("pack said %q", out)
 	}

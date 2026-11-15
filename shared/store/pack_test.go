@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
 )
 
 type entry struct {
@@ -404,7 +404,7 @@ func TestEncrypt(t *testing.T) {
 	}
 	sealed := encrypt(t, bytes.Repeat([]byte{7}, 2*ChunkSize))
 	block := ChunkSize + 16
-	header := len("NGCENC1\n") + FileIDSize
+	header := len("CD-ENC1\n") + FileIDSize
 	flipped := bytes.Clone(sealed)
 	flipped[header+5] ^= 1
 
@@ -423,7 +423,7 @@ func TestEncrypt(t *testing.T) {
 		"swapped":              append(append(bytes.Clone(sealed[:header]), sealed[header+block:header+2*block]...), sealed[header:header+block]...),
 		"swapped non-last":     swappedNonLast,
 		"dropped middle block": droppedMiddle,
-		"bad magic":            append([]byte("NGCENC2\n"), sealed[8:]...),
+		"bad magic":            append([]byte("CD-ENC2\n"), sealed[8:]...),
 		"only header":          sealed[:header],
 	}
 	for name, s := range attacks {
@@ -480,7 +480,7 @@ func TestPackVectors(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plain := []byte("NGC Kauf-App, Testinhalt")
+	plain := []byte("CirroDesk Kauf-App, Testinhalt")
 	plain2 := bytes.Repeat([]byte{0xa5}, ChunkSize+100)
 	golden.Check(t, *update, "pack.json", packVector{ContentKey: contentKey, Plain: plain, Sealed: encrypt(t, plain),
 		Plain2: plain2, Sealed2: encrypt(t, plain2),

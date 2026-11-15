@@ -15,7 +15,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // Counting: the first freeCount failures are free (a typo costs nothing),

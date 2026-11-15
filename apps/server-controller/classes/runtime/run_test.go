@@ -13,7 +13,7 @@ import (
 
 // anAppUser is the user of an app as EnsureUser would answer it: a name of the
 // grammar the engine holds (validName) and two ids that are not root's.
-func anAppUser() User { return User{Name: "ngc-notes-0123abcd", UID: 4711, GID: 4712} }
+func anAppUser() User { return User{Name: "cd-notes-0123abcd", UID: 4711, GID: 4712} }
 
 // runIn points the package at a directory of this test instead of
 // config.RunDir, and records what it would have handed over to whom: the real
@@ -38,7 +38,7 @@ func runWatched(t *testing.T) (dir string, state func() (int, int, int, os.FileM
 	t.Helper()
 	was := paths
 	t.Cleanup(func() { paths = was })
-	paths.runDir = filepath.Join(t.TempDir(), "run", "ngc")
+	paths.runDir = filepath.Join(t.TempDir(), "run", "cd")
 	var mu sync.Mutex
 	uid, gid, calls := -1, -1, 0
 	var atHandover os.FileMode = 0o7777
@@ -165,14 +165,14 @@ func TestEnsureRunRefusesWhatIsNoAppUser(t *testing.T) {
 		want error
 	}{
 		"no name":            {User{UID: 1, GID: 1}, ErrName},
-		"name with a slash":  {User{Name: "ngc/../etc", UID: 1, GID: 1}, ErrName},
+		"name with a slash":  {User{Name: "cd/../etc", UID: 1, GID: 1}, ErrName},
 		"name with a dot":    {User{Name: "..", UID: 1, GID: 1}, ErrName},
 		"name as an option":  {User{Name: "-rm", UID: 1, GID: 1}, ErrName},
-		"name too long":      {User{Name: "ngc-" + string(make([]byte, 0)) + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", UID: 1, GID: 1}, ErrName},
-		"uid of root":        {User{Name: "ngc-a", UID: 0, GID: 1}, ErrIdentity},
-		"gid of root":        {User{Name: "ngc-a", UID: 1, GID: 0}, ErrIdentity},
-		"both of them root":  {User{Name: "ngc-a", UID: 0, GID: 0}, ErrIdentity},
-		"name with a NUL in": {User{Name: "ngc-a\x00b", UID: 1, GID: 1}, ErrName},
+		"name too long":      {User{Name: "cd-" + string(make([]byte, 0)) + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", UID: 1, GID: 1}, ErrName},
+		"uid of root":        {User{Name: "cd-a", UID: 0, GID: 1}, ErrIdentity},
+		"gid of root":        {User{Name: "cd-a", UID: 1, GID: 0}, ErrIdentity},
+		"both of them root":  {User{Name: "cd-a", UID: 0, GID: 0}, ErrIdentity},
+		"name with a NUL in": {User{Name: "cd-a\x00b", UID: 1, GID: 1}, ErrName},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -232,7 +232,7 @@ func TestEnsureRunHandsTheDirectoryToTheApp(t *testing.T) {
 	}
 	was := paths
 	t.Cleanup(func() { paths = was })
-	paths.runDir = filepath.Join(t.TempDir(), "run", "ngc")
+	paths.runDir = filepath.Join(t.TempDir(), "run", "cd")
 	u := anAppUser()
 	dir, err := EnsureRun(t.Context(), u)
 	if err != nil {
@@ -252,7 +252,7 @@ func TestEnsureRunHandsTheDirectoryToTheApp(t *testing.T) {
 // exactly that case comes up after every restart that leaves a remnant.
 func TestEnsureRunTightensTheModeBeforeItHandsTheDirectoryOver(t *testing.T) {
 	if goruntime.GOOS != "linux" {
-		t.Skip("the mode of a directory says nothing on this system; NGC runs on Debian and Ubuntu")
+		t.Skip("the mode of a directory says nothing on this system; CirroDesk runs on Debian and Ubuntu")
 	}
 	u := anAppUser()
 	t.Run("a fresh directory", func(t *testing.T) {
@@ -288,7 +288,7 @@ func TestEnsureRunTightensTheModeBeforeItHandsTheDirectoryOver(t *testing.T) {
 // anyone on this machine.
 func TestEnsureRunTightensTheDirectoryAboveItToo(t *testing.T) {
 	if goruntime.GOOS != "linux" {
-		t.Skip("the mode of a directory says nothing on this system; NGC runs on Debian and Ubuntu")
+		t.Skip("the mode of a directory says nothing on this system; CirroDesk runs on Debian and Ubuntu")
 	}
 	base, _ := runWatched(t)
 	if err := os.MkdirAll(base, 0o777); err != nil {
@@ -379,7 +379,7 @@ func TestSubIDsHandOutEveryRangeOnlyOnceUnderALock(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			errs[i] = ensureSubIDs("ngc-app" + strconv.Itoa(i))
+			errs[i] = ensureSubIDs("cd-app" + strconv.Itoa(i))
 		}()
 	}
 	wg.Wait()
@@ -432,7 +432,7 @@ func TestSubIDsHandOutEveryRangeOnlyOnceUnderALock(t *testing.T) {
 // slipped in between the read and the write would be dropped with them.
 func TestSubIDsStayWhileAnotherUserIsDropped(t *testing.T) {
 	subIDFiles(t)
-	for _, name := range []string{"ngc-a", "ngc-b"} {
+	for _, name := range []string{"cd-a", "cd-b"} {
 		if err := ensureSubIDs(name); err != nil {
 			t.Fatal(err)
 		}
@@ -454,8 +454,8 @@ func TestSubIDsStayWhileAnotherUserIsDropped(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	var dropErr, addErr error
-	go func() { defer wg.Done(); dropErr = dropSubIDs("ngc-a") }()
-	go func() { defer wg.Done(); addErr = ensureSubIDs("ngc-c") }()
+	go func() { defer wg.Done(); dropErr = dropSubIDs("cd-a") }()
+	go func() { defer wg.Done(); addErr = ensureSubIDs("cd-c") }()
 	wg.Wait()
 	if dropErr != nil || addErr != nil {
 		t.Fatalf("drop: %v, add: %v", dropErr, addErr)
@@ -468,10 +468,10 @@ func TestSubIDsStayWhileAnotherUserIsDropped(t *testing.T) {
 		for _, r := range rangesOf(t, file) {
 			names[r.name] = true
 		}
-		if names["ngc-a"] {
+		if names["cd-a"] {
 			t.Fatalf("%s still names the dropped user", file)
 		}
-		if !names["ngc-b"] || !names["ngc-c"] {
+		if !names["cd-b"] || !names["cd-c"] {
 			t.Fatalf("%s lost a line: %v", file, names)
 		}
 	}

@@ -6,11 +6,11 @@
 // why a closed storage is not an error here: the shell carries on and the
 // stylesheet answers instead.
 
-const KEY_THEME = "ngc.theme";
-const KEY_ACCENT = "ngc.accent";
-const KEY_WALLPAPER = "ngc.wallpaper";
-const KEY_DENSITY = "ngc.density";
-const KEY_GLASS = "ngc.glass";
+const KEY_THEME = "cd.theme";
+const KEY_ACCENT = "cd.accent";
+const KEY_WALLPAPER = "cd.wallpaper";
+const KEY_DENSITY = "cd.density";
+const KEY_GLASS = "cd.glass";
 
 // The two designs there are. A name outside this list never reaches the
 // document, and applyTheme refuses it.
@@ -29,7 +29,7 @@ export const DEFAULT_CHOICE = "system";
 // long as the page, and a second object would mean a second listener.
 //
 // A browser without matchMedia (none this is built for, but the shell must
-// not fall over on one) is read as dark, NGC's own default.
+// not fall over on one) is read as dark, CirroDesk's own default.
 const SYSTEM_LIGHT = typeof matchMedia === "function"
   ? matchMedia("(prefers-color-scheme: light)")
   : null;

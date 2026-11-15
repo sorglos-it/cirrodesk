@@ -7,12 +7,12 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
-// Upload reads an app package an admin sent (ngc.store/upload): it walks it
+// Upload reads an app package an admin sent (cd.store/upload): it walks it
 // safely (store.Walk through store.PackageUI), keeps the canonical ui-tar and
 // answers what it read. The shell computes the same values from the file it
 // sent and refuses a mismatch, so nothing in this answer has to be trusted.

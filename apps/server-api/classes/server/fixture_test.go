@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbopen"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbopen"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()

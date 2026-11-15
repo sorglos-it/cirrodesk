@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // The rollback bar is the one wall a signature cannot stand in for, and these
@@ -91,7 +91,7 @@ func setStores(t *testing.T, fx fixture, stores []trust.Store) {
 func ownStore(t *testing.T, fx fixture, v vectors) ed25519.PrivateKey {
 	t.Helper()
 	priv, pub := storeKeys(t, 0xB7)
-	setStores(t, fx, []trust.Store{{ID: v.Store, Name: "NGC Store", URL: fx.HTTP.URL, Key: pub}})
+	setStores(t, fx, []trust.Store{{ID: v.Store, Name: "CirroDesk Store", URL: fx.HTTP.URL, Key: pub}})
 	s := fx.theStore(t)
 	if string(s.Key) != string(pub) {
 		t.Fatal("the trust list did not take the test's store key")
@@ -239,7 +239,7 @@ func TestNoAttackerIsNeededForTheLockout(t *testing.T) {
 
 // TestRemovingAndReaddingTheStoreIsTheWayBack is the way back, and it is the
 // only one an administrator can walk through an action: the trust list
-// (ngc.users/api/trust). Taking the store out drops the catalog on record
+// (cd.users/api/trust). Taking the store out drops the catalog on record
 // (Stores.forget), so the store put back under the SAME ID is measured from
 // zero again and its healthy catalog is taken.
 //
@@ -270,7 +270,7 @@ func TestRemovingAndReaddingTheStoreIsTheWayBack(t *testing.T) {
 	}
 
 	// Back in, same ID, same key, same address. The healthy catalog is taken.
-	setStores(t, fx, []trust.Store{{ID: v.Store, Name: "NGC Store", URL: fx.HTTP.URL,
+	setStores(t, fx, []trust.Store{{ID: v.Store, Name: "CirroDesk Store", URL: fx.HTTP.URL,
 		Key: enc.Bytes(priv.Public().(ed25519.PublicKey))}})
 	st = fx.theStore(t)
 	before := fx.hits()
@@ -295,7 +295,7 @@ func TestForgettingSparesTheStoresOfTheList(t *testing.T) {
 	pub := enc.Bytes(priv.Public().(ed25519.PublicKey))
 	const second = "zweiter"
 	setStores(t, fx, []trust.Store{
-		{ID: v.Store, Name: "NGC Store", URL: fx.HTTP.URL, Key: pub},
+		{ID: v.Store, Name: "CirroDesk Store", URL: fx.HTTP.URL, Key: pub},
 		{ID: second, Name: "Zweiter Store", URL: fx.HTTP.URL, Key: pub},
 	})
 	// Both have a catalog on record.
@@ -326,7 +326,7 @@ func TestForgettingSparesTheStoresOfTheList(t *testing.T) {
 		}
 	}
 	// Only the second one leaves.
-	setStores(t, fx, []trust.Store{{ID: v.Store, Name: "NGC Store", URL: fx.HTTP.URL, Key: pub}})
+	setStores(t, fx, []trust.Store{{ID: v.Store, Name: "CirroDesk Store", URL: fx.HTTP.URL, Key: pub}})
 	fx.setFile(CatalogFile, catalogOf(t, priv, v.Store, 11))
 	if err := fx.St.Refresh(ctx); err != nil {
 		t.Fatalf("Refresh: %v", err)
@@ -353,7 +353,7 @@ func TestAnotherStoreIDStartsAtZero(t *testing.T) {
 		t.Fatalf("Seq 57: %v", err)
 	}
 	const other = "global2"
-	setStores(t, fx, []trust.Store{{ID: other, Name: "NGC Store", URL: fx.HTTP.URL,
+	setStores(t, fx, []trust.Store{{ID: other, Name: "CirroDesk Store", URL: fx.HTTP.URL,
 		Key: enc.Bytes(priv.Public().(ed25519.PublicKey))}})
 	st2 := fx.theStore(t)
 	if st2.ID != other {

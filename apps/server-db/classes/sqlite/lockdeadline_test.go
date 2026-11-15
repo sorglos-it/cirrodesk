@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migrate"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migrate"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // The measurement of 03.11.2026 (docs/schloss-ablauf-riegel.md) asked what
@@ -40,7 +40,7 @@ const (
 // the internal test package and is not in reach here.
 var lockCtx = context.Background()
 
-// bentStore gives a store whose ngc_lock.until carries the named column type.
+// bentStore gives a store whose cd_lock.until carries the named column type.
 // The schema comes from the migrations first, so what is bent here is one
 // column of a real schema and not a hand-built table.
 func bentStore(t *testing.T, typ string) (dbapi.Store, *sql.DB) {
@@ -59,8 +59,8 @@ func bentStore(t *testing.T, typ string) (dbapi.Store, *sql.DB) {
 		t.Fatal(err)
 	}
 	for _, stmt := range []string{
-		"DROP TABLE ngc_lock",
-		"CREATE TABLE ngc_lock ( name BLOB NOT NULL , owner BLOB NOT NULL , until " + typ +
+		"DROP TABLE cd_lock",
+		"CREATE TABLE cd_lock ( name BLOB NOT NULL , owner BLOB NOT NULL , until " + typ +
 			" NOT NULL , PRIMARY KEY ( name ) )",
 	} {
 		if _, err := db.ExecContext(lockCtx, stmt); err != nil {
@@ -71,24 +71,24 @@ func bentStore(t *testing.T, typ string) (dbapi.Store, *sql.DB) {
 	// wrong column type would measure the ordinary case and pass.
 	var got string
 	if err := db.QueryRowContext(lockCtx,
-		"SELECT type FROM pragma_table_info('ngc_lock') WHERE name = 'until'").Scan(&got); err != nil {
+		"SELECT type FROM pragma_table_info('cd_lock') WHERE name = 'until'").Scan(&got); err != nil {
 		t.Fatal(err)
 	}
 	if got != typ {
-		t.Fatalf("ngc_lock.until is %q, want %q", got, typ)
+		t.Fatalf("cd_lock.until is %q, want %q", got, typ)
 	}
 	return sqlite.New(db), db
 }
 
-// hold puts a row of its own into ngc_lock: the deadline as text, which is
+// hold puts a row of its own into cd_lock: the deadline as text, which is
 // what a bent column can hold and a whole column type means nothing without.
 func hold(t *testing.T, db *sql.DB, owner string, until any) {
 	t.Helper()
-	if _, err := db.ExecContext(lockCtx, "DELETE FROM ngc_lock"); err != nil {
+	if _, err := db.ExecContext(lockCtx, "DELETE FROM cd_lock"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := db.ExecContext(lockCtx,
-		"INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)",
+		"INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)",
 		[]byte(dbapi.LockUpdate), []byte(owner), until); err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +115,7 @@ func TestLockTakeOnAWholeColumn(t *testing.T) {
 }
 
 // TestLockTakeOnABentColumnStillRefuses is the measured case. In SQLite the
-// other two columns of ngc_lock are BLOB already, so a migration that wrote
+// other two columns of cd_lock are BLOB already, so a migration that wrote
 // "until {{text}}" instead of "until {{int}}" is one word away - and a BLOB
 // column that carries text makes "until <= ?" false for every number,
 // because SQLite orders text behind numbers and converts nothing.
@@ -179,11 +179,11 @@ func TestLockTakeOnATextColumnOrdersByDigits(t *testing.T) {
 // ordinary case, a string for the case a bent column allows.
 func holdMigrate(t *testing.T, db *sql.DB, until any) {
 	t.Helper()
-	if _, err := db.ExecContext(lockCtx, "DELETE FROM ngc_lock"); err != nil {
+	if _, err := db.ExecContext(lockCtx, "DELETE FROM cd_lock"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := db.ExecContext(lockCtx,
-		"INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)",
+		"INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)",
 		[]byte("migrate"), []byte("ein-fremder-lauf"), until); err != nil {
 		t.Fatal(err)
 	}

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // A2: on a paired server the store is there, so a file that is gone while its

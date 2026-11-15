@@ -2,10 +2,10 @@
   "seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
   "public": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
   "purpose": "trustlist/v1",
-  "message": "bmdjL3RydXN0bGlzdC92MQB7InYiOjEsInNlcSI6MX0",
+  "message": "Y2QvdHJ1c3RsaXN0L3YxAHsidiI6MSwic2VxIjoxfQ",
   "envelope": {
     "payload": "eyJ2IjoxLCJzZXEiOjF9",
     "kid": "Vkdap1RjR0wChd9dvyvKtw",
-    "sig": "rtokoYQ577aUYnVD_B2AxhSrUygP2CwZ6YjW8PV3jfYbxt4fMuk1ev3WCVsDbdJqY43kk4Izh9lIIOmoUOAWDQ"
+    "sig": "xBnFoRkA2OVKW4Uyz6OXhNcPa8oEvCdHpaB0sck3_qD-5PRO2c-OR2CtV_j-HHpt7xhgpoONXII6J31wcdktCg"
   }
 }

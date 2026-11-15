@@ -1,11 +1,11 @@
-// Command ngc-uhr is the service of the app org.sorglos.uhr: it answers with
+// Command cd-uhr is the service of the app org.sorglos.uhr: it answers with
 // the time of the server it runs on.
 package main
 
 import (
 	"os"
 
-	"github.com/sorglos-it/nextgencloud/apps/uhr/classes"
+	"github.com/sorglos-it/cirrodesk/apps/uhr/classes"
 )
 
 // Version is set when building.

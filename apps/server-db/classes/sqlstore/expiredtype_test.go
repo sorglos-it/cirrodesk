@@ -6,10 +6,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
-// bendExpires gives ngc_once.expires the byte type instead of the number type
+// bendExpires gives cd_once.expires the byte type instead of the number type
 // the migration gave it, keeping the rows. It is how a database looks whose
 // schema does not match what the code reads out of it: a backup restored from
 // another release, a hand-edited file, a migration whose replay met an object
@@ -22,13 +22,13 @@ import (
 func bendExpires(t *testing.T, db *sql.DB, kind string, value []byte) {
 	t.Helper()
 	for _, s := range []string{
-		"ALTER TABLE ngc_once RENAME TO ngc_once_old",
-		"CREATE TABLE ngc_once ( kind BLOB NOT NULL , token BLOB NOT NULL , data BLOB NOT NULL , " +
+		"ALTER TABLE cd_once RENAME TO cd_once_old",
+		"CREATE TABLE cd_once ( kind BLOB NOT NULL , token BLOB NOT NULL , data BLOB NOT NULL , " +
 			"expires BLOB NOT NULL , used INTEGER NOT NULL , PRIMARY KEY ( kind , token ) )",
-		"INSERT INTO ngc_once (kind, token, data, expires, used) " +
-			"SELECT kind, token, data, CAST(expires AS TEXT), used FROM ngc_once_old",
-		"DROP TABLE ngc_once_old",
-		"CREATE INDEX ngc_once_expires ON ngc_once (expires)",
+		"INSERT INTO cd_once (kind, token, data, expires, used) " +
+			"SELECT kind, token, data, CAST(expires AS TEXT), used FROM cd_once_old",
+		"DROP TABLE cd_once_old",
+		"CREATE INDEX cd_once_expires ON cd_once (expires)",
 	} {
 		if _, err := db.ExecContext(ctx, s); err != nil {
 			t.Fatalf("%s: %v", s, err)
@@ -37,7 +37,7 @@ func bendExpires(t *testing.T, db *sql.DB, kind string, value []byte) {
 	var typeof string
 	var stillGood int
 	if err := db.QueryRowContext(ctx,
-		"SELECT typeof(expires), (expires > ?) FROM ngc_once WHERE kind = ? AND token = ?",
+		"SELECT typeof(expires), (expires > ?) FROM cd_once WHERE kind = ? AND token = ?",
 		int64(expiredNow), []byte(kind), value).Scan(&typeof, &stillGood); err != nil {
 		t.Fatalf("reading the effect back: %v", err)
 	}

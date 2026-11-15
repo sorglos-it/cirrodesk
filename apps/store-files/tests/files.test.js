@@ -38,10 +38,10 @@ test("languages", () => {
   for (const c of ["call", "path", "notfound", "exists", "notempty", "toolarge", "failed", "offline"]) assert.ok(TEXTS.de[c], c);
 });
 
-// Fuzz: NGC_FUZZ runs, NGC_FUZZ_SEED to replay. A name that passes never
+// Fuzz: CD_FUZZ runs, CD_FUZZ_SEED to replay. A name that passes never
 // carries a separator or a control character, and never climbs.
-const RUNS = Number(process.env.NGC_FUZZ || 3000);
-const SEED = Number(process.env.NGC_FUZZ_SEED || Date.now() % 2 ** 31);
+const RUNS = Number(process.env.CD_FUZZ || 3000);
+const SEED = Number(process.env.CD_FUZZ_SEED || Date.now() % 2 ** 31);
 test(`fuzz: names (seed ${SEED})`, () => {
   let x = SEED || 1;
   const r = (n) => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x % n; };

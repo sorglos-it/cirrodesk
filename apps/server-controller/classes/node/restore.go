@@ -32,13 +32,13 @@ import (
 	"slices"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/serve"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/serve"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // ErrNotWired says this program is wired wrong: a half of RestoreConfig is
@@ -113,7 +113,7 @@ type RestoreConfig struct {
 
 // Restore brings the apps of this server back up, in the order the state hands
 // them out (state.Store.Apps: by ID). For every app that is active, carries a
-// version and is no core app of NGC itself:
+// version and is no core app of CirroDesk itself:
 //
 //  1. its licence is asked. No licence, or one that still runs, goes on; one
 //     that ran out leaves the app off, which is what tunnel.StateUnlicensed
@@ -135,7 +135,7 @@ type RestoreConfig struct {
 //
 // Rows that are left out entirely: an app that is not active (deactivated), a
 // row of which only kept data remains (Version empty, dbapi.App), and the core
-// apps of NGC, whose channels the API serves and which have no container here.
+// apps of CirroDesk, whose channels the API serves and which have no container here.
 func Restore(ctx context.Context, c RestoreConfig) error {
 	if c.State == nil || c.Engine == nil || c.Unlock == nil || c.Licensed == nil {
 		return ErrNotWired
@@ -188,12 +188,12 @@ func (c RestoreConfig) one(ctx context.Context, log *slog.Logger, a dbapi.App) {
 	// made. Measured on the Debian VM on 23.10.2026, as the app's user, with
 	// exactly the arguments Podman.Running passes:
 	//
-	//	lstat /run/ngc/ngc-terminal-439982dd: permission denied      exit 1
+	//	lstat /run/cd/cd-terminal-439982dd: permission denied      exit 1
 	//
 	// and with the mode of the directory above put right by hand, the same call
 	// one step further on:
 	//
-	//	lstat /run/ngc/ngc-terminal-439982dd: no such file or directory
+	//	lstat /run/cd/cd-terminal-439982dd: no such file or directory
 	//
 	// That was a closed circle, and it is the point of this step: Running could
 	// not answer without the directory, and the directory was made nowhere on

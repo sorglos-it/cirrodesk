@@ -1,5 +1,5 @@
-// sicherung-zurueck is the one step of a restore that nothing in NGC does, and
-// it does it with NGC's own code and not with a rebuilt version of it.
+// sicherung-zurueck is the one step of a restore that nothing in CirroDesk does, and
+// it does it with CirroDesk's own code and not with a rebuilt version of it.
 //
 // WHAT IS MISSING AND HOW IT WAS FOUND. A backed-up state.db put back in place
 // opens on a machine that never belonged to this installation - measured on a
@@ -10,7 +10,7 @@
 //	WARN the runtime directory of an app could not be made, it stays off
 //	     app=org.sorglos.terminal
 //	     err="runtime: no system user for this container
-//	          user: unknown user ngc-terminal-439982dd"
+//	          user: unknown user cd-terminal-439982dd"
 //
 // The system user of an app, and the encrypted data directory that is its home,
 // are made by the ACTIVATION (install/activate.go) and by nothing else.
@@ -42,7 +42,7 @@
 //
 // Aufruf, als root auf dem wiederhergestellten Server:
 //
-//	sicherung-zurueck -config /etc/ngc/controller.json <app-id> [<app-id> ...]
+//	sicherung-zurueck -config /etc/cd/controller.json <app-id> [<app-id> ...]
 //
 // It is safe to run again: both steps answer for something that is already
 // there without changing it, which is what an activation that failed halfway
@@ -56,9 +56,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 func main() {
@@ -115,7 +115,7 @@ func one(ctx context.Context, app string, serverKey []byte) error {
 		// The one answer worth its own sentence: the disk cannot encrypt a
 		// directory. Every other failure names itself, this one names a
 		// filesystem feature the admin has to go and turn on, and
-		// NoFscryptText is the sentence the rest of NGC shows for it.
+		// NoFscryptText is the sentence the rest of CirroDesk shows for it.
 		if errors.Is(err, runtime.ErrNoFscrypt) {
 			return errors.New(runtime.NoFscryptText)
 		}

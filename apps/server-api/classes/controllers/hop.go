@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // This file is the seam package relay forwards a channel over. It is the

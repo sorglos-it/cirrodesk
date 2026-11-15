@@ -16,19 +16,19 @@ import (
 	"testing"
 	"testing/iotest"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// The release of shared/testdata/release: one file, part ngc-web, arch "all".
+// The release of shared/testdata/release: one file, part cd-web, arch "all".
 const (
 	testVer   = "1.1.0"
 	testSeq   = 3
@@ -150,7 +150,7 @@ func testRelease(t testing.TB) (sign.Envelope, []byte) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	file, err := os.ReadFile(filepath.Join(releaseDir, "ngc-web-all.tar"))
+	file, err := os.ReadFile(filepath.Join(releaseDir, "cd-web-all.tar"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ type fixture struct {
 	deps   Deps
 }
 
-// releaseFixture is an NGC part Stage must lay ready: the signed release of
+// releaseFixture is a CirroDesk part Stage must lay ready: the signed release of
 // the test data, its file, and a manager whose release key is the one that
 // signed it.
 func releaseFixture(t testing.TB) *fixture {
@@ -458,16 +458,16 @@ func TestStageRefusesAnotherVersionThanTheReleaseNames(t *testing.T) {
 	}
 }
 
-// partFixture is a release of our own key that carries ngc-api for one
+// partFixture is a release of our own key that carries cd-api for one
 // architecture only, so a case can ask for the other one.
 func partFixture(t testing.TB, arch string) *fixture {
 	t.Helper()
-	bin := []byte("the ngc-api of the new version")
+	bin := []byte("the cd-api of the new version")
 	pub, priv := signer(2)
 	f := &fixture{t: t, target: trust.AutoAPI, ver: testVer, file: bin,
 		st: newStore(), rep: &fakeReports{}, dir: t.TempDir()}
 	rel := store.Release{Seq: 4, Issued: 1790000000, Version: testVer,
-		Files: []store.File{{Part: trust.AutoAPI, Arch: arch, URL: "ngc-api-" + arch + ".tar",
+		Files: []store.File{{Part: trust.AutoAPI, Arch: arch, URL: "cd-api-" + arch + ".tar",
 			Size: int64(len(bin)), SHA256: sha(bin)}}}
 	f.tr = core.Transfer{Release: envelopeOf(t, priv, sign.PurposeRelease, rel),
 		Size: int64(len(bin)), SHA256: sha(bin)}
@@ -495,7 +495,7 @@ func TestStageRefusesAPartTheReleaseDoesNotCarryForThisArch(t *testing.T) {
 	}
 }
 
-// TestStageTakesTheWebInterfaceAsArchAll: ngc-web has no machine code, so the
+// TestStageTakesTheWebInterfaceAsArchAll: cd-web has no machine code, so the
 // architecture of the server must not decide anything about it.
 func TestStageTakesTheWebInterfaceAsArchAll(t *testing.T) {
 	for _, arch := range []string{"amd64", "arm64"} {
@@ -556,7 +556,7 @@ func TestStageRefusesAReleaseForAnApp(t *testing.T) {
 	}
 }
 
-func TestStageRefusesACatalogForAnNGCPart(t *testing.T) {
+func TestStageRefusesACatalogForAnCDPart(t *testing.T) {
 	f := releaseFixture(t)
 	app := appFixture(t)
 	f.tr = app.tr
@@ -704,7 +704,7 @@ func TestStageRefusesParamsOfAnotherShape(t *testing.T) {
 	a, _ := core.Lookup(core.AppStore, core.ServiceController, core.ActStage)
 	d := access.Decision{Opened: tunnel.Opened{Open: wire.Open{App: core.AppStore,
 		Service: core.ServiceController, Action: core.ActStage,
-		Params: json.RawMessage(`{"target":"ngc-web","version":"1.1.0","extra":1}`)}},
+		Params: json.RawMessage(`{"target":"cd-web","version":"1.1.0","extra":1}`)}},
 		Action: a, Core: true}
 	if _, err := New(f.deps).Stage(context.Background(), d, f.body()); !errors.Is(err, ErrVerify) {
 		t.Fatalf("err %v, want ErrVerify", err)

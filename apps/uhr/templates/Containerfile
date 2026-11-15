@@ -9,9 +9,9 @@
 #
 # THE BASE IS THE TERMINAL'S, digest for digest, and that is a decision and
 # not a copy: the digest was measured on 15.10.2026 by tools/pin-base.sh and
-# it is the only base an NGC app has ever been RUN from on a real server. An
+# it is the only base a CirroDesk app has ever been RUN from on a real server. An
 # app this small would fit into "FROM scratch" - 1.9 MiB instead of 108 MiB -
-# but no NGC container has ever been started from a scratch image, and the
+# but no CirroDesk container has ever been started from a scratch image, and the
 # first app that proves the WAY is the wrong place to also try out a base
 # nobody has measured. Raising it is tools/pin-base.sh's business, for this
 # app as for the terminal.
@@ -19,15 +19,15 @@ FROM docker.io/library/debian:13-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06
 
 # Nothing is installed on top of the base. This app reads a clock; it needs no
 # program besides its own.
-RUN mkdir -p /usr/lib/ngc /data
+RUN mkdir -p /usr/lib/cd /data
 # --chmod, and it is not cosmetic: COPY keeps the mode the file has on the
 # BUILD MACHINE, and a Go build on Windows writes 0644 - a drive that cannot
 # set an execute bit at all. The image would build, save, load and install,
 # and the first call of the service would fail inside the container with
 # "permission denied". Measured on 24.10.2026 while this app was built.
-COPY --chmod=0755 ngc-uhr /usr/lib/ngc/ngc-uhr
+COPY --chmod=0755 cd-uhr /usr/lib/cd/cd-uhr
 
 # The manifest names the program with its argument list (service "uhr"), so
 # the image needs no entry point of its own. "hold" is what keeps the
 # container up between calls.
-CMD ["/usr/lib/ngc/ngc-uhr", "hold"]
+CMD ["/usr/lib/cd/cd-uhr", "hold"]

@@ -1,6 +1,6 @@
 # Der Release-Schlüssel
 
-Mit diesem Schlüssel soll jedes NGC-Release unterschrieben werden. Wer ein
+Mit diesem Schlüssel soll jedes CirroDesk-Release unterschrieben werden. Wer ein
 Release installiert, prüft es dagegen. **Der private Teil liegt auf einem
 YubiKey und hat ihn nie verlassen** — er kann auch dann nicht gestohlen werden,
 wenn der Rechner des Entwicklers übernommen wird.
@@ -13,12 +13,12 @@ wenn der Rechner des Entwicklers übernommen wird.
 >   `sha512(Message(...))` decken. **Punkt 19 ist nicht gebaut** —
 >   `shared/sign/sign.go` unterschreibt in `Sign` weiter die nackte Nachricht
 >   (`ed25519.Sign(priv, Message(purpose, payload))`). Solange das so ist, kann
->   dieser Stick kein NGC-Release unterschreiben.
+>   dieser Stick kein CirroDesk-Release unterschreiben.
 > - Die Anlagen, die seit dem 17.10.2026 laufen, benutzen darum ein **zweites**
 >   Schlüsselpaar: Kennung `pN6Z6a9NR0aG6aEJIJ5EHg`, der geheime Teil als Datei
->   `/root/ngc-keys/release.key` auf der Messmaschine (Punkt 57). Dessen
->   öffentlicher Teil steht in `ngc-all.sh`, `ngc-api.sh`, `ngc-controller.sh`
->   und `ngc-web.sh` — nicht der von dieser Seite.
+>   `/root/cd-keys/release.key` auf der Messmaschine (Punkt 57). Dessen
+>   öffentlicher Teil steht in `cd-all.sh`, `cd-api.sh`, `cd-controller.sh`
+>   und `cd-web.sh` — nicht der von dieser Seite.
 > - Punkt 19 hatte „den Schlüssel als Datei halten" ausdrücklich **verworfen**.
 >   Genau das ist heute der Betriebszustand. Welcher der beiden Schlüssel der
 >   echte wird, entscheidet Thomas. Bis dahin gilt: **was unten steht, ist die
@@ -36,7 +36,7 @@ wenn der Rechner des Entwicklers übernommen wird.
 | Inhaber | Thomas Weirich &lt;info@sorglos.org&gt; |
 
 Derselbe Schlüssel in der Form, die `gpg` liest, liegt daneben:
-[`ngc-release-key.asc`](ngc-release-key.asc).
+[`cd-release-key.asc`](cd-release-key.asc).
 
 Die Schlüsselkennung ist `sign.KeyID`: die ersten 16 Byte von
 `sha256(<32 rohe Byte>)`, in `base64url` **ohne** Füllzeichen — 22 Zeichen.

@@ -15,11 +15,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // apiNode builds an API node of the trust list with its TLS certificate, as a
@@ -129,8 +129,8 @@ func (s *stand) read(t *testing.T, file string) string {
 
 func TestRenderMatchesTheTemplate(t *testing.T) {
 	got := Render([]config.WebAPI{
-		{URL: "https://api-1.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
-		{URL: "https://api-2.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
+		{URL: "https://api-1.cd.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
+		{URL: "https://api-2.cd.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
 	})
 	want, err := os.ReadFile("testdata/apache-apis.conf")
 	if err != nil {
@@ -145,7 +145,7 @@ func TestRenderMatchesTheTemplate(t *testing.T) {
 // path of its own: both come from package config, so one spelling cannot
 // drift away from the other.
 func TestRenderNamesTheFilesOfTheContract(t *testing.T) {
-	got := string(Render([]config.WebAPI{{URL: "https://api-1.ngc.test:7443", TLS: bytes.Repeat([]byte{1}, 32)}}))
+	got := string(Render([]config.WebAPI{{URL: "https://api-1.cd.test:7443", TLS: bytes.Repeat([]byte{1}, 32)}}))
 	for _, want := range []string{
 		"SSLProxyCACertificateFile " + config.APITrustFile + "\n",
 		"# " + config.BalancerFile + "\n",
@@ -158,22 +158,22 @@ func TestRenderNamesTheFilesOfTheContract(t *testing.T) {
 
 func TestRenderRefusesAnAddressOutsideTheGrammar(t *testing.T) {
 	pin := bytes.Repeat([]byte{0xE1}, 32)
-	good := config.WebAPI{URL: "https://api-1.ngc.test:7443", TLS: pin}
+	good := config.WebAPI{URL: "https://api-1.cd.test:7443", TLS: pin}
 	// The way to the grammar must be open, or every case below would pass
 	// for the wrong reason.
 	if Render([]config.WebAPI{good}) == nil {
 		t.Fatal("the plain address renders nothing, so this test measures an earlier wall")
 	}
 	cases := map[string]config.WebAPI{
-		"a path":                {URL: "https://api-1.ngc.test:7443/x", TLS: pin},
-		"a second line":         {URL: "https://api-1.ngc.test:7443\nRequire all granted", TLS: pin},
-		"a closing quote":       {URL: "https://api-1.ngc.test:7443\" retry=0 \"", TLS: pin},
-		"a space and an option": {URL: "https://api-1.ngc.test:7443 keepalive=Off", TLS: pin},
-		"a carriage return":     {URL: "https://api-1.ngc.test:7443\rProxySet lbmethod=bytraffic", TLS: pin},
-		"an upper case host":    {URL: "https://API-1.ngc.test:7443", TLS: pin},
-		"no port":               {URL: "https://api-1.ngc.test", TLS: pin},
-		"plain http":            {URL: "http://api-1.ngc.test:7443", TLS: pin},
-		"a short pin":           {URL: "https://api-2.ngc.test:7443", TLS: pin[:31]},
+		"a path":                {URL: "https://api-1.cd.test:7443/x", TLS: pin},
+		"a second line":         {URL: "https://api-1.cd.test:7443\nRequire all granted", TLS: pin},
+		"a closing quote":       {URL: "https://api-1.cd.test:7443\" retry=0 \"", TLS: pin},
+		"a space and an option": {URL: "https://api-1.cd.test:7443 keepalive=Off", TLS: pin},
+		"a carriage return":     {URL: "https://api-1.cd.test:7443\rProxySet lbmethod=bytraffic", TLS: pin},
+		"an upper case host":    {URL: "https://API-1.cd.test:7443", TLS: pin},
+		"no port":               {URL: "https://api-1.cd.test", TLS: pin},
+		"plain http":            {URL: "http://api-1.cd.test:7443", TLS: pin},
+		"a short pin":           {URL: "https://api-2.cd.test:7443", TLS: pin[:31]},
 	}
 	for name, bad := range cases {
 		// The good entry comes first, so something would be rendered if the
@@ -188,8 +188,8 @@ func TestRenderRefusesAnAddressOutsideTheGrammar(t *testing.T) {
 }
 
 func TestSyncWritesOnlyCertificatesThatMatchTheirPin(t *testing.T) {
-	n1, der1, _ := apiNode("api-1", "api-1.ngc.test", 0xA1)
-	n2, der2, _ := apiNode("api-2", "api-2.ngc.test", 0xA2)
+	n1, der1, _ := apiNode("api-1", "api-1.cd.test", 0xA1)
+	n2, der2, _ := apiNode("api-2", "api-2.cd.test", 0xA2)
 	// Intermediate check: the same two nodes with their own certificates go
 	// through, so a refusal below comes from the pin and not from the way in.
 	ok := newStand(t)
@@ -243,10 +243,10 @@ func TestSyncWritesOnlyCertificatesThatMatchTheirPin(t *testing.T) {
 		t.Errorf("wrong pin: %d certificates in the trust file, want the good one alone", n)
 	}
 	conf := bad.read(t, bad.balancerFile)
-	if !strings.Contains(conf, "api-1.ngc.test:7443") {
+	if !strings.Contains(conf, "api-1.cd.test:7443") {
 		t.Errorf("wrong pin: the good server is not in the balancer:\n%s", conf)
 	}
-	if strings.Contains(conf, "api-2.ngc.test:7443") {
+	if strings.Contains(conf, "api-2.cd.test:7443") {
 		t.Errorf("wrong pin: the server with the wrong pin reached the balancer:\n%s", conf)
 	}
 	if bad.tests != 1 || bad.reloads != 1 {
@@ -281,8 +281,8 @@ func TestSyncWritesOnlyCertificatesThatMatchTheirPin(t *testing.T) {
 // The node that was away comes back by itself: node.watchWeb runs Sync again
 // on every change of the trust list and once a day.
 func TestSyncWritesTheServersItCouldReach(t *testing.T) {
-	n1, der1, _ := apiNode("api-1", "api-1.ngc.test", 0xD1)
-	n2, der2, _ := apiNode("api-2", "api-2.ngc.test", 0xD2)
+	n1, der1, _ := apiNode("api-1", "api-1.cd.test", 0xD1)
+	n2, der2, _ := apiNode("api-2", "api-2.cd.test", 0xD2)
 
 	// Intermediate check, so a refusal below comes from the fetch and not
 	// from the way in: both reachable, both written.
@@ -310,10 +310,10 @@ func TestSyncWritesTheServersItCouldReach(t *testing.T) {
 		t.Error("the server that could be reached was not written")
 	}
 	conf := away.read(t, away.balancerFile)
-	if !strings.Contains(conf, "api-1.ngc.test:7443") {
+	if !strings.Contains(conf, "api-1.cd.test:7443") {
 		t.Errorf("the reachable server is not in the balancer:\n%s", conf)
 	}
-	if strings.Contains(conf, "api-2.ngc.test:7443") {
+	if strings.Contains(conf, "api-2.cd.test:7443") {
 		t.Errorf("the server that was away reached the balancer:\n%s", conf)
 	}
 	if n := strings.Count(away.read(t, away.trustFile), "BEGIN CERTIFICATE"); n != 1 {
@@ -339,8 +339,8 @@ func TestSyncWritesTheServersItCouldReach(t *testing.T) {
 }
 
 func TestSyncReloadsOnlyAfterConfigtest(t *testing.T) {
-	n1, der1, _ := apiNode("api-1", "api-1.ngc.test", 0xB1)
-	n2, der2, _ := apiNode("api-2", "api-2.ngc.test", 0xB2)
+	n1, der1, _ := apiNode("api-1", "api-1.cd.test", 0xB1)
+	n2, der2, _ := apiNode("api-2", "api-2.cd.test", 0xB2)
 	s := newStand(t)
 	s.certs[n1.URL] = der1
 	s.certs[n2.URL] = der2
@@ -349,7 +349,7 @@ func TestSyncReloadsOnlyAfterConfigtest(t *testing.T) {
 	}
 	before := s.read(t, s.balancerFile)
 	beforeTrust := s.read(t, s.trustFile)
-	if !strings.Contains(before, "api-1.ngc.test") || strings.Contains(before, "api-2.ngc.test") {
+	if !strings.Contains(before, "api-1.cd.test") || strings.Contains(before, "api-2.cd.test") {
 		t.Fatalf("the first sync did not write the first API alone:\n%s", before)
 	}
 
@@ -375,12 +375,12 @@ func TestSyncReloadsOnlyAfterConfigtest(t *testing.T) {
 // TestSyncKeepsThePasskeySettings guards the other half of web.json: the
 // controller owns the API list there, not the settings of the passkeys.
 func TestSyncKeepsThePasskeySettings(t *testing.T) {
-	n1, der1, _ := apiNode("api-1", "api-1.ngc.test", 0xC1)
+	n1, der1, _ := apiNode("api-1", "api-1.cd.test", 0xC1)
 	s := newStand(t)
 	s.certs[n1.URL] = der1
-	rp := proof.RP{ID: "ngc.test", Origins: []string{"https://ngc.test"}}
+	rp := proof.RP{ID: "cd.test", Origins: []string{"https://cd.test"}}
 	if err := config.SaveWeb(s.webConfig, &config.Web{
-		APIs: []config.WebAPI{{URL: "https://old.ngc.test:7443", TLS: bytes.Repeat([]byte{9}, 32)}},
+		APIs: []config.WebAPI{{URL: "https://old.cd.test:7443", TLS: bytes.Repeat([]byte{9}, 32)}},
 		RP:   rp,
 	}); err != nil {
 		t.Fatal(err)
@@ -395,7 +395,7 @@ func TestSyncKeepsThePasskeySettings(t *testing.T) {
 	if w.RP.ID != rp.ID || len(w.RP.Origins) != 1 || w.RP.Origins[0] != rp.Origins[0] {
 		t.Errorf("passkey settings lost: %+v", w.RP)
 	}
-	if len(w.APIs) != 1 || w.APIs[0].URL != "https://api-1.ngc.test:7443" {
+	if len(w.APIs) != 1 || w.APIs[0].URL != "https://api-1.cd.test:7443" {
 		t.Errorf("API list not taken over: %+v", w.APIs)
 	}
 }
@@ -403,7 +403,7 @@ func TestSyncKeepsThePasskeySettings(t *testing.T) {
 // TestSyncDoesNotReloadWithoutAChange keeps the daily run from restarting
 // Apache's workers for nothing.
 func TestSyncDoesNotReloadWithoutAChange(t *testing.T) {
-	n1, der1, _ := apiNode("api-1", "api-1.ngc.test", 0xD1)
+	n1, der1, _ := apiNode("api-1", "api-1.cd.test", 0xD1)
 	s := newStand(t)
 	s.certs[n1.URL] = der1
 	if _, err := s.w.Sync(context.Background(), []trust.Node{n1}); err != nil {
@@ -422,8 +422,8 @@ func TestSyncDoesNotReloadWithoutAChange(t *testing.T) {
 }
 
 func TestCompareRewritesARenewedCertificate(t *testing.T) {
-	n1, der1, key1 := apiNode("api-1", "api-1.ngc.test", 0xE1)
-	_, der2, _ := apiNode("api-2", "api-2.ngc.test", 0xE2)
+	n1, der1, key1 := apiNode("api-1", "api-1.cd.test", 0xE1)
+	_, der2, _ := apiNode("api-2", "api-2.cd.test", 0xE2)
 	s := newStand(t)
 	s.certs[n1.URL] = der1
 	if _, err := s.w.Sync(context.Background(), []trust.Node{n1}); err != nil {
@@ -438,7 +438,7 @@ func TestCompareRewritesARenewedCertificate(t *testing.T) {
 		t.Fatalf("unchanged certificate: %d reloads", s.reloads)
 	}
 
-	fresh := renewed("api-1.ngc.test", key1)
+	fresh := renewed("api-1.cd.test", key1)
 	if bytes.Equal(fresh, der1) {
 		t.Fatal("the renewed certificate is the old one, so this test measures nothing")
 	}
@@ -476,8 +476,8 @@ func TestCompareRewritesARenewedCertificate(t *testing.T) {
 // TestCompareLeavesAnUnknownNodeToSync says who owns the list: Compare only
 // refreshes a certificate that is in the file already.
 func TestCompareLeavesAnUnknownNodeToSync(t *testing.T) {
-	n1, der1, _ := apiNode("api-1", "api-1.ngc.test", 0xF1)
-	n2, der2, _ := apiNode("api-2", "api-2.ngc.test", 0xF2)
+	n1, der1, _ := apiNode("api-1", "api-1.cd.test", 0xF1)
+	n2, der2, _ := apiNode("api-2", "api-2.cd.test", 0xF2)
 	s := newStand(t)
 	s.certs[n1.URL] = der1
 	s.certs[n2.URL] = der2
@@ -499,7 +499,7 @@ func TestCompareLeavesAnUnknownNodeToSync(t *testing.T) {
 // TestSyncRefusesANodeOutsideTheGrammar measures the way in: a node whose
 // address is no tunnel address never reaches Apache's files.
 func TestSyncRefusesANodeOutsideTheGrammar(t *testing.T) {
-	n1, der1, _ := apiNode("api-1", "api-1.ngc.test", 0x11)
+	n1, der1, _ := apiNode("api-1", "api-1.cd.test", 0x11)
 	// Intermediate check: this node goes through, so every refusal below
 	// comes from what was changed in it and not from the way in.
 	ok := newStand(t)
@@ -513,7 +513,7 @@ func TestSyncRefusesANodeOutsideTheGrammar(t *testing.T) {
 	// the right one, so nothing else would stop them.
 	cases := map[string]func(n *trust.Node){
 		"a second line in the address": func(n *trust.Node) {
-			n.URL = "wss://api-1.ngc.test:7443/tunnel\nRequire all granted"
+			n.URL = "wss://api-1.cd.test:7443/tunnel\nRequire all granted"
 		},
 		"no noise key":          func(n *trust.Node) { n.Noise = nil },
 		"a name with a newline": func(n *trust.Node) { n.Name = "api\n1" },
@@ -599,8 +599,8 @@ func balancerFromContract(t *testing.T) []byte {
 func TestBalancerTemplateMatchesTheContract(t *testing.T) {
 	want := balancerFromContract(t)
 	got := Render([]config.WebAPI{
-		{URL: "https://api-1.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
-		{URL: "https://api-2.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
+		{URL: "https://api-1.cd.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
+		{URL: "https://api-2.cd.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
 	})
 	if got == nil {
 		t.Fatal("Render wrote nothing for two plain addresses, so this case measures an earlier wall")
@@ -618,7 +618,7 @@ func TestBalancerTemplateMatchesTheContract(t *testing.T) {
 //
 //	AH00526: Syntax error ... ProxyPass unknown Balancer parameter
 //
-// and the setup of ngc-web stops there. The parameter is a WORKER parameter,
+// and the setup of cd-web stops there. The parameter is a WORKER parameter,
 // so it belongs on the BalancerMember; with it moved, the same apachectl
 // configtest says "Syntax OK". The version note of the plan was right and the
 // place was wrong -- upgrade= needs Apache 2.4.47, but never on a ProxyPass
@@ -629,8 +629,8 @@ func TestBalancerTemplateMatchesTheContract(t *testing.T) {
 // worker parameter back on that line.
 func TestWorkerParametersStayOnTheBalancerMember(t *testing.T) {
 	got := string(Render([]config.WebAPI{
-		{URL: "https://api-1.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
-		{URL: "https://api-2.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
+		{URL: "https://api-1.cd.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
+		{URL: "https://api-2.cd.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
 	}))
 	members := 0
 	for _, line := range strings.Split(got, "\n") {
@@ -684,8 +684,8 @@ func TestWorkerParametersStayOnTheBalancerMember(t *testing.T) {
 // were read as loaded on api-1 on 25.10.2026.
 func TestTheBalancerAnswersAMissingMemberHonestly(t *testing.T) {
 	got := string(Render([]config.WebAPI{
-		{URL: "https://api-1.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
-		{URL: "https://api-2.ngc.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
+		{URL: "https://api-1.cd.test:7443", TLS: bytes.Repeat([]byte{0xE1}, 32)},
+		{URL: "https://api-2.cd.test:7443", TLS: bytes.Repeat([]byte{0xE2}, 32)},
 	}))
 	if got == "" {
 		t.Fatal("Render wrote nothing, so this case measures an earlier wall")

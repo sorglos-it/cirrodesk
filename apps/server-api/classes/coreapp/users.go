@@ -1,4 +1,4 @@
-// The actions of ngc.users: the users of the trust list, the rights of the
+// The actions of cd.users: the users of the trust list, the rights of the
 // roles, the versions of the trust list itself, the one-time codes a new
 // server joins with, and the log.
 //
@@ -41,19 +41,19 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/rights"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/rights"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// registerUsers adds the actions of ngc.users.
+// registerUsers adds the actions of cd.users.
 func (d *Dispatcher) registerUsers() {
 	d.Register(core.AppUsers, core.ServiceAPI, core.ActList, d.userList)
 	d.Register(core.AppUsers, core.ServiceAPI, core.ActRights, d.roleRights)
@@ -67,7 +67,7 @@ func (d *Dispatcher) registerUsers() {
 	d.Register(core.AppUsers, core.ServiceAPI, core.ActLog, d.log)
 }
 
-// userList answers ngc.users/list: the users of the trust list with what the
+// userList answers cd.users/list: the users of the trust list with what the
 // database adds (TOTP, lock, last login). Who exists and which roles they
 // hold comes out of the signed list and out of nothing else; the row only
 // fills the three fields the list does not carry.
@@ -92,7 +92,7 @@ func (d *Dispatcher) userList(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(out)
 }
 
-// roleRights answers ngc.users/rights: every role of the trust list with the
+// roleRights answers cd.users/rights: every role of the trust list with the
 // rights of its row, a role without a row with none.
 func (d *Dispatcher) roleRights(ctx context.Context, rq *Call) ([]byte, error) {
 	v, err := rq.S.Trust(ctx)
@@ -106,7 +106,7 @@ func (d *Dispatcher) roleRights(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(all)
 }
 
-// setRights answers ngc.users/set-rights: it replaces the rights of one role.
+// setRights answers cd.users/set-rights: it replaces the rights of one role.
 //
 // The role has to be one the trust list holds, and that is a refusal this
 // handler adds rather than one the contract asks for. The reason is package
@@ -218,7 +218,7 @@ func (d *Dispatcher) seatsAllow(ctx context.Context, r core.RoleRights) wire.Cod
 	return ""
 }
 
-// trust answers ngc.users/api/trust: the shell sends one new version of the
+// trust answers cd.users/api/trust: the shell sends one new version of the
 // trust list, the API verifies it as the one after the newest and passes it on.
 //
 // Nothing of the handed-in bytes is believed before trust.ParseSigned read
@@ -362,17 +362,17 @@ func listedController(l *trust.List, key []byte) bool {
 	return false
 }
 
-// pairCode answers ngc.users/pair-code: a one-time code for the ulh script of
+// pairCode answers cd.users/pair-code: a one-time code for the ulh script of
 // a new controller. The code is a secret of one use; it travels in the result
 // and nowhere else (the file comment).
 //
 // The nil check is not belt and braces, it closes a measured hole. Deps.Store
 // and Deps.Updates may be nil and registerStore answers that by registering
 // nothing; Deps.Controllers and Deps.Join may be nil too, and until task 30
-// nothing answered that at all -- a shell channel to ngc.users/join-code
+// nothing answered that at all -- a shell channel to cd.users/join-code
 // dereferenced the nil and PANICKED. A panic there is not one channel's:
 // browser.(*Server).channel calls OpenChannel in a goroutine of its own with
-// nothing above it to recover, so the whole ngc-api process dies and every
+// nothing above it to recover, so the whole cd-api process dies and every
 // session on it with it. Found by the fuzz seed
 // testdata/fuzz/FuzzOpenParams/4b950b6123cdb67b, which stays in the repo as
 // the regression.
@@ -399,7 +399,7 @@ func (d *Dispatcher) pairCode(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(core.PairCodeResult{Code: code.String(), Expires: expires})
 }
 
-// joinCode answers ngc.users/join-code: the same for a new API server.
+// joinCode answers cd.users/join-code: the same for a new API server.
 func (d *Dispatcher) joinCode(ctx context.Context, rq *Call) ([]byte, error) {
 	if d.Join == nil {
 		return nil, failWhy(wire.CodeNotFound, reason.ActionUnserved)
@@ -411,7 +411,7 @@ func (d *Dispatcher) joinCode(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(core.PairCodeResult{Code: code.String(), Expires: expires})
 }
 
-// pending answers ngc.users/pending: controllers that paired and wait to be
+// pending answers cd.users/pending: controllers that paired and wait to be
 // listed. The fingerprint is not sent: the shell computes it from Key itself
 // (shared/README.md, "Selbst rechnen"), and a fingerprint the API supplied
 // would be the API's word for the key the admin is about to compare.
@@ -427,7 +427,7 @@ func (d *Dispatcher) pending(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(out)
 }
 
-// pendingAPI answers ngc.users/pending-api: API servers that sent a join
+// pendingAPI answers cd.users/pending-api: API servers that sent a join
 // request and wait to be listed (dbapi.BlobJoin).
 //
 // Every row goes through tunnel.ParseJoinRequest, although it was checked when
@@ -456,7 +456,7 @@ func (d *Dispatcher) pendingAPI(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(out)
 }
 
-// nodes answers ngc.users/nodes: one row per controller of the trust list, so
+// nodes answers cd.users/nodes: one row per controller of the trust list, so
 // an admin can pick the target of an activation and see what is up. API nodes
 // are no row: nobody runs a task on one.
 //
@@ -484,7 +484,7 @@ func (d *Dispatcher) nodes(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(out)
 }
 
-// log answers ngc.users/log. The query goes to audit.Log.Query, which checks
+// log answers cd.users/log. The query goes to audit.Log.Query, which checks
 // it against the contract once more before a database sees it.
 func (d *Dispatcher) log(ctx context.Context, rq *Call) ([]byte, error) {
 	p, ok := rq.Params.(*core.LogQuery)
@@ -499,7 +499,7 @@ func (d *Dispatcher) log(ctx context.Context, rq *Call) ([]byte, error) {
 }
 
 // pushTrust sends the new version to every connected controller
-// (ngc.users/controller/trust, a channel without a user: the versions carry
+// (cd.users/controller/trust, a channel without a user: the versions carry
 // their own signatures) and tells every open shell that a newer number exists.
 //
 // It walks the controllers of the TRUST LIST and asks the registry for each

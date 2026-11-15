@@ -10,11 +10,11 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // States of an app for the desktop and the app store.
@@ -53,7 +53,7 @@ const (
 	NoticeError = "error"
 )
 
-// Me answers ngc.desktop/me.
+// Me answers cd.desktop/me.
 type Me struct {
 	ID            string      `json:"id"`
 	Name          string      `json:"name"`
@@ -64,7 +64,7 @@ type Me struct {
 	Level         trust.Level `json:"level"` // strictest re-confirmation level of the user's roles
 }
 
-// DesktopApp is an entry of the start menu (ngc.desktop/apps).
+// DesktopApp is an entry of the start menu (cd.desktop/apps).
 type DesktopApp struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
@@ -87,13 +87,13 @@ type DesktopApp struct {
 	Node string `json:"node,omitempty"`
 }
 
-// TOTPBegin answers ngc.desktop/totp-begin.
+// TOTPBegin answers cd.desktop/totp-begin.
 type TOTPBegin struct {
 	Secret string `json:"secret"` // base32, for typing in
 	URI    string `json:"uri"`    // otpauth://totp/…, for the QR code
 }
 
-// UserInfo is a row of ngc.users/list; keys and roles come from the trust list.
+// UserInfo is a row of cd.users/list; keys and roles come from the trust list.
 type UserInfo struct {
 	ID        string   `json:"id"`
 	Name      string   `json:"name"`
@@ -103,7 +103,7 @@ type UserInfo struct {
 	LastLogin int64    `json:"lastLogin,omitzero"`
 }
 
-// PairCodeResult answers ngc.users/pair-code and ngc.users/join-code.
+// PairCodeResult answers cd.users/pair-code and cd.users/join-code.
 type PairCodeResult struct {
 	Code    string `json:"code"` // tunnel.PairCode, for join-code tunnel.JoinCode, as string
 	Expires int64  `json:"expires"`
@@ -119,7 +119,7 @@ type Pending struct {
 }
 
 // PendingAPI is an API server that asked to join (tunnel.JoinRequest) but is
-// not in the trust list yet (ngc.users/pending-api). The shell adds it as a
+// not in the trust list yet (cd.users/pending-api). The shell adds it as a
 // trust.Node of kind api with exactly these values and Name = Node, once the
 // admin compared tunnel.JoinFingerprint of them, which the shell computes
 // itself, with the output of the new server's ulh script.
@@ -132,7 +132,7 @@ type PendingAPI struct {
 	Since int64     `json:"since"`
 }
 
-// NodeInfo is a row of ngc.users/nodes: a controller of the trust list as
+// NodeInfo is a row of cd.users/nodes: a controller of the trust list as
 // the API that answers sees it, so that the admin can pick the node of an
 // activate task and see whether a server is up. Roles, Version and Arch are
 // what the controller said in its last hello to this API (tunnel.Hello);
@@ -141,11 +141,11 @@ type NodeInfo struct {
 	Node    string   `json:"node"`              // node ID in the trust list
 	Online  bool     `json:"online"`            // it has a tunnel to this API now
 	Roles   []string `json:"roles,omitempty"`   // tunnel.Hello.Roles
-	Version string   `json:"version,omitempty"` // tunnel.Hello.Version: its NGC version
+	Version string   `json:"version,omitempty"` // tunnel.Hello.Version: its CirroDesk version
 	Arch    string   `json:"arch,omitempty"`    // tunnel.Hello.Arch
 }
 
-// LogEntry is a row of ngc.users/log.
+// LogEntry is a row of cd.users/log.
 type LogEntry struct {
 	// ID is 32 lower-case hex characters from 16 random bytes, made by the
 	// API; hex so every database collation orders it like Go.
@@ -166,7 +166,7 @@ var logID = regexp.MustCompile(`^[0-9a-f]{32}$`)
 // characters.
 func ValidLogID(s string) bool { return logID.MatchString(s) }
 
-// SourceInfo is a store in ngc.store/sources and ngc.store/refresh.
+// SourceInfo is a store in cd.store/sources and cd.store/refresh.
 type SourceInfo struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
@@ -176,13 +176,13 @@ type SourceInfo struct {
 	Error   string `json:"error,omitempty"`  // German
 }
 
-// CatalogResult answers ngc.store/catalog. The shell verifies it with the
+// CatalogResult answers cd.store/catalog. The shell verifies it with the
 // store key from the trust list before showing it.
 type CatalogResult struct {
 	Catalog sign.Envelope `json:"catalog"`
 }
 
-// InstalledApp is a row of ngc.store/installed.
+// InstalledApp is a row of cd.store/installed.
 type InstalledApp struct {
 	ID       string `json:"id"`
 	Version  string `json:"version,omitempty"` // empty if only kept data remains
@@ -194,7 +194,7 @@ type InstalledApp struct {
 	KeptData int64  `json:"keptData,omitzero"` // bytes of data kept after uninstalling
 }
 
-// UploadResult answers ngc.store/upload: what the API read from the package.
+// UploadResult answers cd.store/upload: what the API read from the package.
 // The shell never signs these values: it computes the package's SHA-256,
 // reads its manifest and computes its UI hash (store.PackageUI) from the file
 // it sent itself, refuses a mismatch with this result and puts its own values
@@ -206,7 +206,7 @@ type UploadResult struct {
 	UI      enc.Bytes `json:"ui"`     // its UI hash (store.PackageUI)
 }
 
-// LicenseResult answers ngc.store/api/license, and ngc.store/controller/license
+// LicenseResult answers cd.store/api/license, and cd.store/controller/license
 // with the state (LicenseOf) of the newest license the controller now holds
 // for App.
 type LicenseResult struct {
@@ -214,14 +214,14 @@ type LicenseResult struct {
 	State string `json:"state"`
 }
 
-// InstallKey answers ngc.store/install-key; the admin gives it to the shop when buying.
+// InstallKey answers cd.store/install-key; the admin gives it to the shop when buying.
 type InstallKey struct {
 	Installation string    `json:"installation"`
 	Key          enc.Bytes `json:"key"` // X25519
 }
 
-// UpdateInfo is a row of ngc.store/updates: one target on one controller (an
-// NGC part on every node whose tunnel.Components hold it, an app on the node
+// UpdateInfo is a row of cd.store/updates: one target on one controller (an
+// CirroDesk part on every node whose tunnel.Components hold it, an app on the node
 // it runs on, system on every node). The API computes the rows from
 // releases, catalogs, the controllers' reports and each target's
 // UpdateSetting (dbapi.SettingUpdate), and stores no row.
@@ -230,10 +230,10 @@ type UpdateInfo struct {
 	Node      string `json:"node"`
 	Installed string `json:"installed,omitempty"`
 	// Available is the newest version of Target the API offers for Node. It is
-	// never an app version whose minNgc (store.Package.MinNGC) does not suit
-	// the NGC version of Node (store.SupportsMinNGC with tunnel.Hello.Version;
+	// never an app version whose minCd (store.Package.MinCD) does not suit
+	// the CirroDesk version of Node (store.SupportsMinCD with tunnel.Hello.Version;
 	// a version that is no release version, such as 0.0.0-dev, suits no
-	// minNgc), and only from the catalog of the app's own store
+	// minCd), and only from the catalog of the app's own store
 	// (dbapi.App.Store).
 	Available string `json:"available,omitempty"`
 	// SHA256 is the checksum of the file staged on Node for Available once State
@@ -241,8 +241,8 @@ type UpdateInfo struct {
 	// The controller checks the staged file against the release or catalog entry
 	// it verified when staging, so this value only has to match.
 	SHA256 enc.Bytes `json:"sha256,omitempty"`
-	// Key is what a standing approval for an NGC part names (trust.Auto.Key):
-	// the NGC release key the API is configured with. Controllers verify
+	// Key is what a standing approval for a CirroDesk part names (trust.Auto.Key):
+	// the CirroDesk release key the API is configured with. Controllers verify
 	// releases only with their own release key, so a wrong Key can only keep
 	// updates from installing on their own. Empty for apps (the shell takes the
 	// store's key from the trust list) and for system.
@@ -257,7 +257,7 @@ type UpdateInfo struct {
 	State string `json:"state,omitempty"`
 }
 
-// TrustResult answers ngc.users/trust, and ngc.users/controller/trust with
+// TrustResult answers cd.users/trust, and cd.users/controller/trust with
 // the newest version the controller verified.
 type TrustResult struct {
 	Seq uint64 `json:"seq"`
@@ -269,9 +269,9 @@ var ErrResult = errors.New("core: result the shell would refuse")
 // EncodeResult encodes the result of a core action as the API sends it.
 // encoding/json writes a nil slice as null, which the shell refuses (no null,
 // enc.Budget); EncodeResult writes an empty or nil list as [] and an empty or
-// nil map as {}, so the eleven results that are lists (ngc.desktop/apps,
-// ngc.users/list, log, nodes, pending, pending-api and rights,
-// ngc.store/sources, refresh, installed and updates) are [] when empty. It encodes with
+// nil map as {}, so the eleven results that are lists (cd.desktop/apps,
+// cd.users/list, log, nodes, pending, pending-api and rights,
+// cd.store/sources, refresh, installed and updates) are [] when empty. It encodes with
 // encoding/json/v2, whose omitempty keeps false and 0; the result types mark
 // optional bools and numbers omitzero, which both versions leave out alike.
 // Every failure is ErrResult: a value encoding/json/v2 refuses (invalid
@@ -356,7 +356,7 @@ func LicenseOf(l *store.License, now int64) string {
 const MaxTransferHeader = 8 << 20
 
 // Transfer is the header of a file the API sends to a controller.
-// Exactly one source: Catalog with Store (app from a store), Release (NGC
+// Exactly one source: Catalog with Store (app from a store), Release (CirroDesk
 // update) or neither (uploaded app, the signed task names its checksum).
 type Transfer struct {
 	Catalog *sign.Envelope `json:"catalog,omitempty"`

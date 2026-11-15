@@ -39,12 +39,12 @@ import * as trust from "../../public/assets/js/contracts/trust.js";
 import { Budget, decode, bytes, str, P, S } from "../../public/assets/js/contracts/json.js";
 import { buildWorld, RP_ID, RP_ORIGINS, TOTP_CODE, SETUP_CODE } from "./world.js";
 
-// A TEST-ONLY DOOR FOR THE USER INTERFACES OF THE APPS NGC SHIPS, and a
+// A TEST-ONLY DOOR FOR THE USER INTERFACES OF THE APPS CirroDesk SHIPS, and a
 // security rule is the reason it exists.
 //
 // The calculator and the terminal are apps a person activates: their interface
 // is the ui/ of an app package and arrives as a SIGNED ARCHIVE over
-// ngc.desktop/ui. Their source is the web interface's own
+// cd.desktop/ui. Their source is the web interface's own
 // (apps/web/assets/apps/<app>/), and it may NOT lie in the web root: an .html
 // under public/ is a document of the shell's OWN origin, reachable by its
 // address, with the shell's storage, cookies and session in reach - which is
@@ -129,7 +129,7 @@ function assetWalls(file) {
   const dir = (l) => l.match(/^\s*<Directory\s+"?([^"\s]+)"?\s*>\s*$/)?.[1];
   // The web root is the DocumentRoot that is a public/ - the virtual host for
   // plain http has one of its own, for the certificate check, and that one is
-  // not NGC's.
+  // not CirroDesk's.
   const roots = lines
     .map((l) => l.match(/^\s*DocumentRoot\s+"?([^"\s]+)"?\s*$/)?.[1])
     .filter((p) => p !== undefined && p.endsWith("/public"));
@@ -297,13 +297,13 @@ const JSON_TYPE = "application/json; charset=utf-8";
 // The Noise tag an inner message costs, taken from the contract and not
 // written as 16: wire says MAX_E2E_PLAINTEXT is MAX_PAYLOAD minus the tag.
 const TAG_SIZE = wire.MAX_PAYLOAD - wire.MAX_E2E_PLAINTEXT;
-// The answer of ngc.users/api/log in this world: over wire.MAX_CALL_RESULT on
+// The answer of cd.users/api/log in this world: over wire.MAX_CALL_RESULT on
 // purpose, so the shell has to be the one that stops it.
 const HUGE = 9 << 20;
 
 // The app services of this world besides the echo, by the action of the
 // OPEN, and what the one that speaks first says. The text is the service's own
-// and means nothing to NGC - a prompt is whatever the program there prints.
+// and means nothing to CirroDesk - a prompt is whatever the program there prints.
 const ACT_GREET = "greet", ACT_OVER = "over";
 const GREETING = "willkommen$ ";
 // And one that is refused before it starts, with the code the real controller
@@ -801,7 +801,7 @@ class Conn {
 
   async answer(ch) {
     const key = `${ch.open.app}/${ch.open.service}/${ch.open.action}`;
-    // The answer of ngc.users/api/log is over MaxCallResult on purpose: the
+    // The answer of cd.users/api/log is over MaxCallResult on purpose: the
     // shell has to be the one that stops it.
     if (key === `${core.APP_USERS}/${core.SERVICE_API}/${core.ACT_LOG}`) {
       await ch.data(new Uint8Array(HUGE));
@@ -1651,8 +1651,8 @@ export async function startMockAPI({ world, port, phpPort }) {
 // happens to end the same would run the server inside a test that only meant
 // to import startMockAPI.
 if (argv[1] !== undefined && import.meta.url === pathToFileURL(argv[1]).href) {
-  const port = Number(process.env.NGC_MOCK_PORT) || 8099;
-  const phpPort = Number(process.env.NGC_PHP_PORT) || (port + 1);
+  const port = Number(process.env.CD_MOCK_PORT) || 8099;
+  const phpPort = Number(process.env.CD_PHP_PORT) || (port + 1);
   await startMockAPI({ port, phpPort });
   process.stdout.write(`mock api on ${port}, php behind on ${phpPort}\n`);
 }

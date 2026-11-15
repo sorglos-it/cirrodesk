@@ -1,11 +1,11 @@
 // Command adapter is what a port of a foreign program really costs, in one
-// file. NGC hands a service the action in NGC_ACTION and its parameters as
-// JSON in NGC_PARAMS (shared/service/service.go); wordcraft-cli, like almost
+// file. CirroDesk hands a service the action in CD_ACTION and its parameters as
+// JSON in CD_PARAMS (shared/service/service.go); wordcraft-cli, like almost
 // every foreign program, wants them as command line arguments. Nothing
 // bridges that gap, so every port writes this.
 //
 // It is NOT a shell script, and that is the point of the exercise: a shell
-// cannot parse NGC_PARAMS safely, and a file name pasted into a shell command
+// cannot parse CD_PARAMS safely, and a file name pasted into a shell command
 // is how a document turns into a command. Here the parameters are decoded
 // with encoding/json and the program is started with an argument vector, with
 // no shell anywhere.
@@ -33,16 +33,16 @@ import (
 	"path"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/service"
 )
 
 // tool is the program being wrapped. Where the data lives and what the
 // variables are called comes from shared/service, so this adapter cannot
 // drift away from the contract it serves.
-const tool = "/usr/lib/ngc/wordcraft-cli"
+const tool = "/usr/lib/cd/wordcraft-cli"
 
 // params are the members this adapter understands. Anything else in
-// NGC_PARAMS is refused rather than ignored: a parameter nobody reads is a
+// CD_PARAMS is refused rather than ignored: a parameter nobody reads is a
 // parameter a caller believes in.
 type params struct {
 	File string `json:"file"`
@@ -51,7 +51,7 @@ type params struct {
 
 func main() {
 	if err := run(os.Stdout); err != nil {
-		// The message goes to stderr, which NGC keeps in a ring of 64 KiB and
+		// The message goes to stderr, which CirroDesk keeps in a ring of 64 KiB and
 		// does not log. The exit code is what the browser sees.
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -61,13 +61,13 @@ func main() {
 func run(out io.Writer) error {
 	data := os.Getenv(service.EnvData)
 	if data == "" {
-		return errors.New("adapter: NGC_DATA is not set")
+		return errors.New("adapter: CD_DATA is not set")
 	}
 	// The contract fixes the folder; a different value means the controller
 	// and this program disagree about where the app's data is, and then no
 	// path check below means anything.
 	if data != service.DataDir {
-		return errors.New("adapter: NGC_DATA is not the folder of the contract")
+		return errors.New("adapter: CD_DATA is not the folder of the contract")
 	}
 	var p params
 	if raw := os.Getenv(service.EnvParams); raw != "" {
@@ -85,7 +85,7 @@ func run(out io.Writer) error {
 	cmd.Dir = data
 	cmd.Stdout = out
 	cmd.Stderr = os.Stderr
-	// A fresh environment: the variables NGC set carry the user and must not
+	// A fresh environment: the variables CirroDesk set carry the user and must not
 	// reach a program that was never written for them.
 	cmd.Env = []string{"LANG=C.UTF-8", "PATH=" + service.Path, "HOME=" + data}
 	return cmd.Run()

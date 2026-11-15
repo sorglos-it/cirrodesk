@@ -5,9 +5,9 @@
 // whole DOM of the shell, the session and localStorage in reach. Now it is a
 // page of its own in a frame with an origin of its own, no storage and no
 // connection - the same walls an app out of the store runs behind. The app id
-// is the one shared/testdata uses; it is no NGC app ("ngc."), because
-// core.AppParams refuses a core app for ngc.desktop/ui and /ui-proof alike, so
-// an app of NGC's own could never be asked for a user interface at all.
+// is the one shared/testdata uses; it is no CirroDesk app ("cd."), because
+// core.AppParams refuses a core app for cd.desktop/ui and /ui-proof alike, so
+// an app of CirroDesk's own could never be asked for a user interface at all.
 //
 // A CLASSIC SCRIPT, NOT A MODULE - but not old JavaScript either. The frame's
 // page carries every file as a data: address, and a module cannot import
@@ -189,8 +189,8 @@
       document.documentElement.style.setProperty("--accent", accent);
     }
   };
-  paint(ngc.theme, ngc.accent);
-  ngc.onTheme(paint);
+  paint(cd.theme, cd.accent);
+  cd.onTheme(paint);
 
   document.body.append(box);
 })();

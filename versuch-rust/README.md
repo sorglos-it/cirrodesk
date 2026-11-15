@@ -1,12 +1,12 @@
 # Beleg, nicht Bestandteil
 
-Dieser Ordner gehört **nicht** zu NGC. Er ist der Beweisversuch zu
-`docs/vertraege-v1.2.md`, Punkt 67 („Rust für NGC"): **ein** kleiner Vertrag aus `shared/`,
+Dieser Ordner gehört **nicht** zu CirroDesk. Er ist der Beweisversuch zu
+`docs/vertraege-v1.2.md`, Punkt 67 („Rust für CirroDesk"): **ein** kleiner Vertrag aus `shared/`,
 ein zweites Mal in Rust geschrieben, um an einer gemessenen Zahl zu zeigen, was eine
 zweite Umsetzung kostet und ob sie bitgleich herauskommt.
 
 Nichts hier wird gebaut, geprüft oder ausgeliefert. `tools/check.sh` kennt den Ordner nicht,
-und kein Teil von NGC bindet ihn ein.
+und kein Teil von CirroDesk bindet ihn ein.
 
 ## Was drinsteht
 
@@ -38,5 +38,5 @@ Rust liegt auf diesem Rechner nicht; für den Versuch wurde eine Werkzeugkette n
 export RUSTUP_HOME=/opt/rust/rustup CARGO_HOME=/opt/rust/cargo PATH=/opt/rust/cargo/bin:$PATH
 cd versuch-rust/sign
 cargo build --release
-./target/release/ngc-sign-versuch ../../shared/testdata/sign.json
+./target/release/cd-sign-versuch ../../shared/testdata/sign.json
 ```

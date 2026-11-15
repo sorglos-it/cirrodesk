@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // Errors of the key file and of encrypting. None of them ever carries key
@@ -21,18 +21,18 @@ import (
 // passed the path, and Run prints that path, never the content.
 var (
 	// ErrKeyFile reports a file that is no key of KeySize bytes as base64url.
-	ErrKeyFile = errors.New("ngc-store: the file is no key")
+	ErrKeyFile = errors.New("cd-store: the file is no key")
 	// ErrKeyMissing reports a key file that is not there.
-	ErrKeyMissing = errors.New("ngc-store: the key file does not exist")
+	ErrKeyMissing = errors.New("cd-store: the key file does not exist")
 	// ErrKeyExists reports a key file that is already there: a new key would
 	// lock out every package already encrypted with the old one, so
 	// NewContentKey refuses instead of overwriting.
-	ErrKeyExists = errors.New("ngc-store: the key file already exists")
+	ErrKeyExists = errors.New("cd-store: the key file already exists")
 	// ErrSamePath reports an output path that is the input path, compared
 	// after filepath.Clean. Two different paths that lead to the same file
 	// (a link, another mount) are not caught — this is the cheap guard
 	// against the obvious call, not a check of file identity.
-	ErrSamePath = errors.New("ngc-store: input and output are the same file")
+	ErrSamePath = errors.New("cd-store: input and output are the same file")
 )
 
 // maxKeyFile bounds what is read while looking for a key: 64 bytes, the 43

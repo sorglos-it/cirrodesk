@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
 )
 
 // silentDialect is a dialect that cannot say what its database holds - the
@@ -54,7 +54,7 @@ func TestTheStepOverStaysTheOldOneForADialectThatCannotSay(t *testing.T) {
 }
 
 // TestExactlyOneDialectCanSayWhatItHolds pins WHICH dialect sits in that hole,
-// so that it cannot grow or be closed quietly. NGC has two dialects and no
+// so that it cannot grow or be closed quietly. CirroDesk has two dialects and no
 // more (sqlstore.SQLite and sqlstore.MariaDB), and today exactly one of them
 // answers SchemaText.
 //

@@ -1,5 +1,7 @@
 # Fremdcode in NGC – Bestand, Preis, Vorschlag
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Gemessen am 18.10.2026** im Arbeitsbaum `D:\claude\ngc-fremdcode` (lokale Platte D:), Stand
 `origin/main` = `6f1b90d`. Fehlende Dateien gegen HEAD: **0** (im selben Lauf geprüft).
 

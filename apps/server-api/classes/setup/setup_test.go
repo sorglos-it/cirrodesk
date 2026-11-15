@@ -15,17 +15,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // proofUserKey names the type of trust.User.Keys, which comes from package
@@ -46,7 +46,7 @@ func newHandler(t testing.TB) *Handler {
 	_, signKey := trusttest.NodeKeys(1)
 	noiseKey, _ := trusttest.NodeKeys(2)
 	cfg := &config.API{
-		Node: "api-1", URL: "wss://api-1.ngc.test:7443/tunnel", Listen: ":7443",
+		Node: "api-1", URL: "wss://api-1.cd.test:7443/tunnel", Listen: ":7443",
 		Cert: "/x", CertKey: "/y",
 		NoiseKey: config.NewSecret(noiseKey.Private), SignKey: config.NewSecret(signKey.Seed()),
 		SecretKey: config.NewSecret(make([]byte, 32)),
@@ -54,7 +54,7 @@ func newHandler(t testing.TB) *Handler {
 		// with 32 bytes, so a configuration without it is none.
 		ChallengeKey: config.NewSecret(make([]byte, 32)),
 		ReleaseKey:   enc.Bytes(make([]byte, 32)), StoreKey: enc.Bytes(make([]byte, 32)),
-		StoreURL: "https://store.ngc.test", SessionLifetime: 43200, IdleTimeout: 1800,
+		StoreURL: "https://store.cd.test", SessionLifetime: 43200, IdleTimeout: 1800,
 	}
 	s := state.New(cfg, memstore.New(), box, make([]byte, 32))
 	s.Now = func() int64 { return 1790000000 }

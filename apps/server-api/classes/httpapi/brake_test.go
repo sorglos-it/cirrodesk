@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // reset puts the two counters back where a fresh process has them. The

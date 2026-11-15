@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // TestWhatReallyGetsPastTheGap measures the second half of point 25. The first
@@ -26,7 +26,7 @@ import (
 //
 // Measured on 18.10.2026, go1.27.2: of the nine, two reach the wire.
 func TestWhatReallyGetsPastTheGap(t *testing.T) {
-	const host = "https://store.ngc.test:8443"
+	const host = "https://store.cd.test:8443"
 	type outcome struct {
 		name string
 		path string
@@ -117,9 +117,9 @@ func TestWhatThePathMayDoAtTheStore(t *testing.T) {
 	for _, c := range []struct{ name, path string }{
 		{"dot segments", "/apps/../../../etc/passwd"},
 		{"encoded dots", "/apps/%2e%2e/%2e%2e/x"},
-		{"query", "/x.ngc?token=secret&a=b"},
-		{"double slash", "//evil.example/x.ngc"},
-		{"semicolon", "/x.ngc;jsessionid=1"},
+		{"query", "/x.cd?token=secret&a=b"},
+		{"double slash", "//evil.example/x.cd"},
+		{"semicolon", "/x.cd;jsessionid=1"},
 	} {
 		u := srv.URL + c.path
 		if !downloadURL(u) {
@@ -155,7 +155,7 @@ func TestTheProposedFixWouldNotCloseTheTraversal(t *testing.T) {
 	if store.ValidPath(traversal) {
 		t.Fatalf("store.ValidPath accepts %q -- the relative branch has changed, redo this", traversal)
 	}
-	abs := "https://store.ngc.test:8443/" + traversal
+	abs := "https://store.cd.test:8443/" + traversal
 	if !sharedGrammar(abs) {
 		t.Fatalf("the contract grammar refuses %q after all -- it learnt about dot segments, delete this case", abs)
 	}

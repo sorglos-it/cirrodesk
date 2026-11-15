@@ -54,9 +54,9 @@ test("format and languages", () => {
   for (const l of Object.keys(TEXTS)) assert.deepEqual(Object.keys(TEXTS[l]).sort(), keys, l);
 });
 
-// Fuzz: NGC_FUZZ runs (default 3000), seed from NGC_FUZZ_SEED so a failure can be replayed.
-const RUNS = Number(process.env.NGC_FUZZ || 3000);
-const SEED = Number(process.env.NGC_FUZZ_SEED || Date.now() % 2 ** 31);
+// Fuzz: CD_FUZZ runs (default 3000), seed from CD_FUZZ_SEED so a failure can be replayed.
+const RUNS = Number(process.env.CD_FUZZ || 3000);
+const SEED = Number(process.env.CD_FUZZ_SEED || Date.now() % 2 ** 31);
 function rng(seed) {
   let x = seed || 1;
   return (n) => {

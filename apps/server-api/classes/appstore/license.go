@@ -24,19 +24,19 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/rights"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/rights"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// ErrLicense reports a licence NGC does not take, and an app it holds no
+// ErrLicense reports a licence CirroDesk does not take, and an app it holds no
 // licence for. It is one error for both on purpose: whoever hands in a licence
 // learns that it was refused and not which of the checks refused it, and
 // whoever asks for a content key learns nothing about the licences of apps
@@ -70,7 +70,7 @@ var licenseNotes = []string{NoteTaken, NoteKept}
 // licenseNote reports whether s is one of licenseNotes.
 func licenseNote(s string) bool { return slices.Contains(licenseNotes, s) }
 
-// TakeLicense checks a licence an admin uploaded (ngc.store/api/license) and
+// TakeLicense checks a licence an admin uploaded (cd.store/api/license) and
 // keeps it if it is newer than the one held. The check is verify, which runs
 // store.VerifyLicense -- the one a controller cannot run, because it needs the
 // installation's key. How many users a per-user licence allows is the other
@@ -338,7 +338,7 @@ func (st *Stores) UsersAllowed(ctx context.Context, app string) (int, bool, erro
 	return n, n <= l.Users, nil
 }
 
-// InstallKey answers ngc.store/install-key: what an admin gives the shop when
+// InstallKey answers cd.store/install-key: what an admin gives the shop when
 // buying. Only the public half ever leaves the API.
 func (st *Stores) InstallKey(ctx context.Context) (core.InstallKey, error) {
 	id, err := st.S.Installation(ctx)
@@ -353,7 +353,7 @@ func (st *Stores) InstallKey(ctx context.Context) (core.InstallKey, error) {
 }
 
 // PushLicenses hands send the newest licence of every paid app, for the
-// controller the app runs on (ngc.store/controller/license).
+// controller the app runs on (cd.store/controller/license).
 //
 // Who calls it: server.Server.hello, on every tunnel that comes up -- so a
 // controller which was away learns of a licence that ran out and stops the

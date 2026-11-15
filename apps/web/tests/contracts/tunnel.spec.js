@@ -184,14 +184,14 @@ test("a code is read only under its own prefix and within its limits", async ({ 
     const wrap = (c) => t.PAIR_PREFIX + b64encode(utf8(JSON.stringify(c)));
     // A well formed code of exactly MAX_PAIR_CODE characters, and one of one
     // more: the JSON is padded with the trailing space strict JSON allows, so
-    // the only thing wrong with the longer one is its size. 761 and 762 bytes
-    // are what b64.encodedLen turns into 1015 and 1016 characters, which with
-    // the 9 of the prefix are 1024 and 1025.
+    // the only thing wrong with the longer one is its size. 762 and 763 bytes
+    // are what b64.encodedLen turns into 1016 and 1018 characters, which with
+    // the 8 of the prefix are 1024 and 1026 (unpadded base64 has no length 1017).
     const sized = (n) => {
       const doc = JSON.stringify(fields());
       return t.PAIR_PREFIX + b64encode(utf8(doc + " ".repeat(n - doc.length)));
     };
-    const atMax = sized(761), overMax = sized(762);
+    const atMax = sized(762), overMax = sized(763);
     return {
       // The two prefixes tell the two codes apart, and neither reads the other.
       pairUnderPair: took(t.parsePairCode, pair),
@@ -240,7 +240,7 @@ test("a code is read only under its own prefix and within its limits", async ({ 
   expect(got.zwnbsp).toBe(false);
   expect(got.nbsp).toBe(true);
   expect(got.inner).toBe(false);
-  expect(got.sizes).toEqual([1024, 1025]);
+  expect(got.sizes).toEqual([1024, 1026]);
   expect(got.atMax).toBe(true);
   expect(got.overMax).toBe(false);
   expect(got.padded).toBe(false);
@@ -268,8 +268,8 @@ test("the roles of a server name the software it runs", async ({ shell }) => {
       none: t.components([]),
       web: t.components([t.ROLE_WEB]),
       api: t.components([t.ROLE_API]),
-      // db and services run no NGC software of their own: the db server takes
-      // its migrations out of the ngc-api release without installing it, and
+      // db and services run no CirroDesk software of their own: the db server takes
+      // its migrations out of the cd-api release without installing it, and
       // services runs app containers.
       db: t.components([t.ROLE_DB]),
       services: t.components([t.ROLE_SERVICES]),
@@ -287,20 +287,20 @@ test("the roles of a server name the software it runs", async ({ shell }) => {
     };
   });
   expect(got.names).toEqual(["web", "api", "db", "services"]);
-  expect(got.auto).toEqual(["ngc-controller", "ngc-api", "ngc-web"]);
-  expect(got.none).toEqual(["ngc-controller"]);
-  expect(got.web).toEqual(["ngc-controller", "ngc-web"]);
-  expect(got.api).toEqual(["ngc-api", "ngc-controller"]);
-  expect(got.db).toEqual(["ngc-controller"]);
-  expect(got.services).toEqual(["ngc-controller"]);
-  expect(got.all).toEqual(["ngc-api", "ngc-controller", "ngc-web"]);
-  expect(got.reversed).toEqual(["ngc-api", "ngc-controller", "ngc-web"]);
-  expect(got.notAList).toEqual(["ngc-controller"]);
-  expect(got.nonsense).toEqual(["ngc-controller"]);
+  expect(got.auto).toEqual(["cd-controller", "cd-api", "cd-web"]);
+  expect(got.none).toEqual(["cd-controller"]);
+  expect(got.web).toEqual(["cd-controller", "cd-web"]);
+  expect(got.api).toEqual(["cd-api", "cd-controller"]);
+  expect(got.db).toEqual(["cd-controller"]);
+  expect(got.services).toEqual(["cd-controller"]);
+  expect(got.all).toEqual(["cd-api", "cd-controller", "cd-web"]);
+  expect(got.reversed).toEqual(["cd-api", "cd-controller", "cd-web"]);
+  expect(got.notAList).toEqual(["cd-controller"]);
+  expect(got.nonsense).toEqual(["cd-controller"]);
   expect(got.contract).toBe(1);
   expect(got.secret).toBe(16);
   expect(got.maxCode).toBe(1024);
-  expect(got.prefixes).toEqual(["ngc-pair:", "ngc-join:"]);
+  expect(got.prefixes).toEqual(["cd-pair:", "cd-join:"]);
 });
 
 // checkCode answers and never throws: it is asked about a code an admin pasted

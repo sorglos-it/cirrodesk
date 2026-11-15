@@ -13,10 +13,10 @@ import (
 
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -116,7 +116,7 @@ func testTask(t testing.TB, payload string) []byte {
 }
 
 func TestE2EPrologue(t *testing.T) {
-	const target = "ngc/e2e/v1\x00ctl-svc\x00org.sorglos.terminal\x00terminal\x00shell\x00"
+	const target = "cd/e2e/v1\x00ctl-svc\x00org.sorglos.terminal\x00terminal\x00shell\x00"
 	emptyHash, _ := hex.DecodeString("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
 	prologue := func(params, task []byte) []byte {
 		return E2EPrologue("ctl-svc", "org.sorglos.terminal", "terminal", "shell", params, task)

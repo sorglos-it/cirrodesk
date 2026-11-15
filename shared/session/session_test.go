@@ -12,13 +12,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -292,7 +292,7 @@ func setupList(admin trusttest.Signer) *trust.List {
 
 // setupInfo is what the API offers for setupList: its installation, its API
 // node, the global store and the release key NodeKeys(ReleaseFill), which
-// Genesis's standing approval for ngc-controller names.
+// Genesis's standing approval for cd-controller names.
 func setupInfo() SetupInfo {
 	l := setupList(trusttest.NewSigner(1))
 	_, release := trusttest.NodeKeys(trusttest.ReleaseFill)
@@ -312,7 +312,7 @@ func api2Node() trust.Node {
 
 // versionOne builds version 1 from info as the package comment says the shell
 // does: the admins of setupList, info's installation, time, API nodes and
-// store, and standing approvals for the three NGC parts with info's release
+// store, and standing approvals for the three CirroDesk parts with info's release
 // key and for system.
 func versionOne(info SetupInfo) *trust.List {
 	l := setupList(trusttest.NewSigner(1))
@@ -369,7 +369,7 @@ func TestVerifySetup(t *testing.T) {
 	}{
 		{"version 1 as offered", setupRequest(good, testSetupCode), testSetupCode, nil},
 		{"global store switched off", setupRequest(signed(func(l *trust.List) { l.Stores = nil }), testSetupCode), testSetupCode, nil},
-		{"approvals for the NGC parts and system", setupRequest(parts, testSetupCode), testSetupCode, nil},
+		{"approvals for the CirroDesk parts and system", setupRequest(parts, testSetupCode), testSetupCode, nil},
 		{"no standing approvals", setupRequest(signed(func(l *trust.List) { l.Auto = nil }), testSetupCode), testSetupCode, nil},
 
 		// The code: checked before anything is decoded.
@@ -393,12 +393,12 @@ func TestVerifySetup(t *testing.T) {
 		{"signed by a non-admin", setupRequest(alice.Sign(t, withAlice), testSetupCode), testSetupCode, trust.ErrSigner},
 		{"payload is version 2", setupRequest(admin.Sign(t, trusttest.Next(t, good)), testSetupCode), testSetupCode, trust.ErrAnchor},
 
-		// Standing approvals: the NGC parts with the offered release key, and system.
+		// Standing approvals: the CirroDesk parts with the offered release key, and system.
 		{"standing approval for an app", setupRequest(signed(func(l *trust.List) {
 			l.Auto = []trust.Auto{l.Auto[0], {Target: "org.sorglos.terminal", Key: releaseKey}, l.Auto[1]}
 		}), testSetupCode), testSetupCode, ErrSetup},
 		{"standing approval with another key", setupRequest(signed(func(l *trust.List) { l.Auto[0].Key = otherKey }), testSetupCode), testSetupCode, ErrSetup},
-		{"ngc-web with another key", setupRequest(signed(func(l *trust.List) {
+		{"cd-web with another key", setupRequest(signed(func(l *trust.List) {
 			l.Auto = []trust.Auto{l.Auto[0], {Target: trust.AutoWeb, Key: otherKey}, l.Auto[1]}
 		}), testSetupCode), testSetupCode, ErrSetup},
 	}
@@ -459,7 +459,7 @@ func TestSetupMACs(t *testing.T) {
 		return m.Sum(nil)
 	}
 	offer, setup := OfferMAC(testSetupCode, x), SetupMAC(testSetupCode, x)
-	if !bytes.Equal(offer, mac(testSetupCode, "ngc/setup-offer/v1", x)) || !bytes.Equal(setup, mac(testSetupCode, "ngc/setup/v1", x)) {
+	if !bytes.Equal(offer, mac(testSetupCode, "cd/setup-offer/v1", x)) || !bytes.Equal(setup, mac(testSetupCode, "cd/setup/v1", x)) {
 		t.Error("MAC not as documented")
 	}
 	if len(offer) != 32 || bytes.Equal(offer, setup) {
@@ -553,9 +553,9 @@ func TestParseSetupOffer(t *testing.T) {
 		{"nodes out of order", withInfo(func(i *SetupInfo) { i.Nodes = []trust.Node{api2Node(), i.Nodes[0]} }), testSetupCode, ErrMessage},
 		{"a node twice", withInfo(func(i *SetupInfo) { i.Nodes = append(i.Nodes, i.Nodes[0]) }), testSetupCode, ErrMessage},
 		{"store without a name", withInfo(func(i *SetupInfo) { i.Store.Name = "" }), testSetupCode, ErrMessage},
-		{"store name with a line feed", withInfo(func(i *SetupInfo) { i.Store.Name = "NGC\nStore" }), testSetupCode, ErrMessage},
+		{"store name with a line feed", withInfo(func(i *SetupInfo) { i.Store.Name = "CirroDesk\nStore" }), testSetupCode, ErrMessage},
 		{"store name of 65 bytes", withInfo(func(i *SetupInfo) { i.Store.Name = strings.Repeat("S", 65) }), testSetupCode, ErrMessage},
-		{"store URL with http", withInfo(func(i *SetupInfo) { i.Store.URL = "http://store.ngc.example" }), testSetupCode, ErrMessage},
+		{"store URL with http", withInfo(func(i *SetupInfo) { i.Store.URL = "http://store.cd.example" }), testSetupCode, ErrMessage},
 		{"store URL of 257 bytes", withInfo(func(i *SetupInfo) { i.Store.URL = "https://" + trusttest.Host(249) }), testSetupCode, ErrMessage},
 		{"API node URL without a port", withInfo(func(i *SetupInfo) { i.Nodes[0].URL = "wss://api-1.test/tunnel" }), testSetupCode, ErrMessage},
 		{"store URL with a trailing slash", withInfo(func(i *SetupInfo) { i.Store.URL += "/" }), testSetupCode, ErrMessage},
@@ -1142,18 +1142,18 @@ func loginCases(t testing.TB, f fixture) []loginChallenge {
 			c.KDF = &k
 		})},
 		{Name: "origin that is no passkey origin", Challenge: challenge(func(c *LoginChallenge) {
-			c.RP.Origins = []string{"http://ngc.example.org"}
+			c.RP.Origins = []string{"http://cd.example.org"}
 		})},
 		// The browser hands rp.id to navigator.credentials.get, so it is a
 		// DNS name and never free text.
 		{Name: "relying party ID with a scheme", Challenge: challenge(func(c *LoginChallenge) {
-			c.RP.ID = "https://ngc.example.org"
+			c.RP.ID = "https://cd.example.org"
 		})},
 		{Name: "relying party ID with a port", Challenge: challenge(func(c *LoginChallenge) {
-			c.RP.ID = "ngc.example.org:443"
+			c.RP.ID = "cd.example.org:443"
 		})},
 		{Name: "relying party ID in capitals", Challenge: challenge(func(c *LoginChallenge) {
-			c.RP.ID = "NGC.example.org"
+			c.RP.ID = "CirroDesk.example.org"
 		})},
 		{Name: "relying party ID of 254 bytes", Challenge: challenge(func(c *LoginChallenge) {
 			c.RP.ID = trusttest.Host(proof.MaxRPID + 1)
@@ -1260,16 +1260,16 @@ func setupVectors(t testing.TB) setupVector {
 			{Name: "two API nodes in order", Offer: offer(infoWith(func(i *SetupInfo) { i.Nodes = append(i.Nodes, api2Node()) }), testSetupCode), Valid: true},
 			{Name: "info with its nodes out of order", Offer: offer(infoWith(func(i *SetupInfo) { i.Nodes = []trust.Node{api2Node(), i.Nodes[0]} }), testSetupCode), want: ErrMessage},
 			{Name: "info with a node twice", Offer: offer(infoWith(func(i *SetupInfo) { i.Nodes = append(i.Nodes, i.Nodes[0]) }), testSetupCode), want: ErrMessage},
-			{Name: "info with a store name that is no text", Offer: offer(infoWith(func(i *SetupInfo) { i.Store.Name = "NGC\nStore" }), testSetupCode), want: ErrMessage},
+			{Name: "info with a store name that is no text", Offer: offer(infoWith(func(i *SetupInfo) { i.Store.Name = "CirroDesk\nStore" }), testSetupCode), want: ErrMessage},
 			{Name: "info with a store name of 65 bytes", Offer: offer(infoWith(func(i *SetupInfo) { i.Store.Name = strings.Repeat("S", 65) }), testSetupCode), want: ErrMessage},
-			{Name: "info with a store URL of plain http", Offer: offer(infoWith(func(i *SetupInfo) { i.Store.URL = "http://store.ngc.example" }), testSetupCode), want: ErrMessage},
+			{Name: "info with a store URL of plain http", Offer: offer(infoWith(func(i *SetupInfo) { i.Store.URL = "http://store.cd.example" }), testSetupCode), want: ErrMessage},
 			{Name: "info with a store URL of 257 bytes", Offer: offer(infoWith(func(i *SetupInfo) { i.Store.URL = "https://" + trusttest.Host(249) }), testSetupCode), want: ErrMessage},
 			{Name: "info with an API node address that is no tunnel URL",
 				Offer: offer(infoWith(func(i *SetupInfo) { i.Nodes[0].URL = "wss://api-1.test/tunnel" }), testSetupCode), want: ErrMessage},
 		},
 		Requests: []setupPost{
 			{Name: "valid", Request: post(good, testSetupCode), Valid: true},
-			{Name: "approvals for the NGC parts and system", Request: post(parts, testSetupCode), Valid: true},
+			{Name: "approvals for the CirroDesk parts and system", Request: post(parts, testSetupCode), Valid: true},
 			{Name: "MAC with another code", Request: post(good, otherSetupCode), want: ErrSetup},
 			{Name: "MAC over other bytes", Request: mustJSON(t, Setup{MAC: SetupMAC(testSetupCode, parts.Payload), Trust: good}), want: ErrSetup},
 			{Name: "store the API did not offer", Request: post(signed(func(l *trust.List) {
@@ -1650,7 +1650,7 @@ func FuzzParseTrustChain(f *testing.F) {
 // WHY, ALTHOUGH A MUTANT THAT CHANGES THE LABEL ALREADY DIES TODAY. Measured
 // on 18.10.2026 against the untouched package: five mutants of this label --
 // another version, the label dropped from the derivation, the zero byte
-// dropped, label and name swapped, and the label set to "ngc/setup/v1" --
+// dropped, label and name swapped, and the label set to "cd/setup/v1" --
 // every one of them died. But every one died at TestVectors ALONE, the golden
 // file, and that kill is erased by one command: the failure says so itself,
 // "if intended, run go test -update and review the diff". Somebody who
@@ -1665,7 +1665,7 @@ func FuzzParseTrustChain(f *testing.F) {
 // reveal whether a user exists, and the made-up answer for an unknown name is
 // what hides it.
 func TestChallengeKeyLabel(t *testing.T) {
-	if ChallengeKeyLabel != "ngc/login-unknown/v1" {
+	if ChallengeKeyLabel != "cd/login-unknown/v1" {
 		t.Errorf("the label is %q", ChallengeKeyLabel)
 	}
 	// The construction of makeUpChallenge, written out: the label, a zero
@@ -1690,7 +1690,7 @@ func TestChallengeKeyLabel(t *testing.T) {
 	// The ground set: the construction above has to reproduce a MAC this
 	// package really makes, or the comparisons below would hold two things
 	// that were never alike in the first place.
-	if !bytes.Equal(seed(testSetupCode, "ngc/setup/v1", name), SetupMAC(testSetupCode, []byte(name))) {
+	if !bytes.Equal(seed(testSetupCode, "cd/setup/v1", name), SetupMAC(testSetupCode, []byte(name))) {
 		t.Fatal("the construction of this case is not the one setupHMAC uses")
 	}
 	if bytes.Equal(own, SetupMAC(testSetupCode, []byte(name))) ||
@@ -1708,7 +1708,8 @@ func TestChallengeKeyLabel(t *testing.T) {
 	// here, by hand, with a reason.
 	//
 	// The value was taken from a throwaway probe against the untouched
-	// package on 18.10.2026, not computed by this case: a case that works out
+	// package on 18.10.2026 and re-taken the same way on 15.11.2026, when the
+	// label namespace moved from ngc/ to cd/, not computed by this case: a case that works out
 	// its own expectation from the same algorithm would hold the algorithm
 	// against itself.
 	f := newFixture(t)
@@ -1716,7 +1717,7 @@ func TestChallengeKeyLabel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.User != "lMXV0kEXLQP8x8S_ggwFIw" {
+	if c.User != "eHBAM_6Sh0kF5jWbaz4ZNQ" {
 		t.Errorf("the made-up user of %q is %q", name, c.User)
 	}
 }

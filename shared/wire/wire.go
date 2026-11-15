@@ -66,7 +66,7 @@
 // message 2 from it on an end-to-end channel), or passes on the controller's
 // CLOSE instead, and passes on a CLOSE with the same code. One exception: on
 // a channel of a core action with flow transfer that the shell opened
-// (core.ShellOpens; ngc.store/controller/activate), the shell sends EOF right
+// (core.ShellOpens; cd.store/controller/activate), the shell sends EOF right
 // after the first GRANT and no DATA — DATA from it is a protocol error (CLOSE
 // E_PROTOCOL) — and the API itself writes the transfer header and the file
 // on the tunnel hop, then EOF (core.FlowTransfer).
@@ -120,9 +120,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
 )
 
 // Type is the kind of a frame.
@@ -301,10 +301,10 @@ func ValidText(s string, max int) bool {
 	return true
 }
 
-// CoreApp reports whether app belongs to NGC itself. The API serves these
+// CoreApp reports whether app belongs to CirroDesk itself. The API serves these
 // channels; they carry no end-to-end handshake of their own because the
 // session to the API is already encrypted end to end.
-func CoreApp(app string) bool { return strings.HasPrefix(app, "ngc.") }
+func CoreApp(app string) bool { return strings.HasPrefix(app, "cd.") }
 
 // Open is the payload of an OPEN frame from the browser. The API forwards it
 // to a controller byte for byte inside tunnel.Open.
@@ -488,7 +488,7 @@ var messages = map[Code]string{
 	CodeTooLarge:    "Zu viele Daten.",
 	CodeLogin:       "Anmeldung fehlgeschlagen.",
 	CodeLocked:      "Zu viele Fehlversuche. Bitte später erneut versuchen.",
-	CodeNotSetUp:    "NGC ist noch nicht eingerichtet.",
+	CodeNotSetUp:    "CirroDesk ist noch nicht eingerichtet.",
 }
 
 // Message returns the German text shown to users.
@@ -618,7 +618,7 @@ const (
 	CtlHello = "hello"
 	// CtlTrust: API -> shell only, a newer trust list version exists (body
 	// session.TrustHint); the shell fetches it with GET session.PathTrust.
-	// Controllers get versions on the channel ngc.users/controller/trust.
+	// Controllers get versions on the channel cd.users/controller/trust.
 	CtlTrust = "trust"
 	// CtlNotify: API -> shell and controller -> API (core.Notice).
 	CtlNotify = "notify"

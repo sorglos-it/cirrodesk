@@ -17,13 +17,13 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/pairing"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/pairing"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // pairCode builds a pairing code the way an API hands it out. Only the
@@ -44,7 +44,7 @@ func TestMainVersion(t *testing.T) {
 	if code := Main("1.2.3", []string{"-version"}, noInput(), &out, &errOut); code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if got := out.String(); !strings.HasPrefix(got, "ngc-controller 1.2.3 (contract ") {
+	if got := out.String(); !strings.HasPrefix(got, "cd-controller 1.2.3 (contract ") {
 		t.Fatalf("output = %q", got)
 	}
 	if errOut.Len() != 0 {
@@ -90,8 +90,8 @@ func typed(code string) io.Reader { return strings.NewReader(code + "\n") }
 func TestMainRepeatsOnlyCommandNames(t *testing.T) {
 	for _, arg := range []string{
 		pairCode(),
-		"ngc-pair:abc",
-		"ngc-join:abc",
+		"cd-pair:abc",
+		"cd-join:abc",
 		"FROBNICATE",
 		"frobnicate2",
 		"-frobnicate",
@@ -104,7 +104,7 @@ func TestMainRepeatsOnlyCommandNames(t *testing.T) {
 		if strings.Contains(out.String()+errOut.String(), arg) {
 			t.Errorf("Main(%q) repeated its argument: %q", arg, errOut.String())
 		}
-		if !strings.Contains(errOut.String(), "Aufruf: ngc-controller") {
+		if !strings.Contains(errOut.String(), "Aufruf: cd-controller") {
 			t.Errorf("Main(%q) stderr = %q, want the German usage", arg, errOut.String())
 		}
 	}
@@ -181,7 +181,7 @@ func TestMainHelpListsTheCommands(t *testing.T) {
 	if code := Main("1.2.3", []string{"-h"}, noInput(), &out, &errOut); code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	for _, want := range []string{"Aufruf: ngc-controller", "pair", "terminal", "hold", "image"} {
+	for _, want := range []string{"Aufruf: cd-controller", "pair", "terminal", "hold", "image"} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("stdout = %q, want %q in it", out.String(), want)
 		}
@@ -209,7 +209,7 @@ func TestMainConfigFlagBeforeCommand(t *testing.T) {
 	}
 }
 
-// "image" only takes an architecture NGC is built for and a file that stays
+// "image" only takes an architecture CirroDesk is built for and a file that stays
 // where the admin points it: both become arguments of another program later.
 func TestMainImageNeedsKnownArchAndFile(t *testing.T) {
 	for _, args := range [][]string{
@@ -259,7 +259,7 @@ func TestMainKeepsThePairingCodeQuiet(t *testing.T) {
 // options is how a secret slips out.
 func TestOptionsHideThePairingCode(t *testing.T) {
 	code := pairCode()
-	opts, err := parsePair("/etc/ngc/controller.json", nil, typed(code), io.Discard)
+	opts, err := parsePair("/etc/cd/controller.json", nil, typed(code), io.Discard)
 	if err != nil {
 		t.Fatalf("parsePair: %v", err)
 	}
@@ -275,11 +275,11 @@ func TestOptionsHideThePairingCode(t *testing.T) {
 
 func TestParsePairTakesTheCode(t *testing.T) {
 	code := pairCode()
-	opts, err := parsePair("/etc/ngc/controller.json", nil, typed(code), io.Discard)
+	opts, err := parsePair("/etc/cd/controller.json", nil, typed(code), io.Discard)
 	if err != nil {
 		t.Fatalf("parsePair: %v", err)
 	}
-	if opts.Config != "/etc/ngc/controller.json" || opts.Pair.Text() != code {
+	if opts.Config != "/etc/cd/controller.json" || opts.Pair.Text() != code {
 		t.Fatalf("options = %+v", opts)
 	}
 }
@@ -290,12 +290,12 @@ func TestParsePairRefusesAnythingElse(t *testing.T) {
 	for name, in := range map[string]string{
 		"nothing":            "",
 		"a word":             "ABC\n",
-		"the prefix alone":   "ngc-pair:\n",
-		"no base64":          "ngc-pair:not-base64!\n",
-		"a join code":        "ngc-join:" + strings.TrimPrefix(pairCode(), "ngc-pair:") + "\n",
-		"longer than a code": strings.Repeat("ngc-pair:a", 200) + "\n",
+		"the prefix alone":   "cd-pair:\n",
+		"no base64":          "cd-pair:not-base64!\n",
+		"a join code":        "cd-join:" + strings.TrimPrefix(pairCode(), "cd-pair:") + "\n",
+		"longer than a code": strings.Repeat("cd-pair:a", 200) + "\n",
 	} {
-		if _, err := parsePair("/etc/ngc/controller.json", nil, strings.NewReader(in), io.Discard); err == nil {
+		if _, err := parsePair("/etc/cd/controller.json", nil, strings.NewReader(in), io.Discard); err == nil {
 			t.Errorf("parsePair took %s, want an error", name)
 		}
 	}
@@ -326,20 +326,20 @@ func FuzzParsePair(f *testing.F) {
 	f.Add("", pairCode()+"\n")
 	f.Add("", pairCode())
 	f.Add("", "  "+pairCode()+"  \nmore\n")
-	f.Add("", "ngc-pair:AAAA\n")
+	f.Add("", "cd-pair:AAAA\n")
 	f.Add("-code\x00"+pairCode(), pairCode()+"\n")
 	f.Add("extra", pairCode()+"\n")
 	f.Add("--", "")
 	f.Add("", "")
 	f.Fuzz(func(t *testing.T, argv, in string) {
-		opts, err := parsePair("/etc/ngc/controller.json", args(argv), strings.NewReader(in), io.Discard)
+		opts, err := parsePair("/etc/cd/controller.json", args(argv), strings.NewReader(in), io.Discard)
 		if err != nil {
 			return
 		}
 		if _, err := tunnel.ParsePairCode(opts.Pair.Text()); err != nil {
 			t.Fatal("parsePair took something that is no pairing code")
 		}
-		if opts.Config != "/etc/ngc/controller.json" {
+		if opts.Config != "/etc/cd/controller.json" {
 			t.Fatalf("parsePair kept %q as the configuration", opts.Config)
 		}
 	})
@@ -439,7 +439,7 @@ func writeController(t *testing.T, path string) *config.Controller {
 		NoiseKey:   config.NewSecret(bytes.Repeat([]byte{5}, 32)),
 		APIs:       []config.APIRef{{URL: "wss://api-0.test:7443/tunnel", Key: bytes.Repeat([]byte{6}, 32), TLS: bytes.Repeat([]byte{7}, 32)}},
 		Anchor:     trust.Anchor{Seq: 1, Hash: bytes.Repeat([]byte{8}, sha256.Size)},
-		DB:         "/var/lib/ngc/controller.db",
+		DB:         "/var/lib/cd/controller.db",
 		DBKey:      config.NewSecret(bytes.Repeat([]byte{9}, 64)),
 		ReleaseKey: bytes.Repeat([]byte{10}, 32),
 		Roles:      []string{tunnel.RoleServices},
@@ -587,7 +587,7 @@ func TestPairLoadsTheConfigurationBeforeItAsks(t *testing.T) {
 // Two lines point at the same place, so both have to call it the same. An
 // admin who reads "die Shell" at a bash prompt takes it for the shell he is
 // standing in; the place the code comes from and the place the server is
-// listed is NextGenCloud, and that is the name both lines use.
+// listed is CirroDesk, and that is the name both lines use.
 func TestTheMessagesSayTheSameThing(t *testing.T) {
 	for name, msg := range map[string]string{
 		"msgBadCode": msgBadCode, "msgListAgain": msgListAgain,
@@ -595,8 +595,8 @@ func TestTheMessagesSayTheSameThing(t *testing.T) {
 		if strings.Contains(msg, "Shell") {
 			t.Errorf("%s = %q, want the word Shell out of it", name, msg)
 		}
-		if !strings.Contains(msg, "NextGenCloud") {
-			t.Errorf("%s = %q, want it to name NextGenCloud", name, msg)
+		if !strings.Contains(msg, "CirroDesk") {
+			t.Errorf("%s = %q, want it to name CirroDesk", name, msg)
 		}
 	}
 	// The one word of success on this way, the same in all three lines that
@@ -697,8 +697,8 @@ func TestPairSaysThatItWorked(t *testing.T) {
 
 // What is left to do, in words that hold wherever the listing ends up sitting.
 // The first pairing of a server never stood in a list, so "neu eintragen" is
-// wrong there; and "die Verwaltung von NextGenCloud" is no place an admin can
-// find, because the contract knows only ngc.users/nodes and no menu.
+// wrong there; and "die Verwaltung von CirroDesk" is no place an admin can
+// find, because the contract knows only cd.users/nodes and no menu.
 func TestPairSaysWhatIsLeftToDo(t *testing.T) {
 	got := pairOnce(t)
 	for _, bad := range []string{"neu eintragen", "Verwaltung"} {

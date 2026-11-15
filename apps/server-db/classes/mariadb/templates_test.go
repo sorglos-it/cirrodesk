@@ -40,13 +40,13 @@ func TestGaleraTemplate(t *testing.T) {
 		// nothing without TLS, and only TLS 1.3
 		"require_secure_transport=ON",
 		"tls_version=TLSv1.3",
-		"ssl_ca=/etc/ngc/db-tls/ca.crt",
-		"ssl_cert=/etc/ngc/db-tls/node.crt",
-		"ssl_key=/etc/ngc/db-tls/node.key",
+		"ssl_ca=/etc/cd/db-tls/ca.crt",
+		"ssl_cert=/etc/cd/db-tls/node.crt",
+		"ssl_key=/etc/cd/db-tls/node.key",
 		// MariaDB's own encryption, AES-256 through a 32-byte key
 		"plugin_load_add=file_key_management",
-		"file_key_management_filename=/etc/ngc/db-keys/keys.enc",
-		"file_key_management_filekey=FILE:/etc/ngc/db-keys/keyfile.key",
+		"file_key_management_filename=/etc/cd/db-keys/keys.enc",
+		"file_key_management_filekey=FILE:/etc/cd/db-keys/keyfile.key",
 		"file_key_management_encryption_algorithm=AES_CTR",
 		"innodb_encrypt_tables=FORCE",
 		"innodb_encrypt_log=ON",
@@ -57,7 +57,7 @@ func TestGaleraTemplate(t *testing.T) {
 		// what Galera needs
 		"wsrep_on=ON",
 		"wsrep_provider=/usr/lib/galera/libgalera_smm.so",
-		"wsrep_cluster_name=ngc",
+		"wsrep_cluster_name=cd",
 		"wsrep_cluster_address=gcomm://@CLUSTER_ADDRESS@",
 		"wsrep_node_name=@NODE_NAME@",
 		"wsrep_node_address=@NODE_ADDRESS@",
@@ -78,9 +78,9 @@ func TestGaleraTemplate(t *testing.T) {
 	// order and with nothing else in it: the replication between the nodes is
 	// checked against the same CA.
 	wantOptions := []string{
-		"socket.ssl_ca=/etc/ngc/db-tls/ca.crt",
-		"socket.ssl_cert=/etc/ngc/db-tls/node.crt",
-		"socket.ssl_key=/etc/ngc/db-tls/node.key",
+		"socket.ssl_ca=/etc/cd/db-tls/ca.crt",
+		"socket.ssl_cert=/etc/cd/db-tls/node.crt",
+		"socket.ssl_key=/etc/cd/db-tls/node.key",
 		"socket.ssl_cipher=ECDHE-ECDSA-AES256-GCM-SHA384",
 	}
 
@@ -107,7 +107,7 @@ func TestGaleraTemplate(t *testing.T) {
 			inBackup = true
 		}
 		switch l {
-		case "ssl_ca=/etc/ngc/db-tls/ca.crt", "ssl_cert=/etc/ngc/db-tls/node.crt", "ssl_key=/etc/ngc/db-tls/node.key":
+		case "ssl_ca=/etc/cd/db-tls/ca.crt", "ssl_cert=/etc/cd/db-tls/node.crt", "ssl_key=/etc/cd/db-tls/node.key":
 			if inBackup {
 				backup++
 			} else {
@@ -161,8 +161,8 @@ func TestGaleraTemplate(t *testing.T) {
 			t.Errorf("the line %q must not be there", forbidden)
 		}
 	}
-	// The four marks ngc-db.sh replaces. The cluster name is NOT one of them:
-	// it is ngc for every installation, and no answer of ulh fills it, so a
+	// The four marks cd-db.sh replaces. The cluster name is NOT one of them:
+	// it is cd for every installation, and no answer of ulh fills it, so a
 	// mark there would have stayed in the written file.
 	for _, placeholder := range []string{"@NODE_NAME@", "@NODE_ADDRESS@", "@CLUSTER_ADDRESS@", "@SST_PASSWORD@"} {
 		if !strings.Contains(text, placeholder) {

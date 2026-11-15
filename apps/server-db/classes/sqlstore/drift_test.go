@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // A migrated database has no drift, and a bent column is the one finding -
@@ -24,7 +24,7 @@ func TestCheckColumnsFindsTheBentColumn(t *testing.T) {
 	}
 	bendExpires(t, db, dbapi.OnceTask, value)
 	drift, err = sqlstore.CheckColumns(ctx, db, sqlstore.SQLite)
-	want := []sqlstore.Drift{{Table: "ngc_once", Column: "expires", Want: "INTEGER", Found: "BLOB"}}
+	want := []sqlstore.Drift{{Table: "cd_once", Column: "expires", Want: "INTEGER", Found: "BLOB"}}
 	if err != nil || !reflect.DeepEqual(drift, want) {
 		t.Fatalf("bent: %v, %v; want %v", drift, err, want)
 	}

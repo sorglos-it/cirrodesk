@@ -234,7 +234,7 @@ test("a closed calculator leaves nothing of itself in the shell", async ({ shell
 test("the app is painted in the shell's colours, and follows when they change", async ({ shell }) => {
   // The shell writes the theme on <html> of the app's document before the first
   // paint, so a window is never painted dark and repainted light one frame
-  // later; afterwards the app follows through ngc.onTheme. Both halves are here,
+  // later; afterwards the app follows through cd.onTheme. Both halves are here,
   // because only the first one is visible in a screenshot.
   const c = await calc(shell);
   // SINCE docs/gestaltung.md POINT 7 the shell follows the machine until
@@ -293,5 +293,5 @@ test("the app is told the shell's language", async ({ shell }) => {
   const want = await shell.evaluate(async () => (await import("/assets/js/shell/lang.js")).language());
   expect(["de", "en", "fr", "it", "es"]).toContain(want);
   await expect(c.frame.locator("html")).toHaveAttribute("lang", want);
-  expect(await c.frame.locator("html").evaluate(() => window.ngc.lang)).toBe(want);
+  expect(await c.frame.locator("html").evaluate(() => window.cd.lang)).toBe(want);
 });

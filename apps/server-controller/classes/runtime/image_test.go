@@ -69,13 +69,13 @@ func writeTar(t testing.TB, path string, es []entry) {
 // and a tar of a newer podman would otherwise make the app unloadable.
 func TestImageTagTakesATarAsPodmanWritesIt(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "amd64.tar")
-	writeTar(t, path, archive(`[{"Config":"c.json","RepoTags":["ngc/terminal:1.0.0"],`+
+	writeTar(t, path, archive(`[{"Config":"c.json","RepoTags":["cd/terminal:1.0.0"],`+
 		`"Layers":["l/layer.tar"],"LayerSources":{"sha256:aa":{"mediaType":"x","size":1,"digest":"sha256:aa"}}}]`))
 	ref, err := ImageTag(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ref != "ngc/terminal:1.0.0" {
+	if ref != "cd/terminal:1.0.0" {
 		t.Fatalf("ref = %q", ref)
 	}
 }
@@ -91,19 +91,19 @@ type refusal struct {
 
 func TestImageTagRefusesMoreThanOneRepoTag(t *testing.T) {
 	cases := map[string]refusal{
-		"two tags in one entry":      {`[{"RepoTags":["ngc/a:1.0.0","ngc/b:1.0.0"]}]`, true},
+		"two tags in one entry":      {`[{"RepoTags":["cd/a:1.0.0","cd/b:1.0.0"]}]`, true},
 		"no tag at all":              {`[{"Config":"c.json","Layers":["l/layer.tar"]}]`, true},
 		"an empty tag list":          {`[{"RepoTags":[]}]`, true},
-		"two entries":                {`[{"RepoTags":["ngc/a:1.0.0"]},{"RepoTags":["ngc/b:1.0.0"]}]`, true},
+		"two entries":                {`[{"RepoTags":["cd/a:1.0.0"]},{"RepoTags":["cd/b:1.0.0"]}]`, true},
 		"no entry":                   {`[]`, true},
 		"a tag that is empty":        {`[{"RepoTags":[""]}]`, true},
-		"a tag without a tag":        {`[{"RepoTags":["ngc/a"]}]`, true},
-		"a tag with a space":         {`[{"RepoTags":["ngc/a:1.0.0 --all"]}]`, true},
+		"a tag without a tag":        {`[{"RepoTags":["cd/a"]}]`, true},
+		"a tag with a space":         {`[{"RepoTags":["cd/a:1.0.0 --all"]}]`, true},
 		"a tag with a dash in front": {`[{"RepoTags":["-v:1.0.0"]}]`, true},
-		"a tag in capitals":          {`[{"RepoTags":["NGC/a:1.0.0"]}]`, true},
-		"not a list":                 {`{"RepoTags":["ngc/a:1.0.0"]}`, false},
-		"the same member twice":      {`[{"RepoTags":["ngc/a:1.0.0"],"RepoTags":["ngc/a:1.0.0"]}]`, false},
-		"something after the list":   {`[{"RepoTags":["ngc/a:1.0.0"]}] {}`, false},
+		"a tag in capitals":          {`[{"RepoTags":["CirroDesk/a:1.0.0"]}]`, true},
+		"not a list":                 {`{"RepoTags":["cd/a:1.0.0"]}`, false},
+		"the same member twice":      {`[{"RepoTags":["cd/a:1.0.0"],"RepoTags":["cd/a:1.0.0"]}]`, false},
+		"something after the list":   {`[{"RepoTags":["cd/a:1.0.0"]}] {}`, false},
 		"a tag that is no string":    {`[{"RepoTags":[1]}]`, false},
 	}
 	for name, c := range cases {
@@ -126,7 +126,7 @@ func TestImageTagRefusesMoreThanOneRepoTag(t *testing.T) {
 // name than the one this engine answers with, because a later member of a tar
 // replaces an earlier one of the same name.
 func TestImageTagRefusesATarThatNamesTheManifestTwiceOrNotAtAll(t *testing.T) {
-	good := `[{"RepoTags":["ngc/a:1.0.0"]}]`
+	good := `[{"RepoTags":["cd/a:1.0.0"]}]`
 	cases := map[string]struct {
 		es   []entry
 		ours bool
@@ -134,7 +134,7 @@ func TestImageTagRefusesATarThatNamesTheManifestTwiceOrNotAtAll(t *testing.T) {
 		"no manifest": {[]entry{{name: "c.json", body: `{}`}}, true},
 		"twice": {[]entry{
 			{name: ManifestFile, body: good},
-			{name: ManifestFile, body: `[{"RepoTags":["ngc/b:1.0.0"]}]`},
+			{name: ManifestFile, body: `[{"RepoTags":["cd/b:1.0.0"]}]`},
 		}, true},
 		"as a link":     {[]entry{{name: ManifestFile, body: "c.json", kind: tar.TypeSymlink}}, true},
 		"as a folder":   {[]entry{{name: ManifestFile, kind: tar.TypeDir}}, true},
@@ -162,7 +162,7 @@ func TestImageTagRefusesATarThatNamesTheManifestTwiceOrNotAtAll(t *testing.T) {
 // one of strict decoding is the whole point: nothing of such an archive is ever
 // held here.
 func TestImageTagRefusesAManifestThatIsTooBig(t *testing.T) {
-	big := `[{"RepoTags":["ngc/a:1.0.0"],"Pad":"` + strings.Repeat("x", 4<<20) + `"}]`
+	big := `[{"RepoTags":["cd/a:1.0.0"],"Pad":"` + strings.Repeat("x", 4<<20) + `"}]`
 	path := filepath.Join(t.TempDir(), "amd64.tar")
 	writeTar(t, path, archive(big))
 	_, err := ImageTag(path)
@@ -188,7 +188,7 @@ func TestImageTagRefusesATarWithTooManyMembers(t *testing.T) {
 		for i := 0; i < n-1; i++ {
 			es = append(es, entry{name: "l/" + strconv.Itoa(i), body: "x"})
 		}
-		return append(es, entry{name: ManifestFile, body: `[{"RepoTags":["ngc/a:1.0.0"]}]`})
+		return append(es, entry{name: ManifestFile, body: `[{"RepoTags":["cd/a:1.0.0"]}]`})
 	}
 	for _, c := range []struct {
 		members int
@@ -202,7 +202,7 @@ func TestImageTagRefusesATarWithTooManyMembers(t *testing.T) {
 		writeTar(t, path, archiveOf(c.members))
 		ref, err := ImageTag(path)
 		if c.take {
-			if err != nil || ref != "ngc/a:1.0.0" {
+			if err != nil || ref != "cd/a:1.0.0" {
 				t.Fatalf("%d members: ref = %q, err = %v", c.members, ref, err)
 			}
 			continue
@@ -231,6 +231,6 @@ func TestImageTagRefusesWhatIsNoTar(t *testing.T) {
 
 func FuzzImageTag(f *testing.F) {
 	f.Add([]byte("")) // no valid tar
-	f.Add(tarBytes(f, archive(`[{"RepoTags":["ngc/a:1.0.0"]}]`)))
+	f.Add(tarBytes(f, archive(`[{"RepoTags":["cd/a:1.0.0"]}]`)))
 	f.Fuzz(func(t *testing.T, b []byte) { _, _ = imageTagFrom(bytes.NewReader(b)) })
 }

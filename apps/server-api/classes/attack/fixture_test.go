@@ -16,19 +16,19 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbopen"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/server"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbopen"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/server"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()
@@ -117,7 +117,7 @@ func newConfig(t *testing.T) *config.API {
 		ChallengeKey: config.NewSecret(bytes.Repeat([]byte{7}, 32)),
 		ReleaseKey:   enc.Bytes(releaseSign.Public().(ed25519.PublicKey)),
 		StoreKey:     enc.Bytes(storeSign.Public().(ed25519.PublicKey)),
-		StoreURL:     "https://store.ngc.example",
+		StoreURL:     "https://store.cd.example",
 		// A lifetime long enough that the certificate of a case, issued at
 		// testNow, is inside it.
 		SessionLifetime: 43200, IdleTimeout: 1800,

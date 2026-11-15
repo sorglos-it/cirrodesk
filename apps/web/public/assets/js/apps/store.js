@@ -79,13 +79,13 @@ const NEED_TEXT = {
   [catalog.NEED_ROOT]: "Volle Rechte in ihrem Container",
 };
 
-// The parts of NGC by their name on screen. An app stands here under its id,
+// The parts of CirroDesk by their name on screen. An app stands here under its id,
 // which is all an update row carries.
 const PART_TEXT = {
   __proto__: null,
-  [trust.AUTO_WEB]: "NGC Webinterface",
-  [trust.AUTO_API]: "NGC API",
-  [trust.AUTO_CONTROLLER]: "NGC Dienste",
+  [trust.AUTO_WEB]: "CirroDesk Webinterface",
+  [trust.AUTO_API]: "CirroDesk API",
+  [trust.AUTO_CONTROLLER]: "CirroDesk Dienste",
   [trust.AUTO_SYSTEM]: "Betriebssystem",
 };
 
@@ -286,7 +286,7 @@ class Store {
   // ---- Quellen ------------------------------------------------------------
   async drawSources() {
     const rows = await this.need("sources", A.sources);
-    const out = [head("Quellen"), el("p", "muted", "Von hier holt NGC seine Apps.")];
+    const out = [head("Quellen"), el("p", "muted", "Von hier holt CirroDesk seine Apps.")];
     const box = el("div", "rows");
     for (const s of rows) {
       const r = el("div", "row srcrow");
@@ -341,7 +341,7 @@ class Store {
       //
       // The empty case is the one that was missing, and it was the loudest:
       // until the hourly round has run once there is no catalog row, so
-      // ngc.store/catalog answers E_NOTFOUND (appstore.CodeFor over
+      // cd.store/catalog answers E_NOTFOUND (appstore.CodeFor over
       // dbapi.ErrNotFound) -- and that answer used to fall through to "nicht
       // echt", which tells a verified, healthy store's administrator that
       // they are being attacked and leaves them nothing to do. Waiting is
@@ -356,7 +356,7 @@ class Store {
       out.push(el("p", "fail", e instanceof Untrusted
         ? "Diesem Store wird noch nicht vertraut. Bitte ihn zuerst eintragen."
         : e?.code === CODES.NOTFOUND
-          ? "Der Katalog dieses Stores ist noch nicht geholt. NGC sieht stündlich nach; unter Quellen steht, wann es das letzte Mal geklappt hat."
+          ? "Der Katalog dieses Stores ist noch nicht geholt. CirroDesk sieht stündlich nach; unter Quellen steht, wann es das letzte Mal geklappt hat."
           : e instanceof catalog.Rollback
             ? "Dieser Store schickt einen alten Katalog. Bitte es später noch einmal versuchen."
             : "Der Katalog dieses Stores ist nicht echt."));
@@ -409,7 +409,7 @@ class Store {
     return c.apps;
   }
 
-  // openBuy shows what the shop asks for. NGC opens no shop and takes no
+  // openBuy shows what the shop asks for. CirroDesk opens no shop and takes no
   // money: the person buys where they buy, and brings the licence back.
   async openBuy(row, entry) {
     for (const old of row.parentNode.querySelectorAll(".buy, .installbox")) old.remove();
@@ -528,7 +528,7 @@ class Store {
       // compared, never trusted (shared/README.md, rule "Selbst rechnen").
       mine = await packageUI(file.stream());
     } catch {
-      zone.append(el("p", "upfail", "Diese Datei ist kein NGC-Paket. Bitte eine Datei mit der Endung .ngc wählen."));
+      zone.append(el("p", "upfail", "Diese Datei ist kein CirroDesk-Paket. Bitte eine Datei mit der Endung .cd wählen."));
       return;
     }
     if (this.abort.signal.aborted) return;
@@ -834,7 +834,7 @@ class Store {
       return false;
     }
     // THE ANSWER IS NOT A RECEIPT TO THROW AWAY, and Fixrunde 1 found what it
-    // costs to treat it as one. ngc.users/api/trust answers with the number
+    // costs to treat it as one. cd.users/api/trust answers with the number
     // of the version that now stands (core: TrustResult, S({seq: uint})), and
     // the version in force HERE does not move by itself: the API keeps what
     // it was sent, the browser follows the chain over GET /api/v1/trust.
@@ -862,7 +862,7 @@ class Store {
       // So nothing more is written, and the sentence says the one thing that
       // fixes it. Writing a second version from here would be the fork.
       this.say("warn", "Die Freigabe ist eingetragen. Bitte die Seite neu laden, "
-        + "damit NGC hier auf dem neuen Stand ist.");
+        + "damit CirroDesk hier auf dem neuen Stand ist.");
       return false;
     }
     return true;
@@ -881,7 +881,7 @@ class Store {
   // together with `task`: "if (confirm !== null) { if (task === null) return
   // false }". So an action of service `api` - which carries no task - CANNOT
   // BE CONFIRMED AT ALL, however the trust list's policy reads. The store
-  // therefore asks only for root tasks, and ngc.store/api/set-update goes out
+  // therefore asks only for root tasks, and cd.store/api/set-update goes out
   // unconfirmed even for a role at level `hardcore`, whose `changes` rule
   // would ask for one. That is the contract as it stands, not an omission
   // here; it is in the coordinator's register.
@@ -975,7 +975,7 @@ function serverSays(e) {
 // approvalKey answers with the key a standing approval is written down with,
 // or undefined where there is none to write.
 //
-// A key for a standing approval never comes from the API: for an NGC part the
+// A key for a standing approval never comes from the API: for a CirroDesk part the
 // release key of version 1 or of the approvals already in the list, for an
 // app the key of its store out of the verified trust list. core.UpdateInfo
 // carries a key as well, and it is never read - an API that could name the

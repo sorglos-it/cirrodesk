@@ -25,9 +25,9 @@ export function app(o) {
 // is how a case tells "the desktop refused the whole list" from "the desktop
 // is broken".
 //
-// THE ID IS THE REAL ONE SINCE TASK 25 ("ngc.calc" before). It is a row of a
+// THE ID IS THE REAL ONE SINCE TASK 25 ("cd.calc" before). It is a row of a
 // list and nothing more here - the link above answers nothing but
-// ngc.desktop/apps, so a window opened on it shows the frame's refusal and not
+// cd.desktop/apps, so a window opened on it shows the frame's refusal and not
 // a calculator. That is enough for what these cases measure: names, icons,
 // titles and taskbar entries.
 export const CALC = app({ id: "org.sorglos.calculator", name: "Rechner", width: 300, height: 420 });
@@ -51,13 +51,13 @@ function linkModule(apps) {
 const APPS = ${JSON.stringify(apps)};
 export async function fakeWorld() {
   const notices = new Set();
-  window.__ngcSendNotice = (level, text) => {
+  window.__cdSendNotice = (level, text) => {
     const body = enc.encode(JSON.stringify({ level, text, app: "" }));
     for (const fn of notices) fn(body);
   };
   const link = {
     async call(appID, service, name) {
-      if (appID !== "ngc.desktop" || name !== "apps") throw new Error("test link: nothing for " + appID + "/" + name);
+      if (appID !== "cd.desktop" || name !== "apps") throw new Error("test link: nothing for " + appID + "/" + name);
       return enc.encode(JSON.stringify(APPS));
     },
     onNotice(fn) { if (typeof fn === "function") notices.add(fn); },

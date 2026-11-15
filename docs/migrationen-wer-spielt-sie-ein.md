@@ -1,5 +1,7 @@
 # Wer spielt die Migrationen einer neuen NGC-Fassung ein?
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Messauftrag, 12.10.2026. Nichts gebaut, kein Gerüst.** Jede Aussage ist mit
 **GEMESSEN** oder **GESCHLOSSEN** gekennzeichnet. Gemessene Stände:
 `api` 639bf84, `controller` 33ac964, `db` 98741b5, `main` 6cf0449.

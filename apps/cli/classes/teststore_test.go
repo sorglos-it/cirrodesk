@@ -10,20 +10,20 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // TestTestStore plays through the success criterion of apps/cli/CLAUDE.md:
-// "ngc-store erzeugt einen Test-Store, aus dem sich eine Kauf-App
+// "cd-store erzeugt einen Test-Store, aus dem sich eine Kauf-App
 // freischalten lässt." Two apps are packed, one of them encrypted, the
 // catalog is signed, a licence is issued, and everything is then read the
 // way the API reads it — through shared/store, never through a reader
 // written beside it.
 //
-// The encrypted form is written to path+EncSuffix ("app.ngc.enc"), not to
+// The encrypted form is written to path+EncSuffix ("app.cd.enc"), not to
 // "app.enc": that is the name Encrypt writes and the name Catalog looks the
 // entry up under, and with the other one the catalog would never find it.
 func TestTestStore(t *testing.T) {
@@ -35,7 +35,7 @@ func TestTestStore(t *testing.T) {
 	// 2. The paid app is encrypted, and it gets a price: a catalog entry of
 	// an encrypted package without a price is no valid catalog.
 	contentKey := encryptPaid(t, dir, paid)
-	write(t, strings.TrimSuffix(paid, ".ngc")+PriceSuffix, []byte(paidPrice))
+	write(t, strings.TrimSuffix(paid, ".cd")+PriceSuffix, []byte(paidPrice))
 
 	// 3. The catalog is signed.
 	keyFile := filepath.Join(t.TempDir(), "store.key")
@@ -43,7 +43,7 @@ func TestTestStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("store key: %v", err)
 	}
-	st := trust.Store{ID: "test", Name: "Test-Store", URL: "https://store.ngc.test",
+	st := trust.Store{ID: "test", Name: "Test-Store", URL: "https://store.cd.test",
 		Key: enc.Bytes(storeKey.Public().(ed25519.PublicKey))}
 	env, err := Catalog(dir, keyFile, CatalogOpts{Store: st.ID, Seq: 1, Issued: 1_790_000_000})
 	if err != nil {
@@ -127,10 +127,10 @@ func TestTestStoreThroughTheSubcommands(t *testing.T) {
 	write(t, filepath.Join(src, "manifest.json"), []byte(`{"id":"org.sorglos.terminal","name":"Terminal",`+
 		`"version":"1.0.0","publisher":"Sorglos IT","description":"Eine Test-App","ui":{"entry":"index.html"}}`))
 	write(t, filepath.Join(src, "ui", "index.html"), []byte("<!doctype html><title>Terminal</title>"))
-	pkg := filepath.Join(dir, "org.sorglos.terminal-1.0.0.ngc")
+	pkg := filepath.Join(dir, "org.sorglos.terminal-1.0.0.cd")
 	contentKeyFile := filepath.Join(dir, "content.key")
 	storeKeyFile := filepath.Join(t.TempDir(), "store.key")
-	write(t, strings.TrimSuffix(pkg, ".ngc")+PriceSuffix, []byte(paidPrice))
+	write(t, strings.TrimSuffix(pkg, ".cd")+PriceSuffix, []byte(paidPrice))
 
 	installPriv, err := ecdh.X25519().GenerateKey(rand.Reader)
 	if err != nil {
@@ -143,7 +143,7 @@ func TestTestStoreThroughTheSubcommands(t *testing.T) {
 		out.Reset()
 		errOut.Reset()
 		if code := Run(args, &out, &errOut); code != 0 {
-			t.Fatalf("ngc-store %v: %d, %s", args, code, errOut.String())
+			t.Fatalf("cd-store %v: %d, %s", args, code, errOut.String())
 		}
 		return out.String()
 	}
@@ -173,7 +173,7 @@ func TestTestStoreThroughTheSubcommands(t *testing.T) {
 	if err != nil {
 		t.Fatalf("store key: %v", err)
 	}
-	st := trust.Store{ID: "test", Name: "Test-Store", URL: "https://store.ngc.test",
+	st := trust.Store{ID: "test", Name: "Test-Store", URL: "https://store.cd.test",
 		Key: enc.Bytes(priv.Public().(ed25519.PublicKey))}
 	l, err := store.VerifyLicense(lic, st, installation, "org.sorglos.terminal", installPriv.PublicKey().Bytes())
 	if err != nil {

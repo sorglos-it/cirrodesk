@@ -1,5 +1,7 @@
 # Entwurf: soll NGC alles mitnehmen, wenn ein Teil wegbricht?
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Grundlage sind die Messungen in `docs/ganz-oder-nicht.md` (Unit-Dateien der
 Anlage, 30.10.2026; M5 am Code) sowie `docs/ausfall-je-maschine.md` (24.10.)
 und `docs/ausfall-nachtrag.md` (25.10.). Die Rangfolge für jede Abwägung hier

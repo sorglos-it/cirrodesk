@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/service"
 )
 
 // The folder comes from the contract, not from a copy of it.

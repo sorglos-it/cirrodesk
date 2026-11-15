@@ -1,5 +1,5 @@
 #!/bin/sh
-# sign-release.sh - signs a packed NGC release. RUN THIS ONLY ON THE MACHINE
+# sign-release.sh - signs a packed CirroDesk release. RUN THIS ONLY ON THE MACHINE
 # THAT HOLDS THE PRIVATE RELEASE KEY.
 #
 # Usage: sign-release.sh <directory> <key.pem>
@@ -19,7 +19,7 @@
 # machine, and a release cannot be made without them.
 #
 # The message a signature covers is sign.Message(sign.PurposeRelease, payload)
-# = "ngc/" || "release/v1" || 0x00 || payload (shared/sign/sign.go:96, :23).
+# = "cd/" || "release/v1" || 0x00 || payload (shared/sign/sign.go:96, :23).
 # -rawin is not optional: Ed25519 hashes inside, and openssl dgst would hash
 # first and produce a signature verify.sh rejects.
 set -eu
@@ -105,7 +105,7 @@ kid=$(base64 -w0 <"$work/kid.bin" | tr '+/' '-_' | tr -d '=')
 # comes separately. When it lands, a sha512 goes between this message and the
 # pkeyutl call below - and openssl must still be given the DIGEST as raw input
 # (-rawin), never "openssl dgst -sign", which would hash a second time.
-{ printf 'ngc/release/v1\0'; cat "$dir/release.payload.json"; } >"$work/message.bin"
+{ printf 'cd/release/v1\0'; cat "$dir/release.payload.json"; } >"$work/message.bin"
 openssl pkeyutl -sign -inkey "$(nat "$key")" -rawin -in "$(nat "$work/message.bin")" \
 	-out "$(nat "$work/sig.bin")" 2>/dev/null || die "signing failed"
 [ "$(wc -c <"$work/sig.bin" | tr -d ' ')" = 64 ] ||
@@ -121,7 +121,7 @@ cp -f -- "$work/release-key.pem" "$dir/release-key.pem"
 
 # Check the own work with the script the installation runs, not with a second
 # idea of what it should do.
-sh "$verify" "$dir" ngc-web all >"$work/verify.out" 2>&1 || {
+sh "$verify" "$dir" cd-web all >"$work/verify.out" 2>&1 || {
 	cat "$work/verify.out" >&2
 	rm -f -- "$dir/release.json"
 	die "the release just signed does not verify; release.json was removed again"

@@ -18,7 +18,7 @@ import { test, expect } from "../fixtures/page.js";
 // WHAT CHANGED BETWEEN THE TWO MEASUREMENTS, and why this case now asks
 // something else: Firefox 141 had no password seed step either - it could not
 // export the public half of an Ed25519 key - so both halves of the dead end
-// stood there at once and NGC answered boot.noroute.passkeysoff. Firefox 159
+// stood there at once and CirroDesk answered boot.noroute.passkeysoff. Firefox 159
 // CAN (measured: shell/main.js passwordLoginFits() returns true under the same
 // pref, and crypto.subtle.exportKey("jwk", ...) of an Ed25519 key no longer
 // throws OperationError). So the engine with NO route at all does not exist in
@@ -37,7 +37,7 @@ import { test, expect } from "../fixtures/page.js";
 // Playwright refuses it inside a group.
 test.use({ launchOptions: { firefoxUserPrefs: { "security.webauth.webauthn": false } } });
 
-test("has no way to ask an authenticator, and NGC offers none", async ({ shell, browserName }) => {
+test("has no way to ask an authenticator, and CirroDesk offers none", async ({ shell, browserName }) => {
     test.skip(browserName !== "firefox", "the pref that makes this engine is Firefox's own");
     // The engine first, so a Firefox that grows the export - or one whose pref
     // stopped working - is a changed measurement and not a silent pass.
@@ -52,7 +52,7 @@ test("has no way to ask an authenticator, and NGC offers none", async ({ shell, 
       (await import("/assets/js/shell/main.js")).passwordLoginFits()),
     "this engine can seed a password").toBe(true);
 
-    // So NGC draws the route that exists and not the one it cannot walk: the
+    // So CirroDesk draws the route that exists and not the one it cannot walk: the
     // password mask, no passkey button, no sentence about a dead end - and no
     // desktop, because nobody has logged in yet.
     await expect(shell.getByLabel("Passwort")).toHaveCount(1);

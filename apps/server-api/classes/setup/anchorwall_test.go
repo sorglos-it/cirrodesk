@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // pinnedSeq is the version a trust-anchor.json of a paired installation names

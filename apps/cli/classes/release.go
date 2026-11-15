@@ -14,9 +14,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // ReleaseFile and ReleaseKeyFile are the two names a release directory
@@ -34,7 +34,7 @@ const (
 // part and an architecture for. The message names the file names it looked
 // for: whoever builds their first release had to read releaseParts to learn
 // them, and a directory with one wrong name looks exactly like an empty one.
-var ErrNoReleaseFile = errors.New("ngc-store: the directory holds no release file; the names are " +
+var ErrNoReleaseFile = errors.New("cd-store: the directory holds no release file; the names are " +
 	strings.Join(ReleaseFileNames(), ", "))
 
 // ErrVersion reports a version that is not the contract's
@@ -46,7 +46,7 @@ var ErrNoReleaseFile = errors.New("ngc-store: the directory holds no release fil
 // and this sentence said so; Thomas decided on 15.10.2026 that the contract
 // learns the place instead, and it did (shared/store/manifest.go:224). What
 // keeps arriving here now is a FIFTH place or a leading zero.
-var ErrVersion = errors.New("ngc-store: the version must be MAJOR.MINOR.PATCH or " +
+var ErrVersion = errors.New("cd-store: the version must be MAJOR.MINOR.PATCH or " +
 	"MAJOR.MINOR.PATCH.BUILD, three or four numbers without leading zeros " +
 	"(for example 1.1.0 or 1.1.0.3)")
 
@@ -78,8 +78,8 @@ type ReleaseOpts struct {
 }
 
 // Release reads the files of dir, names each one its part and architecture
-// after its file name ("ngc-web-all.tar" is store.ReleaseWeb for "all",
-// "ngc-api-amd64.tar" is store.ReleaseAPI for "amd64") and returns a signed
+// after its file name ("cd-web-all.tar" is store.ReleaseWeb for "all",
+// "cd-api-amd64.tar" is store.ReleaseAPI for "amd64") and returns a signed
 // release. A file name that names no part is ignored, so a directory may
 // hold a catalog, a key or notes beside the files; a directory that names
 // none at all is ErrNoReleaseFile.
@@ -91,7 +91,7 @@ type ReleaseOpts struct {
 // writes is one an installation fetches. Its one rule of its own is the one
 // Catalog has, and it is about the shape of the base and not about its
 // characters: a base that already carries a query gets no file name
-// appended, because "…?token=x/ngc-web-all.tar" names no file on any
+// appended, because "…?token=x/cd-web-all.tar" names no file on any
 // server.
 //
 // Nothing of a file's checksum depends on when it was built: the size and

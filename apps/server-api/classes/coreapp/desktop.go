@@ -7,15 +7,15 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // proofKindPassword is the kind of key that makes the shell show the hint to
@@ -85,7 +85,7 @@ func (p *totpStore) take(user string, now int64) ([]byte, bool) {
 	return v.sealed, true
 }
 
-// registerDesktop adds the actions of ngc.desktop.
+// registerDesktop adds the actions of cd.desktop.
 func (d *Dispatcher) registerDesktop() {
 	d.Register(core.AppDesktop, core.ServiceAPI, core.ActMe, d.me)
 	d.Register(core.AppDesktop, core.ServiceAPI, core.ActApps, d.apps)
@@ -96,7 +96,7 @@ func (d *Dispatcher) registerDesktop() {
 	d.Register(core.AppDesktop, core.ServiceAPI, core.ActTOTPOff, d.totpOff)
 }
 
-// me answers ngc.desktop/me.
+// me answers cd.desktop/me.
 func (d *Dispatcher) me(ctx context.Context, rq *Call) ([]byte, error) {
 	v, err := rq.S.Trust(ctx)
 	if err != nil {
@@ -143,7 +143,7 @@ func rank(l trust.Level) int {
 	return 0
 }
 
-// apps answers ngc.desktop/apps: the start menu of this user. An app the user
+// apps answers cd.desktop/apps: the start menu of this user. An app the user
 // may not use (core.RightUse) does not appear at all.
 func (d *Dispatcher) apps(ctx context.Context, rq *Call) ([]byte, error) {
 	list, err := rq.S.DB.AppList(ctx)
@@ -224,7 +224,7 @@ func (d *Dispatcher) licenseState(ctx context.Context, a dbapi.App) (string, boo
 	return core.LicenseOf(lic, d.S.Now()), true
 }
 
-// ui answers ngc.desktop/ui: the ui-tar of the installed version, byte for
+// ui answers cd.desktop/ui: the ui-tar of the installed version, byte for
 // byte as the API kept it (dbapi.BlobUI). The shell reads it like
 // store.WalkUI and runs it only after the proof of ui-proof holds.
 func (d *Dispatcher) ui(ctx context.Context, rq *Call) ([]byte, error) {
@@ -244,13 +244,13 @@ func (d *Dispatcher) ui(ctx context.Context, rq *Call) ([]byte, error) {
 	return nil, nil
 }
 
-// uiProof answers ngc.desktop/ui-proof with the evidence the API kept when the
+// uiProof answers cd.desktop/ui-proof with the evidence the API kept when the
 // version was installed (dbapi.BlobApproval).
 //
 // The row is not just read back: appstore.Stores.Proof parses it, verifies it
 // against the trust list AS IT READS TODAY, and -- where the ui-tar of that
 // version is here too -- holds the hash the proof vouches for against the
-// bytes ngc.desktop/ui would send. Both checks are the point of this seam: a
+// bytes cd.desktop/ui would send. Both checks are the point of this seam: a
 // key or a store an admin has withdrawn since the install would otherwise go
 // on vouching for a UI out of a database, and evidence that does not fit the
 // ui-tar next door is a mismatch the shell can only refuse. The shell checks
@@ -308,7 +308,7 @@ func (d *Dispatcher) appOf(ctx context.Context, rq *Call) (dbapi.App, wire.Code,
 	return a, "", reason.None
 }
 
-// totpBegin answers ngc.desktop/totp-begin: a new secret the user reads or
+// totpBegin answers cd.desktop/totp-begin: a new secret the user reads or
 // scans, kept on the server until a code confirms it. Nothing of the database
 // changes here, so a user who walks away keeps the second factor they had.
 func (d *Dispatcher) totpBegin(ctx context.Context, rq *Call) ([]byte, error) {
@@ -332,7 +332,7 @@ func (d *Dispatcher) totpBegin(ctx context.Context, rq *Call) ([]byte, error) {
 	return result(begin)
 }
 
-// totpConfirm answers ngc.desktop/totp-confirm: the code of the secret that
+// totpConfirm answers cd.desktop/totp-confirm: the code of the secret that
 // totp-begin handed out switches TOTP on. A wrong code changes nothing, and
 // the secret is spent either way -- a code that may be tried again and again
 // against one secret is a second factor of six digits.
@@ -362,7 +362,7 @@ func (d *Dispatcher) totpConfirm(ctx context.Context, rq *Call) ([]byte, error) 
 	return result(struct{}{})
 }
 
-// totpOff answers ngc.desktop/totp-off: a valid code of the second factor
+// totpOff answers cd.desktop/totp-off: a valid code of the second factor
 // switches it off. Without the code nothing changes, so a session someone else
 // got hold of cannot take the factor away.
 func (d *Dispatcher) totpOff(ctx context.Context, rq *Call) ([]byte, error) {

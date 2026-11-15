@@ -15,7 +15,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // These tests need a real terminal, and only Linux has one that a test may
@@ -134,7 +134,7 @@ func TestReadCodeAsksAtARealTerminal(t *testing.T) {
 
 // childAsk marks the process the two tests below start. The pairing code is
 // not in its environment: it is typed into the pseudo terminal.
-const childAsk = "NGC_TEST_ASK_CHILD"
+const childAsk = "CD_TEST_ASK_CHILD"
 
 // asking starts the test binary in another process, reading the code from a
 // pseudo terminal, and comes back once that process has asked. Another process

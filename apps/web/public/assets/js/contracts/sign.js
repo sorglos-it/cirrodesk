@@ -1,4 +1,4 @@
-// Package sign: envelopes for documents that NGC components sign with
+// Package sign: envelopes for documents that CirroDesk components sign with
 // Ed25519 keys - API nodes, stores and the release key. A signature always
 // covers message(purpose, payload), so a signature made for one purpose never
 // verifies for another (Go: sign).
@@ -72,14 +72,14 @@ export function envelopeBudget(maxPayload) {
   return new Budget({ size: encodedLen(max) + ENVELOPE_SLACK });
 }
 
-// message returns the bytes a signature covers: "ngc/" || purpose || 0x00 ||
+// message returns the bytes a signature covers: "cd/" || purpose || 0x00 ||
 // payload (Go: sign.Message).
 export function message(purpose, payload) {
-  // Go is handed a string. Here "ngc/" + purpose would make text out of
+  // Go is handed a string. Here "cd/" + purpose would make text out of
   // anything: a misspelled import is undefined, and the signature would cover
-  // the purpose "ngc/undefined" - a purpose nobody meant and nobody checks.
+  // the purpose "cd/undefined" - a purpose nobody meant and nobody checks.
   if (typeof purpose !== "string") throw new BadInput("sign: purpose is not text");
-  return concat(utf8("ngc/" + purpose), new Uint8Array([0]), payload);
+  return concat(utf8("cd/" + purpose), new Uint8Array([0]), payload);
 }
 
 // keyIDAsync identifies a public key: base64url of the first 16 bytes of its

@@ -1,7 +1,7 @@
-// Package classes holds what ngc-uhr does: the service of the app
+// Package classes holds what cd-uhr does: the service of the app
 // org.sorglos.uhr and the one command that keeps its container up.
 //
-// WHY THIS APP EXISTS. It is the second app of NGC, and it is deliberately
+// WHY THIS APP EXISTS. It is the second app of CirroDesk, and it is deliberately
 // tiny: the work it proves is the WAY an app takes into the store
 // (docs/app-weg.md), not the app. A clock needs no network, no root and no
 // state, so every right it does not ask for is one the way does not need
@@ -9,7 +9,7 @@
 //
 // WHAT IT MEASURES THAT NOTHING ELSE DOES: the two directions a service can
 // write in. Contract V3 hands the stdout of a service to the app's window
-// (serve.CallInput.Out, appframe.doCall resolves ngc.call with it), while its
+// (serve.CallInput.Out, appframe.doCall resolves cd.call with it), while its
 // stderr reaches the LOG of the controller and nothing else - and only where
 // an operator switched the text on (serve.CallInput.LogStderr, off by
 // default). So a service that reports on stderr has told the server about
@@ -23,7 +23,7 @@
 // data directory is encrypted and belongs to the app's own user
 // (runtime.DataDirOf), and an app that keeps nothing in it cannot show
 // whether its data survived. So "zeit" now counts how often it was read and
-// keeps the count in $NGC_DATA/zugriffe. A count is the smallest thing that
+// keeps the count in $CD_DATA/zugriffe. A count is the smallest thing that
 // is worth nothing to anyone and is still visibly lost with the directory.
 package classes
 
@@ -40,18 +40,18 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/service"
 )
 
-// What ngc-uhr answers a call it cannot carry out. German, because it reaches
+// What cd-uhr answers a call it cannot carry out. German, because it reaches
 // an admin through the log of the controller.
 const (
-	usage       = "Aufruf: ngc-uhr (als Dienst, im Behälter) oder ngc-uhr hold"
-	msgNoAction = "NGC_ACTION ist leer. Dieses Programm läuft als Dienst einer NGC-App, nicht von Hand."
+	usage       = "Aufruf: cd-uhr (als Dienst, im Behälter) oder cd-uhr hold"
+	msgNoAction = "CD_ACTION ist leer. Dieses Programm läuft als Dienst einer CirroDesk-App, nicht von Hand."
 	msgUnknown  = "Unbekannte Aktion %q. Dieser Dienst kennt nur %q.\n"
 	actionZeit  = "zeit"
 	holdCommand = "hold"
-	// countFile is the one file this app keeps, directly under $NGC_DATA.
+	// countFile is the one file this app keeps, directly under $CD_DATA.
 	countFile = "zugriffe"
 	// timeFormat is RFC 3339 with seconds. The window shows what arrives and
 	// formats nothing itself, so the one place the shape of this line is
@@ -65,10 +65,10 @@ const (
 
 // errNoData is what count answers when the environment named no data
 // directory. Only a call from outside a container can get there: the
-// controller always sets NGC_DATA (service.EnvData).
-var errNoData = errors.New("NGC_DATA ist leer")
+// controller always sets CD_DATA (service.EnvData).
+var errNoData = errors.New("CD_DATA ist leer")
 
-// Main carries out one call of ngc-uhr and returns the exit status: 0 for
+// Main carries out one call of cd-uhr and returns the exit status: 0 for
 // done, 1 for a call that failed, 2 for a call Main does not understand.
 //
 // The clock is read here and nowhere below, so everything behind this
@@ -102,7 +102,7 @@ func answer(action, version, dataDir string, now time.Time, stdout, stderr io.Wr
 	// is the one only the controller's log can ever see. Whoever reads them
 	// both in the same run has measured which direction arrives where, which
 	// is what cost the terminal app a round (see the package comment).
-	fmt.Fprintf(stderr, "ngc-uhr %s beantwortet %q\n", version, action)
+	fmt.Fprintf(stderr, "cd-uhr %s beantwortet %q\n", version, action)
 	fmt.Fprintln(stdout, now.Format(timeFormat))
 	// THE SECOND LINE, AND THE WINDOW READS IT BY ITS NUMBER. The shape of
 	// what this service answers is decided here and nowhere else (app.js
@@ -159,9 +159,9 @@ func count(dataDir string) (uint64, error) {
 }
 
 // hold waits until the container is stopped, so the image needs no program of
-// its own to keep it up. The terminal app does the same with "ngc-controller
+// its own to keep it up. The terminal app does the same with "cd-controller
 // hold" (node.hold); this app carries its own, because its image holds
-// nothing of NGC besides this one program.
+// nothing of CirroDesk besides this one program.
 func hold(stderr io.Writer) int {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

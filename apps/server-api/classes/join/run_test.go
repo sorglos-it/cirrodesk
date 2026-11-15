@@ -19,10 +19,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // syncBuffer is the output of Run under a lock. Run writes to it from its own
@@ -329,7 +329,7 @@ func TestRunRefusesUnusableInput(t *testing.T) {
 //	mkdir C:\...\blocked: Das System kann den angegebenen Pfad nicht finden.
 //
 // -- the address of the issuing API with the hash of the one-time secret the
-// API spends, and the path of a file a private key goes into. ngc-api -join
+// API spends, and the path of a file a private key goes into. cd-api -join
 // wrote the first one into the journal word for word.
 func quietValues(cfg JoinConfig, code tunnel.JoinCode, host string) []struct{ what, text string } {
 	return []struct{ what, text string }{

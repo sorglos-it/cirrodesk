@@ -1,4 +1,4 @@
-// Package mariadb opens the MariaDB Galera cluster of an NGC installation:
+// Package mariadb opens the MariaDB Galera cluster of a CirroDesk installation:
 // every connection over TLS against the CA of the installation, spread over
 // the nodes, with the next node taking over when one is down.
 package mariadb
@@ -13,10 +13,10 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // DialTimeout bounds the TCP dial of ONE node, and it is what decides whether
@@ -104,7 +104,7 @@ const (
 )
 
 // OpenDB opens the cluster. It creates nothing: the schema comes from the
-// migrations, and the ngc account may not create anything anyway.
+// migrations, and the cd account may not create anything anyway.
 func OpenDB(cfg config.DB) (*sql.DB, error) {
 	return openDB(cfg, connLifetime, connIdleTime)
 }
@@ -205,7 +205,7 @@ func nodeConfig(cfg config.DB, node string) (*mysql.Config, error) {
 	c.Timeout = DialTimeout
 	c.ReadTimeout = 60 * time.Second
 	c.WriteTimeout = 60 * time.Second
-	// The driver writes to stderr by default; NGC logs on its own and never
+	// The driver writes to stderr by default; CirroDesk logs on its own and never
 	// wants a driver message near a password.
 	c.Logger = &mysql.NopLogger{}
 	c.Params = map[string]string{
@@ -227,7 +227,7 @@ func nodeConfig(cfg config.DB, node string) (*mysql.Config, error) {
 func New(db *sql.DB) dbapi.Store { return sqlstore.New(db, sqlstore.MariaDB) }
 
 // Open opens the cluster and returns the store. It runs no migration: that is
-// the job of the ngc_migrate account, which the API does not have.
+// the job of the cd_migrate account, which the API does not have.
 func Open(cfg config.DB) (dbapi.Store, error) {
 	db, err := OpenDB(cfg)
 	if err != nil {

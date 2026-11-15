@@ -1,5 +1,7 @@
 # Was an der Anlage von Hand gesetzt ist
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Aufgenommen am 25.10.2026 an allen acht Maschinen der verteilten Anlage. Der
 Zweck dieser Datei ist die Frage, die an der Anlage zurzeit niemand mehr
 beantworten kann: **was ist Stand, und was ist Messrest?**

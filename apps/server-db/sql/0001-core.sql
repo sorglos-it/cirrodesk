@@ -1,4 +1,4 @@
--- 0001 creates the whole schema of NGC. Every statement is one step: the
+-- 0001 creates the whole schema of CirroDesk. Every statement is one step: the
 -- runner records each one, so a crash in the middle of a migration picks up
 -- where it stopped. Only portable SQL, nothing but what MariaDB, SQLite,
 -- MySQL, MSSQL and Oracle all understand: no engine keyword, no IF NOT
@@ -11,7 +11,7 @@
 -- ordered byte for byte, a name is never matched in a different case, and no
 -- collation can change any of that later.
 
-CREATE TABLE ngc_blob (
+CREATE TABLE cd_blob (
 	kind {{key}} NOT NULL,
 	id {{key}} NOT NULL,
 	seq {{int}} NOT NULL,
@@ -20,9 +20,9 @@ CREATE TABLE ngc_blob (
 	PRIMARY KEY (kind, id)
 ){{opts}};
 
-CREATE INDEX ngc_blob_seq ON ngc_blob (kind, seq, id);
+CREATE INDEX cd_blob_seq ON cd_blob (kind, seq, id);
 
-CREATE TABLE ngc_app (
+CREATE TABLE cd_app (
 	id {{key}} NOT NULL,
 	version {{key}} NOT NULL,
 	store {{key}} NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE ngc_app (
 	PRIMARY KEY (id)
 ){{opts}};
 
-CREATE TABLE ngc_once (
+CREATE TABLE cd_once (
 	kind {{key}} NOT NULL,
 	token {{key}} NOT NULL,
 	data {{key}} NOT NULL,
@@ -45,9 +45,9 @@ CREATE TABLE ngc_once (
 	PRIMARY KEY (kind, token)
 ){{opts}};
 
-CREATE INDEX ngc_once_expires ON ngc_once (expires);
+CREATE INDEX cd_once_expires ON cd_once (expires);
 
-CREATE TABLE ngc_user (
+CREATE TABLE cd_user (
 	id {{key}} NOT NULL,
 	name {{key}} NOT NULL,
 	roles {{doc}} NOT NULL,
@@ -58,9 +58,9 @@ CREATE TABLE ngc_user (
 	PRIMARY KEY (id)
 ){{opts}};
 
-CREATE UNIQUE INDEX ngc_user_name ON ngc_user (name);
+CREATE UNIQUE INDEX cd_user_name ON cd_user (name);
 
-CREATE TABLE ngc_session (
+CREATE TABLE cd_session (
 	token {{key}} NOT NULL,
 	user_id {{key}} NOT NULL,
 	cert {{doc}} NOT NULL,
@@ -73,18 +73,18 @@ CREATE TABLE ngc_session (
 	PRIMARY KEY (token)
 ){{opts}};
 
-CREATE INDEX ngc_session_expires ON ngc_session (expires);
+CREATE INDEX cd_session_expires ON cd_session (expires);
 
-CREATE TABLE ngc_pending (
+CREATE TABLE cd_pending (
 	pubkey {{key}} NOT NULL,
 	name {{key}} NOT NULL,
 	since {{int}} NOT NULL,
 	PRIMARY KEY (pubkey)
 ){{opts}};
 
-CREATE INDEX ngc_pending_since ON ngc_pending (since, name);
+CREATE INDEX cd_pending_since ON cd_pending (since, name);
 
-CREATE TABLE ngc_log (
+CREATE TABLE cd_log (
 	id {{key}} NOT NULL,
 	ts {{int}} NOT NULL,
 	user_id {{key}} NOT NULL,
@@ -97,6 +97,6 @@ CREATE TABLE ngc_log (
 	PRIMARY KEY (id)
 ){{opts}};
 
-CREATE INDEX ngc_log_ts ON ngc_log (ts, id);
+CREATE INDEX cd_log_ts ON cd_log (ts, id);
 
-CREATE INDEX ngc_log_user ON ngc_log (user_id, ts, id);
+CREATE INDEX cd_log_user ON cd_log (user_id, ts, id);

@@ -11,15 +11,15 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 var ctx = context.Background()
@@ -241,7 +241,7 @@ func newFixture(t *testing.T) (fixture, vectors) {
 	// key of the vectors, so the catalogs of store.json verify against the
 	// trust list and nothing else does.
 	l2 := trusttest.Next(t, signed)
-	l2.Stores = []trust.Store{{ID: v.Store, Name: "NGC Store", URL: fx.HTTP.URL, Key: v.StoreKey}}
+	l2.Stores = []trust.Store{{ID: v.Store, Name: "CirroDesk Store", URL: fx.HTTP.URL, Key: v.StoreKey}}
 	if _, err := s.AddVersion(ctx, admin.Sign(t, l2)); err != nil {
 		t.Fatalf("version 2: %v", err)
 	}

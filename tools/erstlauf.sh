@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Erstlauf: the way from a published release to an app in the menu, as a run.
 #
-# WHY THIS FILE EXISTS. Between 19. and 21.10.2026 an NGC installation was built
+# WHY THIS FILE EXISTS. Between 19. and 21.10.2026 a CirroDesk installation was built
 # from a published release on a real machine for the first time. Six obstacles
 # stood in the way, each small, together impassable - and tools/check.sh noticed
 # none of them. It could not: three of the six do not live in a .go file at all
@@ -67,7 +67,7 @@ root=$(cd -- "$(dirname -- "$self")/.." && pwd)
 # anything is read from it. "Two levels up" is not a check.
 marker=$root/shared/config/config.go
 if ! grep -q "^[[:space:]]*AnchorFile[[:space:]]*= " "$marker" 2>/dev/null; then
-	echo "erstlauf: $root is not the NGC repository (shared/config/config.go has no AnchorFile)" >&2
+	echo "erstlauf: $root is not the CirroDesk repository (shared/config/config.go has no AnchorFile)" >&2
 	exit 1
 fi
 
@@ -80,12 +80,12 @@ probe=$( (exit 7) >/dev/null 2>&1 || echo "$?")
 	exit 1
 }
 
-ulh=${NGC_ULH:-}
-ulh_ref=${NGC_ULH_REF:-}
+ulh=${CD_ULH:-}
+ulh_ref=${CD_ULH_REF:-}
 machine=""
-mstaged=${NGC_MACHINE_STAGED:-/root/release/dist}
-mulh=${NGC_MACHINE_ULH:-/root/release/ulh}
-mkey=${NGC_MACHINE_RELEASE_KEY:-}
+mstaged=${CD_MACHINE_STAGED:-/root/release/dist}
+mulh=${CD_MACHINE_ULH:-/root/release/ulh}
+mkey=${CD_MACHINE_RELEASE_KEY:-}
 # The NAME the installation answers under. Without it erstlauf-maschine.sh takes
 # the IPv4 address of the default route, and docs/installation-kleines-system.md,
 # step 0, says why that is not the small case: the certificate carries the name
@@ -93,20 +93,20 @@ mkey=${NGC_MACHINE_RELEASE_KEY:-}
 # address no passkey can be made or used. Every run before 29.10.2026 therefore
 # installed on an address, and no run has ever measured the configuration a user
 # is told to build.
-mhost=${NGC_MACHINE_HOSTNAME:-}
+mhost=${CD_MACHINE_HOSTNAME:-}
 # The NODE name of the installation, the one the trust list knows it by. Phase B
-# otherwise calls ngc-all.sh with its own default "erstlauf", and on a machine
+# otherwise calls cd-all.sh with its own default "erstlauf", and on a machine
 # that is ALREADY installed under another name that rewrites api.json and locks
 # every user out: the services keep running, /api/v1/setup still answers 404,
 # nothing is logged, and every sign-in fails with "Anmeldung fehlgeschlagen"
 # (measured 30.10.2026 on VMID 310, Punkt 98; writing the name back repaired it
-# at once). ngc-all.sh keeps every KEY on a second run - it does not keep the
+# at once). cd-all.sh keeps every KEY on a second run - it does not keep the
 # name, and the name is what the installation is recognised by.
-mname=${NGC_MACHINE_NAME:-}
+mname=${CD_MACHINE_NAME:-}
 # Extra options for ssh and scp, for a target that is not in ~/.ssh/config -
 # a port, an identity, another config file. Taken from the environment so that
 # nothing here has to write into the user's ssh configuration.
-sshopts=${NGC_SSH_OPTS:-}
+sshopts=${CD_SSH_OPTS:-}
 while [ $# -gt 0 ]; do
 	case $1 in
 	--ulh)
@@ -161,7 +161,7 @@ fail() {
 	printf 'station %s %s: FAIL -- %s\n' "$1" "$2" "$3"
 	fails=$((fails + 1))
 }
-# A fault of this script is not a finding about NGC, and the two must never be
+# A fault of this script is not a finding about CirroDesk, and the two must never be
 # confused: a preparation that did not take leaves the run measuring nothing
 # (messen.md, "a measuring script checks itself first"). It stops the run.
 broken() {
@@ -192,15 +192,15 @@ trap 'rm -rf "$work"' EXIT
 # ---------------------------------------------------------------------------
 # station 1  installieren
 #
-# Obstacle 1 of October: ngc-api.service carried ProtectSystem=strict, and
-# ReadWritePaths named /var/lib/ngc and /etc/ngc/tls - but not /etc/ngc. The API
-# writes /etc/ngc/trust-anchor.json (config.AnchorFile), so the pin outside the
+# Obstacle 1 of October: cd-api.service carried ProtectSystem=strict, and
+# ReadWritePaths named /var/lib/cd and /etc/cd/tls - but not /etc/cd. The API
+# writes /etc/cd/trust-anchor.json (config.AnchorFile), so the pin outside the
 # database could never be moved up: pinned=1 while the database stood at 2, and
 # the installation was stuck without one error message naming the cause.
 #
 # WHY A TEXT TEST DOES NOT CATCH THIS. ulh has a case for this unit, and it
-# compares it byte for byte - including the line "ReadWritePaths=/var/lib/ngc
-# /etc/ngc/tls". A test like that proves the file equals itself. The question is
+# compares it byte for byte - including the line "ReadWritePaths=/var/lib/cd
+# /etc/cd/tls". A test like that proves the file equals itself. The question is
 # a different one and it spans two repositories: does the unit allow every path
 # the program in its ExecStart writes? That is what is asked here, and the two
 # halves are read from the two repositories rather than typed in again.
@@ -215,34 +215,34 @@ if [ -z "$ulh" ] || [ ! -d "$ulh/.git" ]; then
 	unmeasurable 1 "$s1" "no ulh checkout found - the install scripts and the systemd units live in github.com/sorglos-it/ulh, not here; pass --ulh <path>"
 else
 	if [ -z "$ulh_ref" ]; then
-		for cand in ngc-kette main; do
+		for cand in cd-kette main; do
 			command git -C "$ulh" -c safe.directory="$ulh" rev-parse --verify --quiet "$cand" >/dev/null && ulh_ref=$cand && break
 		done
 	fi
-	[ -n "$ulh_ref" ] || broken 1 "$s1" "no usable ref in $ulh (tried ngc-kette, main); pass --ulh-ref"
+	[ -n "$ulh_ref" ] || broken 1 "$s1" "no usable ref in $ulh (tried cd-kette, main); pass --ulh-ref"
 
-	script=$work/ngc-api.sh
-	command git -C "$ulh" -c safe.directory="$ulh" show "$ulh_ref:apps/cli/assets/scripts/ngc-api.sh" >"$script" 2>/dev/null ||
-		unmeasurable 1 "$s1" "$ulh_ref of $ulh carries no apps/cli/assets/scripts/ngc-api.sh - the NGC scripts are on their own branches there"
+	script=$work/cd-api.sh
+	command git -C "$ulh" -c safe.directory="$ulh" show "$ulh_ref:apps/cli/assets/scripts/cd-api.sh" >"$script" 2>/dev/null ||
+		unmeasurable 1 "$s1" "$ulh_ref of $ulh carries no apps/cli/assets/scripts/cd-api.sh - the CirroDesk scripts are on their own branches there"
 
 	if [ -s "$script" ]; then
 		# The preparation is checked before anything is concluded: if the unit
 		# is no longer written by this function, or no longer confines the
 		# program, this script read the wrong thing and says so instead of
 		# reporting a green station.
-		grep -q '^render_unit() {' "$script" || broken 1 "$s1" "ngc-api.sh of $ulh_ref has no render_unit() - the unit is written somewhere else now"
-		grep -q "'ProtectSystem=strict'" "$script" || broken 1 "$s1" "ngc-api.sh of $ulh_ref no longer sets ProtectSystem=strict - this check is about what that line confines"
+		grep -q '^render_unit() {' "$script" || broken 1 "$s1" "cd-api.sh of $ulh_ref has no render_unit() - the unit is written somewhere else now"
+		grep -q "'ProtectSystem=strict'" "$script" || broken 1 "$s1" "cd-api.sh of $ulh_ref no longer sets ProtectSystem=strict - this check is about what that line confines"
 
 		# The paths the unit grants, with the script's own variables resolved
 		# out of the script itself - not out of this file.
 		rwp=$(sed -n 's/.*"ReadWritePaths=\(.*\)".*/\1/p' "$script")
-		[ -n "$rwp" ] || broken 1 "$s1" "no ReadWritePaths= line found in ngc-api.sh of $ulh_ref"
-		for var in NGC_DATA NGC_ETC NGC_TLS NGC_STATE_DIR; do
+		[ -n "$rwp" ] || broken 1 "$s1" "no ReadWritePaths= line found in cd-api.sh of $ulh_ref"
+		for var in CD_DATA CD_ETC CD_TLS CD_STATE_DIR; do
 			val=$(sed -n "s/^$var=\"\([^\"]*\)\".*/\1/p" "$script" | head -1)
 			[ -n "$val" ] && rwp=${rwp//\$\{$var\}/$val}
 		done
 		case $rwp in
-		*'${'*) broken 1 "$s1" "ReadWritePaths of ngc-api.sh still holds an unresolved variable: $rwp" ;;
+		*'${'*) broken 1 "$s1" "ReadWritePaths of cd-api.sh still holds an unresolved variable: $rwp" ;;
 		esac
 
 		# The paths the program writes. Each one is named with the place in THIS
@@ -273,9 +273,9 @@ else
 			[ "$granted" = yes ] || missing="$missing$path ($why, written in $where); "
 		done
 		if [ -n "$missing" ]; then
-			fail 1 "$s1" "ngc-api.service sets ProtectSystem=strict and grants only '$rwp', so the API cannot write: $missing- the installation gets stuck with a pin below the stored version and names no cause"
+			fail 1 "$s1" "cd-api.service sets ProtectSystem=strict and grants only '$rwp', so the API cannot write: $missing- the installation gets stuck with a pin below the stored version and names no cause"
 		else
-			pass 1 "$s1" "every path the API writes is granted by ngc-api.service of $ulh_ref ($rwp)"
+			pass 1 "$s1" "every path the API writes is granted by cd-api.service of $ulh_ref ($rwp)"
 		fi
 	fi
 fi
@@ -298,7 +298,7 @@ fi
 # so a change to validVersion cannot leave this check behind:
 #   a) the pattern, read out of apps/web/.../text.js, really accepts 1.2.3 and
 #      really refuses 0.0.0-dev (otherwise the extraction failed, not the code),
-#   b) something in this repository builds ngc-api and ngc-controller with the
+#   b) something in this repository builds cd-api and cd-controller with the
 #      version stamped in, and what it builds prints a number the pattern takes.
 # ---------------------------------------------------------------------------
 s2="API und Controller laufen"
@@ -330,10 +330,10 @@ else
 	hostarch=$(go env GOHOSTARCH)
 	ext=""
 	[ "$hostos" = windows ] && ext=".exe"
-	NGC_BUILD_OS="$hostos" "$builder" "$out" "$hostarch" >"$work/build.log" 2>&1 ||
+	CD_BUILD_OS="$hostos" "$builder" "$out" "$hostarch" >"$work/build.log" 2>&1 ||
 		broken 2 "$s2" "$builder failed for $hostos/$hostarch, so this station says nothing about versions: $(tr '\n' ' ' <"$work/build.log")"
 	bad=0
-	for name in ngc-api ngc-controller; do
+	for name in cd-api cd-controller; do
 		bin=$out/$name$ext
 		[ -s "$bin" ] || {
 			fail 2 "$s2" "$builder wrote no $name into the directory it was given, so the release has no stamped $name"
@@ -356,7 +356,7 @@ else
 		fail 2 "$s2" "a build WITHOUT -ldflags reports '$plain' and the interface accepts it - then this station can no longer tell a stamped build from an unstamped one and proves nothing"
 		bad=1
 	}
-	[ "$bad" = 0 ] && pass 2 "$s2" "$builder produced ngc-api and ngc-controller for '"$hostos/$hostarch"' with versions the interface's validVersion takes, and an unstamped build is refused by the same pattern"
+	[ "$bad" = 0 ] && pass 2 "$s2" "$builder produced cd-api and cd-controller for '"$hostos/$hostarch"' with versions the interface's validVersion takes, and an unstamped build is refused by the same pattern"
 fi
 
 # ---------------------------------------------------------------------------
@@ -462,7 +462,7 @@ fi
 # ---------------------------------------------------------------------------
 # station 7  App einrichten
 #
-# Obstacle 5 of October: /var/lib/ngc/apps was made with 0700, and the rootless
+# Obstacle 5 of October: /var/lib/cd/apps was made with 0700, and the rootless
 # "podman load" of the app's own user got EACCES on its own home directory. The
 # machine was patched to 0711 by hand; the code still says 0700.
 #

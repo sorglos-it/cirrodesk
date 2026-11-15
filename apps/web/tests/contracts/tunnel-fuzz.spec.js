@@ -26,7 +26,7 @@ import { vectors } from "../fixtures/vectors.js";
 //     throwing getters included: it decides whether a code is shown, and an
 //     exception out of it is an unhandled rejection in the page.
 //   - components answers a sorted list that always names the controller and
-//     never anything but the three NGC parts, whatever it is handed.
+//     never anything but the three CirroDesk parts, whatever it is handed.
 //   - fingerprint answers 22 characters of base64url or throws BadInput, and
 //     it hashes its own copy: an object whose length lies is named by the
 //     fingerprint of the bytes it really holds.
@@ -35,10 +35,10 @@ import { vectors } from "../fixtures/vectors.js";
 //     accepted ones a step backwards stays green.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=50000 npm test -- contracts/tunnel-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=50000 npm test -- contracts/tunnel-fuzz
 const v = vectors("tunnel.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 12000);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 12000);
 
 test(`fuzz: a code or BadCode, ${rounds} inputs from seed ${seed}`, async ({ shell }) => {
   test.setTimeout(180_000);
@@ -124,8 +124,8 @@ test(`fuzz: a code or BadCode, ${rounds} inputs from seed ${seed}`, async ({ she
     // characters where Go's TrimSpace and the engine's own trim disagree
     // (U+0085, which Go trims and the engine does not, and U+FEFF, the other
     // way round).
-    const prefixes = [t.PAIR_PREFIX, t.JOIN_PREFIX, "ngc-pair", "ngc-pai", "ngc-pair::",
-      "ngc-pair:ngc-pair:", "NGC-PAIR:", "ngc_pair:", "ngc-join", ":", "", "ngc-pair :"];
+    const prefixes = [t.PAIR_PREFIX, t.JOIN_PREFIX, "cd-pair", "cd-pai", "cd-pair::",
+      "cd-pair:cd-pair:", "CirroDesk-PAIR:", "cd_pair:", "cd-join", ":", "", "cd-pair :"];
     const spaces = ["", " ", "\t", "\n", "\r", "\v", "\f", "\u0085", " ", " ",
       " ", " ", " ", " ", " ", " ", "　", "﻿", "​"];
     const space = () => {
@@ -155,7 +155,7 @@ test(`fuzz: a code or BadCode, ${rounds} inputs from seed ${seed}`, async ({ she
       { toString: () => d.code }, Object.create(null)];
 
     // The rules, spelled out here. The address alphabet is url.js's: lower
-    // case, because NGC compares addresses as text, and nothing that could
+    // case, because CirroDesk compares addresses as text, and nothing that could
     // start a second line in a configuration file.
     const URL_CHARS = /^[a-z0-9.:[\]/-]+$/;
     const okURL = (u) => typeof u === "string" && u.length <= 256 && URL_CHARS.test(u)
@@ -232,7 +232,7 @@ test(`fuzz: a code or BadCode, ${rounds} inputs from seed ${seed}`, async ({ she
     }
 
     // components: whatever it is handed, the controller is named and nothing
-    // that is not an NGC part.
+    // that is not a CirroDesk part.
     const parts = new Set([t.ROLE_WEB, t.ROLE_API, t.ROLE_DB, t.ROLE_SERVICES]);
     const roleLists = [null, undefined, 0, "web", {}, [t.ROLE_WEB], [t.ROLE_API],
       [t.ROLE_API, t.ROLE_WEB], [t.ROLE_WEB, t.ROLE_WEB], [t.ROLE_DB, t.ROLE_SERVICES],

@@ -1,5 +1,5 @@
-# MariaDB with Galera for NGC, one node. ngc-db.sh writes this to
-# /etc/mysql/mariadb.conf.d/60-ngc.cnf and replaces the four marks
+# MariaDB with Galera for CirroDesk, one node. cd-db.sh writes this to
+# /etc/mysql/mariadb.conf.d/60-cd.cnf and replaces the four marks
 # @NODE_NAME@, @NODE_ADDRESS@, @CLUSTER_ADDRESS@ and @SST_PASSWORD@.
 #
 # Nothing here is optional: TestGaleraTemplate pins every line of this file -
@@ -7,18 +7,18 @@
 # as parts of theirs - and refuses a line that would switch TLS or the
 # encryption off.
 #
-# This file has a SECOND copy: ngc-db.sh of the ulh repository carries it as a
-# here-document, because ngc-db installs no NGC program files and so has no
+# This file has a SECOND copy: cd-db.sh of the ulh repository carries it as a
+# here-document, because cd-db installs no CirroDesk program files and so has no
 # release to read this file from. A change here belongs there as well, and
-# apps/cli/tests/ngc-db.test.sh of ulh pins the same lines on that side.
-# The cluster name is not a mark: it is ngc for every installation, and no
+# apps/cli/tests/cd-db.test.sh of ulh pins the same lines on that side.
+# The cluster name is not a mark: it is cd for every installation, and no
 # answer of ulh fills it.
 
 [mysqld]
 # Galera replicates InnoDB with row based logging; anything else is refused.
 wsrep_on=ON
 wsrep_provider=/usr/lib/galera/libgalera_smm.so
-wsrep_cluster_name=ngc
+wsrep_cluster_name=cd
 wsrep_cluster_address=gcomm://@CLUSTER_ADDRESS@
 wsrep_node_name=@NODE_NAME@
 wsrep_node_address=@NODE_ADDRESS@
@@ -40,7 +40,7 @@ innodb_autoinc_lock_mode=2
 # AES-128-GCM or a CBC suite gets a handshake failure, and without it both
 # come through. Under TLS 1.3 Galera offers no knob at all; measured, that
 # socket negotiates TLS_AES_256_GCM_SHA384 by itself.
-wsrep_provider_options="socket.ssl_ca=/etc/ngc/db-tls/ca.crt;socket.ssl_cert=/etc/ngc/db-tls/node.crt;socket.ssl_key=/etc/ngc/db-tls/node.key;socket.ssl_cipher=ECDHE-ECDSA-AES256-GCM-SHA384"
+wsrep_provider_options="socket.ssl_ca=/etc/cd/db-tls/ca.crt;socket.ssl_cert=/etc/cd/db-tls/node.crt;socket.ssl_key=/etc/cd/db-tls/node.key;socket.ssl_cipher=ECDHE-ECDSA-AES256-GCM-SHA384"
 
 # A new node copies the data with mariabackup, over TLS as well.
 wsrep_sst_method=mariabackup
@@ -49,14 +49,14 @@ wsrep_sst_auth=sst:@SST_PASSWORD@
 # No client without TLS, and only TLS 1.3.
 require_secure_transport=ON
 tls_version=TLSv1.3
-ssl_ca=/etc/ngc/db-tls/ca.crt
-ssl_cert=/etc/ngc/db-tls/node.crt
-ssl_key=/etc/ngc/db-tls/node.key
+ssl_ca=/etc/cd/db-tls/ca.crt
+ssl_cert=/etc/cd/db-tls/node.crt
+ssl_key=/etc/cd/db-tls/node.key
 
 # MariaDB's own encryption. The key file holds a 32 byte key, so AES-256.
 plugin_load_add=file_key_management
-file_key_management_filename=/etc/ngc/db-keys/keys.enc
-file_key_management_filekey=FILE:/etc/ngc/db-keys/keyfile.key
+file_key_management_filename=/etc/cd/db-keys/keys.enc
+file_key_management_filekey=FILE:/etc/cd/db-keys/keyfile.key
 file_key_management_encryption_algorithm=AES_CTR
 innodb_encrypt_tables=FORCE
 innodb_encrypt_log=ON
@@ -78,6 +78,6 @@ sql_mode=STRICT_ALL_TABLES,NO_ENGINE_SUBSTITUTION
 
 [mariabackup]
 # The copy for a new node uses the same certificates.
-ssl_ca=/etc/ngc/db-tls/ca.crt
-ssl_cert=/etc/ngc/db-tls/node.crt
-ssl_key=/etc/ngc/db-tls/node.key
+ssl_ca=/etc/cd/db-tls/ca.crt
+ssl_cert=/etc/cd/db-tls/node.crt
+ssl_key=/etc/cd/db-tls/node.key

@@ -3,7 +3,7 @@
 # again, one directory per machine, from a workstation that reaches the
 # machines by ssh.
 #
-# WHY THIS FILE EXISTS AND WHAT IT IS NOT. "ngc-controller backup <Datei>"
+# WHY THIS FILE EXISTS AND WHAT IT IS NOT. "cd-controller backup <Datei>"
 # copies one thing: the controller's own SQLite, encrypted, with the key
 # nowhere in it. That file alone is worth nothing - measured, not reasoned:
 # docs/sicherung-und-weg-zurueck.md opens the same copy on a foreign machine
@@ -11,12 +11,12 @@
 # "sqlite3: file is not a database". And the user data of a distributed
 # installation are not in that file at all: they lie in the MariaDB of the
 # database machines, and the two places in this repository that send an admin
-# to "ngc-db backup" for them name a program that does not exist (there is no
-# apps/server-db/main.go, and no ngc-db on any of the six machines).
+# to "cd-db backup" for them name a program that does not exist (there is no
+# apps/server-db/main.go, and no cd-db on any of the six machines).
 #
 # So this collects five kinds of thing, and the manifest says of every one of
 # them which it is:
-#   1. /etc/ngc of the machine - controller.json (dbKey, noiseKey, anchor),
+#   1. /etc/cd of the machine - controller.json (dbKey, noiseKey, anchor),
 #      api.json (signKey, storeKey, secretKey, the database password),
 #      db-keys (the key of the encrypted MariaDB tablespaces), tls.
 #      THIS IS THE PART NOTHING CAN MAKE AGAIN. Everything else in a backup
@@ -38,10 +38,10 @@
 #      list at all because of the evening of 24.10.2026, when an admin asked
 #      for the old copies of these files to be cleaned off the nodes - and
 #      the question "then what is left if the node dies" had no good answer.
-#      60-ngc.cnf alone carries wsrep_cluster_address, wsrep_node_name,
+#      60-cd.cnf alone carries wsrep_cluster_address, wsrep_node_name,
 #      wsrep_node_address, the SST method and the two paths of the
-#      file_key_management. /etc/ngc has none of it, so a database node could
-#      not be rebuilt from a backup that only had /etc/ngc.
+#      file_key_management. /etc/cd has none of it, so a database node could
+#      not be rebuilt from a backup that only had /etc/cd.
 #   6. a manifest with a sha256 of every file.
 #
 # What it does NOT do is play anything back, and it needs no program for most
@@ -56,7 +56,7 @@
 # there. The reason is a measurement of the session that switched the machines
 # off, and it is sharper than "keep them apart":
 #
-#	/etc/ngc/db-keys   keyfile.key 64 B, keys.enc 96 B, sst.pass 64 B = 224 Byte
+#	/etc/cd/db-keys   keyfile.key 64 B, keys.enc 96 B, sst.pass 64 B = 224 Byte
 #	/var/lib/mysql                                                    = 285 MB
 #
 # 224 bytes unlock 285 megabytes. What makes them dangerous is not where they
@@ -84,8 +84,8 @@ if [ -z "${BASH_VERSION:-}" ]; then
 	exit 2
 fi
 
-SSH_OPTS=${NGC_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}
-SSH_KEY=${NGC_SSH_KEY:-}
+SSH_OPTS=${CD_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}
+SSH_KEY=${CD_SSH_KEY:-}
 
 usage() {
 	cat >&2 <<'EOF'
@@ -96,15 +96,15 @@ Beide Ordner werden angelegt und duerfen noch nicht da sein: eine Sicherung,
 die in eine vorhandene hineinschreibt, ist zwei halbe Staende.
 
 Die Schluessel gehen NICHT in den Daten-Ordner. 224 Byte unter
-/etc/ngc/db-keys schliessen 285 MB Datenbank auf, und der dbKey aus
+/etc/cd/db-keys schliessen 285 MB Datenbank auf, und der dbKey aus
 controller.json oeffnet die Datenbank jedes Controllers und die Datenordner
 aller Apps. Der Schluessel-Ordner ist nur die Durchfuhr: was darin landet,
 gehoert in den Passwortmanager und danach geloescht. Zwei Ordner auf derselben
 Platte sind keine Trennung.
 
 Umgebung:
-  NGC_SSH_KEY    Schluesseldatei fuer ssh
-  NGC_SSH_OPTS   weitere ssh-Angaben
+  CD_SSH_KEY    Schluesseldatei fuer ssh
+  CD_SSH_OPTS   weitere ssh-Angaben
 EOF
 }
 
@@ -306,9 +306,9 @@ fi
 STEMPEL=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # The one path this writes on the machines themselves, and it is removed again
-# at the end of every machine: ngc-controller backup writes a file, and it has
+# at the end of every machine: cd-controller backup writes a file, and it has
 # to write it where the machine can reach it.
-PROBE=/var/tmp/ngc-sicherung-lauf
+PROBE=/var/tmp/cd-sicherung-lauf
 
 fehler=0
 for ziel in "$@"; do
@@ -325,17 +325,17 @@ for ziel in "$@"; do
 	notiz "Sicherung von $name ($ziel), $STEMPEL"
 	notiz ""
 
-	# 1. /etc/ngc. First, because without it every other part of this folder
+	# 1. /etc/cd. First, because without it every other part of this folder
 	#    is bytes nobody opens again - and because a machine that has none is
-	#    no NGC machine and the rest would be a quiet empty folder.
-	if fern "$ziel" test -d /etc/ngc; then
-		her "$ziel" /etc/ngc "$sordner/etc-ngc.tar" || fehlt "etc-ngc.tar"
-		notiz "etc-ngc.tar          NICHT HIER. Die Schluessel dieses Rechners liegen im"
+	#    no CirroDesk machine and the rest would be a quiet empty folder.
+	if fern "$ziel" test -d /etc/cd; then
+		her "$ziel" /etc/cd "$sordner/etc-cd.tar" || fehlt "etc-cd.tar"
+		notiz "etc-cd.tar          NICHT HIER. Die Schluessel dieses Rechners liegen im"
 		notiz "                     Schluessel-Ordner dieses Laufs, und ohne sie ist alles in"
 		notiz "                     diesem Ordner Geheimtext - ausser app-daten.tar."
 		{
 			printf 'Schluessel von %s (%s), %s\n\n' "$name" "$ziel" "$STEMPEL"
-			printf 'etc-ngc.tar  DIE SCHLUESSEL DIESES RECHNERS.\n'
+			printf 'etc-cd.tar  DIE SCHLUESSEL DIESES RECHNERS.\n'
 			printf '  controller.json  dbKey (oeffnet state.db UND die Datenordner aller Apps),\n'
 			printf '                   noiseKey (die Kennung dieses Rechners in der Vertrauensliste),\n'
 			printf '                   anchor, releaseKey.\n'
@@ -343,10 +343,10 @@ for ziel in "$@"; do
 			printf '  db-keys          224 Byte, die 285 MB verschluesselte MariaDB aufschliessen.\n'
 			printf '  tls, db-ca       Zertifikate und ihre Schluessel.\n\n'
 			printf 'mariadb-cnf.tar  DIE MARIADB-KONFIGURATION DIESES RECHNERS (nur auf Datenbankknoten).\n'
-			printf '  60-ngc.cnf allein traegt wsrep_cluster_address, wsrep_node_name,\n'
+			printf '  60-cd.cnf allein traegt wsrep_cluster_address, wsrep_node_name,\n'
 			printf '  wsrep_node_address, wsrep_sst_method und wsrep_sst_auth - das Konto, mit dem\n'
 			printf '  ein eintretender Knoten die ganze Datenbank kopiert - und die beiden Pfade\n'
-			printf '  der file_key_management. In /etc/ngc steht davon nichts: ohne diese Datei\n'
+			printf '  der file_key_management. In /etc/cd steht davon nichts: ohne diese Datei\n'
 			printf '  laesst sich ein Datenbankknoten nicht wieder aufbauen.\n\n'
 			printf 'app-daten.schluessel  DER SCHLUESSEL DER APP-DATEN DIESES RECHNERS.\n'
 			printf '  In diesem Lauf neu erzeugt, 32 Byte aus openssl rand, nur fuer diesen\n'
@@ -357,11 +357,11 @@ for ziel in "$@"; do
 			printf 'Passwortmanager und danach von dieser Platte geloescht. Solange es hier\n'
 			printf 'liegt, ist dieser Rechner so empfindlich wie %s selbst.\n\n' "$name"
 			printf 'sha256:\n'
-			printf '  %s\n' "$(cd "$sordner" && sha256sum etc-ngc.tar 2>/dev/null)"
+			printf '  %s\n' "$(cd "$sordner" && sha256sum etc-cd.tar 2>/dev/null)"
 		} >"$sordner/inhalt.txt"
 	else
-		echo "sicherung: $name hat kein /etc/ngc - uebersprungen." >&2
-		notiz "etc-ngc.tar          FEHLT: dieser Rechner hat kein /etc/ngc."
+		echo "sicherung: $name hat kein /etc/cd - uebersprungen." >&2
+		notiz "etc-cd.tar          FEHLT: dieser Rechner hat kein /etc/cd."
 		fehler=1
 		continue
 	fi
@@ -369,8 +369,8 @@ for ziel in "$@"; do
 	# 2. the controller's own database, through the command that exists. The
 	#    controller keeps running; that is the one sentence its help gives and
 	#    it was measured again on all three controllers of the installation.
-	if fern "$ziel" test -x /usr/lib/ngc/ngc-controller; then
-		fern "$ziel" "/usr/lib/ngc/ngc-controller backup $PROBE/state.db >/dev/null"
+	if fern "$ziel" test -x /usr/lib/cd/cd-controller; then
+		fern "$ziel" "/usr/lib/cd/cd-controller backup $PROBE/state.db >/dev/null"
 		fern "$ziel" cat "$PROBE/state.db" >"$ordner/state.db"
 		gleich "$ziel" "$PROBE/state.db" "$ordner/state.db" || fehlt "state.db"
 		notiz "state.db             die eigene Datenbank des Controllers: Vertrauensliste, die Zeilen der"
@@ -387,8 +387,8 @@ for ziel in "$@"; do
 		fern "$ziel" "rm -rf $PROBE/mariadb && mkdir -p $PROBE/mariadb && mariabackup --backup --target-dir=$PROBE/mariadb >$PROBE/mariabackup.log 2>&1"
 		her "$ziel" "$PROBE/mariadb" "$ordner/mariadb.tar" || fehlt "mariadb.tar"
 		fern "$ziel" cat "$PROBE/mariabackup.log" >"$ordner/mariabackup.log"
-		notiz "mariadb.tar          die Benutzerdaten der Anlage (ngc_user, ngc_blob, ngc_session, ngc_log)."
-		notiz "                     Die Tabellen sind verschluesselt; der Schluessel liegt in etc-ngc.tar"
+		notiz "mariadb.tar          die Benutzerdaten der Anlage (cd_user, cd_blob, cd_session, cd_log)."
+		notiz "                     Die Tabellen sind verschluesselt; der Schluessel liegt in etc-cd.tar"
 		notiz "                     unter db-keys und NICHT hier drin (gemessen: der Benutzername steht in"
 		notiz "                     keiner .ibd dieser Sicherung)."
 		notiz "                     Noch nicht zurueckgespielt, auf keiner Maschine: siehe das Dokument."
@@ -404,7 +404,7 @@ for ziel in "$@"; do
 	if fern "$ziel" test -d /etc/mysql/mariadb.conf.d; then
 		her "$ziel" /etc/mysql/mariadb.conf.d "$sordner/mariadb-cnf.tar" || fehlt "mariadb-cnf.tar"
 		notiz "mariadb-cnf.tar      NICHT HIER. Die MariaDB-Konfiguration dieses Rechners liegt im"
-		notiz "                     Schluessel-Ordner: 60-ngc.cnf traegt wsrep_sst_auth, das Konto, mit"
+		notiz "                     Schluessel-Ordner: 60-cd.cnf traegt wsrep_sst_auth, das Konto, mit"
 		notiz "                     dem ein eintretender Knoten die ganze Datenbank kopiert."
 	fi
 
@@ -424,8 +424,8 @@ for ziel in "$@"; do
 	#    app data are NOT lost with the dbKey as long as this tar exists, and
 	#    putting them back needs no key either - measured, both apps' data came
 	#    back onto a fresh machine out of this tar.
-	if fern "$ziel" test -d /var/lib/ngc/apps; then
-		if krypt "$ziel" /var/lib/ngc/apps "$ordner/app-daten.tar.enc" \
+	if fern "$ziel" test -d /var/lib/cd/apps; then
+		if krypt "$ziel" /var/lib/cd/apps "$ordner/app-daten.tar.enc" \
 			"$sordner/app-daten.schluessel"; then
 			notiz "app-daten.tar.enc    die Datenordner der Apps, VERSCHLUESSELT (AES-256-CTR)."
 			notiz "                     Der Schluessel dafuer ist in diesem Lauf neu erzeugt worden, gilt nur"
@@ -503,16 +503,16 @@ for ziel in "$@"; do
 done
 
 cat >"$ZIEL/LIESMICH.txt" <<EOF
-Sicherung einer NextGenCloud-Anlage - DIE DATEN, $STEMPEL
+Sicherung einer CirroDesk-Anlage - DIE DATEN, $STEMPEL
 
 Je Rechner ein Ordner, darin inhalt.txt mit der Liste und den Pruefsummen.
 
 DIE SCHLUESSEL LIEGEN NICHT HIER. Sie liegen im Schluessel-Ordner dieses
-Laufs, und das ist Absicht: 224 Byte unter /etc/ngc/db-keys schliessen 285 MB
+Laufs, und das ist Absicht: 224 Byte unter /etc/cd/db-keys schliessen 285 MB
 Datenbank auf, und der dbKey aus controller.json oeffnet die eigene Datenbank
 jedes Controllers und die Datenordner aller Apps. Ohne diese Dateien ist alles
 in diesem Ordner Geheimtext - von niemandem zu oeffnen, auch nicht von
-NextGenCloud.
+CirroDesk.
 
 DIE PRUEFSUMMEN STEHEN AUCH NICHT HIER, sondern als summen.txt im
 Schluessel-Ordner je Rechner. Eine Liste neben ihren Dateien faengt nur einen
@@ -540,12 +540,12 @@ Dort steht auch, was dabei NICHT zurueckkam.
 EOF
 
 cat >"$SCHLUESSEL/LIESMICH.txt" <<EOF
-Sicherung einer NextGenCloud-Anlage - DIE SCHLUESSEL, $STEMPEL
+Sicherung einer CirroDesk-Anlage - DIE SCHLUESSEL, $STEMPEL
 
 DIESER ORDNER IST NUR DIE DURCHFUHR, KEIN AUFBEWAHRUNGSORT.
 
 Was hier liegt, gehoert in den Passwortmanager dieses Hauses und danach von
-dieser Platte geloescht. Je Rechner ein etc-ngc.tar (10 bis 20 KB), wo der
+dieser Platte geloescht. Je Rechner ein etc-cd.tar (10 bis 20 KB), wo der
 Rechner Apps traegt ein app-daten.schluessel von 45 Byte, und eine summen.txt
 mit den Pruefsummen des Daten-Ordners.
 

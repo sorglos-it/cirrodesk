@@ -232,7 +232,7 @@ test("all nine MAX_* limits are pinned on both sides, not just over", async ({ s
 // at most 253 bytes (shared/proof/proof.go:212, ValidRPID; checked from
 // shared/trust/trust.go:497). trust.js's validateList did not have this line
 // at all. None of the 24 vectors ever sets an invalid rp.id - all 52
-// payloads carry "ngc.example.org" - so this is this task's own case, built
+// payloads carry "cd.example.org" - so this is this task's own case, built
 // directly against validateList; both sides of the 253-byte limit too.
 test("rp.id is checked against Go's relying party grammar, both sides", async ({ shell }) => {
   const out = await shell.evaluate(async () => {
@@ -252,10 +252,10 @@ test("rp.id is checked against Go's relying party grammar, both sides", async ({
     });
     return {
       empty: withRPID(""), // no passkey in this list, so this is Go's own zero value, never checked
-      valid: withRPID("ngc.example.org"),
-      scheme: withRPID("https://ngc.example.org"),
-      upperCase: withRPID("NGC.example.org"),
-      withPort: withRPID("ngc.example.org:8443"),
+      valid: withRPID("cd.example.org"),
+      scheme: withRPID("https://cd.example.org"),
+      upperCase: withRPID("CirroDesk.example.org"),
+      withPort: withRPID("cd.example.org:8443"),
       atLimit: withRPID("a".repeat(253)),
       overLimit: withRPID("a".repeat(254)),
     };
@@ -365,7 +365,7 @@ test("validateList and the exported node/store checks refuse wrong-typed bytes, 
         nodes: [{ id: "ctl-1", kind: "controller", name: "n", noise: thirtyTwoCharString,
           sign: new Uint8Array(0), url: "", tls: new Uint8Array(0), rootUsers: [], rootRoles: [] }],
       })),
-      listStringAutoKey: t.validateList(base({ auto: [{ target: "ngc-web", key: thirtyTwoCharString }] })),
+      listStringAutoKey: t.validateList(base({ auto: [{ target: "cd-web", key: thirtyTwoCharString }] })),
       objectId: t.validateList(base({
         users: [{ id, name: "admin", roles: ["admin"], keys: [{ ...validKey(), id: {} }] }],
       })),
@@ -417,7 +417,7 @@ test("validateList refuses wrong-typed lists on every array field, and never thr
       url: "wss://api-1.test:7443/tunnel", tls: new Uint8Array(32), rootUsers: [], rootRoles: [],
     });
     const validStoreObj = () => ({ id: "store", name: "s", url: "https://s.example", key: new Uint8Array(32) });
-    const validAuto = () => ({ target: "ngc-web", key: new Uint8Array(32) });
+    const validAuto = () => ({ target: "cd-web", key: new Uint8Array(32) });
     const base = (extra) => ({
       seq: 1, prev: new Uint8Array(0), issued: 1, installation: id,
       rp: { id: "", origins: [] },
@@ -918,7 +918,7 @@ test("tlsPin hashes deterministically and encodeList matches Go's field order an
         { id: "ctl-1", kind: "controller", name: "n", noise: new Uint8Array(32), sign: new Uint8Array(0),
           url: "", tls: new Uint8Array(0), rootUsers: [adminId], rootRoles: [] },
       ],
-      stores: [{ id: "global", name: "NGC Store", url: "https://store.example", key: new Uint8Array(32) }],
+      stores: [{ id: "global", name: "CirroDesk Store", url: "https://store.example", key: new Uint8Array(32) }],
       auto: [{ target: "system", key: new Uint8Array(0) }],
     };
     const expected = {
@@ -941,7 +941,7 @@ test("tlsPin hashes deterministically and encodeList matches Go's field order an
         { id: "ctl-1", kind: "controller", name: "n", noise: b64encode(new Uint8Array(32)),
           rootUsers: [adminId] },
       ],
-      stores: [{ id: "global", name: "NGC Store", url: "https://store.example", key: b64encode(new Uint8Array(32)) }],
+      stores: [{ id: "global", name: "CirroDesk Store", url: "https://store.example", key: b64encode(new Uint8Array(32)) }],
       auto: [{ target: "system" }],
     };
     const encoded = new TextDecoder().decode(t.encodeList(list));

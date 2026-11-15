@@ -1,14 +1,14 @@
 # Datenbank
 
-Dein Ordner: `apps/server-db/`, dazu `scripts/ngc-db.sh` im ulh-Repo (`shared/ulh.md`).
+Dein Ordner: `apps/server-db/`, dazu `scripts/cd-db.sh` im ulh-Repo (`shared/ulh.md`).
 Verträge: V4, V6.
 
-Aufbau: das Programm `ngc-db` (`main.go`, Logik in `classes/dbcli/`) sichert und spielt den MariaDB-Knoten des Rechners mit `mariabackup` zurück (`ngc-db backup|restore <Ordner>`); SQLite sichert `ngc-api backup`. `classes/` enthält die Umsetzungen von `dbapi`, je ein Go-Paket
+Aufbau: das Programm `cd-db` (`main.go`, Logik in `classes/dbcli/`) sichert und spielt den MariaDB-Knoten des Rechners mit `mariabackup` zurück (`cd-db backup|restore <Ordner>`); SQLite sichert `cd-api backup`. `classes/` enthält die Umsetzungen von `dbapi`, je ein Go-Paket
 als Unterordner (`classes/mariadb/`, `classes/sqlite/`), damit jedes Programm nur den Treiber
 bekommt, den es braucht. `sql/` enthält die nummerierten Migrationen.
 
 `classes/migrate/` kennt SQL und keinen Treiber; `classes/migraterun/` ist der Läufer darüber,
-den `ngc-api migrate` ruft (`Run`, `Needed`). Der Läufer ist ein eigenes Paket, weil
+den `cd-api migrate` ruft (`Run`, `Needed`). Der Läufer ist ein eigenes Paket, weil
 `classes/sqlite/` seinerseits `migrate` importiert — ein Import von `sqlite` innerhalb von
 `migrate` ist ein Ring, gemessen: „import cycle not allowed".
 
@@ -17,16 +17,16 @@ den `ngc-api migrate` ruft (`Run`, `Needed`). Der Läufer ist ein eigenes Paket,
 - `dbapi.Store` für MariaDB und für SQLite umsetzen; die SQLite-Umsetzung dient zugleich dem
   Controller als `dbapi.Local`. Beide müssen `dbtest.Run` bestehen, und zwar mit denselben Tests.
 - MariaDB-Galera-Cluster mit mindestens drei Knoten einrichten: TLS zwischen den Knoten,
-  eingebaute Verschlüsselung (AES-256), Konto `ngc` nur mit Lesen und Schreiben, Konto
-  `ngc_migrate` für das Schema.
+  eingebaute Verschlüsselung (AES-256), Konto `cd` nur mit Lesen und Schreiben, Konto
+  `cd_migrate` für das Schema.
 - Knotenadressen sind `<host>:<port>` nach `trust.ValidHostPort` (`shared/README.md`, Regel
-  „Adressen“), in `db.nodes` und `migrate.nodes` ebenso wie in `nodes` von `ngc-db`; die Länge
+  „Adressen“), in `db.nodes` und `migrate.nodes` ebenso wie in `nodes` von `cd-db`; die Länge
   begrenzt `config.MaxField`. Die Skripte prüfen den Host mit `host.sh`
   (`shared/testdata/ulh/host.sh`: DNS-Name in Kleinbuchstaben oder IPv4, kein IPv6).
 - TLS zu MariaDB: eine CA je Installation. Das Zertifikat eines Knotens nennt genau diesen Host
   (bei IPv4 als IP-Adresse); MariaDB verlangt TLS 1.3. Das Zertifikat der CA (PEM,
-  `config.DB.CA`, höchstens `config.MaxCA`) kommt nach `db_ca` (`ngc-api`) und `migrate_ca`
-  (`ngc-controller`); API und Controller prüfen damit jeden Knoten (`config.DB.TLSConfig`), nie eine
+  `config.DB.CA`, höchstens `config.MaxCA`) kommt nach `db_ca` (`cd-api`) und `migrate_ca`
+  (`cd-controller`); API und Controller prüfen damit jeden Knoten (`config.DB.TLSConfig`), nie eine
   Verbindung ohne Prüfung. Auch die Replikation zwischen den Galera-Knoten prüft gegen dieselbe CA
   der Installation. Der private Schlüssel der CA kommt nie in answer.yaml, eine Konfiguration oder
   das Repo. Wie er verwahrt wird und wie weitere Knoten ihre Zertifikate bekommen, legt dein Plan
@@ -37,7 +37,7 @@ den `ngc-api migrate` ruft (`Run`, `Needed`). Der Läufer ist ein eigenes Paket,
 - SQLite verschlüsselt (AES-256-XTS, Kandidat `github.com/ncruces/go-sqlite3` mit `vfs/xts`) für den
   Controller und für „alles auf einem Pi".
 - Nummerierte Migrationen, die auch mit der vorigen API-Version laufen. Sie gehören zur
-  API-Version, stecken in der Release-Datei `ngc-api` und werden vor der neuen API eingespielt, von
+  API-Version, stecken in der Release-Datei `cd-api` und werden vor der neuen API eingespielt, von
   genau einem Controller mit Rolle `db` mit dem Zugang `migrate` aus seiner `controller.json`.
 - Lastverteilung über die Knoten, Ausweichen bei Ausfall, Wiederholung, wenn Galera eine
   Transaktion wegen eines gleichzeitigen Schreibzugriffs abweist.

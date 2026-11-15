@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The fakes below stand in for package browser and package controllers. Only

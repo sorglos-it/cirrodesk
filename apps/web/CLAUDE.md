@@ -1,6 +1,6 @@
 # Webinterface
 
-Dein Ordner: `apps/web/`, dazu `scripts/ngc-web.sh` im ulh-Repo (`shared/ulh.md`). Verträge: V1,
+Dein Ordner: `apps/web/`, dazu `scripts/cd-web.sh` im ulh-Repo (`shared/ulh.md`). Verträge: V1,
 V2, V5, V6, V7 (`shared/README.md`). HTML, CSS, JavaScript und PHP, ohne Framework und ohne
 Build-Schritt.
 
@@ -12,7 +12,7 @@ apps/web/
 ├── public/          Webroot: nur das ist von außen erreichbar (Apache zeigt auf diesen Ordner)
 │   ├── index.php    einziger Einstiegspunkt, liefert den Desktop aus
 │   └── assets/      Desktop (Fenster, Taskleiste, Startmenü, Anmeldung), die Verträge in
-│                    JavaScript, ngc.js für Apps (MIT); Fremdcode für den Browser in
+│                    JavaScript, cd.js für Apps (MIT); Fremdcode für den Browser in
 │                    assets/vendor/
 ├── assets/          NICHT im Webroot, und das ist der Zweck: je mitgelieferte App ein
 │                    Ordner (apps/calculator, apps/terminal) mit genau dem, was im ui/
@@ -25,7 +25,7 @@ apps/web/
 │                    erreichbar, und die Kopfzeilen für die Dateien, die Apache selbst
 │                    ausliefert; eine eigene Richtlinie, nicht die der Seite, Begründung
 │                    je Zeile in der Datei) und apache-apis.conf.example (die Form, die
-│                    ngc-web für die API-Server schreibt - nie von Hand kopieren)
+│                    cd-web für die API-Server schreibt - nie von Hand kopieren)
 └── tests/           Playwright; npm nur hier
 ```
 
@@ -55,13 +55,13 @@ dunkel. Dazu:
 - Ersteinrichtung: Zuerst fragst du den Einmal-Code ab (`session.NormalizeSetupCode`), dann prüfst
   du das Angebot von `GET /api/v1/setup` damit wie `session.ParseSetupOffer`, bevor du `info` liest.
   Fassung 1: der Admin, die API-Knoten aus `info.nodes`, wahlweise der globale Store aus
-  `info.store`, Dauerfreigaben nur für `ngc-web`, `ngc-api` und `ngc-controller` mit
+  `info.store`, Dauerfreigaben nur für `cd-web`, `cd-api` und `cd-controller` mit
   `info.releaseKey` und für `system`. Du schickst sie als `session.Setup` mit `session.SetupMAC`
   über die genauen Bytes der Nutzlast; was die API prüft, sagt `session.VerifySetup`. Den Code
   schickst du nie.
 - Sitzung: eigene Schlüsselpaare (Ed25519 und X25519, nicht exportierbar), `session.ClientCert`
   bauen und unterschreiben lassen, `session.APICert` prüfen (`session.VerifyAPI`), Noise-Sitzung
-  zur API (`noisep`, Prolog `ngc/session/v1`), Frames nach `wire`, Ablauf nach
+  zur API (`noisep`, Prolog `cd/session/v1`), Frames nach `wire`, Ablauf nach
   `shared/README.md`, Abschnitt „Kanäle“. Deine Kanalnummern zählst du selbst, bis sie wieder
   frei sind (CLOSE gesendet und empfangen), und öffnest nie mehr als `wire.MaxSessionChannels`;
   sonst beendet die API die Leitung.
@@ -75,8 +75,8 @@ dunkel. Dazu:
   abmelden. Neue Fassungen per `GET /api/v1/trust?from=N` (`session.TrustChain`, seitenweise mit
   `more`); die Steuernachricht `trust` ist nur ein Hinweis. Aus der Liste kommen die Schlüssel der
   Controller für Ende zu Ende. Neue Fassungen, die du baust, bestehen `trust.List.Validate` und
-  gehen über die Kern-Aktion `ngc.users/api/trust` an die API.
-- Wartende Controller (`ngc.users/pending`) und API-Server (`ngc.users/pending-api`): Den
+  gehen über die Kern-Aktion `cd.users/api/trust` an die API.
+- Wartende Controller (`cd.users/pending`) und API-Server (`cd.users/pending-api`): Den
   Fingerabdruck, den der Admin mit der Ausgabe von ulh vergleicht, rechnest du selbst aus
   (`tunnel.Fingerprint` des Schlüssels bzw. `tunnel.JoinFingerprint` über `node`, `noise`, `sign`,
   `tls` und `url`). Einen API-Server nimmst du als `trust.Node` der Art `api` auf, mit genau den
@@ -102,10 +102,10 @@ dunkel. Dazu:
   `tunnel.PairCode.Check` bzw. `tunnel.JoinCode.Check` gegen deine neueste geprüfte Fassung
   stimmt; nennt der Code eine neuere, holst und prüfst du sie zuerst. Dazu Nummer und Fingerabdruck
   des Ankers (`tunnel.Fingerprint` des Hashes).
-- Apps: abgeschottete iframes, `ngc.js` (MIT) mit `ngc.call` und `ngc.open`, strenge CSP,
+- Apps: abgeschottete iframes, `cd.js` (MIT) mit `cd.call` und `cd.open`, strenge CSP,
   Oberflächen für App-Store (Kataloge mit `store.VerifyCatalog` prüfen), Benutzer & Rechte, Rechner
   und Terminal, Anzeige und Einstellung der Updates.
-- Oberflächen der Apps (`ngc.desktop/ui`) kommen als ui-tar in genau einer Form, die der Kommentar
+- Oberflächen der Apps (`cd.desktop/ui`) kommen als ui-tar in genau einer Form, die der Kommentar
   in `store/ui.go` Feld für Feld festlegt (`store.UIWriter` schreibt sie, `store.WalkUI` liest
   sie). Dein Leser folgt diesen Regeln Zeile für Zeile und lehnt alles andere ab; die Testdaten
   sind `ui.json`. Die Fälle „… header only“ darin lehnst du schon nach dem Kopf ab, ohne Daten zu
@@ -113,10 +113,10 @@ dunkel. Dazu:
   `store.MaxUIFile` je Datei, `store.MaxUITotal` insgesamt und `store.MaxEntries` Einträgen stehen
   nicht in `ui.json`; die erzeugst du in deinen Tests selbst. Für die Grenze der Verzeichnisse
   (`store.MaxDirs`) gibt es dagegen Fälle in `ui.json`.
-- Bevor irgendetwas einer App-Oberfläche läuft, holst du ihren Beweis (`ngc.desktop/ui-proof`,
+- Bevor irgendetwas einer App-Oberfläche läuft, holst du ihren Beweis (`cd.desktop/ui-proof`,
   `core.UIProof`) und prüfst ihn wie `core.ParseUIProof` und `core.VerifyUIProof` für App und
   Version aus `core.DesktopApp` gegen deine neueste geprüfte Fassung (Testdaten `uiproof.json`).
-  Dann lädst du `ngc.desktop/ui` ganz, vergleichst sein SHA-256 mit der Prüfsumme aus dem Beweis
+  Dann lädst du `cd.desktop/ui` ganz, vergleichst sein SHA-256 mit der Prüfsumme aus dem Beweis
   und liest es erst danach nach den Regeln von `store.WalkUI`. Geprüfte Prüfsummen merkst du dir je
   App und Version, Kataloge je Store und `seq`; nach jeder neuen Fassung der Vertrauensliste prüfst
   du die Beweise neu, vor allem die hochgeladener Apps (sie gelten nur, solange Schlüssel und
@@ -126,22 +126,22 @@ dunkel. Dazu:
   wird die Seite aus `core.DesktopApp.Entry` – nur, wenn sie eine Datei des geprüften ui-tar ist
   (`store.ValidPath`, und `store.WalkUI` hat sie geliefert); sonst zeigst du einen Fehler. Der
   Wert ist nicht signiert und wählt allein unter diesen Dateien.
-- Hochladen (`ngc.store/upload`): SHA-256, Manifest (`store.ParseManifest`) und UI-Prüfsumme
+- Hochladen (`cd.store/upload`): SHA-256, Manifest (`store.ParseManifest`) und UI-Prüfsumme
   (`store.PackageUI`, Testdaten `packui.json`) rechnest du aus der Datei, die du schickst. Du liest
   sie wie `store.Walk`, also auch mit PAX-Köpfen und langen GNU-Namen, nicht nur die USTAR-Pakete
   aus `packui.json`; was du nicht lesen kannst, lehnst du ab. Weicht `core.UploadResult` davon ab,
   brichst du ab. Unterschrieben werden nur deine eigenen Werte: `core.ActivateParams` mit `sha256`,
   `ui` und `grants` genau gleich den `needs` des Manifests; erlaubt der Admin nicht alle, wird die
   App nicht aktiviert. Bei Store-Apps kommen `sha256` und `ui` aus dem geprüften Katalog.
-- Ziel einer Aktivierung: Der Admin wählt den Knoten aus `ngc.users/nodes` (`core.NodeInfo`); für
+- Ziel einer Aktivierung: Der Admin wählt den Knoten aus `cd.users/nodes` (`core.NodeInfo`); für
   eine App mit Diensten nur einen Controller, der online ist und die Rolle `services` hat. Die
   Werte sind unsignierte Hinweise; was er nicht ausführen kann, lehnt der Controller ab.
-- Updates (`ngc.store/updates`): eine Zeile je Ziel und Controller (`core.UpdateInfo`). Ein Update
+- Updates (`cd.store/updates`): eine Zeile je Ziel und Controller (`core.UpdateInfo`). Ein Update
   per Klick ist je Zeile eine Root-Aufgabe `install` mit `target`, `version` = `available` und
   `sha256` der Zeile (nur bei `state` `downloaded`; bei `system` nur `target`). `sha256` darfst du
   aus der Zeile nehmen: Der Controller installiert nur eine Datei, die zur Aufgabe und zum
   signierten Release oder Katalogeintrag passt, ein falscher Wert lässt das Update nur scheitern.
-  Schlüssel für Dauerfreigaben nimmst du nie von der API: für NGC-Teile den Release-Schlüssel aus
+  Schlüssel für Dauerfreigaben nimmst du nie von der API: für CirroDesk-Teile den Release-Schlüssel aus
   Fassung 1 (`info.releaseKey` des per MAC geprüften Angebots) oder aus den bestehenden
   Dauerfreigaben deiner geprüften Liste, für Apps den Schlüssel ihres Stores aus der geprüften
   Vertrauensliste; `key` der Zeile dient nur Anzeige und Abgleich. Für eine Zeile im Zustand
@@ -151,8 +151,8 @@ dunkel. Dazu:
 - JSON von außen strikt wie in Go (`shared/README.md`, Abschnitt „Striktes JSON“: Regeln und
   Budgets). Jede Grenze aus den Go-Paketen gilt auch hier. Texte für Menschen prüfst du wie
   `wire.ValidText`, Codepunkt für Codepunkt (`shared/README.md`, Regeln).
-- PHP: liefert die Seite aus, liest `/etc/ngc/web.json` (`apis`: Objekte mit `url` und `tls`) und
-  `/etc/ngc/trust-anchor.json` (`config`), verwaltet die Liste der API-Server. Kein App-Code läuft
+- PHP: liefert die Seite aus, liest `/etc/cd/web.json` (`apis`: Objekte mit `url` und `tls`) und
+  `/etc/cd/trust-anchor.json` (`config`), verwaltet die Liste der API-Server. Kein App-Code läuft
   im Webserver.
 
 ## Tests
@@ -163,8 +163,8 @@ dunkel. Dazu:
   `setup` in `session.json`, Aufgaben, Frames, Kern-Aktionen, Kataloge, ui-tar, Kopplungscodes,
   striktes JSON und Budget in `json.json`, UI-Prüfsummen in `packui.json`, UI-Beweise in
   `uiproof.json`, Hosts und Adressen in `url.json`: `hosts`, `tunnel`, `web`, `origins`,
-  `store`). `core.json` enthält jetzt `ngc.users/nodes`, `entry` in `ngc.desktop/apps` und eine
-  Zeile `needsgrants` in `ngc.store/updates`. Diese Tests laufen ohne API.
+  `store`). `core.json` enthält jetzt `cd.users/nodes`, `entry` in `cd.desktop/apps` und eine
+  Zeile `needsgrants` in `cd.store/updates`. Diese Tests laufen ohne API.
 - Ein Test zeigt, dass das Passwort den Browser nie verlässt (Mitschnitt der Anfragen).
 - Angriffe: eine untergeschobene Oberfläche (ui-tar, das nicht zum Beweis passt) und ein Mann in der
   Mitte bei der Ersteinrichtung (Angebot mit fremden Schlüsseln).

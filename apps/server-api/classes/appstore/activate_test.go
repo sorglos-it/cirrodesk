@@ -14,20 +14,20 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/login"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/login"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ const (
 	ctlNode     = "ctl-1"     // the controller of trusttest.Genesis, where admins may run root tasks
 	plainNode   = "ctl-plain" // a controller without the role services
 	adminSeed   = 0x44        // seed of the session key the tasks are signed with
-	catalogFile = "pkg.ngc"   // the file name the minted catalog points at
+	catalogFile = "pkg.cd"    // the file name the minted catalog points at
 )
 
 // actFixture is newFixture with a signed-in admin, a faked controller and a
@@ -213,7 +213,7 @@ func (af actFixture) carried(t *testing.T, node, action string, params any, id b
 
 // vectorPackage returns one package of shared/testdata/packui.json with its
 // canonical ui-tar: nothing here packs its own, so the ui-tar a case compares
-// against is the one ngc-store, the controller and the shell compute.
+// against is the one cd-store, the controller and the shell compute.
 func vectorPackage(t *testing.T, name string) (pkg, ui []byte) {
 	t.Helper()
 	for _, c := range loadUploadVectors(t) {

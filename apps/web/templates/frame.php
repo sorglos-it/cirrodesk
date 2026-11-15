@@ -10,7 +10,7 @@ declare(strict_types=1);
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<title>NGC</title>
+<title>CirroDesk</title>
 <script src="<?= htmlspecialchars($boot, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
 </head>
 <body></body>

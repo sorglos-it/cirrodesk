@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // FuzzHost holds Host to the grammar of the contract instead of only to not
@@ -19,13 +19,13 @@ import (
 // whole name Apache reads out of the address (SSLProxyCheckPeerName), never a
 // piece of one: a host cut at the wrong colon would still look like a name.
 func FuzzHost(f *testing.F) {
-	f.Add("wss://api-1.ngc.test:7443/tunnel")
+	f.Add("wss://api-1.cd.test:7443/tunnel")
 	f.Add("wss://[2001:db8::1]:7443/tunnel")
 	f.Add("wss://192.0.2.7:7443/tunnel")
-	f.Add("wss://api-1.ngc.test/tunnel")
-	f.Add("https://api-1.ngc.test:7443")
+	f.Add("wss://api-1.cd.test/tunnel")
+	f.Add("https://api-1.cd.test:7443")
 	f.Add("wss://:7443/tunnel")
-	f.Add("wss://api-1.ngc.test:7443/tunnel/tunnel")
+	f.Add("wss://api-1.cd.test:7443/tunnel/tunnel")
 	f.Add("")
 	f.Fuzz(func(t *testing.T, u string) {
 		got, err := Host(u)
@@ -68,7 +68,7 @@ func FuzzHost(f *testing.F) {
 func FuzzEnsureKeepsTheKey(f *testing.F) {
 	dir := f.TempDir()
 	certFile, keyFile := filepath.Join(dir, "api.crt"), filepath.Join(dir, "api.key")
-	_, want, err := Ensure(certFile, keyFile, "api-1.ngc.test", when)
+	_, want, err := Ensure(certFile, keyFile, "api-1.cd.test", when)
 	if err != nil {
 		f.Fatalf("ensure: %v", err)
 	}
@@ -88,7 +88,7 @@ func FuzzEnsureKeepsTheKey(f *testing.F) {
 		if err := os.WriteFile(certFile, in, 0o644); err != nil {
 			t.Fatalf("write certificate: %v", err)
 		}
-		cert, pin, err := Ensure(certFile, keyFile, "api-1.ngc.test", when)
+		cert, pin, err := Ensure(certFile, keyFile, "api-1.cd.test", when)
 		if err != nil {
 			t.Fatalf("ensure: %v", err)
 		}

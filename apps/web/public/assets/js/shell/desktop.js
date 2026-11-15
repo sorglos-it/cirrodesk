@@ -27,8 +27,8 @@ import {
 // it runs in the frame like an app out of the store, against a proven user
 // interface of its own (apps/web/assets/apps/calculator/, which is NOT in the
 // web root: see shell/fake-link.js). It could never have
-// stayed: core.AppParams refuses a core app ("ngc.") for ngc.desktop/ui and
-// ngc.desktop/ui-proof alike, so "ngc.calc" could not even have been asked for
+// stayed: core.AppParams refuses a core app ("cd.") for cd.desktop/ui and
+// cd.desktop/ui-proof alike, so "cd.calc" could not even have been asked for
 // a user interface. What it cost while it stood here is what the move bought -
 // it ran in the shell's own origin, with the whole DOM of the shell and
 // localStorage in reach.
@@ -42,8 +42,8 @@ import {
 // like one - which is also why the contract refuses them a user interface.
 const BUILTIN = {
   __proto__: null,
-  "ngc.store": storeApp,
-  "ngc.users": usersApp,
+  "cd.store": storeApp,
+  "cd.users": usersApp,
 };
 
 // tintOf picks one of the six by the app's id. A sum of the characters, which
@@ -59,7 +59,7 @@ function tintOf(id) {
 
 // The id of the Store, written once. The empty desktop offers it by name, and
 // a second spelling of it somewhere else is a button that opens nothing.
-const STORE_APP = "ngc.store";
+const STORE_APP = "cd.store";
 
 // Accent colours in the order of theme.js, with the KEY of the name the swatch
 // carries for a screen reader. Six colours, no colour picker: a wall of choices
@@ -94,7 +94,7 @@ class Desktop {
     this.session = session ?? null;
     this.trust = trust ?? null;
     // The release key of the initial setup: what a standing approval for an
-    // NGC part is signed with. It never comes out of an answer of the API -
+    // CirroDesk part is signed with. It never comes out of an answer of the API -
     // see approvalKey in apps/store.js for why.
     this.releaseKey = releaseKey ?? null;
 
@@ -1128,7 +1128,7 @@ export function startDesktop(root, { link, session, trust, releaseKey } = {}) {
 // touch the document before the desktop has built the element it paints.
 function localStorageWallpaper() {
   try {
-    return localStorage.getItem("ngc.wallpaper") ?? "";
+    return localStorage.getItem("cd.wallpaper") ?? "";
   } catch {
     return "";
   }

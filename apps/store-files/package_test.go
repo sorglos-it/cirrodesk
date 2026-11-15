@@ -1,6 +1,6 @@
 package main
 
-// The store side of the app: ngc-store packs the directory, a catalog signed
+// The store side of the app: cd-store packs the directory, a catalog signed
 // with a test key passes check -store, and the package passes store.Walk,
 // which the controller accepts packages with (install.Accept). The real
 // image is built on a build machine with podman (CLAUDE.md); store.Walk
@@ -15,15 +15,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/cli/classes"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/apps/cli/classes"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 func run(t *testing.T, args ...string) string {
 	t.Helper()
 	var out, errb bytes.Buffer
 	if rc := classes.Run(args, &out, &errb); rc != 0 {
-		t.Fatalf("ngc-store %s: exit %d: %s", strings.Join(args, " "), rc, errb.String())
+		t.Fatalf("cd-store %s: exit %d: %s", strings.Join(args, " "), rc, errb.String())
 	}
 	return out.String()
 }
@@ -49,7 +49,7 @@ func TestPackage(t *testing.T) {
 		copyTo(t, filepath.Join(src, filepath.FromSlash(name)), b)
 	}
 	copyTo(t, filepath.Join(src, "services", "amd64.tar"), []byte("stand-in image"))
-	pkg := filepath.Join(dir, "org.sorglos.files-1.0.0.ngc")
+	pkg := filepath.Join(dir, "org.sorglos.files-1.0.0.cd")
 	if out := run(t, "pack", src, pkg); !strings.HasPrefix(out, "org.sorglos.files 1.0.0\n") {
 		t.Fatalf("pack said %q", out)
 	}
@@ -75,7 +75,7 @@ func TestPackage(t *testing.T) {
 			t.Errorf("action %s: %+v %v", a, act, ok)
 		}
 	}
-	if len(m.Services) != 1 || m.Services[0].Command[0] != "/usr/lib/ngc/ngc-files" || len(m.Needs) != 0 {
+	if len(m.Services) != 1 || m.Services[0].Command[0] != "/usr/lib/cd/cd-files" || len(m.Needs) != 0 {
 		t.Errorf("service: %+v needs %v", m.Services, m.Needs)
 	}
 	run(t, "catalog", dir, filepath.Join(t.TempDir(), "store.key"), "test", "1")

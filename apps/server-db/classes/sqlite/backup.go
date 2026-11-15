@@ -11,7 +11,7 @@ import (
 
 	"github.com/ncruces/go-sqlite3"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // Backup writes a copy of the encrypted file to target.
@@ -31,7 +31,7 @@ func Backup(cfg config.DB, target string) error {
 	return backup(cfg, target, Options{}, nil)
 }
 
-// BackupWith is Backup with the knobs of Options. Nothing in NGC calls it
+// BackupWith is Backup with the knobs of Options. Nothing in CirroDesk calls it
 // with a non-zero Options; what it is for is a measurement of the "a
 // neighbour holds the file" sentence that does not have to wait the ten
 // seconds of DefaultBusyTimeout for it.
@@ -306,7 +306,7 @@ func beside(path string) []string {
 // the target went through nothing, so "/dir/./state.db" and
 // "/dir/sub/../state.db" named the database and did not equal its path. They
 // reached os.Rename; what refused them was Windows, not this code, and on
-// linux/amd64 and linux/arm64 - the targets NGC builds for - os.Rename would
+// linux/amd64 and linux/arm64 - the targets CirroDesk builds for - os.Rename would
 // have replaced the running database. So the target goes through the same
 // check as the path, and both are compared only once they are clean.
 //
@@ -470,7 +470,7 @@ func copyFile(src, dst string, buf []byte) (bool, error) {
 // Every other failure of this file says in German which step gave up -- the
 // target, the missing database, the journal mode, the placing of the copy.
 // The write lock of freeze handed its error on bare, and that is the step that
-// gives way first: measured on 13.10.2026 with two ngc-api on one file and the
+// gives way first: measured on 13.10.2026 with two cd-api on one file and the
 // backup as a third pool, it gave up after 10,005 s with the driver's
 // "sqlite3: database is locked" and nothing else -- no step, no word that
 // busy_timeout had already waited its ten seconds, nothing that says this

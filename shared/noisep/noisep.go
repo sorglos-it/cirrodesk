@@ -1,4 +1,4 @@
-// Package noisep fixes how NGC uses the Noise protocol framework: always
+// Package noisep fixes how CirroDesk uses the Noise protocol framework: always
 // Noise_KK_25519_AESGCM_SHA256, for three uses told apart by the prologue:
 // session (browser -> API; static keys ClientCert.DH and APICert.DH), tunnel
 // (controller -> API; keys from the trust list, before that from the pairing
@@ -27,9 +27,9 @@ var Suite = noise.NewCipherSuite(noise.DH25519, noise.CipherAESGCM, noise.HashSH
 
 // Prologues and sizes.
 const (
-	PrologueSession = "ngc/session/v1" // browser ↔ API, the browser initiates
-	PrologueTunnel  = "ngc/tunnel/v1"  // controller ↔ API, the controller initiates
-	PrologueE2E     = "ngc/e2e/v1"     // shell ↔ controller per channel, the shell initiates; see E2EPrologue
+	PrologueSession = "cd/session/v1" // browser ↔ API, the browser initiates
+	PrologueTunnel  = "cd/tunnel/v1"  // controller ↔ API, the controller initiates
+	PrologueE2E     = "cd/e2e/v1"     // shell ↔ controller per channel, the shell initiates; see E2EPrologue
 	MaxMessage      = 65535
 	TagSize         = 16
 	MaxPlaintext    = MaxMessage - TagSize
@@ -40,7 +40,7 @@ var ErrTooLarge = errors.New("noisep: message too large")
 
 // E2EPrologue binds an end-to-end handshake to exactly one channel:
 //
-//	"ngc/e2e/v1" 0x00 controllerID 0x00 app 0x00 service 0x00 action 0x00 SHA-256(params) SHA-256(task)
+//	"cd/e2e/v1" 0x00 controllerID 0x00 app 0x00 service 0x00 action 0x00 SHA-256(params) SHA-256(task)
 //
 // (each SHA-256 as 32 raw bytes, one after the other). params and task are
 // the values of the OPEN's params and task members exactly as the shell wrote

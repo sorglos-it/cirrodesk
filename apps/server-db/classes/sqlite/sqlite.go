@@ -1,4 +1,4 @@
-// Package sqlite opens the encrypted SQLite file of NGC: the database of a
+// Package sqlite opens the encrypted SQLite file of CirroDesk: the database of a
 // controller, and the one that stands in for MariaDB when everything runs on
 // one Pi. The file is encrypted with AES-256-XTS, so a copy of it is worth
 // nothing without the key from the configuration.
@@ -20,17 +20,17 @@ import (
 	sqlitedriver "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/vfs/xts" // registers the encrypting VFS "xts"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // DefaultBusyTimeout is how long a writer waits for another one before it
 // gives up with "busy"; the store repeats such an operation itself. Every
-// part of NGC opens with this one - OpenDB and Backup take no options - and
+// part of CirroDesk opens with this one - OpenDB and Backup take no options - and
 // TestOpenDBSetsThePragmasOfTheFile holds the number against the file.
 const DefaultBusyTimeout = 10 * time.Second
 
 // Options are the knobs of one pool that are not part of the configuration.
-// The zero Options is what NGC runs with, so OpenDB(cfg) and
+// The zero Options is what CirroDesk runs with, so OpenDB(cfg) and
 // OpenDBWith(cfg, Options{}) open the same file in the same way.
 //
 // BusyTimeout exists because the deadline is the one thing a MEASUREMENT has
@@ -44,7 +44,7 @@ const DefaultBusyTimeout = 10 * time.Second
 //
 // It is a deadline and not a switch: zero means DefaultBusyTimeout, and a
 // negative one is refused rather than turned into "do not wait at all" - a
-// pool that gives up immediately is a different file than the one NGC opens,
+// pool that gives up immediately is a different file than the one CirroDesk opens,
 // and nothing should reach it by leaving a field empty the wrong way.
 type Options struct {
 	BusyTimeout time.Duration
@@ -124,7 +124,7 @@ const (
 // page cache, the journal and the copy a statement makes while it binds the
 // blob. The driver's own default is 4096 pages (256 MiB) on a 64-bit machine
 // and 512 pages (32 MiB) on a 32-bit one - the largest blob would not fit
-// through a 32-bit build at all, which is one more reason NGC builds only
+// through a 32-bit build at all, which is one more reason CirroDesk builds only
 // linux/amd64 and linux/arm64.
 const maxMemory = 512 << 20
 
@@ -136,7 +136,7 @@ const maxMemory = 512 << 20
 // beside the writes takes OpenRW.
 func OpenDB(cfg config.DB) (*sql.DB, error) { return OpenDBWith(cfg, Options{}) }
 
-// OpenDBWith is OpenDB with the knobs of Options. Nothing in NGC calls it
+// OpenDBWith is OpenDB with the knobs of Options. Nothing in CirroDesk calls it
 // with a non-zero Options; what it is for is a measurement that has to wait
 // out the busy deadline without waiting ten seconds for it.
 //
@@ -206,7 +206,7 @@ func OpenRW(cfg config.DB) (write, read *sql.DB, err error) {
 // deadline, because a measurement that shortens one and not the other would
 // be measuring two different files.
 //
-// Nothing in NGC calls it with a non-zero Options.
+// Nothing in CirroDesk calls it with a non-zero Options.
 func OpenRWWith(cfg config.DB, opt Options) (write, read *sql.DB, err error) {
 	if write, err = OpenDBWith(cfg, opt); err != nil {
 		return nil, nil, err
@@ -315,7 +315,7 @@ func fileURL(path string) (string, error) {
 // "/"), which on the targets linux/amd64 and linux/arm64 is exactly what
 // filepath.IsAbs says; on a developer's machine it lets the tests run with
 // that machine's own absolute paths. It also has to be the short form of
-// itself, so that no "/var/lib/ngc/../../etc/x.db" walks out of the place the
+// itself, so that no "/var/lib/cd/../../etc/x.db" walks out of the place the
 // installation gave the database.
 //
 // "?" and "#" open the query and the fragment of an SQLite URI. Escaped, they

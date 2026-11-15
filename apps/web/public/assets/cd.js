@@ -1,5 +1,5 @@
 /*!
- * ngc.js - the library an NGC app talks to the shell with.
+ * cd.js - the library a CirroDesk app talks to the shell with.
  * Copyright (c) 2026 Sorglos Thomas Weirich. MIT licence.
  *
  * An app reaches nothing but its own services, and only through here.
@@ -36,10 +36,10 @@
   window.addEventListener("message", function (e) {
     if (e.source !== parent) return;
     var m = e.data;
-    if (!m || m.ngc !== 1) return;
+    if (!m || m.cd !== 1) return;
     if (m.op === "theme") {
-      ngc.theme = m.theme;
-      ngc.accent = m.accent;
+      cd.theme = m.theme;
+      cd.accent = m.accent;
       themeHandlers.forEach(function (f) {
         try {
           f(m.theme, m.accent);
@@ -66,7 +66,7 @@
 
   function send(op, extra) {
     var id = nextID++;
-    var msg = { ngc: 1, token: token, id: id, op: op };
+    var msg = { cd: 1, token: token, id: id, op: op };
     for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) msg[k] = extra[k];
     parent.postMessage(msg, "*");
     return id;
@@ -78,7 +78,7 @@
   var lang = (script && script.dataset && script.dataset.lang) || "";
   if (["de", "en", "fr", "it", "es"].indexOf(lang) < 0) lang = "en";
 
-  var ngc = {
+  var cd = {
     lang: lang,
     version: 1,
     // What the shell looks like right now. The shell writes it into the
@@ -114,13 +114,13 @@
       var id = send("open", { service: service, action: action, params: params });
       var s = {
         write: function (data) {
-          parent.postMessage({ ngc: 1, token: token, id: id, op: "send", data: data }, "*");
+          parent.postMessage({ cd: 1, token: token, id: id, op: "send", data: data }, "*");
         },
         end: function () {
-          parent.postMessage({ ngc: 1, token: token, id: id, op: "end" }, "*");
+          parent.postMessage({ cd: 1, token: token, id: id, op: "end" }, "*");
         },
         close: function () {
-          parent.postMessage({ ngc: 1, token: token, id: id, op: "close" }, "*");
+          parent.postMessage({ cd: 1, token: token, id: id, op: "close" }, "*");
         },
         onData: null,
         onClose: null,
@@ -129,5 +129,5 @@
       return Promise.resolve(s);
     },
   };
-  window.ngc = ngc;
+  window.cd = cd;
 })();

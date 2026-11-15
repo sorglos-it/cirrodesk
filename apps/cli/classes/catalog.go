@@ -12,10 +12,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // ErrSeq reports a sequence number that would not be higher than the one of
@@ -23,9 +23,9 @@ import (
 // is below the newest it has seen (store.ErrRollback); writing such a one is
 // a mistake of whoever runs the store, so it is caught here instead of at
 // every installation.
-var ErrSeq = errors.New("ngc-store: the catalog needs a higher sequence number than the last one")
+var ErrSeq = errors.New("cd-store: the catalog needs a higher sequence number than the last one")
 
-// CatalogFile is the name ngc-store reads the last catalog of a directory
+// CatalogFile is the name cd-store reads the last catalog of a directory
 // under and writes the new one to.
 const CatalogFile = "catalog.json"
 
@@ -39,7 +39,7 @@ const CatalogFile = "catalog.json"
 // and checksum need.
 const EncSuffix = ".enc"
 
-// PriceSuffix names the price of a paid app: "app.ngc" is paid if
+// PriceSuffix names the price of a paid app: "app.cd" is paid if
 // "app.price.json" lies beside it and holds a store.Price. The manifest
 // carries no price — the same package may be sold by several stores at
 // different prices — and a catalog entry of an encrypted package without a
@@ -60,7 +60,7 @@ type CatalogOpts struct {
 
 // Catalog reads every package in dir and returns a signed catalog. The ui
 // hash of a version is store.PackageUI over the plain package, computed
-// before a paid app is encrypted; minNgc, the needs and the app's name come
+// before a paid app is encrypted; minCd, the needs and the app's name come
 // from the manifest.
 //
 // Catalog builds no character grammar for addresses. A URL it composes from
@@ -78,7 +78,7 @@ type CatalogOpts struct {
 // between two runs, and must not be: it carries seq and issued.
 //
 // Catalog writes no file at all. Whatever it refuses — a sequence number
-// that does not rise, a *.ngc that is no package, an address outside the
+// that does not rise, a *.cd that is no package, an address outside the
 // grammar, more versions than a catalog holds — leaves nothing behind,
 // because the caller only ever sees an envelope or an error. The subcommand
 // in Run writes the envelope, and only after Catalog returned one.
@@ -98,7 +98,7 @@ func Catalog(dir, keyFile string, opts CatalogOpts) (sign.Envelope, error) {
 	if opts.Seq <= last {
 		return sign.Envelope{}, ErrSeq
 	}
-	names, err := filepath.Glob(filepath.Join(dir, "*.ngc"))
+	names, err := filepath.Glob(filepath.Join(dir, "*.cd"))
 	if err != nil {
 		return sign.Envelope{}, err
 	}
@@ -205,7 +205,7 @@ func entryOf(path, base string) (appVersion, error) {
 	url := filepath.Base(download)
 	if base != "" {
 		// A base that already carries a query gets no file name appended:
-		// "…?token=x/app.ngc" is still inside store's character grammar, so
+		// "…?token=x/app.cd" is still inside store's character grammar, so
 		// the contract cannot catch it, and it names no file on any server.
 		// This is a rule about the shape of the base, not a second grammar
 		// for addresses.
@@ -215,7 +215,7 @@ func entryOf(path, base string) (appVersion, error) {
 		url = strings.TrimSuffix(base, "/") + "/" + url
 	}
 	p := store.Package{Version: m.Version, URL: url, Size: size, SHA256: enc.Bytes(sum),
-		UI: enc.Bytes(ui), Encrypted: download != path, Needs: m.Needs, MinNGC: m.MinNGC}
+		UI: enc.Bytes(ui), Encrypted: download != path, Needs: m.Needs, MinCD: m.MinCD}
 	e := store.Entry{ID: m.ID, Name: m.Name, Publisher: m.Publisher, Description: m.Description, Price: price}
 	return appVersion{entry: e, pkg: p}, nil
 }
@@ -256,7 +256,7 @@ func sizeAndSum(path string) (int64, []byte, error) {
 // (enc.Budget.Decode); the price itself is checked by
 // store.Catalog.Validate, which is what a reader checks it with.
 func readPrice(pkg string) (*store.Price, error) {
-	b, err := os.ReadFile(strings.TrimSuffix(pkg, ".ngc") + PriceSuffix)
+	b, err := os.ReadFile(strings.TrimSuffix(pkg, ".cd") + PriceSuffix)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	}
@@ -300,7 +300,7 @@ func lastSeq(dir string, pub ed25519.PublicKey, storeID string) (uint64, error) 
 // seed nor the content of the file ever reaches an error or a message: a
 // broken key file is ErrPack, the same refusal as any unusable input
 // (measured: TestCatalogRefusesABrokenKeyFile, TestCatalogTellsNoSecret).
-// The key reaches ngc-store as a file, never as an argument, so no process
+// The key reaches cd-store as a file, never as an argument, so no process
 // list carries it either.
 func readSigningKey(path string) (ed25519.PrivateKey, error) {
 	b, err := os.ReadFile(path)

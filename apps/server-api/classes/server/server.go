@@ -23,29 +23,29 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/apitls"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/browser"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/coreapp"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbopen"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/httpapi"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/join"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/login"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/relay"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/setup"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/updates"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/apitls"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/browser"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/coreapp"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbopen"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/httpapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/join"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/login"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/relay"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/setup"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/updates"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // SetupCodeFile is where the one-time code of the first setup lies: root's
@@ -77,7 +77,7 @@ var SpoolDir = filepath.Join(config.DataDir, "spool")
 
 // HoldDir is where an upload keeps its package until an activation fetches
 // it (appstore.Stores.Hold). IT CLOSES PUNKT 30, which was open from
-// 12.10.2026 until 17.10.2026: ngc.store/upload keeps only the ui-tar, and
+// 12.10.2026 until 17.10.2026: cd.store/upload keeps only the ui-tar, and
 // the shell sends no DATA on the activate channel either, so an activation of
 // an uploaded app found no file and answered E_UNREACHABLE. Measured on a
 // running installation on 17.10.2026, with everything else in the chain
@@ -96,7 +96,7 @@ var SpoolDir = filepath.Join(config.DataDir, "spool")
 var HoldDir = filepath.Join(config.DataDir, "uploads")
 
 // AnchorFile is the trust anchor outside the database
-// (config.AnchorFile, "/etc/ngc/trust-anchor.json"). It is a variable of this
+// (config.AnchorFile, "/etc/cd/trust-anchor.json"). It is a variable of this
 // package for the same reason the three above are: a case has to be able to
 // put it into its own directory. Without that every case here read the file of
 // the MACHINE it runs on - on windows that path can never exist and nothing
@@ -381,7 +381,7 @@ func (s *Server) Run(ctx context.Context) error {
 //
 // Where the bound really is: on the CLIENT, which is Apache and only Apache in
 // front of this listener -- "Apache bietet der API nur diese Verschlüsselung
-// an" (Entwurf 4.5), set up by ngc-web as SSLProxyProtocol TLSv1.3 and
+// an" (Entwurf 4.5), set up by cd-web as SSLProxyProtocol TLSv1.3 and
 // SSLProxyCipherSuite TLSv1.3 TLS_AES_256_GCM_SHA384 (shared/ulh.md). A
 // TLS 1.3 server cannot pick a suite its client did not offer, so the hop runs
 // on AES-256-GCM as long as that configuration is the one in front. What is
@@ -452,7 +452,7 @@ func (s *Server) serve(ctx context.Context, ln net.Listener) error {
 		defer cancel()
 		_ = srv.Shutdown(sctx)
 	}()
-	slog.Info("ngc-api listening", "listen", s.Cfg.Listen, "node", s.Cfg.Node)
+	slog.Info("cd-api listening", "listen", s.Cfg.Listen, "node", s.Cfg.Node)
 	err := srv.Serve(ln)
 	<-stopped
 	rounds.Wait()
@@ -469,7 +469,7 @@ func (s *Server) serve(ctx context.Context, ln net.Listener) error {
 // FIRST time, and it is a beat of its own because the hour alone was a
 // measured fault (V1.2 point 66): an installation that has just been set up
 // has no catalog row, the store then says so for a whole hour, and every
-// restart of ngc-api pushed that first fetch out by another full hour -- so an
+// restart of cd-api pushed that first fetch out by another full hour -- so an
 // installation somebody is working on never fetched one at all.
 //
 // A minute and not at once: nothing in the round needs to be the first thing
@@ -555,7 +555,7 @@ func (s *Server) minute(ctx context.Context) {
 	if _, err := s.State.Refresh(ctx); err != nil {
 		// Said when it CHANGES, not once a minute. Measured on the small
 		// plant on 18.10.2026: 54 identical lines in the 54 minutes one
-		// ngc-api had been up, every one of them "state: no trust list yet"
+		// cd-api had been up, every one of them "state: no trust list yet"
 		// -- the expected state of an installation that is set up and not
 		// yet paired, so the line said nothing a reader could act on and
 		// buried the lines that do. guard.Report two calls below refuses to
@@ -745,7 +745,7 @@ func (s *Server) pushLicense(node, app string, env sign.Envelope) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), relay.CallTimeout)
 	defer cancel()
-	// ngc.store/controller/license is one of core.WithoutUser: it carries no
+	// cd.store/controller/license is one of core.WithoutUser: it carries no
 	// user, so CallController and not CallAs.
 	if _, code := s.relay.CallController(ctx, t, core.AppStore, core.ServiceController,
 		core.ActLicense, params, body); code != "" {

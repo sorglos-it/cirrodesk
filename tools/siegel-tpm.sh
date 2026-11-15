@@ -4,7 +4,7 @@
 #
 # That last line is the whole point. A policy signature that can be replayed is
 # a key that can be stolen once and used forever, and nothing else in the
-# recovery strand measures it: recovery-test.sh checks the policy that NGC
+# recovery strand measures it: recovery-test.sh checks the policy that CirroDesk
 # builds, this checks that the TPM refuses a used signature in a fresh session.
 #
 # Rescued on 24.10.2026 off the first single machine, where it lived in

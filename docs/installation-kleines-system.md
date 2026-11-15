@@ -1,7 +1,7 @@
-# Ein kleines NGC-System aufsetzen
+# Ein kleines CirroDesk-System aufsetzen
 
 Ein Rechner. Alles drauf: API, Controller, Weboberfläche, SQLite.
-Für jemanden, der NGC noch nie gesehen hat.
+Für jemanden, der CirroDesk noch nie gesehen hat.
 
 **Woher das hier kommt:** jeder Schritt steht in den Vertragspunkten 47, 51, 56, 57, 58, 59,
 61, 71 oder im Code. Was dort nicht steht, steht unten unter „Nicht gemessen".
@@ -9,17 +9,17 @@ Für jemanden, der NGC noch nie gesehen hat.
 **Gemessen auf:** Debian 13 (trixie), Apache 2.4.69, PHP 8.4, podman 5.4.2, systemd läuft.
 Der erste Teil dieser Anleitung entstand auf einer WSL2-Instanz, also einem echten
 Debian-Userland (Punkt 56). Die Abschnitte, die seit dem 19.10.2026 dazugekommen sind, sind
-an der laufenden Anlage nachgesehen (Debian 13.7, `ngc-api`/`ngc-controller` **0.2.2**,
+an der laufenden Anlage nachgesehen (Debian 13.7, `cd-api`/`cd-controller` **0.2.2**,
 Oberfläche **0.2.0**, Stand 24.10.2026).
 
 > **Die Maschine für den kleinen Fall ist seit dem 24.10.2026 eine neue.** Die alte Einzel-VM
 > (`ssh ngc`, 10.2.3.208) wurde an jenem Tag um 12:37 vom Proxmox-Wirt aus angehalten und ist
 > aus. **Die Messungen in dieser Anleitung bleiben gültig** — sie wurden gemacht, als jene
 > Maschine lief, und ein ausgeschalteter Rechner macht eine richtige Messung nicht falsch.
-> Nachgemessen wird jetzt auf **`ngc-ein`** (VMID 307, 10.2.3.216, Name wieder `ngc.test`),
+> Nachgemessen wird jetzt auf **`ngc-ein`** (VMID 307, 10.2.3.216, Name wieder `cd.test`),
 > angelegt mit `tools/einzelmaschine.sh` aus der Vorlage und dem Release v0.2.2 — also
 > **nachbaubar**, was die alte nie war. Der Weg bis „die Oberfläche antwortet" ist dort am
-> 24.10.2026 noch einmal durchgelaufen und bestätigt: `https://ngc.test/` gibt `http=200` mit
+> 24.10.2026 noch einmal durchgelaufen und bestätigt: `https://cd.test/` gibt `http=200` mit
 > 451 Byte, genau wie am 16.10.2026. Alles ab der Ersteinrichtung im Browser ist dort **noch
 > nicht** gegangen; was fehlt, steht in `docs/alte-vm-verweise.md`, Abschnitt 6.
 >
@@ -30,11 +30,11 @@ Oberfläche **0.2.0**, Stand 24.10.2026).
 
 | | **eine Maschine** — der Fall dieser Anleitung | **sechs Maschinen** — der andere Fall |
 |---|---|---|
-| Name der Anlage | `ngc.test` (Beispiel, siehe Schritt 0) | `ngc.mein.lan` |
+| Name der Anlage | `cd.test` (Beispiel, siehe Schritt 0) | `ngc.mein.lan` |
 | Maschine heute | `ngc-ein`, 10.2.3.216 (seit 24.10.2026) | api-1 … store |
 | Maschinen | eine, alle vier Rollen | sechs, siehe Schritt 0 |
 | Datenbank | SQLite, eine Datei je Programm | eigene Maschine |
-| Skript | `ngc-all` | `ngc-api`, `ngc-db`, `ngc-controller`, `ngc-web` je Maschine |
+| Skript | `cd-all` | `cd-api`, `cd-db`, `cd-controller`, `cd-web` je Maschine |
 
 Was beim verteilten Fall anders ist, steht an jeder Stelle, an der es anders ist: in Schritt 0
 (mehr als ein Name im Browser), in Schritt 2 (vier Skripte statt einem) und unter
@@ -63,9 +63,9 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 - Ein Skript nimmt eine Programmdatei nur, wenn die Unterschrift des Release stimmt
   (`shared/ulh.md`, Regel „Programmdateien").
 - Es gibt ein Schlüsselpaar. Kennung `pN6Z6a9NR0aG6aEJIJ5EHg` (Punkt 57).
-- Der **öffentliche** Teil steht in `ngc-all.sh`, `ngc-api.sh`, `ngc-controller.sh`
-  und `ngc-web.sh`. `ngc-db.sh` braucht keinen — es holt keine Programmdateien.
-- Der **geheime** Teil lag am 17.10.2026 als `/root/ngc-keys/release.key` mit `-rw-------`
+- Der **öffentliche** Teil steht in `cd-all.sh`, `cd-api.sh`, `cd-controller.sh`
+  und `cd-web.sh`. `cd-db.sh` braucht keinen — es holt keine Programmdateien.
+- Der **geheime** Teil lag am 17.10.2026 als `/root/cd-keys/release.key` mit `-rw-------`
   auf der Messmaschine. **Er gehört auf einen Hardware-Stick** (Entwurf 4.8) und von dieser
   Maschine weg.
 - Solange er dort liegt: jeder, der auf dieser Maschine root ist, kann ein Release
@@ -73,12 +73,12 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 
 ### Der Store-Schlüssel
 
-- **Einen offiziellen NGC-Store gibt es nicht.** Der Platzhalter
-  `NGC_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-WITH-THE-NGC-STORE-KEY` steht am 24.10.2026
-  unverändert in `ngc-all.sh` (Zeile 177, Zweig `ngc-kette`).
+- **Einen offiziellen CirroDesk-Store gibt es nicht.** Der Platzhalter
+  `CD_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY` steht am 24.10.2026
+  unverändert in `cd-all.sh` (Zeile 177, Zweig `cd-kette`).
 - **Also muss jede Installation ihren eigenen Store nennen**: `store_url` und `store_key`
   in `answer.yaml`, beide zusammen oder keins (`shared/ulh.md`).
-- Seit Punkt 57 bricht das Skript ab, wenn beide leer sind: „NGC has no official app store
+- Seit Punkt 57 bricht das Skript ab, wenn beide leer sind: „CirroDesk has no official app store
   yet …", Ausstiegscode 1, **bevor** etwas geschrieben wird.
 - **Das ist nicht kosmetisch, das ist eine Sperre.** Eine Installation aus einem
   veröffentlichten Release ist heute **nur** möglich, wenn du dir einen Store ausdenkst. Der
@@ -92,11 +92,11 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 - Debian 13, systemd läuft, root.
 - [ulh](https://github.com/sorglos-it/ulh) — die Skripte liegen dort unter
   `apps/cli/assets/scripts/`. **Auf `main` liegen sie nicht:** am 24.10.2026 hat
-  `origin/main` **null** `ngc-*`-Skripte, alle fünf liegen auf dem Zweig `ngc-kette`
-  (`ngc-all.sh`, `ngc-api.sh`, `ngc-controller.sh`, `ngc-db.sh`, `ngc-web.sh`).
+  `origin/main` **null** `cd-*`-Skripte, alle fünf liegen auf dem Zweig `cd-kette`
+  (`cd-all.sh`, `cd-api.sh`, `cd-controller.sh`, `cd-db.sh`, `cd-web.sh`).
 - **Ein unterschriebenes Release.** Ohne Release geht nichts (siehe Stolperstein 4).
-- Eine `answer.yaml` für `ngc-all` und `ngc-web`. `ngc-all` fragt fünf Dinge, in dieser
-  Reihenfolge (`ngc-all.sh`, Zeilen 17–21):
+- Eine `answer.yaml` für `cd-all` und `cd-web`. `cd-all` fragt fünf Dinge, in dieser
+  Reihenfolge (`cd-all.sh`, Zeilen 17–21):
 
   | # | Schlüssel | Was |
   |---|---|---|
@@ -120,24 +120,24 @@ Jeder Schritt: **was du tust → was du siehst, wenn es geht → was du siehst, 
 **Das ist der Schritt, der in dieser Anleitung gefehlt hat, und er kommt vor allen anderen.**
 
 Die Anlage antwortet unter **ihrem Namen**, nicht unter ihrer IP-Adresse. Was du in Schritt 2
-als `hostname` angibst, steht danach überall: in `/etc/ngc/web.json` als `apis[].url` und als
-`rp.id`, in `/etc/ngc/apache-apis.conf` am `BalancerMember`, im TLS-Zertifikat als `CN` und
+als `hostname` angibst, steht danach überall: in `/etc/cd/web.json` als `apis[].url` und als
+`rp.id`, in `/etc/cd/apache-apis.conf` am `BalancerMember`, im TLS-Zertifikat als `CN` und
 `subjectAltName`.
 
-**`ngc.test` ist in dieser Anleitung ein Beispielname, kein Name, den du übernehmen musst.**
+**`cd.test` ist in dieser Anleitung ein Beispielname, kein Name, den du übernehmen musst.**
 Du setzt dort **deinen eigenen** ein. `.test` ist für genau das reserviert (RFC 2606): dieser
 Name kann nie einer echten Domain in die Quere kommen, und dieselbe Schreibweise steht in allen
 Prüfdaten des Projekts. Darum bleibt er hier stehen, statt durch einen echten Namen ersetzt zu
 werden — ein echter Name wäre Thomas' Heimnetz und hilft keinem Leser. Wo die Anleitung von
-einer **Messung** spricht, ist `ngc.test` dagegen kein Beispiel, sondern der Name, unter dem
+einer **Messung** spricht, ist `cd.test` dagegen kein Beispiel, sondern der Name, unter dem
 damals wirklich gemessen wurde.
 
-Auf der Einzel-VM hieß der Name `ngc.test`, und `/config.json` gab
+Auf der Einzel-VM hieß der Name `cd.test`, und `/config.json` gab
 ihn genau so an den Browser weiter (gemessen, solange die Maschine lief):
 
 ```
-{"version":"0.2.0","anchor":{…},"rp":{"id":"ngc.test","origins":["https://ngc.test"]},
- "apis":["https://ngc.test:7443"]}
+{"version":"0.2.0","anchor":{…},"rp":{"id":"cd.test","origins":["https://cd.test"]},
+ "apis":["https://cd.test:7443"]}
 ```
 
 **Was du auf deinem Rechner einträgst** — in der Datei `hosts`, eine Zeile, IP-Adresse der
@@ -151,10 +151,10 @@ Nicht abtippen, sondern einsetzen. So sieht die Zeile für die heutige Maschine 
 Falls aus (`ngc-ein`, seit 24.10.2026):
 
 ```
-10.2.3.216   ngc.test
+10.2.3.216   cd.test
 ```
 
-Auf der alten Einzel-VM hieß dieselbe Zeile `10.2.3.208   ngc.test`. **Diese Adresse
+Auf der alten Einzel-VM hieß dieselbe Zeile `10.2.3.208   cd.test`. **Diese Adresse
 antwortet seit dem 24.10.2026 nicht mehr**; in älteren Messungen steht sie noch.
 
 - Windows: `C:\Windows\System32\drivers\etc\hosts`, Editor als Administrator.
@@ -179,7 +179,7 @@ antwortet seit dem 24.10.2026 nicht mehr**; in älteren Messungen steht sie noch
    unterschriebenen** Zertifikat und einem Browser, der es für den Lauf annimmt
    (`ignoreHTTPSErrors`); ein echter Browser nimmt es nicht ohne Weiteres an (Punkt 59).
 2. **Passschlüssel gehen über eine IP-Adresse gar nicht.** Ein Passschlüssel hängt an der
-   `rp.id`, und die ist ein **Name** — `ngc.test` bei der einen Maschine, `ngc.mein.lan` bei
+   `rp.id`, und die ist ein **Name** — `cd.test` bei der einen Maschine, `ngc.mein.lan` bei
    der verteilten Anlage. Eine IP-Adresse kann keine `rp.id` sein, und `origins` nennt genau
    die eine Adresse mit dem Namen. Über die IP lässt sich also kein Passschlüssel anlegen und
    keiner benutzen, egal wie man die Zertifikatswarnung wegklickt. Die Oberfläche empfiehlt
@@ -216,7 +216,7 @@ Oberfläche. Jeder davon trägt sein **eigenes** Zertifikat: auf `10.2.3.211:744
 **Also alle sieben Zeilen eintragen, nicht die letzte allein.**
 
 **Die Namen sind keine Rollenverteilung.** Es gab einen Stand, auf dem `db-1` einen Controller
-trug und `store` gar kein NGC. Welche Maschine was tut, steht in ihrer `controller.json` und in
+trug und `store` gar kein CirroDesk. Welche Maschine was tut, steht in ihrer `controller.json` und in
 der Vertrauensliste — nicht in ihrem Namen. Gemessen am 24.10.2026: alle sechs antworten auf
 `ping` und auf Port 22; eine API auf Port 7443 haben **nur** `10.2.3.210` und `10.2.3.211`. Die
 anderen vier haben dort nichts, und das ist richtig so — ein Controller horcht nicht, er wählt
@@ -225,12 +225,12 @@ durch den Tunnel hinaus.
 #### Die Falle, wenn dein Netz jeden Namen beantwortet
 
 **Gemessen hier am 24.10.2026, und sie ist bösartig:** in diesem Netz lösen **alle sieben
-Namen** auf `10.2.3.102` auf — eine Maschine, auf der **kein NGC** läuft (`https://…/` gibt
+Namen** auf `10.2.3.102` auf — eine Maschine, auf der **kein CirroDesk** läuft (`https://…/` gibt
 `302`, `/config.json` gibt `401`). Der DNS-Server beantwortet also jeden Namen unter
 `ngc.mein.lan`, auch die, die er nicht kennt.
 
 Das heißt: **ohne die Zeilen in deiner `hosts`-Datei landest du auf einer fremden Maschine**,
-und zwar ohne Fehlermeldung, die das sagt. Was du siehst, ist eine Anmeldung, die nicht NGCs
+und zwar ohne Fehlermeldung, die das sagt. Was du siehst, ist eine Anmeldung, die nicht CirroDesks
 Anmeldung ist, oder eine Zertifikatswarnung, die wie ein Fehler der Anlage aussieht. Darum
 reicht „wir haben DNS" hier **nicht** — ein DNS, der nie „kenne ich nicht" sagt, ist schlimmer
 als keiner.
@@ -248,10 +248,10 @@ das stimmt, lohnt Schritt 5.
 
 ### Schritt 1 — Release bauen und unterschreiben
 
-`ngc-store release` über drei Teile, jeden mit `ngc-store check` prüfen.
+`cd-store release` über drei Teile, jeden mit `cd-store check` prüfen.
 
-- **Geht:** dreimal `release ok` — für `ngc-web all`, `ngc-api amd64`,
-  `ngc-controller amd64` (Punkte 56, 57).
+- **Geht:** dreimal `release ok` — für `cd-web all`, `cd-api amd64`,
+  `cd-controller amd64` (Punkte 56, 57).
 - **Geht nicht:** `release wrong: <Grund>`, Ausstiegscode 1. Bei falschem Aufruf Code 2
   (`shared/ulh.md`).
 
@@ -278,27 +278,27 @@ Die Form der Archive ist festgelegt und wird geprüft (Punkt 56):
 
 | Archiv | Inhalt |
 |---|---|
-| `ngc-web-all.tar` | im Wurzelverzeichnis `public/index.php` und `templates/apache-vhost.conf`, 83 Einträge, keine Verknüpfungen |
-| `ngc-api-amd64.tar` | genau zwei gewöhnliche Dateien: `ngc-api` und `ngc-store`, ohne Ordner |
-| `ngc-controller-amd64.tar` | genau eine Datei |
+| `cd-web-all.tar` | im Wurzelverzeichnis `public/index.php` und `templates/apache-vhost.conf`, 83 Einträge, keine Verknüpfungen |
+| `cd-api-amd64.tar` | genau zwei gewöhnliche Dateien: `cd-api` und `cd-store`, ohne Ordner |
+| `cd-controller-amd64.tar` | genau eine Datei |
 
 Jede andere Form weist das Skript ab.
 
-### Schritt 2 — `ngc-all install`
+### Schritt 2 — `cd-all install`
 
 Richtet API, Schlüssel, Zertifikat und Dienst ein und startet die API.
 
-> **Beim verteilten Fall ist das nicht ein Skript, sondern vier.** `ngc-all` ist genau für
-> „alles auf einer Maschine" da und nimmt deshalb SQLite. Sechs Maschinen brauchen `ngc-api`,
-> `ngc-db`, `ngc-controller` und `ngc-web` einzeln, jedes auf seiner Maschine und mit eigener
-> `answer.yaml`; `ngc-api.sh` weist jeden Treiber außer MariaDB ab und sagt in seiner eigenen
-> Meldung, dass eine Maschine auf SQLite die Sache von `ngc-all` ist. **Die Reihenfolge dieser
+> **Beim verteilten Fall ist das nicht ein Skript, sondern vier.** `cd-all` ist genau für
+> „alles auf einer Maschine" da und nimmt deshalb SQLite. Sechs Maschinen brauchen `cd-api`,
+> `cd-db`, `cd-controller` und `cd-web` einzeln, jedes auf seiner Maschine und mit eigener
+> `answer.yaml`; `cd-api.sh` weist jeden Treiber außer MariaDB ab und sagt in seiner eigenen
+> Meldung, dass eine Maschine auf SQLite die Sache von `cd-all` ist. **Die Reihenfolge dieser
 > vier untereinander steht in keiner Anleitung** und ist hier nicht gemessen — siehe
 > „Nicht gemessen".
 
-- **Geht:** Dienst `ngc-api` **`active`** mit **`NRestarts=0`**, Port 7443 belegt,
+- **Geht:** Dienst `cd-api` **`active`** mit **`NRestarts=0`**, Port 7443 belegt,
   Zertifikat da. Auf dem Schirm: **Einmal-Code**, **Kennung der Anlage** und
-  **TLS-Fingerabdruck**. Gegenprobe: `grep -c REPLACE-THIS-LINE /etc/ngc/api.json` = **0**
+  **TLS-Fingerabdruck**. Gegenprobe: `grep -c REPLACE-THIS-LINE /etc/cd/api.json` = **0**
   (Punkt 57).
 - **Geht nicht:** siehe Stolperstein 1. Der Dienst liegt in einer Neustartschleife, und
   das Skript meldet trotzdem Erfolg — das war der Fall vor Punkt 57.
@@ -310,22 +310,22 @@ du in Schritt 6.
 **Was die Versionsnummer angeht, fragst du die installierten Programme selbst:**
 
 ```bash
-/usr/lib/ngc/ngc-api -version
-/usr/lib/ngc/ngc-controller -version
+/usr/lib/cd/cd-api -version
+/usr/lib/cd/cd-controller -version
 ```
 
-Auf der laufenden Anlage antworten sie `ngc-api 0.2.2 (contract 1)` und
-`ngc-controller 0.2.2 (contract 1)`. Steht dort `0.0.0-dev`, ist Schritt 1 ohne das Flag
+Auf der laufenden Anlage antworten sie `cd-api 0.2.2 (contract 1)` und
+`cd-controller 0.2.2 (contract 1)`. Steht dort `0.0.0-dev`, ist Schritt 1 ohne das Flag
 gelaufen — dann **jetzt** zurück und neu bauen, nicht erst in Schritt 10, wo es als „Die
 Rechner konnten nicht geladen werden" wieder auftaucht.
 
-### Schritt 3 — Dem Dienst `/etc/ngc` zum Schreiben erlauben
+### Schritt 3 — Dem Dienst `/etc/cd` zum Schreiben erlauben
 
 > **Berichtigung vom 29.10.2026: Wand 1 ist weg, und du musst hier nichts tun.** Auf dem Zweig
-> `ngc-kette` lautet die Zeile `ReadWritePaths=${NGC_DATA} ${NGC_ETC}` — also `/var/lib/ngc` und
-> **`/etc/ngc`** (`ngc-all.sh:1431`, dieselbe Zeile in `ngc-api.sh:1073`). Auf einer frisch aus
+> `cd-kette` lautet die Zeile `ReadWritePaths=${CD_DATA} ${CD_ETC}` — also `/var/lib/cd` und
+> **`/etc/cd`** (`cd-all.sh:1431`, dieselbe Zeile in `cd-api.sh:1073`). Auf einer frisch aus
 > der Vorlage geklonten Maschine nachgemessen, nicht im Text nachgelesen: `systemctl show
-> ngc-api.service -p ReadWritePaths` nennt `/var/lib/ngc /etc/ngc`, und ein Schreibversuch in
+> cd-api.service -p ReadWritePaths` nennt `/var/lib/cd /etc/cd`, und ein Schreibversuch in
 > der **echten** Sandbox der Unit kommt durch (Punkt 96). **Der Drop-in unten ist überholt** —
 > wer ihn anlegt, legt eine Zeile an, die schon im Skript steht. Der Rest dieses Schritts bleibt
 > stehen, weil die Gegenprobe mit `systemd-run` richtig und nützlich bleibt und weil der Grund
@@ -333,8 +333,8 @@ Rechner konnten nicht geladen werden" wieder auftaucht.
 
 **Das war Wand 1 von sechs** (Stand bis 24.10.2026, hier als Begründung aufbewahrt).
 
-`ngc-api.service` wird mit `ProtectSystem=strict` geschrieben, und die schreibbaren Pfade waren
-`ReadWritePaths=${NGC_DATA} ${NGC_TLS}` — also `/var/lib/ngc` und `/etc/ngc/tls`. **`/etc/ngc`
+`cd-api.service` wird mit `ProtectSystem=strict` geschrieben, und die schreibbaren Pfade waren
+`ReadWritePaths=${CD_DATA} ${CD_TLS}` — also `/var/lib/cd` und `/etc/cd/tls`. **`/etc/cd`
 selbst stand nicht dabei.** Der Vertrauensanker liegt aber dort, und er wird **atomar**
 geschrieben: `config.SaveAnchor` (`shared/config/config.go:451`) legt erst eine Datei
 `.trust-anchor.json.tmp-*` **im selben Ordner** an. Ein Ordner, in dem keine Datei entstehen
@@ -355,55 +355,55 @@ nachkommt.
 Skript bei jedem `configure` neu, ein Drop-in bleibt):
 
 ```bash
-mkdir -p /etc/systemd/system/ngc-api.service.d
-printf '[Service]\nReadWritePaths=/var/lib/ngc /etc/ngc\n' \
-  > /etc/systemd/system/ngc-api.service.d/anker.conf
+mkdir -p /etc/systemd/system/cd-api.service.d
+printf '[Service]\nReadWritePaths=/var/lib/cd /etc/cd\n' \
+  > /etc/systemd/system/cd-api.service.d/anker.conf
 systemctl daemon-reload
-systemctl restart ngc-api
+systemctl restart cd-api
 ```
 
-- **Geht:** `systemctl show ngc-api.service -p ReadWritePaths` nennt `/etc/ngc`.
-  Auf der laufenden Anlage steht dort `/var/lib/ngc /etc/ngc /etc/ngc/tls`.
+- **Geht:** `systemctl show cd-api.service -p ReadWritePaths` nennt `/etc/cd`.
+  Auf der laufenden Anlage steht dort `/var/lib/cd /etc/cd /etc/cd/tls`.
 - **Gegenprobe, die nicht lügt** — in der **echten** Sandbox der Unit schreiben, nicht in der
   Datei nachlesen:
 
   ```bash
   systemd-run --pipe -p ProtectSystem=strict \
-    -p 'ReadWritePaths=/var/lib/ngc /etc/ngc' \
-    touch /etc/ngc/.probe && rm -f /etc/ngc/.probe
+    -p 'ReadWritePaths=/var/lib/cd /etc/cd' \
+    touch /etc/cd/.probe && rm -f /etc/cd/.probe
   ```
 
   Ohne den Drop-in antwortet dasselbe mit
   `touch: cannot touch '…': Read-only file system`. Diese zwei Läufe gegeneinander sind der
   Beweis; `systemctl show` allein rechnet Drop-ins ein, die niemand angesehen hat.
 
-### Schritt 4 — `ngc-web install`
+### Schritt 4 — `cd-web install`
 
-Apache, PHP, Oberfläche nach `/var/www/ngc/`, Zertifikat, `web.json`, Lastverteilung.
+Apache, PHP, Oberfläche nach `/var/www/cd/`, Zertifikat, `web.json`, Lastverteilung.
 
 - **Geht:** Apache **`active`**, `curl -sk https://<host>/` gibt **`http=200`**, 451 Byte,
-  und es ist NGCs eigene Seite (`<title>NGC</title>`).
+  und es ist CirroDesks eigene Seite (`<title>CirroDesk</title>`).
   `GET /api/v1/setup` **durch Apache** gibt **`http=200`** — dieselbe Antwort wie direkt an
   Port 7443. Damit trägt die Strecke Browser → Apache → Balancer → API (Punkte 56, 57).
 - **Geht nicht:** siehe Stolperstein 3 (Apache startet die Seite nicht).
-- **Nebenbei, laut und richtig:** `⚠ NGC brings 5 protective settings for the files of the
-  interface, and this version of ngc-web knows 4 of them.` Das Skript macht weiter. Welche
+- **Nebenbei, laut und richtig:** `⚠ CirroDesk brings 5 protective settings for the files of the
+  interface, and this version of cd-web knows 4 of them.` Das Skript macht weiter. Welche
   die fünfte ist, ist **nicht gemessen** (Punkt 56, Befund 3).
 
 ### Schritt 5 — Die Einrichtungsseite im Browser
 
 `https://<host>/` aufrufen — mit dem **Namen**, nicht der IP (Schritt 0).
 
-- **Geht:** „**NGC einrichten** — Diese Anlage ist neu. Auf dem Bildschirm des Servers steht
+- **Geht:** „**CirroDesk einrichten** — Diese Anlage ist neu. Auf dem Bildschirm des Servers steht
   ein Einmal-Code. Bitte tippen Sie ihn hier ein." Dazu ein Feld und `Weiter` (Punkt 58).
-- **Geht nicht, über `http://`:** „NGC braucht eine sichere Verbindung. Bitte die Seite über
+- **Geht nicht, über `http://`:** „CirroDesk braucht eine sichere Verbindung. Bitte die Seite über
   https:// aufrufen." Dann kommt nichts weiter (Punkt 58).
 - **Geht nicht, Name löst nicht auf:** nach vier Sekunden **„Dienst nicht erreichbar. Bitte
   später erneut versuchen."** Dahinter steckt `fetch(...)` → `TypeError: Failed to fetch`
   (Punkt 58).
   **Achtung:** diesen Satz gibt es auch, wenn der Dienst weg ist **oder** die Datenbank
   gerade besetzt ist. Der Benutzer kann die drei nicht unterscheiden (Punkt 58, P9).
-  Also erst `curl` von der Maschine aus probieren, bevor du NGC verdächtigst — und auf
+  Also erst `curl` von der Maschine aus probieren, bevor du CirroDesk verdächtigst — und auf
   **deinem** Rechner den Eintrag aus Schritt 0 prüfen.
 
 ### Schritt 6 — Ersten Verwalter anlegen
@@ -412,12 +412,12 @@ Einmal-Code eintippen, `Weiter`.
 
 - **Geht:** **Schritt 2** erscheint — „Bitte vergleichen: Steht hier dasselbe wie auf dem
   Bildschirm des Servers?" mit **Kennung der Anlage**, **Name und Adresse des API-Servers**
-  (`wss://<host>:7443/tunnel`) und dem **Fingerabdruck**. Genau die Werte, die `ngc-all.sh`
+  (`wss://<host>:7443/tunnel`) und dem **Fingerabdruck**. Genau die Werte, die `cd-all.sh`
   gedruckt hat. Felder: ein Name, zweimal Passwort, ein Haken für den App-Store (Punkt 59).
 - Name und Passwort eintragen, `Einrichten`.
 - **Geht:** der **Schreibtisch**. Startleiste mit `Start`, Uhr, die Kacheln **App-Store** und
   **Benutzer & Rechte**, Hinweis „Umstellen auf Passkeys empfohlen". Die Sitzung liegt in
-  **einem** Keks: `ngc_session`, `httpOnly` und `secure` (Punkt 59).
+  **einem** Keks: `cd_session`, `httpOnly` und `secure` (Punkt 59).
 - **Geht nicht, `/api/v1/setup` gibt 404:** der Einmal-Code ist verbraucht, die Einrichtung
   ist schon gelaufen. Wer dann einen Code eintippt, bekommt: „Diese Anlage ist noch nicht
   fertig eingerichtet. Bitte den Controller des Webservers koppeln." (Punkt 60)
@@ -441,7 +441,7 @@ Ersteinrichtung"; Punkt 60).
   **Wartende API-Server**, **Server dieser Anlage**, **Eingetragene Server**,
   **Kopplungscode**, **Beitrittscode** (`users.js:734–744`). Du brauchst in Schritt 7 den
   fünften und in Schritt 9 den ersten.
-- **Geht:** der Code steht auf dem Schirm, dazu „Gültig bis …". Er fängt mit `ngc-pair:` an.
+- **Geht:** der Code steht auf dem Schirm, dazu „Gültig bis …". Er fängt mit `cd-pair:` an.
 - **Geht nicht:** kein Code, sondern „Dieser Code passt nicht zu dieser Anlage." Die
   Oberfläche zeigt ihn **nur**, wenn er zu ihrer neuesten geprüften Fassung der
   Vertrauensliste passt (`tunnel.checkCode`) — „ein Code auf dem Schirm ist ein Code, den
@@ -450,24 +450,24 @@ Ersteinrichtung"; Punkt 60).
 > **Und hier steht, was passiert, wenn du es doch tust — am 29.10.2026 gemessen, zweimal.**
 > Schließt du das Fenster zwischen Schritt 6 und Schritt 8, ist die Anlage **unbrauchbar**,
 > und es gibt **keinen Weg zurück**. Die Oberfläche zeigt wieder die **Einrichtungsseite** —
-> `index.php` entscheidet allein an `/etc/ngc/trust-anchor.json`, und die Datei entsteht erst
+> `index.php` entscheidet allein an `/etc/cd/trust-anchor.json`, und die Datei entsteht erst
 > bei der Kopplung. Eine gültige, gespeicherte Sitzung hilft nicht. Gleichzeitig ist der
-> Einmal-Code **verbraucht**: `/api/v1/setup` gibt `404`, `/var/lib/ngc/setup-code` ist
+> Einmal-Code **verbraucht**: `/api/v1/setup` gibt `404`, `/var/lib/cd/setup-code` ist
 > gelöscht. Es gibt also eine Seite, die nach einem Code fragt, und keinen Code mehr, den sie
 > annimmt. **Dann hilft nur neu installieren.** Deshalb steht die Warnung oben, und deshalb
 > steht sie jetzt mit ihrer Folge dabei.
 
-### Schritt 8 — `ngc-all configure` mit dem Kopplungscode
+### Schritt 8 — `cd-all configure` mit dem Kopplungscode
 
 Den Code als `pair_code` in die `answer.yaml`, dann `configure`.
 
 - Der Code geht **nie** über die Kommandozeile. Das Skript reicht ihn mit
-  `printf '%s\n' "$pair_code" | ngc-controller pair` durch, damit er nicht in
+  `printf '%s\n' "$pair_code" | cd-controller pair` durch, damit er nicht in
   `/proc/<pid>/cmdline` landet (`shared/ulh.md`).
-- **Geht:** Kopplung `RC=0`, `/etc/ngc/trust-anchor.json` **entsteht**,
-  `/etc/ngc/controller.json` entsteht, `ngc-controller.service` läuft, und der Tunnel steht
+- **Geht:** Kopplung `RC=0`, `/etc/cd/trust-anchor.json` **entsteht**,
+  `/etc/cd/controller.json` entsteht, `cd-controller.service` läuft, und der Tunnel steht
   (Punkt 61).
-- **Geht:** `ngc-controller` druckt seinen **Fingerabdruck** und den **Anker aus dem
+- **Geht:** `cd-controller` druckt seinen **Fingerabdruck** und den **Anker aus dem
   Kopplungscode** (Nummer und Fingerabdruck des Hashes). **Beides mit der Anzeige der
   Oberfläche vergleichen** (`shared/ulh.md`).
 - **Geht nicht:** die eine feste Zeile „Ist der Kopplungscode noch gültig und die API
@@ -477,7 +477,7 @@ Den Code als `pair_code` in die `answer.yaml`, dann `configure`.
   Stolperstein 2.
 
 **Auf einer Maschine bekommt der Controller alle vier Rollen** — `ROLES=(web api db services)`
-(`ngc-all.sh:150`). Die Rolle `services` ist die, die später Apps ausführt; ohne sie bietet der
+(`cd-all.sh:150`). Die Rolle `services` ist die, die später Apps ausführt; ohne sie bietet der
 Store den Rechner nicht an (Schritt 10). Du musst dafür nichts tun: `controller.json` der
 laufenden Anlage trägt `"roles": ["web","api","db","services"]`.
 
@@ -516,7 +516,7 @@ noch **nicht in der Vertrauensliste**, und solange er dort nicht steht, darf er 
   „Stand: …" und daneben **„Jetzt nachsehen"** — den Knopf drücken, dann steht er da.
 - **Geht:** „Der Server »…« ist aufgenommen. Aufgaben mit Systemrechten dürfen dort: …" mit
   den Namen, die du angekreuzt hast. Gegenprobe auf der Maschine, und sie ist die beste in
-  dieser ganzen Anleitung: `/etc/ngc/trust-anchor.json` steht danach auf **`"seq": 2`**. Genau
+  dieser ganzen Anleitung: `/etc/cd/trust-anchor.json` steht danach auf **`"seq": 2`**. Genau
   das konnte Wand 1 nicht (`pinned=1 stored=2`) — hier ist sie am laufenden Dienst widerlegt.
 - **Geht auch, und das ist die Sackgasse:** nimmst du **alle** Haken weg, steht dort „Auf
   diesem Server darf noch niemand Apps einrichten." Das ist kein Fehler, das ist die Wahrheit
@@ -543,11 +543,11 @@ alles, was kein Controller ist, ohnehin `false` (`askJoinAPI`, `users.js:1285`).
 
 ### Schritt 10 — Gegenprobe
 
-- Ein **zweiter** Browser muss jetzt **„Bei NGC anmelden"** zeigen, nicht mehr die
+- Ein **zweiter** Browser muss jetzt **„Bei CirroDesk anmelden"** zeigen, nicht mehr die
   Einrichtungsseite (Punkt 61).
-- **Geht nicht:** zeigt er weiter die Einrichtungsseite, fehlt `/etc/ngc/trust-anchor.json`.
+- **Geht nicht:** zeigt er weiter die Einrichtungsseite, fehlt `/etc/cd/trust-anchor.json`.
   Die Entscheidung fällt serverseitig in `index.php`/`Config.php` aus dieser Datei
-  (`index.php:27`, `$anchorFile = '/etc/ngc/trust-anchor.json'`; `shared/config/config.go:32`,
+  (`index.php:27`, `$anchorFile = '/etc/cd/trust-anchor.json'`; `shared/config/config.go:32`,
   `AnchorFile`). Ohne Anker hält die Oberfläche **jede** Anlage für neu — und auch eine
   gültige, gespeicherte Sitzung hilft dann nicht (Punkt 60).
 - **Beide Seiten messen, nicht eine.** API und Oberfläche können verschiedener Meinung sein:
@@ -567,7 +567,7 @@ alles, was kein Controller ist, ohnehin `false` (`askJoinAPI`, `users.js:1285`).
 
 > **Berichtigung vom 29.10.2026, zwei Sätze, und der zweite ist der nützliche.**
 >
-> 1. **Es gibt eine Handauslösung: `systemctl restart ngc-api`.** `FirstCatalog = time.Minute`
+> 1. **Es gibt eine Handauslösung: `systemctl restart cd-api`.** `FirstCatalog = time.Minute`
 >    lässt die **erste** Runde eine Minute nach dem Start laufen und erst danach stündlich. Am
 >    29.10.2026 gemessen: Start 19:49:22, erste Katalogrunde 19:50:22. Wer nicht warten will,
 >    startet neu und hat die Runde nach einer Minute.
@@ -580,7 +580,7 @@ alles, was kein Controller ist, ohnehin `false` (`askJoinAPI`, `users.js:1285`).
 **Eine frische Anlage hat bis zu eine Stunde lang keinen Laden.** `server.go:386` legt einen
 **Stundenticker** an, `Server.hour` holt die Kataloge. Bis der erste Tick kommt, steht im Store:
 
-> Der Katalog dieses Stores ist noch nicht geholt. NGC sieht stündlich nach; unter Quellen
+> Der Katalog dieses Stores ist noch nicht geholt. CirroDesk sieht stündlich nach; unter Quellen
 > steht, wann es das letzte Mal geklappt hat.
 
 **Das ist seit PR #86 der richtige Satz, und am 29.10.2026 so auf dem Schirm nachgelesen.**
@@ -589,7 +589,7 @@ Schlüsselfehler, und das war die falsche Stelle. Das war Wand 3 von sechs (Punk
 
 > **Zwei Fallen beim eigenen Laden, beide am 29.10.2026 gemessen (Punkt 97):**
 >
-> 1. **Die Ladenkennung muss `global` sein.** `ngc-all.sh` fragt nur nach Adresse und
+> 1. **Die Ladenkennung muss `global` sein.** `cd-all.sh` fragt nur nach Adresse und
 >    Schlüssel; die Kennung in der Vertrauensliste ist fest `global` (`contracts/trust.js`,
 >    `STORE_GLOBAL`). Ein Katalog, der auf eine andere Kennung unterschrieben ist, wird
 >    abgelehnt — auch wenn Adresse, Schlüssel und Unterschrift stimmen.
@@ -601,7 +601,7 @@ Schlüsselfehler, und das war die falsche Stelle. Das war Wand 3 von sechs (Punk
 >    (`store.js:298`).
 
 - **Was du tust:** erst prüfen, dass Schritt 8 und 9 wirklich durch sind — sonst wartest du
-  umsonst. Dann entweder warten (bis zu 60 Minuten) oder `systemctl restart ngc-api` und eine
+  umsonst. Dann entweder warten (bis zu 60 Minuten) oder `systemctl restart cd-api` und eine
   Minute warten.
 - **Hast du in Abschnitt 1 einen erfundenen Store eingetragen** (weil es keinen offiziellen
   gibt), antwortet dort auch nach einer Stunde nichts. Dann führt der Weg über **Hochladen**:
@@ -687,30 +687,30 @@ nicht frisch aussehen.
 
 - **Erscheinung:** drei Dinge gleichzeitig.
   1. Die API lehnt ihre Konfiguration ab:
-     `ERROR die Konfiguration lässt sich nicht lesen file=/etc/ngc/api.json error="config: invalid configuration"`
+     `ERROR die Konfiguration lässt sich nicht lesen file=/etc/cd/api.json error="config: invalid configuration"`
   2. Der Dienst liegt in einer **Neustartschleife** (`restart counter is at 8`).
   3. Das Skript meldet **`RC=0`** und **„The API is running"**.
 - **Ursache:** in `api.json` stand
-  `"storeKey": "REPLACE-THIS-LINE-WITH-THE-NGC-STORE-KEY"`.
+  `"storeKey": "REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY"`.
   Der Riegel gab es nur für den **Release**-Schlüssel, nicht für den **Store**-Schlüssel.
 - **Dazu:** die Fehlermeldung der API nennt **kein Feld**. Welches es war, kostete einen
   Blick in die Datei.
-- **Seit Punkt 57 mit Riegel:** leere Store-Antworten brechen ab mit „NGC has no official
+- **Seit Punkt 57 mit Riegel:** leere Store-Antworten brechen ab mit „CirroDesk has no official
   app store yet …", **Ausstiegscode 1**, bevor etwas geschrieben wird.
-- **Was du prüfst:** `grep -c REPLACE-THIS-LINE /etc/ngc/api.json` muss **0** sein, und der
+- **Was du prüfst:** `grep -c REPLACE-THIS-LINE /etc/cd/api.json` muss **0** sein, und der
   Dienst `NRestarts=0`. **„Eingerichtet ist nicht gestartet."**
 
 ### 2. Der Anker mit falschen Rechten
 
 - **Erscheinung:** nach einer **gelungenen** Kopplung antwortet die Oberfläche auf jeden
   Aufruf **500**. Im Apache-Protokoll `Permission denied` für `www-data`.
-- **Ursache:** `ngc-all.sh` und `ngc-controller.sh` schrieben
-  `/etc/ngc/trust-anchor.json` als **`0600 root:root`**. `index.php` liest ihn aber und gibt
+- **Ursache:** `cd-all.sh` und `cd-controller.sh` schrieben
+  `/etc/cd/trust-anchor.json` als **`0600 root:root`**. `index.php` liest ihn aber und gibt
   Nummer und Hash jedem Browser in `config.json` mit — und Apache läuft als `www-data`.
 - **Gemessen:** `0600` → 500. **`0644` → 200** und die Seite (Punkt 61).
 - Was den Anker schützt, ist die **Unterschrift der Vertrauensliste**, nicht der Dateimodus.
-- **Behoben in beiden Skripten** (ulh, `ngc-kette`, `223baac`). Auf der laufenden Anlage
-  trägt `/etc/ngc/trust-anchor.json` `-rw-r--r--`. Siehst du trotzdem 500: Modus der Datei
+- **Behoben in beiden Skripten** (ulh, `cd-kette`, `223baac`). Auf der laufenden Anlage
+  trägt `/etc/cd/trust-anchor.json` `-rw-r--r--`. Siehst du trotzdem 500: Modus der Datei
   prüfen.
 - **Nicht verwechseln mit Wand 1** (Schritt 3): dort darf die Datei nicht **entstehen**, hier
   darf sie nicht **gelesen** werden. Zwei verschiedene Fehler am selben Pfad.
@@ -720,7 +720,7 @@ nicht frisch aussehen.
 - **Erscheinung:** Apache verweigert den Start der Seite.
 
   ```
-  AH00526: Syntax error on line 19 of /etc/ngc/apache-apis.conf:
+  AH00526: Syntax error on line 19 of /etc/cd/apache-apis.conf:
   ProxyPass unknown Balancer parameter
   ```
 - **Ursache:** `upgrade=websocket` stand am **`ProxyPass`** eines `balancer://`-Ziels. Dort
@@ -730,27 +730,27 @@ nicht frisch aussehen.
 - Die Planzeile daneben („`upgrade=websocket` braucht Apache 2.4.47; Debian 13 bringt es
   mit") ist **richtig in der Fassung und falsch im Ort**.
 - **Behoben** in `shared/ulh.md`, in `apps/server-controller/templates/apache-apis.conf.tmpl`
-  und in `ngc-web.sh`. Auf der laufenden Anlage steht `upgrade=websocket` am
-  `BalancerMember`, und `ProxyPass "/api/" "balancer://ngc-api/api/"` ist nackt.
+  und in `cd-web.sh`. Auf der laufenden Anlage steht `upgrade=websocket` am
+  `BalancerMember`, und `ProxyPass "/api/" "balancer://cd-api/api/"` ist nackt.
 - **Was du prüfst:** `apachectl configtest` **vor** dem Neuladen. Das machen die Skripte
   auch — Apache wird erst nach `configtest` neu geladen (`shared/ulh.md`).
 
 ### 4. Das fehlende Release
 
-- **Erscheinung:** „This script has no real release key of NGC yet." Das Skript hält.
+- **Erscheinung:** „This script has no real release key of CirroDesk yet." Das Skript hält.
 - **Ursache:** **ohne Release geht nichts.** Ein Skript übernimmt eine Programmdatei nur
   gegen eine gültige Unterschrift. Das ist kein Programmfehler, sondern ein fehlendes
   Schlüsselpaar (Punkt 56, offener Punkt 1).
 - Punkt 56 wurde darum mit einem **Testschlüssel** gemessen, der nirgends eingecheckt ist.
 - **Seit Punkt 57 ist dieser Riegel auf:** der öffentliche Schlüssel steht in den vier
-  Skripten, `grep -l REPLACE-THIS-LINE-WITH-THE-NGC-RELEASE-KEY *.sh` = **0**.
+  Skripten, `grep -l REPLACE-THIS-LINE-WITH-THE-CirroDesk-RELEASE-KEY *.sh` = **0**.
 - **Dazu die Rückdreh-Sperre:** `seq` des Release gegen die Zahl in
-  `/var/lib/ngc/release.seq`. Kleiner → Abbruch. Dieselbe Nummer darf zur Reparatur noch
+  `/var/lib/cd/release.seq`. Kleiner → Abbruch. Dieselbe Nummer darf zur Reparatur noch
   einmal installiert werden (`shared/ulh.md`).
 
 ### 5. Der Kopplungscode nur aus der angemeldeten Oberfläche
 
-- **Erscheinung:** die Kopplung gelingt nie. `ngc-controller` sagt „Ist der Kopplungscode
+- **Erscheinung:** die Kopplung gelingt nie. `cd-controller` sagt „Ist der Kopplungscode
   noch gültig und die API erreichbar?"
 - **Ursache (Punkt 61):** `pairing.go` schickte die Anfrage an `tunnel.PathPair` **ohne
   jede Abfrage**. Die API verbraucht aber den Einmalwert, den die **Abfrage** benennt:
@@ -758,7 +758,7 @@ nicht frisch aussehen.
   die Anfrage ab (Protokollfehler).
   **Behoben** — heute baut `pairing.go:168–169` genau diese Abfrage.
 - **Und daraus wurde der Kreis, in den Punkt 60 gelaufen ist:**
-  1. Keine Kopplung → kein `/etc/ngc/trust-anchor.json`.
+  1. Keine Kopplung → kein `/etc/cd/trust-anchor.json`.
   2. Ohne Anker zeigt die Oberfläche **jedem** Browser die Einrichtungsseite — auch mit
      gültiger Sitzung.
   3. Die Einrichtung ist aber gelaufen: `/api/v1/setup` gibt **404**, der Einmal-Code ist
@@ -793,7 +793,7 @@ Die ersten drei nur in WSL gemessen (Punkt 56).
   Error** und `curl` kam auf `http=000`. Ursache: WSL hatte den Namen aus `/etc/hosts`
   entfernt, während Apache und `web.json` weiter darauf zeigten. Nach dem Wiedereintragen:
   Seite 200, `/api/v1/setup` 200, `NRestarts=0` (Punkt 59). Ein Proxy-Fehler der
-  Oberfläche, der wie ein Fehler von NGC aussieht. **Dasselbe gilt für Schritt 0 auf deinem
+  Oberfläche, der wie ein Fehler von CirroDesk aussieht. **Dasselbe gilt für Schritt 0 auf deinem
   eigenen Rechner:** fehlt der Eintrag dort, sieht es aus wie ein Fehler der Anlage.
 - **In WSL lässt sich keine App einrichten.** Der Kern kann nicht verschlüsseln:
   `# CONFIG_FS_ENCRYPTION is not set` auf `6.18.33.2-microsoft-standard-WSL2`, gemessen am
@@ -816,8 +816,8 @@ Das steht hier, damit niemand es für geprüft hält.
   meldet**, bevor du dich darauf verlässt: am 23.10.2026 Phase A allein **1 rot**
   (Station 1, Wand 1) und **7 unmeasurable**, Ausstiegscode 1 (`docs/erstlauf.md`).
 - **Wand 1 ist nicht behoben, nur umgangen.** Schritt 3 legt einen Drop-in an. Die Zeile
-  `ReadWritePaths=${NGC_DATA} ${NGC_TLS}` steht am 24.10.2026 unverändert in `ngc-all.sh:1322`
-  und `ngc-api.sh:1065` auf dem ulh-Zweig `ngc-kette`. Wer ohne Schritt 3 installiert, steht
+  `ReadWritePaths=${CD_DATA} ${CD_TLS}` steht am 24.10.2026 unverändert in `cd-all.sh:1322`
+  und `cd-api.sh:1065` auf dem ulh-Zweig `cd-kette`. Wer ohne Schritt 3 installiert, steht
   wieder vor der Wand vom Oktober.
 - **Welche Nummer die Nummer des Release ist.** Jedes Programm trägt seine eigene
   (`0.2.0`, `1.0.0`, `0.2.1` in den `VERSION`-Dateien), ein Release hat **ein** Feld
@@ -837,7 +837,7 @@ Das steht hier, damit niemand es für geprüft hält.
   Prüflaufs hält diesen Schlüssel, und darum ist Schritt 12 **nur mit dem ersten Verwalter**
   gegangen: dass das Recht „benutzen" bei einem **zweiten** Menschen wirklich ankommt, ist in
   keiner Phase gemessen (`docs/erstlauf.md`, Abschnitt 6).
-- **Die fünfte Schutzeinstellung** von `ngc-web`. Das Skript sagt laut, dass es nur vier von
+- **Die fünfte Schutzeinstellung** von `cd-web`. Das Skript sagt laut, dass es nur vier von
   fünf kennt. Welche fehlt, ist nicht geklärt (Punkt 56, Befund 3).
 - **Dass podman die Härtungsschalter einhält.** Gemessen ist, dass sie **geschickt** werden —
   alle elf, Zeile für Zeile aus `apps/server-controller/classes/runtime/podman.go`. Nicht
@@ -854,8 +854,8 @@ Das steht hier, damit niemand es für geprüft hält.
   der beiden Ströme ist in `serve.RunService` gemessen. Dass **podmans** eigene Engine sie
   genauso übergibt (`runtime.Podman.Exec`), ist nirgends gemessen und braucht einen Container.
 - **Mehrere Maschinen.** Diese Anleitung ist der kleine Fall: **eine** Maschine, SQLite
-  (`config.DriverSQLite`), eine Datei je Programm — `/var/lib/ngc/api/ngc.db` und
-  `/var/lib/ngc/controller/state.db`. MariaDB mit Galera ist ein anderer Fall und steht hier
+  (`config.DriverSQLite`), eine Datei je Programm — `/var/lib/cd/api/cd.db` und
+  `/var/lib/cd/controller/state.db`. MariaDB mit Galera ist ein anderer Fall und steht hier
   nicht (Punkt 47).
 - **Der verteilte Fall ist hier nicht nachgefahren, nur nachgesehen.** Von der Anlage aus sechs
   Maschinen ist gemessen, was ein Browser von außen sehen kann: die sieben Namen und wohin sie
@@ -866,12 +866,12 @@ Das steht hier, damit niemand es für geprüft hält.
   für `api-1`, `api-2` und `ngc.mein.lan` aus den Zertifikaten und aus `config.json` bestätigt,
   für `db-1`, `svc-1`, `svc-2` und `store` **nicht** — dort antwortet von außen nichts, was
   seinen Namen nennt.
-- **Welches Skript beim verteilten Fall was macht.** Der kleine Fall nimmt `ngc-all`; sechs
-  Maschinen brauchen `ngc-api`, `ngc-db`, `ngc-controller` und `ngc-web` einzeln, jedes mit
+- **Welches Skript beim verteilten Fall was macht.** Der kleine Fall nimmt `cd-all`; sechs
+  Maschinen brauchen `cd-api`, `cd-db`, `cd-controller` und `cd-web` einzeln, jedes mit
   eigener `answer.yaml`. Die Reihenfolge dieser vier untereinander, und wo dabei gekoppelt und
   aufgenommen wird, steht in **keiner** Anleitung und ist hier nicht gemessen.
 - **Dass die fünf Skripte je auf ulh-`main` kommen.** Nachgezählt am 24.10.2026: `origin/main`
-  hat weiter **null** `ngc-*`-Skripte. Ein Push nach ulh-`main` erreicht per Auto-Update
+  hat weiter **null** `cd-*`-Skripte. Ein Push nach ulh-`main` erreicht per Auto-Update
   sofort alle Nutzer, deshalb entscheidet das Thomas (Punkt 47).
 
 ---
@@ -889,7 +889,7 @@ Nicht weggelassen, sondern hingeschrieben.
   über eine IP-Adresse keine Passschlüssel gibt, stand nirgends. Jetzt ist es Schritt 0.
 - **Die Anleitung sagte nicht, welche Anlage sie beschreibt.** Sie sagte „ein Rechner" und
   danach „`<host>`" — und es gibt inzwischen **zwei** Anlagen mit zwei verschiedenen Namen
-  (`ngc.test` und `ngc.mein.lan`). Wer die verteilte vor sich hatte und diese Anleitung las,
+  (`cd.test` und `ngc.mein.lan`). Wer die verteilte vor sich hatte und diese Anleitung las,
   trug den falschen Namen ein und bekam keinen Satz, der das sagt. Jetzt steht oben eine
   Tabelle, und der verteilte Fall ist an jeder abweichenden Stelle benannt.
 - **Die Reihenfolge der alten Schritte 4 bis 7 hielt nicht, was sie andeutete.** „Nicht neu
@@ -913,8 +913,8 @@ Nicht weggelassen, sondern hingeschrieben.
 
 Außer den zwei Punkten aus Abschnitt 1:
 
-- **Wand 1 richtig zumachen.** `/etc/ngc` gehört in `ReadWritePaths` von `ngc-api.service`,
-  in `ngc-all.sh:1322` und `ngc-api.sh:1065`. Beide liegen im **ulh**-Repo auf Zweigen, an
+- **Wand 1 richtig zumachen.** `/etc/cd` gehört in `ReadWritePaths` von `cd-api.service`,
+  in `cd-all.sh:1322` und `cd-api.sh:1065`. Beide liegen im **ulh**-Repo auf Zweigen, an
   denen andere Sitzungen arbeiten. Solange das offen ist, braucht jede Installation den
   Drop-in aus Schritt 3 — eine Anleitung, die einen Handgriff gegen einen bekannten Fehler
   verlangt, ist die zweitbeste Lösung.
@@ -931,7 +931,7 @@ Außer den zwei Punkten aus Abschnitt 1:
   Anleitung dafür. Wer sie schreibt, muss die Reihenfolge der vier Skripte messen — sie steht
   nirgends.
 - **Der DNS, der jeden Namen beantwortet.** In diesem Netz lösen alle sieben Namen unter
-  `ngc.mein.lan` auf `10.2.3.102` auf, wo kein NGC läuft (Schritt 0). Solange das so ist,
+  `ngc.mein.lan` auf `10.2.3.102` auf, wo kein CirroDesk läuft (Schritt 0). Solange das so ist,
   braucht **jeder** Leser die Zeilen in seiner `hosts`-Datei, auch der mit DNS — und jeder
-  Fehler sieht zuerst wie ein Fehler von NGC aus. Das ist keine NGC-Sache, aber es trifft
-  jeden, der NGC hier aufsetzt.
+  Fehler sieht zuerst wie ein Fehler von CirroDesk aus. Das ist keine CirroDesk-Sache, aber es trifft
+  jeden, der CirroDesk hier aufsetzt.

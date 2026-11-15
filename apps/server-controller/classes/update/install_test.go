@@ -13,18 +13,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/install"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/install"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The versions these cases work with: what runs, and what lies ready.
@@ -133,7 +133,7 @@ type installFixture struct {
 	task    bool
 }
 
-// apiFixture is an install of an NGC part that has to go through: a staged
+// apiFixture is an install of a CirroDesk part that has to go through: a staged
 // file of the new version, a standing approval for it, the old program in
 // place, and a new program that names the staged version when it is asked.
 func apiFixture(t testing.TB) *installFixture {
@@ -1065,7 +1065,7 @@ func TestInstallDefaultAliveIsThirtySeconds(t *testing.T) {
 	}
 }
 
-func TestInstallHandlesEveryNGCPart(t *testing.T) {
+func TestInstallHandlesEveryCDPart(t *testing.T) {
 	// A part added to the contract without a branch in installPart would be
 	// an ErrInternal on a server. This is the static assurance that every
 	// part of knownParts has one, and that knownParts is the contract's own
@@ -1086,11 +1086,11 @@ func TestInstallHandlesEveryNGCPart(t *testing.T) {
 			t.Errorf("%s has no systemd unit", p)
 		}
 	}
-	// And every part of knownParts is one ngcPart answers yes to, so the two
+	// And every part of knownParts is one cdPart answers yes to, so the two
 	// lists cannot drift apart.
 	for _, p := range knownParts {
-		if !ngcPart(p) {
-			t.Errorf("%s is in knownParts but ngcPart says no", p)
+		if !cdPart(p) {
+			t.Errorf("%s is in knownParts but cdPart says no", p)
 		}
 	}
 }
@@ -1134,7 +1134,7 @@ func TestInstallMessagesFitTheContract(t *testing.T) {
 func TestInstallRefusesParamsThatDoNotParse(t *testing.T) {
 	f := apiFixture(t)
 	d := f.decision()
-	d.Opened.Open.Params = json.RawMessage(`{"target":"ngc-api","unknown":1}`)
+	d.Opened.Open.Params = json.RawMessage(`{"target":"cd-api","unknown":1}`)
 	if _, err := New(f.deps).Install(context.Background(), d); !errors.Is(err, ErrVerify) {
 		t.Fatalf("%v, want ErrVerify", err)
 	}
@@ -1145,7 +1145,7 @@ func TestInstallRefusesParamsThatDoNotParse(t *testing.T) {
 
 func TestVersionOfAsksTheProgramItself(t *testing.T) {
 	// The health check of operation, actually RUN - against a program built
-	// for this case, because no ngc program exists on this machine. It needs
+	// for this case, because no cd program exists on this machine. It needs
 	// the go toolchain; without it the case says so out loud rather than
 	// passing quietly.
 	gobin, err := exec.LookPath("go")
@@ -1228,7 +1228,7 @@ func TestInstallUsesTheConfiguredPaths(t *testing.T) {
 	// The paths of operation come from the contract and not from a string in
 	// this package: a server whose BinDir moved must not keep installing into
 	// the old one.
-	if config.BinDir != "/usr/lib/ngc" || config.WebRoot != "/var/www/ngc" {
+	if config.BinDir != "/usr/lib/cd" || config.WebRoot != "/var/www/cd" {
 		t.Errorf("config.BinDir %q, config.WebRoot %q - the comments of this file name these",
 			config.BinDir, config.WebRoot)
 	}
@@ -1242,7 +1242,7 @@ func TestInstallUsesTheConfiguredPaths(t *testing.T) {
 }
 
 // uiTar builds the tar of a web release: a "ui/"-rooted tar, the one shape
-// the contract can unpack safely (store.WalkUI). What an ngc-web release file
+// the contract can unpack safely (store.WalkUI). What a cd-web release file
 // really is, is not written down anywhere - see the BLOCKED note on unpack.
 //
 // The blocks are written by hand and NOT with archive/tar. Measured: Go's tar
@@ -1319,7 +1319,7 @@ var (
 
 // --- point 33: the part has to belong on this server ----------------------
 
-// installFixtureFor is an install of one NGC part that has to go through, for each
+// installFixtureFor is an install of one CirroDesk part that has to go through, for each
 // of the three parts there are. It is one function so that the cases below
 // walk the SAME path for every part instead of one path three times.
 func installFixtureFor(t testing.TB, target string) *installFixture {
@@ -1373,8 +1373,8 @@ func (f *installFixture) stand() string {
 }
 
 // TestInstallRefusesAPartThisServerDoesNotRun nails the wall of point 33 down:
-// which NGC part belongs on this machine is decided at the INSTALL and not
-// only on the API that sends. A database server asked to install ngc-api
+// which CirroDesk part belongs on this machine is decided at the INSTALL and not
+// only on the API that sends. A database server asked to install cd-api
 // refuses; it does not copy a program into its bin directory and restart a
 // service it does not own.
 //
@@ -1390,15 +1390,15 @@ func TestInstallRefusesAPartThisServerDoesNotRun(t *testing.T) {
 		target string
 		roles  []string
 	}{
-		// A pure database node IS sent the ngc-api file, so that it can play
+		// A pure database node IS sent the cd-api file, so that it can play
 		// the migrations in (the API's rollout, MigrationNode) - but that is
 		// Stage. Installing it is another thing and is refused.
-		{"ngc-api on a database server", trust.AutoAPI, []string{tunnel.RoleDB}},
-		{"ngc-api on a services server", trust.AutoAPI, []string{tunnel.RoleServices}},
+		{"cd-api on a database server", trust.AutoAPI, []string{tunnel.RoleDB}},
+		{"cd-api on a services server", trust.AutoAPI, []string{tunnel.RoleServices}},
 		// An API server is not a web server, and nothing but its own roles
 		// says so.
-		{"ngc-web on an API server", trust.AutoWeb, []string{tunnel.RoleAPI}},
-		{"ngc-web on a database server", trust.AutoWeb, []string{tunnel.RoleDB}},
+		{"cd-web on an API server", trust.AutoWeb, []string{tunnel.RoleAPI}},
+		{"cd-web on a database server", trust.AutoWeb, []string{tunnel.RoleDB}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			f := installFixtureFor(t, c.target)
@@ -1444,7 +1444,7 @@ func TestInstallRefusesAPartThisServerDoesNotRun(t *testing.T) {
 }
 
 // TestInstallTakesTheControllerOnEveryServer is the other half of the same
-// wall, and it keeps it from being too tight: ngc-controller runs on every NGC
+// wall, and it keeps it from being too tight: cd-controller runs on every CirroDesk
 // server whatever its roles are (tunnel.Components always names it), so no
 // combination of roles may refuse it. A wall that refused this one would lock
 // every server out of its own updates.
@@ -1496,7 +1496,7 @@ func runsIt(part string) []string {
 	return nil
 }
 
-// S7, decided (1): the package of ngc-web carries its files under ui/, and the
+// S7, decided (1): the package of cd-web carries its files under ui/, and the
 // contract stays as it is. A package in the old shape - the files at the root
 // of the tar, as the scripts built it until then - is refused as a whole, and
 // the stand that runs is not touched.
@@ -1552,7 +1552,7 @@ func TestInstallWithoutAWrittenVersionAsksTheProgram(t *testing.T) {
 	}
 }
 
-// S8 for ngc-web: with no version written down, the VERSION file the package
+// S8 for cd-web: with no version written down, the VERSION file the package
 // carried under ui/ names the stand in place. Missing or invalid is unknown,
 // and an install without a user is then refused.
 func TestInstallWebWithoutAWrittenVersionReadsTheTree(t *testing.T) {

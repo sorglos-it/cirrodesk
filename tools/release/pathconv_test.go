@@ -20,7 +20,7 @@ var msysOff = []string{"MSYS_NO_PATHCONV=1", "MSYS2_ARG_CONV_EXCL=*"}
 // WHAT WENT WRONG. On 18.10.2026 all eleven cases of this package were red on
 // origin/main, every one of them with
 //
-//	/tmp/tmp.XXXXXXXX/ngc-web-all.tar: No such file or directory
+//	/tmp/tmp.XXXXXXXX/cd-web-all.tar: No such file or directory
 //	pack-release: the checksum could not be built
 //
 // for a file that WAS there - a probe right before the call showed 40960 bytes
@@ -69,7 +69,7 @@ func TestPackAndSignSurviveArgumentConversionOff(t *testing.T) {
 	// The archive AND the payload, because the checksum sits between them: a
 	// pack that wrote the tar and died at openssl leaves the first and not the
 	// second, and that is exactly the failure this case is about.
-	for _, name := range []string{"ngc-web-all.tar", "release.payload.json"} {
+	for _, name := range []string{"cd-web-all.tar", "release.payload.json"} {
 		if _, err := os.Stat(filepath.Join(out, name)); err != nil {
 			t.Errorf("%s: %v", name, err)
 		}

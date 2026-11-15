@@ -13,11 +13,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // The app, the store and the versions every case below starts from.
@@ -25,7 +25,7 @@ const (
 	testApp   = "org.sorglos.notes"
 	testVer   = "1.0.0"
 	testStore = "global"
-	testNGC   = "1.0.0"
+	testCD    = "1.0.0"
 )
 
 type entry struct {
@@ -64,11 +64,11 @@ func buildTar(t testing.TB, entries []entry) []byte {
 
 // appManifest is the manifest of the test app: a UI, an icon and one service,
 // so a package needs both ui/ and services/.
-func appManifest(id, version, minNGC string) *store.Manifest {
+func appManifest(id, version, minCD string) *store.Manifest {
 	return &store.Manifest{ID: id, Name: "Notizen", Version: version, Publisher: "Sorglos IT",
 		Icon: "icon.svg", UI: &store.UI{Entry: "index.html"},
 		Services: []store.Service{{Name: "app", Command: []string{"/usr/bin/notes"}}},
-		MinNGC:   minNGC}
+		MinCD:    minCD}
 }
 
 func manifestEntry(t testing.TB, m *store.Manifest) entry {
@@ -227,7 +227,7 @@ func catalogFixture(t testing.TB) *fixture {
 	f.in = AcceptInput{Max: store.MaxPackage, List: &trust.List{Stores: []trust.Store{
 		{ID: testStore, Name: "Global", URL: "https://store.example.org", Key: enc.Bytes(pub)}}},
 		Store: testStore, App: testApp, Version: testVer, SHA256: sha(pkg), UI: uiHashOf(t, pkg),
-		NGC: testNGC, Dir: f.base, LastSeq: func(string) uint64 { return 0 }}
+		CirroDesk: testCD, Dir: f.base, LastSeq: func(string) uint64 { return 0 }}
 	return f
 }
 

@@ -21,16 +21,16 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/httpapi"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/lock"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/httpapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/lock"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // lockName is the bucket of failed setup attempts; it is no login name, so it
@@ -105,7 +105,7 @@ const maxCodeFile = 64
 
 // storeName is the name of the global store, as the contract names it in
 // session.SetupInfo.Store.
-const storeName = "NGC Store"
+const storeName = "CirroDesk Store"
 
 // errKey reports a key of the configuration this API cannot use.
 // config.API.Validate takes only keys of the right size, so it can mean
@@ -127,7 +127,7 @@ var ErrNoCode = errors.New("setup: the code file holds no code")
 // Handler serves both methods of session.PathSetup.
 type Handler struct {
 	S        *state.State
-	CodeFile string // /var/lib/ngc/setup-code
+	CodeFile string // /var/lib/cd/setup-code
 
 	// The public keys of this API, derived once. Every derivation copies a
 	// private key out of the configuration (config.Secret.Bytes), and nothing

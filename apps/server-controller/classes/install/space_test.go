@@ -7,7 +7,7 @@ import (
 	goruntime "runtime"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // fakeDisk puts a disk of this case behind diskFree. Renamed on merge:
@@ -154,7 +154,7 @@ func TestTheSpaceDecisionIsWhatItSays(t *testing.T) {
 // number that is not nonsense.
 func TestFreeSpaceAnswersOnThisDisk(t *testing.T) {
 	if goruntime.GOOS != "linux" {
-		t.Skip("how much room is left is a call of Linux; NGC runs on Debian and Ubuntu")
+		t.Skip("how much room is left is a call of Linux; CirroDesk runs on Debian and Ubuntu")
 	}
 	free, err := freeSpace(t.TempDir())
 	if err != nil {

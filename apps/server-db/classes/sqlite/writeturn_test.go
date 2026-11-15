@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/core"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/core"
 )
 
 // TestTheTurnBoundIsOneChainOfTheOpenDatabase asks the OPEN DATABASE for its

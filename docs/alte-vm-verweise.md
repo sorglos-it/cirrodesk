@@ -1,5 +1,7 @@
 # Die Einzel-VM ist aus — was im Repo noch auf sie zeigt
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Stand 24.10.2026.** Die erste wirklich laufende NGC-Anlage lag auf **einer** Maschine
 (`ssh ngc`, 10.2.3.208, Name `ngc.test`, NGC `0.2.0`/`0.2.2`). Diese Maschine ist **aus**.
 Seit Tagen zeigen Dokumente, Aufträge und Skripte auf sie. Wer ihnen heute folgt, misst ins

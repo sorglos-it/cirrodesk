@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 func TestChannelFreesItsNumberOnlyAfterBothCloses(t *testing.T) {

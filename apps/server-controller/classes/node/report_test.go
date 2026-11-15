@@ -14,17 +14,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/chain"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/chain"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // newState is an empty local state for one test.
@@ -219,7 +219,7 @@ func TestStatusReportsOnlyTheComponentsOfTheseRoles(t *testing.T) {
 // What an app is doing: the engine says running or stopped, and a licence that
 // ran out past its grace period says unlicensed. Two rows are left out instead,
 // because the contract could not carry them: one of which only kept data
-// remains, and one of NGC's own, which the API serves itself.
+// remains, and one of CirroDesk's own, which the API serves itself.
 func TestStatusSaysWhatTheAppsAreDoing(t *testing.T) {
 	ctx := context.Background()
 	st := newState(t)
@@ -235,10 +235,10 @@ func TestStatusSaysWhatTheAppsAreDoing(t *testing.T) {
 	}
 	// A core app is no app of this list either, and the state of a controller
 	// really can hold such a row: the ID passes wire.ValidAppID.
-	if !wire.ValidAppID("ngc.web") || !wire.CoreApp("ngc.web") {
-		t.Fatal("ngc.web is no core app ID, so this case guards nothing")
+	if !wire.ValidAppID("cd.web") || !wire.CoreApp("cd.web") {
+		t.Fatal("cd.web is no core app ID, so this case guards nothing")
 	}
-	if err := st.PutApp(ctx, dbapi.App{ID: "ngc.web", Version: "1.0.0"}); err != nil {
+	if err := st.PutApp(ctx, dbapi.App{ID: "cd.web", Version: "1.0.0"}); err != nil {
 		t.Fatal(err)
 	}
 	r := reporterFor(t, st, func(c *ReportConfig) {

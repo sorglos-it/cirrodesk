@@ -1,6 +1,6 @@
 import { test, expect, signIn, expectDesktop, skipWithoutLogin } from "../fixtures/page.js";
 
-// ngc.save: an app hands a file to the shell, the shell checks it and saves it
+// cd.save: an app hands a file to the shell, the shell checks it and saves it
 // as a download. Driven from inside the terminal's frame, because that is
 // where an app's code runs; the terminal itself plays no part.
 
@@ -18,16 +18,16 @@ async function frame(shell) {
   return f.locator("html");
 }
 
-// save runs ngc.save in the app and hands back what the promise said.
+// save runs cd.save in the app and hands back what the promise said.
 const save = (html, name, data, type) => html.evaluate(
-  (_, [n, d, t]) => window.ngc.save(n, d, t).then((v) => ({ value: v }), (e) => ({ error: e.message })),
+  (_, [n, d, t]) => window.cd.save(n, d, t).then((v) => ({ value: v }), (e) => ({ error: e.message })),
   [name, data, type]);
 
 test("a file from the app is saved as a download, byte for byte", async ({ shell }) => {
   const html = await frame(shell);
   const download = shell.waitForEvent("download");
   const got = await html.evaluate(() =>
-    window.ngc.save("notiz.txt", new TextEncoder().encode("Hallo ÄÖÜ"), "text/plain").then((v) => ({ value: v })));
+    window.cd.save("notiz.txt", new TextEncoder().encode("Hallo ÄÖÜ"), "text/plain").then((v) => ({ value: v })));
   expect(got).toEqual({ value: true });
   const d = await download;
   expect(d.suggestedFilename()).toBe("notiz.txt");
@@ -53,7 +53,7 @@ test("a name with a path or a control character is refused, not mended", async (
 
 test("more than 64 MiB is refused, and data that is not bytes is too", async ({ shell }) => {
   const html = await frame(shell);
-  expect(await html.evaluate(() => window.ngc.save("big.bin", new Uint8Array((64 << 20) + 1))
+  expect(await html.evaluate(() => window.cd.save("big.bin", new Uint8Array((64 << 20) + 1))
     .then(() => "saved", (e) => e.message))).toBe("toolarge");
   expect(await save(html, "x.txt", "text, not bytes", "text/plain")).toEqual({ error: "unavailable" });
 });

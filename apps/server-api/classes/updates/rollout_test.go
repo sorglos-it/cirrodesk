@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // theBodies are the three release files these cases use.
@@ -141,7 +141,7 @@ func TestRolloutOrder(t *testing.T) {
 		t.Fatalf("Rollout: %v", err)
 	}
 	got := steps(fx, t)
-	// The database first (the ngc-api file laid ready on the db server, which
+	// The database first (the cd-api file laid ready on the db server, which
 	// is no API itself and therefore gets nothing installed), then the APIs,
 	// then the controllers, the web interface last. Per node: stage, then
 	// install -- and the next node only after the previous one reported
@@ -163,7 +163,7 @@ func TestRolloutOrder(t *testing.T) {
 		t.Fatalf("order:\n got %v\nwant %v", got, want)
 	}
 	// The db server is not an API and must never be handed an install of
-	// ngc-api: the contract has no action that plays migrations in, and that
+	// cd-api: the contract has no action that plays migrations in, and that
 	// install would restart a service this machine does not run.
 	if slices.Contains(got, "install "+trust.AutoAPI+" "+dbNode) {
 		t.Fatalf("the database server was told to install the API")
@@ -398,7 +398,7 @@ func TestWithoutAStandingApprovalNothingInstalls(t *testing.T) {
 	fx.serveRelease(t, relPriv, 3, "1.1.0", theBodies())
 	fx.U.Wait = time.Millisecond
 	fx.U.Zone = time.UTC
-	// trusttest.Genesis approves ngc-controller and system and nothing else.
+	// trusttest.Genesis approves cd-controller and system and nothing else.
 	if err := fx.U.Rollout(ctx); err != nil {
 		t.Fatalf("Rollout: %v", err)
 	}
@@ -521,7 +521,7 @@ func TestAReleaseTurnedBackReachesNoNode(t *testing.T) {
 func TestARoundThatStopsLeavesNoClaimThatItFinished(t *testing.T) {
 	fx := readyToRoll(t)
 	// The controller of ctl-1 rolls its update back. Everything before it
-	// (the ngc-api of ctl-1) is already installed at that point.
+	// (the cd-api of ctl-1) is already installed at that point.
 	fx.Send.onSend = reportsLikeAController(&fx, func(node, target string) string {
 		if node == ctlNode && target == trust.AutoController {
 			return store.UpdateRolledBack
@@ -832,7 +832,7 @@ func TestAFileThatLiesReadyIsStillInstalled(t *testing.T) {
 // TestOneNodeCostsThreeWaits is the measurement behind the comment at
 // lockLease: ONE machine that carries the roles api and web costs a round
 // THREE waits, not one, because tunnel.Components gives such a server
-// ngc-controller, ngc-api and ngc-web. With InstallWait of 15 minutes that is
+// cd-controller, cd-api and cd-web. With InstallWait of 15 minutes that is
 // 45 minutes against a lease of 40 -- which is why the round renews the lease
 // instead of trusting the constant.
 //

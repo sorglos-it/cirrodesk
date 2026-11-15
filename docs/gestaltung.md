@@ -18,7 +18,7 @@ fremder Text geht als Text in die Seite, nie als Markup.
 
 ## 1. Das Handy muss gehen
 
-- **Entschieden:** NGC muss auf einem Handy benutzbar sein. Es ist nicht nur für
+- **Entschieden:** CirroDesk muss auf einem Handy benutzbar sein. Es ist nicht nur für
   den großen Schirm.
 - **Warum:** Thomas hat es so entschieden.
 - **Dazu gehört seine eigene Annahme, und sie steht hier, weil sie Arbeit
@@ -93,7 +93,7 @@ fremder Text geht als Text in die Seite, nie als Markup.
 ## 6. Am ersten Blick erkennt man die eigene Anlage
 
 - **Entschieden:** Oben auf der Anmeldung steht der **Name der Firma**, mit ihrem
-  Zeichen. **NGC steht klein unten** („läuft mit NGC 0.2.1").
+  Zeichen. **CirroDesk steht klein unten** („läuft mit CirroDesk 0.2.1").
 - **Warum:** Thomas hat es so entschieden. Wer sich anmeldet, meldet sich bei
   seiner Firma an, nicht bei einem Produkt.
 - **Heute:** Die Anmeldung trägt **keinen** Namen (`.loginbox`, `.loginhead`), und
@@ -109,7 +109,7 @@ fremder Text geht als Text in die Seite, nie als Markup.
 - **Entschieden:** Vorgabe ist die **Einstellung des Betriebssystems**. Dazu eine
   **eigene Wahl** des Benutzers, die die Vorgabe überstimmt.
 - **Warum:** Thomas hat es so entschieden. Wer sein System auf hell stellt, meint
-  es auch für NGC; wer es anders will, stellt es um.
+  es auch für CirroDesk; wer es anders will, stellt es um.
 - **Heute:** Die Oberfläche kennt nur **zwei** Werte (`THEMES = ["dark","light"]`
   in `shell/theme.js`). „Dem System folgen" ist **keine Wahl**, sondern nur der
   Fall, in dem noch nichts gewählt wurde oder der Browser nichts merken kann —
@@ -155,7 +155,7 @@ fremder Text geht als Text in die Seite, nie als Markup.
 - **Klartext, kein Fachwort, wo ein deutsches Wort reicht:** „speichern" und
   „laden", nicht „exportieren" und „importieren".
 - **Eigennamen werden nicht übersetzt.** Der **Store** heißt Store, nicht
-  „Laden". Thomas hat das ausdrücklich gesagt. Dasselbe gilt für NGC und für
+  „Laden". Thomas hat das ausdrücklich gesagt. Dasselbe gilt für CirroDesk und für
   Namen von Apps. Die Klartext-Regel gilt für **Tätigkeiten und Dinge**, nicht
   für Namen.
 - **Ein Fehlertext sagt, was fehlt**, nicht, dass etwas kaputt ist. Die zwei

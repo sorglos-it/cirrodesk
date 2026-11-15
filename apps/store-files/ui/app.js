@@ -1,6 +1,6 @@
 // org.sorglos.files - the user's own files: list, folders, upload, rename,
 // delete, edit text and view pictures in the same window (Thomas, F1 = A).
-// The service is ngc-files (../classes); its answers are JSON for list,
+// The service is cd-files (../classes); its answers are JSON for list,
 // mkdir, rename and remove, raw bytes on the channels get and put.
 //
 // A classic script, not a module (see store-calculator). Under node (the
@@ -106,7 +106,7 @@
     return;
   }
 
-  const lang = pickLang([window.ngc && ngc.lang, document.documentElement.lang]);
+  const lang = pickLang([window.cd && cd.lang, document.documentElement.lang]);
   const T = TEXTS[lang];
   document.documentElement.lang = lang;
   document.title = T.title;
@@ -124,7 +124,7 @@
     return b;
   }
 
-  const api = typeof ngc === "object" && ngc ? ngc : null;
+  const api = typeof cd === "object" && cd ? cd : null;
 
   // ask runs one call and returns its answer; the error code becomes a thrown
   // Error whose message is that code.
@@ -258,7 +258,7 @@
       await api.save(selected.name, bytes, IMAGES[ext(selected.name)] || "application/octet-stream");
       say("");
     } catch (e) {
-      // The shell's codes for ngc.save, agreed with Web: refused, toolarge,
+      // The shell's codes for cd.save, agreed with Web: refused, toolarge,
       // name, unavailable. Only the browser may ask before saving, so
       // "refused" comes only if the shell later asks itself.
       const m = { refused: "", name: "path", unavailable: "noDownload" }[e && e.message];

@@ -1,11 +1,11 @@
-// The update actions of this controller: ngc.store/controller/install, and the
+// The update actions of this controller: cd.store/controller/install, and the
 // fork inside it.
 //
 // There is one core action and two methods behind it. The contract knows a
 // single action for installing (core.ActInstall, core.InstallParams), and its
 // Target decides which of the two runs: trust.AutoSystem means the system
 // packages of this server, which update.Manager.System does with apt, and
-// every other target is a part of NGC or an app, which update.Manager.Install
+// every other target is a part of CirroDesk or an app, which update.Manager.Install
 // does. The fork lives here and nowhere else, because this is the one place
 // that knows the action was opened at all.
 //
@@ -25,14 +25,14 @@ import (
 	"errors"
 	"io"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/update"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/update"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// installKey is ngc.store/controller/install.
+// installKey is cd.store/controller/install.
 var installKey = name{core.AppStore, core.ServiceController, core.ActInstall}
 
 // Updater is what carries out an install on this server
@@ -67,7 +67,7 @@ type Updater interface {
 // TestAnInstallAnswersTheEmptyObject holds the two halves against each other.
 type emptyResult struct{}
 
-// install carries out ngc.store/controller/install. The input of this action
+// install carries out cd.store/controller/install. The input of this action
 // is empty - it is FlowCall (core.All), so its MaxIn is 0 and read gave back
 // nothing - and everything it does stands in its params.
 func (s *Server) install(ctx context.Context, list *trust.List, d access.Decision,
@@ -94,10 +94,10 @@ func (s *Server) install(ctx context.Context, list *trust.List, d access.Decisio
 	return emptyResult{}, nil
 }
 
-// stageKey is ngc.store/controller/stage.
+// stageKey is cd.store/controller/stage.
 var stageKey = name{core.AppStore, core.ServiceController, core.ActStage}
 
-// stage carries out ngc.store/controller/stage: the API hands over one file of
+// stage carries out cd.store/controller/stage: the API hands over one file of
 // a signed release and this server lays it ready. It is a stream and not an
 // act, because the file arrives as it arrives (core.FlowTransfer) and nothing
 // here is willing to hold it in memory first.

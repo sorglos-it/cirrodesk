@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // The pairing code is read here instead of taken from the command line: an

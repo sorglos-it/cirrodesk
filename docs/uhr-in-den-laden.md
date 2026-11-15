@@ -1,5 +1,7 @@
 # Die Uhr in den Laden — was gemessen ist und was noch ein Mensch tun muss
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Stand 24.10.2026, nachmittags. Anlage: die verteilte, sechs Maschinen,
 `https://ngc.mein.lan`. Diese Datei gehört zur Lücke **M1** aus
 `docs/messungen-m1-m3.md`: „es gibt nur eine echte App". Die Lücke ist nach

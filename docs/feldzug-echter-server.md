@@ -1,5 +1,7 @@
 # Feldzug: NGC auf einen echten Server
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Stand 12.10.2026.** Dieses Blatt liegt beim Einrichten neben der Tastatur.
 
 > **Durchgesehen am 17.10.2026 gegen `origin/main` und die Vertragspunkte 56–62.**

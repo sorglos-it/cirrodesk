@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // stateWithAnApp makes a database that holds something, so a copy of it can
@@ -75,8 +75,8 @@ func TestBackupRefusesAnotherDriver(t *testing.T) {
 		t.Fatalf("a MariaDB configuration was copied as a local file")
 	}
 	// And the answer names the program that CAN do it: an admin of a cluster
-	// who reads only "no" looks for a bug instead of running ngc-db.
-	if !strings.Contains(err.Error(), "ngc-db") {
+	// who reads only "no" looks for a bug instead of running cd-db.
+	if !strings.Contains(err.Error(), "cd-db") {
 		t.Fatalf("the answer does not name the program that can do it: %v", err)
 	}
 	if _, err := os.Stat(target); !os.IsNotExist(err) {

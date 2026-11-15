@@ -1,5 +1,7 @@
 # Krypto-Grenzen der Browser – was NGC in welcher Engine kann
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Stand 31.10.2026. Grundstand `dab25ef7` (origin/main), Zweig `web-krypto-grenzen`.
 Arbeitsbaum `D:\claude\working\ngc-krypto-grenzen` (lokale Platte D:, nicht das NAS Z:).
 

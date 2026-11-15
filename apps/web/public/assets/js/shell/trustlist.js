@@ -34,7 +34,7 @@ import { el } from "./dom.js";
 // anybody at this browser can act on, and naming it would tell whoever bent
 // the chain how close they got.
 export const ALARM = "Die Vertrauensliste dieser Anlage stimmt nicht. "
-  + "NGC hat Sie sicherheitshalber abgemeldet.";
+  + "CirroDesk hat Sie sicherheitshalber abgemeldet.";
 
 // No anchor from the server and none remembered from the initial setup: this
 // installation was never finished, and the person is told what is missing
@@ -58,7 +58,7 @@ const HASH_SIZE = 32, KEY_SIZE = 32;
 // will ever have.
 const MAX_PAGES = 64;
 
-const DB_NAME = "ngc", DB_VERSION = 1;
+const DB_NAME = "cd", DB_VERSION = 1;
 const STORE_TRUST = "trust", STORE_SETUP = "setup";
 const SETUP_ANCHOR = "anchor";
 
@@ -568,7 +568,7 @@ export function showTrustAlarm() {
   box.append(head, main,
     el("p", null, "Vielleicht hat sich jemand zwischen dieses Gerät und Ihre Anlage geschaltet."),
     el("p", null, "Bitte geben Sie hier kein Passwort mehr ein. Schließen Sie dieses Fenster und "
-      + "fragen Sie die Person, die NGC für Sie eingerichtet hat."),
+      + "fragen Sie die Person, die CirroDesk für Sie eingerichtet hat."),
     el("p", "alarmfoot", "Diese Meldung lässt sich mit Absicht nicht wegklicken."));
   back.append(box);
   document.body.append(back);

@@ -149,8 +149,8 @@ run L2 "$f" gruen "$version"
 echo
 echo "### M3  STERBENDER Mutant: pack() bekommt zusaetzlich den Punkt"
 # Makes the entry "./" a hand-built release hung on on 18.10.2026. Has to fall
-# at the shape check or at ngc-store contents.
-f=$(mut M3 's/pack "\$out\/ngc-controller-\$arch.tar" "\$bindir" \$controller_progs/pack "$out\/ngc-controller-$arch.tar" "$bindir" . $controller_progs/' 'bindir" \. \$controller_progs') || exit 1
+# at the shape check or at cd-store contents.
+f=$(mut M3 's/pack "\$out\/cd-controller-\$arch.tar" "\$bindir" \$controller_progs/pack "$out\/cd-controller-$arch.tar" "$bindir" . $controller_progs/' 'bindir" \. \$controller_progs') || exit 1
 run M3 "$f" rot "$version"
 
 echo

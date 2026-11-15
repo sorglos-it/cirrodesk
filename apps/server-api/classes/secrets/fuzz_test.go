@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // FuzzOpen feeds Open with everything: it must never panic, and every FAILURE

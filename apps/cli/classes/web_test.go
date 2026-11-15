@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // TestPackWebPassesWalkUI packs the real apps/web the way a release is
 // packed and reads it back the way the controller does: store.WalkUI, and
-// the release check of ngc-store. The tests of apps/web stay out.
+// the release check of cd-store. The tests of apps/web stay out.
 func TestPackWebPassesWalkUI(t *testing.T) {
-	out := filepath.Join(t.TempDir(), "ngc-web-all.tar")
+	out := filepath.Join(t.TempDir(), "cd-web-all.tar")
 	if err := PackWeb(filepath.Join("..", "..", "web"), out); err != nil {
 		t.Fatalf("PackWeb: %v", err)
 	}
@@ -28,7 +28,7 @@ func TestPackWebPassesWalkUI(t *testing.T) {
 		names = append(names, pf.Path)
 		return nil
 	}); err != nil {
-		t.Fatalf("store.WalkUI refuses what ngc-store web wrote: %v", err)
+		t.Fatalf("store.WalkUI refuses what cd-store web wrote: %v", err)
 	}
 	for _, n := range names {
 		if strings.Contains(n, "tests/") || strings.HasSuffix(n, "testlink.js") {

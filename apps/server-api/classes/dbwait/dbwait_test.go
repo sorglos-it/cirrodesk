@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
 )
 
 // TestEachDeadlineCarriesItsReason is the assurance: the deadline is bound to

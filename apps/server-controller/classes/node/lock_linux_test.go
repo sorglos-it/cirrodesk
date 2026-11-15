@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
-// E32: a second ngc-controller on the same database does not start, and it
+// E32: a second cd-controller on the same database does not start, and it
 // says so before it opens anything. Once the first lets go, a start goes on.
 func TestASecondControllerOnOneDatabaseDoesNotStart(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "controller.json")

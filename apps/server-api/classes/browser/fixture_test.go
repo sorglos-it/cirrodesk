@@ -16,20 +16,20 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/login"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/login"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()
@@ -118,13 +118,13 @@ func newServer(t *testing.T) *harness {
 	// name (session.VerifyAPI).
 	noiseKey, signKey := trusttest.NodeKeys(0xA1)
 	cfg := &config.API{
-		Node: "api-1", URL: "wss://api-1.ngc.test:7443/tunnel", Listen: ":7443",
+		Node: "api-1", URL: "wss://api-1.cd.test:7443/tunnel", Listen: ":7443",
 		Cert: "/x", CertKey: "/y",
 		NoiseKey: config.NewSecret(noiseKey.Private), SignKey: config.NewSecret(signKey.Seed()),
 		SecretKey:    config.NewSecret(make([]byte, 32)),
 		ChallengeKey: config.NewSecret(bytes.Repeat([]byte{7}, 32)),
 		ReleaseKey:   enc.Bytes(make([]byte, 32)), StoreKey: enc.Bytes(make([]byte, 32)),
-		StoreURL: "https://store.ngc.test", SessionLifetime: 43200, IdleTimeout: 1800,
+		StoreURL: "https://store.cd.test", SessionLifetime: 43200, IdleTimeout: 1800,
 	}
 	s := state.New(cfg, memstore.New(), box, make([]byte, 32))
 	s.Now = func() int64 { return testNow }
@@ -439,7 +439,7 @@ func openOf() wire.Open { return openWindow(wire.MinWindow) }
 // bound written as wire.MinWindow instead of as the OPEN's own window would
 // otherwise have nowhere to fall.
 func openWindow(window uint32) wire.Open {
-	return wire.Open{App: "ngc.desktop", Service: "api", Action: "me", Window: window}
+	return wire.Open{App: "cd.desktop", Service: "api", Action: "me", Window: window}
 }
 
 // within runs fn in a goroutine of its own and fails the case when it does not

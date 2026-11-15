@@ -3,7 +3,7 @@
 // other user. It is the built half of the decision of V1.2, point 38: before
 // it, recover() came up nowhere in the production code of apps/server-api,
 // apps/server-controller, apps/server-db, apps/web, shared, tools and cmd --
-// so one nil dereference in one handler of one channel took the whole ngc-api
+// so one nil dereference in one handler of one channel took the whole cd-api
 // down, with all 128 app channels of every link and the controller tunnels.
 //
 // What is caught is a BUG, never a refusal: a channel that answers a code
@@ -116,7 +116,7 @@ func Report() {
 // to no channel of its own.
 //
 // It writes to the default logger. A caller that carries a logger of its own
-// -- ngc-controller gives every tunnel one -- uses HitTo instead, so the line
+// -- cd-controller gives every tunnel one -- uses HitTo instead, so the line
 // lands where the rest of that part's lines land.
 func Hit(v any, site string, channel uint32) bool {
 	return HitTo(slog.Default(), v, site, channel)

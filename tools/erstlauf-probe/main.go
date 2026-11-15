@@ -31,7 +31,7 @@
 //
 // and on a fault of this program itself one line "broken: <sentence>" with exit
 // 3 - a preparation that did not take leaves the run measuring nothing, and
-// that is never a finding about NGC.
+// that is never a finding about CirroDesk.
 package main
 
 import (
@@ -45,16 +45,16 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/rights"
-	ctlruntime "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/serve"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/rights"
+	ctlruntime "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/serve"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The ids of the checks. tools/erstlauf.sh holds this list as well and stops
@@ -176,7 +176,7 @@ func rechte(ctx context.Context) {
 		broken("rights.Of did not answer for the admin: %v", err)
 	}
 	if !admin {
-		broken("rights.Of does not take the user with role %q for an admin - the fixture is wrong, not NGC", trust.RoleAdmin)
+		broken("rights.Of does not take the user with role %q for an admin - the fixture is wrong, not CirroDesk", trust.RoleAdmin)
 	}
 	if adminRights[use] {
 		pass(idOffered, "a freshly set up app with no rights row anywhere is in the admin's own rights ("+use+

@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/httpapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/session"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/httpapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/session"
 )
 
 // busySession is a store whose session read cannot get through because another

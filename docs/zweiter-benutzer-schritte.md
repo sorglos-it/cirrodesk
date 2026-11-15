@@ -9,21 +9,21 @@ Schlüssel ist ihr Passwort. Kein Agent tippt es. Alles andere ist gebaut und ge
 
 Es gibt seit dem 24.10.2026 **zwei**, und nur auf einer liegt dieser Stand.
 
-- **Einzel-VM `https://ngc.test`** (10.2.3.208, NGC `0.2.0`): **hier** sind die zwei geänderten
+- **Einzel-VM `https://cd.test`** (10.2.3.208, CirroDesk `0.2.0`): **hier** sind die zwei geänderten
   Dateien am 24.10.2026 eingespielt worden, mit Sicherung unter
   `/root/zweiter-benutzer-backup-20261024/`. **Die Schritte unten galten für diese Anlage.**
   **Diese Maschine ist aus.** Nachgemessen am 24.10.2026: Port 22 antwortet nicht, und auf dem
   Proxmox-Wirt steht VM 208 auf `stopped`. Sie ist nicht langsam und nicht gestört, sie läuft
   nicht. Gemessen am Aufgabenbuch des Wirts: um **12:37:27** hat ein `qmstop` sie hart
   angehalten — **kein Absturz**. **Wer die Schritte unten heute geht, kommt nirgends an**, und
-  „nicht erreichbar" wäre dann kein Befund über NGC.
-- **Neue Einzel-Maschine `ngc-ein`** (10.2.3.216, Name wieder `ngc.test`, NGC `0.2.2`, seit
+  „nicht erreichbar" wäre dann kein Befund über CirroDesk.
+- **Neue Einzel-Maschine `ngc-ein`** (10.2.3.216, Name wieder `cd.test`, CirroDesk `0.2.2`, seit
   24.10.2026): läuft, aber sie läuft **`origin/main`** und hat die beiden Formulare **nicht**.
   Die zwei geänderten Dateien sind dort **nicht** eingespielt. Die Schritte unten sind auch
   hier **nicht** zu gehen, solange dieser Zweig nicht verschmolzen und ausgerollt ist. Die
   Sicherung von vor der Änderung liegt auf der alten Platte und im Schnappschuss
   `vor-bergung-20261024` (siehe `docs/alte-vm-verweise.md`, Abschnitt 6).
-- **Verteilte Anlage `https://ngc.mein.lan`** (api-1 … store, NGC `0.2.1`): läuft **exakt
+- **Verteilte Anlage `https://ngc.mein.lan`** (api-1 … store, CirroDesk `0.2.1`): läuft **exakt
   `origin/main`** und hat die beiden Formulare **nicht**. Dort sind die Schritte unten
   **nicht** zu gehen, solange dieser Zweig nicht verschmolzen und ausgerollt ist.
 
@@ -36,8 +36,8 @@ Und gegen den **Namen** messen, nie gegen die IP: Zertifikat und Passkey hängen
 Der Browser hält die alte Fassung der Oberfläche fest. Ohne das hier siehst du die neuen
 Felder nicht, und das sieht aus wie „es ist nicht gebaut".
 
-**Strg + F5** auf `https://ngc.test` — also auf dem Namen **der Anlage, auf der die zwei
-Dateien liegen**. Achtung: `ngc.test` heißen inzwischen **zwei** Maschinen. Auf der alten
+**Strg + F5** auf `https://cd.test` — also auf dem Namen **der Anlage, auf der die zwei
+Dateien liegen**. Achtung: `cd.test` heißen inzwischen **zwei** Maschinen. Auf der alten
 (10.2.3.208, aus) lagen die Dateien; auf der neuen (10.2.3.216) liegen sie **nicht**. Welche
 der Name bei dir erreicht, steht in deiner `hosts`-Datei, nicht in dieser Anleitung.
 
@@ -109,8 +109,8 @@ auf dem Schirm stand. Das wird als **Messung** nachgetragen — bis dahin gelten
 Die Oberfläche zurückdrehen, ein Befehl auf der VM:
 
 ```
-sudo cp /root/zweiter-benutzer-backup-20261024/users.js  /var/www/ngc/public/assets/js/apps/users.js
-sudo cp /root/zweiter-benutzer-backup-20261024/shell.css /var/www/ngc/public/assets/css/shell.css
+sudo cp /root/zweiter-benutzer-backup-20261024/users.js  /var/www/cd/public/assets/js/apps/users.js
+sudo cp /root/zweiter-benutzer-backup-20261024/shell.css /var/www/cd/public/assets/css/shell.css
 ```
 
 Ein Benutzer, der schon in der Vertrauensliste steht, geht davon **nicht** weg: er steht in der

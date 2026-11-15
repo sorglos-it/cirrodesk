@@ -12,15 +12,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/lock"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/lock"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // quote puts a string into a JSON body without the case writing escapes by
@@ -101,7 +101,7 @@ func loadVectors(t *testing.T) vectors {
 // vectorStore is the store the catalogs and licences of the file verify
 // against.
 func (v vectors) vectorStore() trust.Store {
-	return trust.Store{ID: v.Store, Name: "NGC Store", Key: v.StoreKey}
+	return trust.Store{ID: v.Store, Name: "CirroDesk Store", Key: v.StoreKey}
 }
 
 // releasePub is the key the releases of the file verify against.

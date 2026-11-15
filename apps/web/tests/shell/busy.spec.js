@@ -116,7 +116,7 @@ test("a database that is away says later, and names no number", async ({ shell }
 // say 503 any more". Until this case existed, E_INTERNAL fell through to the
 // sentence for a code that does not fit - so the person was told to CHECK THE
 // ONE-TIME CODE, and that code is good ONCE. Whoever believed it installed
-// NGC again for nothing.
+// CirroDesk again for nothing.
 test("a busy database during the first run never blames the one-time code", async ({ shell }) => {
   // A FIRST RUN, so the same gate as shell/setup.spec.js: where no password
   // key can be made out of a seed, shell/main.js refuses the setup outright
@@ -263,12 +263,12 @@ test("the built-in sentences are the English file, word for word", async ({ shel
 
 // A language tag from outside never becomes a path. pick() answers with one
 // of the five and nothing else, which is what keeps a tag like
-// "../../etc/ngc/web.json" out of the address fetchLang builds.
+// "../../etc/cd/web.json" out of the address fetchLang builds.
 test("a language tag from outside cannot become a path", async ({ shell }) => {
   const got = await shell.evaluate(async () => {
     const { pick, LANGS, FALLBACK } = await import("/assets/js/shell/lang.js");
     return {
-      hostile: pick(["../../etc/ngc/web.json", "/etc/passwd", "de_DE/../.."]),
+      hostile: pick(["../../etc/cd/web.json", "/etc/passwd", "de_DE/../.."]),
       region: pick(["de-CH"]),
       order: pick(["pt", "nl", "fr", "de"]),
       none: pick([]),
@@ -296,7 +296,7 @@ test("a language tag from outside cannot become a path", async ({ shell }) => {
 test("a login on an installation never set up leads to the setup", async ({ shell }) => {
   await skipWithoutLogin(shell);
   await tryLogin(shell, "notsetup");
-  await expect(shell.getByRole("heading", { name: "Bei NGC anmelden" })).toHaveCount(0);
+  await expect(shell.getByRole("heading", { name: "Bei CirroDesk anmelden" })).toHaveCount(0);
   // The setup's first step: the operator's field for the one-time code.
   await expect(shell.getByRole("heading", { level: 1 }))
     .toHaveText("Diese Anlage ist noch nicht benutzbar. Der Betreiber muss die Einrichtung abschließen.");

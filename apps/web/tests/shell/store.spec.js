@@ -24,7 +24,7 @@ import { vectors } from "../fixtures/vectors.js";
 // It answers with REAL bytes that go through core.parseResult and
 // catalog.verifyCatalog inside the shell, so what is measured here is the
 // shell's own path; only where the bytes come from changes later. Its knobs
-// live on window.__ngcStore and what the shell sent on window.__ngcSent.
+// live on window.__cdStore and what the shell sent on window.__cdSent.
 //
 // A DIALOG IS A FAILURE: alert, confirm and prompt are what a name out of a
 // catalog would reach for if it ever became markup.
@@ -32,7 +32,7 @@ async function store(page, world = {}) {
   page.on("dialog", (d) => {
     throw new Error("something in the page opened a " + d.type() + ": " + d.message());
   });
-  await page.addInitScript((w) => { window.__ngcStore = w; }, world);
+  await page.addInitScript((w) => { window.__cdStore = w; }, world);
   await page.goto("/");
   await skipWithoutLogin(page);
   await signIn(page);
@@ -51,7 +51,7 @@ async function sentTask(page, name) {
     const b64 = await import("/assets/js/contracts/b64.js");
     const sign = await import("/assets/js/contracts/sign.js");
     const task = await import("/assets/js/contracts/task.js");
-    const rec = window.__ngcSent.find((s) => s.name === action);
+    const rec = window.__cdSent.find((s) => s.name === action);
     if (!rec || !rec.task) return null;
     const env = sign.parseEnvelope(b64.utf8(rec.task), task.MAX_TASK);
     const t = task.parseTask(env.payload);
@@ -68,7 +68,7 @@ async function sentTask(page, name) {
   }, name);
 }
 
-const names = (page) => page.evaluate(() => window.__ngcSent.map((s) => s.app + "/" + s.name));
+const names = (page) => page.evaluate(() => window.__cdSent.map((s) => s.app + "/" + s.name));
 
 // answerConfirm types the password into the question and says yes.
 //
@@ -122,7 +122,7 @@ async function hasEd25519(page) {
 
 // serveChain answers GET /api/v1/trust?from=N out of the fixture chain, the
 // way shared/README.md ("Vor dem WebSocket") says the API does. `visible` is
-// how many versions this API owns up to; __ngcVisible() raises it to all of
+// how many versions this API owns up to; __cdVisible() raises it to all of
 // them, which is what a new version looks like from outside.
 async function serveChain(page, c, { visible = c.chain.length } = {}) {
   const state = { visible, from: [] };
@@ -144,9 +144,9 @@ async function serveChain(page, c, { visible = c.chain.length } = {}) {
       body: JSON.stringify({ versions, more: false }),
     });
   });
-  await page.exposeFunction("__ngcVisible", () => { state.visible = c.chain.length; });
-  await page.exposeFunction("__ngcAsked", () => state.from.slice());
-  await page.exposeFunction("__ngcForget", () => { state.from = []; });
+  await page.exposeFunction("__cdVisible", () => { state.visible = c.chain.length; });
+  await page.exposeFunction("__cdAsked", () => state.from.slice());
+  await page.exposeFunction("__cdForget", () => { state.from = []; });
   return state;
 }
 
@@ -216,7 +216,7 @@ test("the upload shows the checksum, the version and the UI checksum the shell c
   await store(page);
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
+    name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
   });
   await expect(page.locator(".upfacts")).toBeVisible();
   // The three numbers on screen are the ones pack.packageUI computed in this
@@ -243,12 +243,12 @@ test("an answer that names another package breaks the upload off and activates n
   await store(page, { uploadTwist: { sha256: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM" } });
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
+    name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
   });
   await expect(page.locator(".upfail"))
     .toHaveText("Die Anlage hat ein anderes Paket bekommen, als geschickt wurde.");
   await expect(page.locator(".store").getByRole("button", { name: "Aktivieren" })).toHaveCount(0);
-  expect(await names(page)).not.toContain("ngc.store/activate");
+  expect(await names(page)).not.toContain("cd.store/activate");
 });
 
 // ------------------------------------------------------- 3. activate signs
@@ -258,14 +258,14 @@ test("the activate task carries the shell's own checksums and the manifest's nee
   await tab(page, "Hochladen").click();
   const pkg = buildPackage(manifest({ needs: ["network"] }));
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc", mimeType: "application/octet-stream", buffer: Buffer.from(pkg),
+    name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(pkg),
   });
   await expect(page.locator(".upfacts")).toBeVisible();
   // Every right the manifest asks for has to be allowed by hand; the box is
   // named after the right, so nobody has to know which box means what.
   await page.locator(".store").getByRole("checkbox", { name: /Netz/ }).check();
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
-  await expect.poll(() => names(page)).toContain("ngc.store/activate");
+  await expect.poll(() => names(page)).toContain("cd.store/activate");
   const t = await sentTask(page, "activate");
   const mine = await page.evaluate(async (bytes) => {
     const pack = await import("/assets/js/contracts/pack.js");
@@ -273,7 +273,7 @@ test("the activate task carries the shell's own checksums and the manifest's nee
     const u = await pack.packageUI(new Blob([new Uint8Array(bytes)]).stream());
     return { sha256: b64.b64encode(u.packageSha256), ui: b64.b64encode(u.sha256) };
   }, Array.from(pkg));
-  expect(t.app).toBe("ngc.store");
+  expect(t.app).toBe("cd.store");
   expect(t.service).toBe("controller");
   expect(t.action).toBe("activate");
   expect(t.hasSignature).toBe(true);
@@ -287,7 +287,7 @@ test("a right the admin did not allow stops the activation", async ({ page }) =>
   await store(page);
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc",
+    name: "notizen.cd",
     mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: ["network"] }))),
   });
@@ -295,7 +295,7 @@ test("a right the admin did not allow stops the activation", async ({ page }) =>
   // The box stays empty on purpose.
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
   await expect(page.getByRole("alert")).toContainText("Bitte alle Rechte erlauben");
-  expect(await names(page)).not.toContain("ngc.store/activate");
+  expect(await names(page)).not.toContain("cd.store/activate");
 });
 
 // ------------------------------------------- 3b what the machine itself said
@@ -330,7 +330,7 @@ test("a refusal shows the words of the machine, marked as the machine's",
     await store(page, { refuseActivate: said });
     await tab(page, "Hochladen").click();
     await page.locator(".store input[type=file]").setInputFiles({
-      name: "notizen.ngc", mimeType: "application/octet-stream",
+      name: "notizen.cd", mimeType: "application/octet-stream",
       buffer: Buffer.from(buildPackage(manifest({ needs: ["network"] }))),
     });
     await expect(page.locator(".upfacts")).toBeVisible();
@@ -353,7 +353,7 @@ test("a sentence under a code that says what to do never reaches the screen", as
   await store(page, { refuseActivate: said, refuseActivateCode: "E_VERIFY" });
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc", mimeType: "application/octet-stream",
+    name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
   await expect(page.locator(".upfacts")).toBeVisible();
@@ -391,7 +391,7 @@ test("the sentence of a disk that cannot encrypt arrives on the screen", async (
   await store(page, { refuseActivate: said });
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc", mimeType: "application/octet-stream",
+    name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
   await expect(page.locator(".upfacts")).toBeVisible();
@@ -411,7 +411,7 @@ test("the words of the machine go on the screen as text, never as markup", async
   await store(page, { refuseActivate: said });
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc", mimeType: "application/octet-stream",
+    name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
   await expect(page.locator(".upfacts")).toBeVisible();
@@ -427,7 +427,7 @@ test("a refusal with nothing to say keeps the sentence the shell has", async ({ 
   await store(page, { refuseActivate: "" });
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc", mimeType: "application/octet-stream",
+    name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
   await expect(page.locator(".upfacts")).toBeVisible();
@@ -450,7 +450,7 @@ test("the target list offers only controllers that are online and run services",
   });
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc",
+    name: "notizen.cd",
     mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({
       services: [{ name: "dienst", command: ["/usr/bin/dienst"] }],
@@ -476,7 +476,7 @@ test("a controller whose version is unreadable is still offered as a target", as
   });
   await tab(page, "Hochladen").click();
   await page.locator(".store input[type=file]").setInputFiles({
-    name: "notizen.ngc",
+    name: "notizen.cd",
     mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({
       services: [{ name: "dienst", command: ["/usr/bin/dienst"] }],
@@ -502,7 +502,7 @@ test("a role the contract does not know throws the list away, and the box names 
     });
     await tab(page, "Hochladen").click();
     await page.locator(".store input[type=file]").setInputFiles({
-      name: "notizen.ngc",
+      name: "notizen.cd",
       mimeType: "application/octet-stream",
       buffer: Buffer.from(buildPackage(manifest({
         services: [{ name: "dienst", command: ["/usr/bin/dienst"] }],
@@ -521,18 +521,18 @@ test("a downloaded update installs on one click, with a signed root task", async
   const sha = "BgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgY";
   await store(page, {
     updates: [{
-      target: "ngc-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
+      target: "cd-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
       sha256: sha, key: "", mode: "semi", window: "", state: "downloaded",
     }],
   });
   await tab(page, "Updates").click();
   await page.locator(".store").getByRole("button", { name: "Jetzt aktualisieren" }).click();
-  await expect.poll(() => names(page)).toContain("ngc.store/install");
+  await expect.poll(() => names(page)).toContain("cd.store/install");
   const t = await sentTask(page, "install");
   expect(t.action).toBe("install");
   expect(t.node).toBe("web-1");
   expect(t.hasSignature).toBe(true);
-  expect(t.params).toEqual({ target: "ngc-web", version: "1.1.0", sha256: sha });
+  expect(t.params).toEqual({ target: "cd-web", version: "1.1.0", sha256: sha });
 });
 
 test("an update that wants new rights offers the activation and no update button", async ({ page }) => {
@@ -562,7 +562,7 @@ test("a standing approval takes its key from the trust list, never from the answ
     passwordKey: true,
     updates: [
       {
-        target: "ngc-api", node: "api-1", installed: "1.0.0", available: "1.1.0",
+        target: "cd-api", node: "api-1", installed: "1.0.0", available: "1.1.0",
         sha256: "", key: liar, mode: "notify", window: "", state: "available",
       },
       {
@@ -572,22 +572,22 @@ test("a standing approval takes its key from the trust list, never from the answ
     ],
   });
   await tab(page, "Updates").click();
-  // Both rows go to "automatisch": an NGC part, which takes the release key,
+  // Both rows go to "automatisch": a CirroDesk part, which takes the release key,
   // and an app, which takes the key of its store. A standing approval is a
   // new version of the trust list, so the admin signs each one.
   await page.locator(".store select.mode").first().selectOption("auto");
   await answerConfirm(page);
-  await expect.poll(() => names(page)).toContain("ngc.users/trust");
+  await expect.poll(() => names(page)).toContain("cd.users/trust");
   await page.locator(".store select.mode").nth(1).selectOption("auto");
   await answerConfirm(page);
-  await expect.poll(async () => (await names(page)).filter((n) => n === "ngc.users/trust").length).toBe(2);
+  await expect.poll(async () => (await names(page)).filter((n) => n === "cd.users/trust").length).toBe(2);
 
   // The new versions are read back with the contract, out of the bytes the
   // shell really sent.
   const auto = await page.evaluate(async () => {
     const b64 = await import("/assets/js/contracts/b64.js");
     const trust = await import("/assets/js/contracts/trust.js");
-    const recs = window.__ngcSent.filter((s) => s.name === "trust");
+    const recs = window.__cdSent.filter((s) => s.name === "trust");
     const out = [];
     for (const r of recs) {
       const signed = trust.parseSigned(b64.b64decode(r.body));
@@ -599,15 +599,15 @@ test("a standing approval takes its key from the trust list, never from the answ
         auto: l.auto.map((a) => ({ target: a.target, key: b64.b64encode(a.key) })),
       });
     }
-    return { rows: out, store: window.__ngcStoreKey, release: window.__ngcReleaseKey, liar: window.__ngcLiarKey };
+    return { rows: out, store: window.__cdStoreKey, release: window.__cdReleaseKey, liar: window.__cdLiarKey };
   });
   const last = auto.rows[auto.rows.length - 1].auto;
   const byTarget = Object.fromEntries(last.map((a) => [a.target, a.key]));
-  expect(byTarget["ngc-api"]).toBe(auto.release);
+  expect(byTarget["cd-api"]).toBe(auto.release);
   expect(byTarget["org.sorglos.terminal"]).toBe(auto.store);
   for (const a of last) expect(a.key).not.toBe(auto.liar);
   // And the setting itself went to the API as well.
-  expect(await names(page)).toContain("ngc.store/set-update");
+  expect(await names(page)).toContain("cd.store/set-update");
 
   // THE CHAIN, AND NOT TWICE THE SAME NUMBER. Fixrunde 1 found what the lines
   // above alone let through: the store threw the answer away, the version in
@@ -619,8 +619,8 @@ test("a standing approval takes its key from the trust list, never from the answ
   expect(auto.rows[1].prev).toBe(auto.rows[0].hash);
   // And the second version keeps the first approval instead of losing it,
   // which a version built on the older list would.
-  expect(auto.rows[0].auto.map((a) => a.target)).toEqual(["ngc-api"]);
-  expect(last.map((a) => a.target)).toEqual(["ngc-api", "org.sorglos.terminal"]);
+  expect(auto.rows[0].auto.map((a) => a.target)).toEqual(["cd-api"]);
+  expect(last.map((a) => a.target)).toEqual(["cd-api", "org.sorglos.terminal"]);
 });
 
 test("two standing approvals in a row are a chain the contract itself accepts", async ({ page }) => {
@@ -637,7 +637,7 @@ test("two standing approvals in a row are a chain the contract itself accepts", 
   await store(page, {
     passwordKey: true,
     updates: [
-      { target: "ngc-api", node: "api-1", installed: "1.0.0", available: "1.1.0",
+      { target: "cd-api", node: "api-1", installed: "1.0.0", available: "1.1.0",
         sha256: "", key: "", mode: "notify", window: "", state: "available" },
       { target: "org.sorglos.terminal", node: "pi-1", installed: "1.0.0", available: "1.1.0",
         sha256: "", key: "", mode: "notify", window: "", state: "available" },
@@ -646,10 +646,10 @@ test("two standing approvals in a row are a chain the contract itself accepts", 
   await tab(page, "Updates").click();
   await page.locator(".store select.mode").first().selectOption("auto");
   await answerConfirm(page);
-  await expect.poll(() => names(page)).toContain("ngc.users/trust");
+  await expect.poll(() => names(page)).toContain("cd.users/trust");
   await page.locator(".store select.mode").nth(1).selectOption("auto");
   await answerConfirm(page);
-  await expect.poll(async () => (await names(page)).filter((n) => n === "ngc.users/trust").length).toBe(2);
+  await expect.poll(async () => (await names(page)).filter((n) => n === "cd.users/trust").length).toBe(2);
 
   const got = await page.evaluate(async () => {
     const b64 = await import("/assets/js/contracts/b64.js");
@@ -657,8 +657,8 @@ test("two standing approvals in a row are a chain the contract itself accepts", 
     // Version 1 of the world THIS shell started from. Asking fakeWorld()
     // again would build another world - another store key, another version 1 -
     // and clear the record of what was sent on the way.
-    const start = window.__ngcListFirst;
-    const chain = window.__ngcSent.filter((s) => s.name === "trust")
+    const start = window.__cdListFirst;
+    const chain = window.__cdSent.filter((s) => s.name === "trust")
       .map((r) => trust.parseSigned(b64.b64decode(r.body)));
     try {
       const end = await trust.advance({ list: start.list, hash: start.hash }, chain);
@@ -667,7 +667,7 @@ test("two standing approvals in a row are a chain the contract itself accepts", 
       return { ok: false, why: String(e.message) };
     }
   });
-  expect(got).toEqual({ ok: true, seq: 3, auto: ["ngc-api", "org.sorglos.terminal"] });
+  expect(got).toEqual({ ok: true, seq: 3, auto: ["cd-api", "org.sorglos.terminal"] });
 });
 
 test("a version the shell cannot convince itself of is never sent", async ({ page }) => {
@@ -679,7 +679,7 @@ test("a version the shell cannot convince itself of is never sent", async ({ pag
   // behind.
   await store(page, {
     updates: [{
-      target: "ngc-api", node: "api-1", installed: "1.0.0", available: "1.1.0",
+      target: "cd-api", node: "api-1", installed: "1.0.0", available: "1.1.0",
       sha256: "", key: "", mode: "notify", window: "", state: "available",
     }],
   });
@@ -687,11 +687,11 @@ test("a version the shell cannot convince itself of is never sent", async ({ pag
   await page.locator(".store select.mode").first().selectOption("auto");
   await answerConfirm(page);
   await expect(page.getByRole("alert")).toContainText("keine gültige Vertrauensliste");
-  expect(await names(page)).not.toContain("ngc.users/trust");
+  expect(await names(page)).not.toContain("cd.users/trust");
   // And the setting is not switched either: what is on screen is what is in
   // force.
   await expect(page.locator(".store select.mode").first()).toHaveValue("notify");
-  expect(await names(page)).not.toContain("ngc.store/set-update");
+  expect(await names(page)).not.toContain("cd.store/set-update");
 });
 
 test("refresh does with the number what the store depends on", async ({ page }) => {
@@ -713,14 +713,14 @@ test("refresh does with the number what the store depends on", async ({ page }) 
     // A hint that is not higher than the version in force: nothing moves and
     // nobody is asked. That is the case the store hits when the API answers
     // with a number this browser already has.
-    await window.__ngcForget();
+    await window.__cdForget();
     const same = await s.refresh(start);
     const older = await s.refresh(1);
-    const askedAfterSame = (await window.__ngcAsked()).length;
+    const askedAfterSame = (await window.__cdAsked()).length;
     // Now the API owns up to the versions the store has just written, and the
     // hint names the newest of them: the chain is followed and the answer is
     // the number that is then in force.
-    await window.__ngcVisible();
+    await window.__cdVisible();
     const moved = await s.refresh(4);
     return { start, same, older, askedAfterSame, moved, inForce: s.current().list.seq };
   }, { seq: c.anchor.seq, hash: c.anchor.hash });
@@ -744,15 +744,15 @@ test("a paid app shows the installation and the key, and takes a licence file", 
   await page.locator(".approw").filter({ hasText: "Tresor" }).getByRole("button", { name: "Kaufen" }).click();
   await expect(page.locator(".buy")).toBeVisible();
   const shown = await page.locator(".buy").textContent();
-  const key = await page.evaluate(() => window.__ngcInstallKey);
+  const key = await page.evaluate(() => window.__cdInstallKey);
   expect(shown).toContain(key.installation);
   expect(shown).toContain(key.key);
   await expect(page.locator(".buy").getByRole("button", { name: "Kopieren" })).toBeVisible();
   await page.locator(".buy input[type=file]").setInputFiles({
-    name: "lizenz.ngclic", mimeType: "application/octet-stream", buffer: Buffer.from("LIZENZ-BYTES"),
+    name: "lizenz.cdlic", mimeType: "application/octet-stream", buffer: Buffer.from("LIZENZ-BYTES"),
   });
-  await expect.poll(() => names(page)).toContain("ngc.store/license");
-  const body = await page.evaluate(() => window.__ngcSent.find((s) => s.name === "license").body);
+  await expect.poll(() => names(page)).toContain("cd.store/license");
+  const body = await page.evaluate(() => window.__cdSent.find((s) => s.name === "license").body);
   expect(Buffer.from(body, "base64").toString("utf8")).toBe("LIZENZ-BYTES");
 });
 
@@ -764,7 +764,7 @@ test("a policy that asks for a confirmation stops the task until it is given", a
   await store(page, {
     level: "root",
     updates: [{
-      target: "ngc-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
+      target: "cd-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
       sha256: "BgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgY", key: "", mode: "semi",
       window: "", state: "downloaded",
     }],
@@ -773,10 +773,10 @@ test("a policy that asks for a confirmation stops the task until it is given", a
   await page.locator(".store").getByRole("button", { name: "Jetzt aktualisieren" }).click();
   await expect(page.getByRole("dialog", { name: "Bitte bestätigen" })).toBeVisible();
   // Nothing goes out while the question is open.
-  expect(await names(page)).not.toContain("ngc.store/install");
+  expect(await names(page)).not.toContain("cd.store/install");
   await page.getByRole("dialog").getByRole("button", { name: "Abbrechen" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect(await names(page)).not.toContain("ngc.store/install");
+  expect(await names(page)).not.toContain("cd.store/install");
 });
 
 // ------------------------------------------------------- the shell as a whole

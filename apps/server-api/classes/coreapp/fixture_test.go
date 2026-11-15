@@ -13,26 +13,26 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/browser"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/login"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/rights"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/browser"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/login"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/rights"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()
@@ -243,13 +243,13 @@ func newFixtureWith(t *testing.T, with func(*harness, *Deps)) *harness {
 	// name (session.VerifyAPI).
 	noiseKey, signKey := trusttest.NodeKeys(0xA1)
 	cfg := &config.API{
-		Node: "api-1", URL: "wss://api-1.ngc.test:7443/tunnel", Listen: ":7443",
+		Node: "api-1", URL: "wss://api-1.cd.test:7443/tunnel", Listen: ":7443",
 		Cert: "/x", CertKey: "/y",
 		NoiseKey: config.NewSecret(noiseKey.Private), SignKey: config.NewSecret(signKey.Seed()),
 		SecretKey:    config.NewSecret(make([]byte, 32)),
 		ChallengeKey: config.NewSecret(bytes.Repeat([]byte{7}, 32)),
 		ReleaseKey:   enc.Bytes(make([]byte, 32)), StoreKey: enc.Bytes(make([]byte, 32)),
-		StoreURL: "https://store.ngc.test", SessionLifetime: 43200, IdleTimeout: 1800,
+		StoreURL: "https://store.cd.test", SessionLifetime: 43200, IdleTimeout: 1800,
 	}
 	lying := &lyingStore{Store: memstore.New()}
 	s := state.New(cfg, lying, box, make([]byte, 32))

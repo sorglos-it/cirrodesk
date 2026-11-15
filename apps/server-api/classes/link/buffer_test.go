@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // bctx is the context of the cases here; they cancel their own where it is

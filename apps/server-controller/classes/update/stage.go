@@ -33,12 +33,12 @@ import (
 	"slices"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 var (
@@ -57,7 +57,7 @@ var (
 	// API.
 	ErrDisk = errors.New("update: this node could not store the update")
 	// ErrInternal says this program is wired wrong - a missing dependency, an
-	// action this NGC does not know. None of it can be brought about by a
+	// action this CirroDesk does not know. None of it can be brought about by a
 	// peer, so it is answered once and the same way.
 	ErrInternal = errors.New("update: the updater is not wired up")
 )
@@ -93,7 +93,7 @@ type Updates interface {
 	PutStaged(ctx context.Context, st state.Staged) error
 }
 
-// Parts is what this controller remembers about the NGC parts installed on it
+// Parts is what this controller remembers about the CirroDesk parts installed on it
 // (state.Store). Install reads it to answer "is this really newer" and writes
 // it when a part has come up in its new version.
 type Parts interface {
@@ -147,16 +147,16 @@ type Deps struct {
 
 	// Roles are the roles of THIS server (config.Controller.Roles), the same
 	// list the hello reports to the API (node/report.go). An install of an
-	// NGC part is refused unless these roles run that part (install.go,
+	// CirroDesk part is refused unless these roles run that part (install.go,
 	// runs); it is the whole reason the field is here, and an empty list
 	// makes the Manager answer ErrInternal (wired), because every
 	// configuration has one to four roles (config.Controller.Validate).
 	//
 	// The value is CARRIED, not copied into a second shape: what a role
-	// means for the NGC software is tunnel.Components, and that function is
+	// means for the CirroDesk software is tunnel.Components, and that function is
 	// the only place it is written down.
 	Roles []string
-	// BinDir is where the NGC programs run from (config.BinDir). An install
+	// BinDir is where the CirroDesk programs run from (config.BinDir). An install
 	// of a part copies into it and swaps inside it, so it is one directory
 	// and not derived from StageDir: the two need not be one filesystem.
 	BinDir string
@@ -168,7 +168,7 @@ type Deps struct {
 	// Health asks a program that was put in place for its version. VersionOf
 	// is the one of operation: it runs "<file> -version" and gives the first
 	// line. It is a function in Deps and not a call in install.go because
-	// running a freshly installed ngc program is the one step of an install
+	// running a freshly installed cd program is the one step of an install
 	// that cannot be measured where this is written - the cases drive it
 	// directly, and VersionOf itself is measured against a program built for
 	// the purpose (TestVersionOfAsksTheProgramItself).
@@ -202,7 +202,7 @@ var emptyResult = []byte("{}")
 //
 //	1 the dependencies, then the params of the OPEN - nothing below trusts them
 //	2 the header, and the bound on the file
-//	3 the SIGNED source: release (NGC part) or catalogue (app), its number
+//	3 the SIGNED source: release (CirroDesk part) or catalogue (app), its number
 //	  against the newest one seen, and the entry for this target
 //	4 header against entry: size and checksum
 //	-- only now does a byte reach the disk, and under a temporary name -----
@@ -262,7 +262,7 @@ func (m *Manager) params(d access.Decision) (*core.StageParams, error) {
 	// another package checked. Measured: no input makes one of them the
 	// deciding wall. core.StageParams.Validate refuses all three already,
 	// and even with that wall taken out of the contract, a target that is no
-	// NGC part is sent to the catalogue branch and refused there - the
+	// CirroDesk part is sent to the catalogue branch and refused there - the
 	// mutants M9b and M9c of the run in the report say so. They are a guard
 	// against a later change of the contract, not a wall anything is known to
 	// hit.
@@ -281,9 +281,9 @@ type source struct {
 	sha    []byte
 }
 
-// ngcPart reports whether target is a part of NGC itself, which comes out of a
+// cdPart reports whether target is a part of CirroDesk itself, which comes out of a
 // signed release rather than out of a store's catalogue.
-func ngcPart(target string) bool {
+func cdPart(target string) bool {
 	return target == trust.AutoWeb || target == trust.AutoAPI || target == trust.AutoController
 }
 
@@ -326,7 +326,7 @@ func (m *Manager) approved(ctx context.Context, p *core.StageParams, tr core.Tra
 	if err != nil {
 		return source{}, err
 	}
-	if ngcPart(p.Target) {
+	if cdPart(p.Target) {
 		return m.fromRelease(p, tr, last)
 	}
 	return m.fromCatalog(ctx, p, tr, last)
@@ -348,7 +348,7 @@ func (m *Manager) lastSeq(ctx context.Context, target string) (uint64, error) {
 	}
 }
 
-// fromRelease takes the entry of an NGC part out of a signed release. A
+// fromRelease takes the entry of a CirroDesk part out of a signed release. A
 // release belongs to no store, so a header that names one is not a release.
 func (m *Manager) fromRelease(p *core.StageParams, tr core.Transfer, last uint64) (source, error) {
 	if tr.Release == nil || tr.Catalog != nil || tr.Store != "" {
@@ -368,7 +368,7 @@ func (m *Manager) fromRelease(p *core.StageParams, tr core.Transfer, last uint64
 	}
 	arch := m.arch()
 	if p.Target == trust.AutoWeb {
-		// The web interface has no machine code (store.File: part ngc-web is
+		// The web interface has no machine code (store.File: part cd-web is
 		// arch "all").
 		arch = "all"
 	}

@@ -8,15 +8,15 @@ import (
 	"io"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/update"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/update"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // fakeUpdater writes down which of the two methods the fork chose and answers
@@ -341,7 +341,7 @@ func TestAnInstallGetsTheListOfItsChannel(t *testing.T) {
 	}
 }
 
-// stageOpenWithParams is the OPEN of ngc.store/controller/stage WITH the params
+// stageOpenWithParams is the OPEN of cd.store/controller/stage WITH the params
 // a stage needs. stageOpen beside it (serve_test.go) carries none, because the
 // case it serves never gets as far as reading them. It carries no task and
 // no user: a stage is core.WithoutUser, so its params stand in the OPEN

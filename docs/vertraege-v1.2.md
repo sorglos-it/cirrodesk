@@ -1,5 +1,7 @@
 # Verträge V1.2 — Sammelliste für den nächsten Schnitt
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Stand 24.09.2026. Gepflegt vom Koordinator. `shared/` ist eingefroren auf
 `vertraege-v1.1`; alles hier ist aufgelaufen, WEIL es nicht geändert werden
 durfte. Diese Liste ist der Auftrag für den Schnitt V1.2 — nichts davon darf

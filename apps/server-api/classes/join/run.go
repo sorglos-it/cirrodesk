@@ -21,18 +21,18 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Where the joining side puts what it made and what it fetched. The ulh script
 // reads SecretFile and writes both keys into api.json, then removes it.
 const (
-	SecretFile = "/run/ngc/join-secret"
+	SecretFile = "/run/cd/join-secret"
 	// JoinTimeout is how long Run waits for an admin to sign the new server
 	// in. After that it stops with a German message, because the admin may
 	// simply have gone away; nothing is lost and the step can be repeated.
@@ -65,7 +65,7 @@ var ErrJoinNameWaits = errors.New("join: a request under this node ID already wa
 //
 //	Post "https://127.0.0.1:14780/tunnel/join?secret=d5En6nQB...": dial tcp ...
 //
-// and ngc-api -join put that line into the journal word for word
+// and cd-api -join put that line into the journal word for word
 // (main.go, joinRun). That is the address of the issuing API plus the
 // base64url of the SHA-256 of the one-time secret -- the value the API
 // spends. The second leak was quieter: a key that could not be written
@@ -128,7 +128,7 @@ type JoinConfig struct {
 	Client *http.Client
 }
 
-// Run is the side of the joining server, what ngc-api -join does. In order:
+// Run is the side of the joining server, what cd-api -join does. In order:
 // read the code, make this server's own keys and write them to files, build
 // the tunnel.JoinRequest and sign it with tunnel.JoinMAC, POST it to
 // tunnel.PathJoin of the issuing API, show tunnel.JoinFingerprint and the

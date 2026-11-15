@@ -16,23 +16,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/apache"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/chain"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/install"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	ctrlrt "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/apache"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/chain"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/install"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	ctrlrt "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // quiet is the log of every case here: what Run writes is measured by what it
@@ -497,13 +497,13 @@ func TestTheOwnerOfTheMigrationLockNamesThisController(t *testing.T) {
 		if got == "" {
 			t.Errorf("%s: the owner is empty, which migrate.Apply refuses", name)
 		}
-		if !strings.Contains(got, "ngc-controller") {
+		if !strings.Contains(got, "cd-controller") {
 			t.Errorf("%s: the owner %q does not name this program", name, got)
 		}
 		if !strings.Contains(got, "srv-1") {
 			t.Errorf("%s: the owner %q does not name this server", name, got)
 		}
-		if got == "ngc" {
+		if got == "cd" {
 			t.Errorf("%s: the owner says nothing", name)
 		}
 	}
@@ -520,7 +520,7 @@ func TestTheOwnerOfTheMigrationLockNamesThisController(t *testing.T) {
 // not a stack trace.
 //
 // The file is one in the case's own folder that is not there: with the default
-// path this case read /etc/ngc/controller.json, and on a server that was set
+// path this case read /etc/cd/controller.json, and on a server that was set
 // up it started the real controller and hung for ten minutes (U2, R7).
 func TestMainWithoutACommandRunsTheController(t *testing.T) {
 	var out, errOut strings.Builder
@@ -546,7 +546,7 @@ func TestRunWithStopsAtAStoreThatDoesNotOpen(t *testing.T) {
 	cfg := writeController(t, path)
 	// The real opener, and the file it stumbles over may not open on ANY
 	// platform. The path writeController leaves behind
-	// (/var/lib/ngc/controller.db) does not do that: on windows the store
+	// (/var/lib/cd/controller.db) does not do that: on windows the store
 	// refuses it by its own grammar (filepath.IsAbs is false for it there),
 	// but on linux as root the very same path OPENS, runWith goes on to start
 	// the whole controller, and this case never ends - measured on
@@ -709,7 +709,7 @@ func until(t *testing.T, want func() bool) {
 // wire.Close, and Restore really reads it - the line in the log is written by
 // the branch that reads that Close and by nothing else. What it does NOT reach
 // on this machine is the engine: serve.RunService writes the environment of
-// the call into config.RunDir ("/run/ngc") before it starts anything, and that
+// the call into config.RunDir ("/run/cd") before it starts anything, and that
 // directory is of a Linux server. So on a Linux server the same case sees the
 // engine as well, and everywhere else it sees the default run as far as that
 // file. The one thing it rules out either way is the one this task is about:
@@ -802,7 +802,7 @@ func TestTheInstallerOfThisControllerIsWiredUpInFull(t *testing.T) {
 	}
 	// And the catalogue counter is wired to this controller's own state: 0
 	// for a store nothing was ever activated from, which is "none seen".
-	if n := i.lastSeq(context.Background())("ngc"); n != 0 {
+	if n := i.lastSeq(context.Background())("cd"); n != 0 {
 		t.Errorf("lastSeq of an unseen store = %d, want 0", n)
 	}
 }
@@ -1038,15 +1038,15 @@ func TestTheInstallerAsksForItsNodeIDAfreshAndLetsTheListDecide(t *testing.T) {
 	}
 	// Read once per activation and not once per installer: the second call
 	// has to see the ID the first one did not.
-	id = "ngc-2"
-	if got := i.deps(context.Background(), &trust.List{}).Node; got != "ngc-2" {
-		t.Fatalf("the installer hands over node %q after the list did, want ngc-2", got)
+	id = "cd-2"
+	if got := i.deps(context.Background(), &trust.List{}).Node; got != "cd-2" {
+		t.Fatalf("the installer hands over node %q after the list did, want cd-2", got)
 	}
 	// And a node in the file does NOT outrank the list: this is the same
 	// precedence wireUp.nodeID holds, carried into the activation.
 	cfg.Node = "aus-der-datei"
-	if got := i.deps(context.Background(), &trust.List{}).Node; got != "ngc-2" {
-		t.Fatalf("the file outranked the list: node %q, want ngc-2", got)
+	if got := i.deps(context.Background(), &trust.List{}).Node; got != "cd-2" {
+		t.Fatalf("the file outranked the list: node %q, want cd-2", got)
 	}
 	// The list of the channel is the list the Manager is built on, not one
 	// this installer reached for.

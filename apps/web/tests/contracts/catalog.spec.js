@@ -42,7 +42,7 @@ test("a catalog is only taken from its own store, and never an older one", async
   const got = await shell.evaluate(async (d) => {
     const c = await import("/assets/js/contracts/catalog.js");
     const { b64decode } = await import("/assets/js/contracts/b64.js");
-    const store = { id: d.store, name: "NGC Store", url: "https://store.ngc.example", key: b64decode(d.storeKey) };
+    const store = { id: d.store, name: "CirroDesk Store", url: "https://store.cd.example", key: b64decode(d.storeKey) };
     const env = (e) => ({ payload: b64decode(e.payload), kid: e.kid, sig: b64decode(e.sig) });
     const ok = async (e, lastSeq) => {
       try { await c.verifyCatalog(env(e), store, lastSeq); return true; } catch { return false; }
@@ -81,8 +81,8 @@ test("the grant rule of an update holds", async ({ shell }) => {
       same: c.granted(["root"], ["root"]),
       fewer: c.granted([], ["root"]),
       more: c.granted(["root", "network"], ["root"]),
-      target: c.validTarget("ngc-web") && c.validTarget("system") && c.validTarget("org.sorglos.terminal")
-        && !c.validTarget("ngc.desktop") && !c.validTarget("terminal"),
+      target: c.validTarget("cd-web") && c.validTarget("system") && c.validTarget("org.sorglos.terminal")
+        && !c.validTarget("cd.desktop") && !c.validTarget("terminal"),
     };
   });
   expect(out).toEqual({ same: true, fewer: true, more: false, target: true });
