@@ -82,16 +82,18 @@ func (j *Join) NewJoinCode(ctx context.Context) (tunnel.JoinCode, int64, error) 
 // That the method is POST is the router's business, as it is for
 // controllers.Pair: nothing here looks at r.Method.
 //
-// The order is the same trade controllers.Pair makes: the one-time value is
-// spent BEFORE the MAC is checked, so a wrong MAC costs the attempt. Whoever
-// holds the hash of a secret but not the secret can therefore burn a join --
-// an admin makes a new code -- while the other order would let anyone who ever
-// saw a code guess at the MAC for a day.
+// The order is peek, check, spend (A13, Frage 23): the one-time value is read
+// with OncePeek, the MAC is checked against it, and only a request that holds
+// the secret spends it with OnceUse. Before, the value was spent FIRST, so
+// whoever knew the hash in the query could burn every waiting join code with a
+// wrong MAC. Guessing at the MAC instead gains nothing: it is keyed with a
+// secret of tunnel.SecretSize random bytes. OnceUse still decides alone which
+// of two requests with the right secret wins.
 //
 // Nothing here puts the new server anywhere near the trust list: the request
 // is kept for the admin to compare and sign.
 //
-// Every attempt that gets as far as spending the one-time value is written to
+// Every attempt that gets as far as reading the one-time value is written to
 // the log, as in controllers.Pair, and for the same measurement: twenty
 // refused attempts left the log unchanged on 24.10.2026
 // (docs/messungen-m1-m3.md, M3). audit.Log.Pairing says why the line hangs on
@@ -117,7 +119,7 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 		httpapi.Fail(w, wire.CodeInternal)
 		return
 	}
-	data, err := j.S.DB.OnceUse(ctx, dbapi.OnceJoin, hash, j.S.Now())
+	data, err := j.S.DB.OncePeek(ctx, dbapi.OnceJoin, hash, j.S.Now())
 	if err != nil {
 		// Unknown, expired and already used are one answer: telling them apart
 		// would say whether a hash was ever a secret of this installation.
@@ -126,7 +128,7 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 	}
 	secret, err := enc.B64.DecodeString(data)
 	if err != nil {
-		// The code was spent and our own row does not read. That is damage,
+		// Our own row does not read. That is damage,
 		// not a wrong proof, and the log says so; the answer outside is the
 		// same either way.
 		j.note(ctx, wire.CodeVerify, reason.Defect)
@@ -134,8 +136,9 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if req.Verify(secret, pub) != nil {
-		// THE line Frage 23 is about: a real code was burnt by somebody who
-		// did not hold its secret.
+		// THE line Frage 23 is about: somebody who knew the hash of a real
+		// code and not its secret. The code stays valid for the server that
+		// holds it.
 		j.note(ctx, wire.CodeVerify, reason.JoinProof)
 		httpapi.Fail(w, wire.CodeVerify)
 		return
@@ -155,6 +158,13 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 	case !errors.Is(err, dbapi.ErrNotFound):
 		j.note(ctx, wire.CodeUnreachable, reason.DB)
 		httpapi.Fail(w, wire.CodeUnreachable)
+		return
+	}
+	if _, err := j.S.DB.OnceUse(ctx, dbapi.OnceJoin, hash, j.S.Now()); err != nil {
+		// Another request with the same secret spent it between the peek and
+		// here, or it ran out in that moment: the one answer for a code that
+		// is not there.
+		httpapi.Fail(w, wire.CodeVerify)
 		return
 	}
 	if err := j.keep(ctx, req); err != nil {
