@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // ErrTLS reports a certificate or key this package cannot use.

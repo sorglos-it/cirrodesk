@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
 )
 
 // TestList checks every migration on disk: numbered without a gap, only
@@ -45,103 +45,103 @@ func TestList(t *testing.T) {
 // TestCheckStatement is the rule set itself, on made-up statements.
 func TestCheckStatement(t *testing.T) {
 	for _, s := range []string{
-		"CREATE TABLE ngc_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind)){{opts}}",
-		"CREATE INDEX ngc_blob_seq ON ngc_blob (kind, seq, id)",
-		"CREATE UNIQUE INDEX ngc_user_name ON ngc_user (name)",
-		"ALTER TABLE ngc_app ADD COLUMN node {{key}}",
+		"CREATE TABLE cd_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind)){{opts}}",
+		"CREATE INDEX cd_blob_seq ON cd_blob (kind, seq, id)",
+		"CREATE UNIQUE INDEX cd_user_name ON cd_user (name)",
+		"ALTER TABLE cd_app ADD COLUMN node {{key}}",
 		// MariaDB, MySQL and SQLite all take ADD without the word COLUMN, so
 		// the rules take it too - and measure the column all the same.
-		"ALTER TABLE ngc_app ADD node {{key}}",
+		"ALTER TABLE cd_app ADD node {{key}}",
 	} {
 		if _, err := checkStatement(s, fromMigration); err != nil {
 			t.Errorf("%q: %v", s, err)
 		}
 	}
 	for name, s := range map[string]string{
-		"a table nobody listed":  "CREATE TABLE ngc_other (kind {{int}} NOT NULL){{opts}}",
-		"a column nobody listed": "CREATE TABLE ngc_blob (nonsense {{key}} NOT NULL){{opts}}",
-		"an index nobody listed": "CREATE INDEX ngc_other_seq ON ngc_blob (kind)",
-		"a string literal":       "INSERT INTO ngc_blob (kind) VALUES ('x')",
-		"dropping a table":       "DROP TABLE ngc_blob",
-		"dropping a column":      "ALTER TABLE ngc_app DROP COLUMN node",
-		"renaming":               "ALTER TABLE ngc_app RENAME TO ngc_app_old",
-		"two statements":         "CREATE INDEX ngc_blob_seq ON ngc_blob (kind); DROP TABLE ngc_blob",
-		"an engine of its own":   "CREATE TABLE ngc_blob (kind {{key}} NOT NULL) ENGINE=MyISAM",
-		"IF NOT EXISTS":          "CREATE TABLE IF NOT EXISTS ngc_blob (kind {{key}} NOT NULL){{opts}}",
-		"AUTO_INCREMENT":         "CREATE TABLE ngc_blob (seq {{int}} NOT NULL AUTO_INCREMENT){{opts}}",
-		"an unknown placeholder": "CREATE TABLE ngc_blob (kind {{blob}} NOT NULL){{opts}}",
+		"a table nobody listed":  "CREATE TABLE cd_other (kind {{int}} NOT NULL){{opts}}",
+		"a column nobody listed": "CREATE TABLE cd_blob (nonsense {{key}} NOT NULL){{opts}}",
+		"an index nobody listed": "CREATE INDEX cd_other_seq ON cd_blob (kind)",
+		"a string literal":       "INSERT INTO cd_blob (kind) VALUES ('x')",
+		"dropping a table":       "DROP TABLE cd_blob",
+		"dropping a column":      "ALTER TABLE cd_app DROP COLUMN node",
+		"renaming":               "ALTER TABLE cd_app RENAME TO cd_app_old",
+		"two statements":         "CREATE INDEX cd_blob_seq ON cd_blob (kind); DROP TABLE cd_blob",
+		"an engine of its own":   "CREATE TABLE cd_blob (kind {{key}} NOT NULL) ENGINE=MyISAM",
+		"IF NOT EXISTS":          "CREATE TABLE IF NOT EXISTS cd_blob (kind {{key}} NOT NULL){{opts}}",
+		"AUTO_INCREMENT":         "CREATE TABLE cd_blob (seq {{int}} NOT NULL AUTO_INCREMENT){{opts}}",
+		"an unknown placeholder": "CREATE TABLE cd_blob (kind {{blob}} NOT NULL){{opts}}",
 		// A column added without the word COLUMN sits in no brackets, so only
 		// the type in front of it shows what it is.
-		"a column added without the word COLUMN": "ALTER TABLE ngc_app ADD nonsense {{key}}",
+		"a column added without the word COLUMN": "ALTER TABLE cd_app ADD nonsense {{key}}",
 		// SQL does not care how an identifier is written: Nonsense and
-		// NGC_OTHER_X are a column and an index like any other.
-		"a column in mixed case": "CREATE TABLE ngc_blob (Nonsense {{key}} NOT NULL){{opts}}",
-		"an index in upper case": "CREATE INDEX NGC_OTHER_X ON ngc_blob (kind)",
+		// CD_OTHER_X are a column and an index like any other.
+		"a column in mixed case": "CREATE TABLE cd_blob (Nonsense {{key}} NOT NULL){{opts}}",
+		"an index in upper case": "CREATE INDEX CD_OTHER_X ON cd_blob (kind)",
 		// A column may carry the name of a word the rules skip between the
 		// columns; it is still a column nobody listed.
-		"a column named like a keyword": "CREATE TABLE ngc_blob (key {{key}} NOT NULL){{opts}}",
-		"an index on such a column":     "CREATE INDEX ngc_blob_x ON ngc_blob (key)",
+		"a column named like a keyword": "CREATE TABLE cd_blob (key {{key}} NOT NULL){{opts}}",
+		"an index on such a column":     "CREATE INDEX cd_blob_x ON cd_blob (key)",
 		// ENGINE = MyISAM says the same as ENGINE=MyISAM.
-		"an engine with spaces": "CREATE TABLE ngc_blob (kind {{key}} NOT NULL) ENGINE = MyISAM",
+		"an engine with spaces": "CREATE TABLE cd_blob (kind {{key}} NOT NULL) ENGINE = MyISAM",
 		// The name of an index is measured whether or not it starts with
-		// ngc_: x is a name a migration made up like any other, and an index
+		// cd_: x is a name a migration made up like any other, and an index
 		// belongs to the table it is named after.
-		"an index with a name of its own":       "CREATE INDEX x ON ngc_blob (kind)",
-		"a unique index with a name of its own": "CREATE UNIQUE INDEX nonsense ON ngc_blob (kind)",
+		"an index with a name of its own":       "CREATE INDEX x ON cd_blob (kind)",
+		"a unique index with a name of its own": "CREATE UNIQUE INDEX nonsense ON cd_blob (kind)",
 		// Four kinds of statement are allowed at all. Everything else falls
 		// on the first words, however harmless it looks and whatever it
 		// creates - nobody has to think of it beforehand.
-		"a view":  "CREATE VIEW nonsense AS SELECT kind FROM ngc_blob",
-		"a right": "GRANT ALL ON ngc_blob TO nonsense",
+		"a view":  "CREATE VIEW nonsense AS SELECT kind FROM cd_blob",
+		"a right": "GRANT ALL ON cd_blob TO nonsense",
 		// A table made out of another one: it carries the rows along - TOTP
 		// secrets, the owner of a lock - it stands in no list, and because a
 		// migration may not DROP, no later one could ever take it away again.
 		// It has no bracket, so every rule that reads the brackets looks past
 		// it; only the form catches it.
-		"a table made from another":   "CREATE TABLE ngc_blob_copy AS SELECT * FROM ngc_blob",
-		"a table made from the users": "CREATE TABLE ngc_user_copy AS SELECT id, name, totp FROM ngc_user",
-		"a table made from the locks": "CREATE TABLE ngc_lock_copy AS SELECT owner FROM ngc_lock",
+		"a table made from another":   "CREATE TABLE cd_blob_copy AS SELECT * FROM cd_blob",
+		"a table made from the users": "CREATE TABLE cd_user_copy AS SELECT id, name, totp FROM cd_user",
+		"a table made from the locks": "CREATE TABLE cd_lock_copy AS SELECT owner FROM cd_lock",
 		// A dot in front of the name puts the object in another database or
 		// schema: the listed name is written down, and something else is what
 		// comes into being.
-		"a table in another schema":        "CREATE TABLE other.ngc_blob (kind {{key}} NOT NULL){{opts}}",
-		"an index in another schema":       "CREATE UNIQUE INDEX ngc_blob_x ON other.ngc_blob (kind)",
-		"a column added in another schema": "ALTER TABLE other.ngc_blob ADD kind {{key}} NOT NULL",
-		"a column with the table in front": "CREATE INDEX ngc_blob_x ON ngc_blob (ngc_blob.kind)",
+		"a table in another schema":        "CREATE TABLE other.cd_blob (kind {{key}} NOT NULL){{opts}}",
+		"an index in another schema":       "CREATE UNIQUE INDEX cd_blob_x ON other.cd_blob (kind)",
+		"a column added in another schema": "ALTER TABLE other.cd_blob ADD kind {{key}} NOT NULL",
+		"a column with the table in front": "CREATE INDEX cd_blob_x ON cd_blob (cd_blob.kind)",
 		// MariaDB takes $ and every letter above ASCII in a name that stands
-		// without quotes, so ngc_blob$x and ngc_blobae are tables of their
+		// without quotes, so cd_blob$x and cd_blobae are tables of their
 		// own - and in no list.
-		"a table name with a dollar sign": "CREATE TABLE ngc_blob$x (kind {{key}} NOT NULL){{opts}}",
-		"a table name outside ASCII":      "CREATE TABLE ngc_blobä (kind {{key}} NOT NULL){{opts}}",
+		"a table name with a dollar sign": "CREATE TABLE cd_blob$x (kind {{key}} NOT NULL){{opts}}",
+		"a table name outside ASCII":      "CREATE TABLE cd_blobä (kind {{key}} NOT NULL){{opts}}",
 		// Whatever follows the form is something no rule has read.
-		"a column added the MySQL way":   "ALTER TABLE ngc_app ADD COLUMN node {{key}} AFTER id",
-		"an index without columns":       "CREATE INDEX ngc_blob_x ON ngc_blob",
-		"an index with a way of its own": "CREATE INDEX ngc_blob_x ON ngc_blob (kind) USING BTREE",
+		"a column added the MySQL way":   "ALTER TABLE cd_app ADD COLUMN node {{key}} AFTER id",
+		"an index without columns":       "CREATE INDEX cd_blob_x ON cd_blob",
+		"an index with a way of its own": "CREATE INDEX cd_blob_x ON cd_blob (kind) USING BTREE",
 		// MariaDB runs what stands in /*! ... */ and reads it as SQL.
-		"a comment MariaDB runs": "CREATE INDEX ngc_blob_x ON ngc_blob (kind) /*!*/",
+		"a comment MariaDB runs": "CREATE INDEX cd_blob_x ON cd_blob (kind) /*!*/",
 		// SQLite takes one ADD in a statement, so the form takes one.
-		"two columns added at once": "ALTER TABLE ngc_app ADD COLUMN node {{key}}, ADD COLUMN id {{key}}",
+		"two columns added at once": "ALTER TABLE cd_app ADD COLUMN node {{key}}, ADD COLUMN id {{key}}",
 		// A table written in another case is another table: MariaDB on Linux
-		// tells ngc_blob and NGC_BLOB apart.
-		"a table in upper case": "CREATE TABLE NGC_BLOB (kind {{key}} NOT NULL){{opts}}",
+		// tells cd_blob and CD_BLOB apart.
+		"a table in upper case": "CREATE TABLE CD_BLOB (kind {{key}} NOT NULL){{opts}}",
 		// Without {{opts}} MariaDB takes whatever engine the server has set
 		// as its default - and that is the one thing Galera does not
 		// replicate.
-		"a table without the ending": "CREATE TABLE ngc_blob (kind {{key}} NOT NULL)",
-		"a table without a column":   "CREATE TABLE ngc_blob (PRIMARY KEY (kind)){{opts}}",
+		"a table without the ending": "CREATE TABLE cd_blob (kind {{key}} NOT NULL)",
+		"a table without a column":   "CREATE TABLE cd_blob (PRIMARY KEY (kind)){{opts}}",
 		// A PRIMARY KEY is a rule of the table and stands last and once.
 		// SQLite answers anything else with a syntax error, which the runner
 		// would only find out on the database, in the middle of a migration.
-		"a PRIMARY KEY in front of the columns": "CREATE TABLE ngc_blob (PRIMARY KEY (kind), kind {{key}} NOT NULL){{opts}}",
-		"a column behind the PRIMARY KEY":       "CREATE TABLE ngc_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind), id {{key}} NOT NULL){{opts}}",
-		"two PRIMARY KEY":                       "CREATE TABLE ngc_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind), PRIMARY KEY (id)){{opts}}",
+		"a PRIMARY KEY in front of the columns": "CREATE TABLE cd_blob (PRIMARY KEY (kind), kind {{key}} NOT NULL){{opts}}",
+		"a column behind the PRIMARY KEY":       "CREATE TABLE cd_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind), id {{key}} NOT NULL){{opts}}",
+		"two PRIMARY KEY":                       "CREATE TABLE cd_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind), PRIMARY KEY (id)){{opts}}",
 		// A name given twice is where the five databases stop agreeing:
 		// SQLite takes an index on one column twice, MariaDB refuses it.
-		"the same column twice":                  "CREATE TABLE ngc_blob (kind {{key}} NOT NULL, kind {{key}} NOT NULL){{opts}}",
-		"the same column twice in an index":      "CREATE INDEX ngc_blob_x ON ngc_blob (kind, kind)",
-		"the same column twice in a PRIMARY KEY": "CREATE TABLE ngc_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind, kind)){{opts}}",
+		"the same column twice":                  "CREATE TABLE cd_blob (kind {{key}} NOT NULL, kind {{key}} NOT NULL){{opts}}",
+		"the same column twice in an index":      "CREATE INDEX cd_blob_x ON cd_blob (kind, kind)",
+		"the same column twice in a PRIMARY KEY": "CREATE TABLE cd_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind, kind)){{opts}}",
 		// MariaDB takes 64 characters for a name, SQLite as many as one likes.
-		"an index name longer than MariaDB takes": "CREATE INDEX ngc_blob_" + strings.Repeat("x", 200) + " ON ngc_blob (kind)",
+		"an index name longer than MariaDB takes": "CREATE INDEX cd_blob_" + strings.Repeat("x", 200) + " ON cd_blob (kind)",
 	} {
 		if _, err := checkStatement(s, fromMigration); err == nil {
 			t.Errorf("%s was accepted: %q", name, s)
@@ -149,14 +149,14 @@ func TestCheckStatement(t *testing.T) {
 	}
 	// The message has to say what the rule is, not just that something is
 	// wrong: whoever wrote the migration reads it.
-	if _, err := checkStatement("DROP TABLE ngc_blob", fromMigration); err == nil || !strings.Contains(err.Error(), "only add") {
+	if _, err := checkStatement("DROP TABLE cd_blob", fromMigration); err == nil || !strings.Contains(err.Error(), "only add") {
 		t.Errorf("the message does not say what the rule is: %v", err)
 	}
 	// A word that does not belong is refused, and the message names it: who
 	// wrote the migration has to see where to look. WHERE is nothing anybody
 	// meant as a column, and a message calling it one would send the author
 	// looking in the wrong place.
-	_, err := checkStatement("CREATE INDEX ngc_blob_x ON ngc_blob (kind) WHERE nonsense", fromMigration)
+	_, err := checkStatement("CREATE INDEX cd_blob_x ON cd_blob (kind) WHERE nonsense", fromMigration)
 	if err == nil {
 		t.Fatal("a statement with a WHERE was accepted")
 	}
@@ -164,7 +164,7 @@ func TestCheckStatement(t *testing.T) {
 		t.Errorf("the message does not say that a word stands where the statement is over: %v", err)
 	}
 	// A name standing where a column belongs is named as what it is not.
-	if _, err := checkStatement("CREATE INDEX ngc_blob_x ON ngc_blob (nonsense)", fromMigration); err == nil ||
+	if _, err := checkStatement("CREATE INDEX cd_blob_x ON cd_blob (nonsense)", fromMigration); err == nil ||
 		!strings.Contains(err.Error(), "no column of") {
 		t.Errorf("the message does not say that the name is no column: %v", err)
 	}
@@ -178,9 +178,9 @@ func TestCheckStatement(t *testing.T) {
 // the middle of the column list.
 func TestAColumnTypeIsNeverAWord(t *testing.T) {
 	for name, s := range map[string]string{
-		"a type nobody listed":            "CREATE TABLE ngc_blob (kind {{add}} NOT NULL){{opts}}",
-		"a type where the column belongs": "ALTER TABLE ngc_app ADD {{key}} node",
-		"the ending as a column type":     "CREATE TABLE ngc_blob (kind {{opts}} NOT NULL){{opts}}",
+		"a type nobody listed":            "CREATE TABLE cd_blob (kind {{add}} NOT NULL){{opts}}",
+		"a type where the column belongs": "ALTER TABLE cd_app ADD {{key}} node",
+		"the ending as a column type":     "CREATE TABLE cd_blob (kind {{opts}} NOT NULL){{opts}}",
 	} {
 		if _, err := checkStatement(s, fromMigration); err == nil {
 			t.Errorf("%s was accepted: %q", name, s)
@@ -195,17 +195,17 @@ func TestAColumnTypeIsNeverAWord(t *testing.T) {
 // TestAGluedTypeNeverReachesTheDatabase and in
 // TestNothingUnlistedIsEverCreated.
 var glued = map[string]string{
-	"a column type against the column name":        "CREATE TABLE ngc_blob (kind{{key}} NOT NULL, id {{key}} NOT NULL){{opts}}",
-	"a column added with the type against it":      "ALTER TABLE ngc_app ADD node{{key}}",
-	"NOT NULL against the column type":             "CREATE TABLE ngc_blob (kind {{key}}NOT NULL, id {{key}} NOT NULL){{opts}}",
-	"NOT NULL against the type of an added column": "ALTER TABLE ngc_app ADD node {{key}}NOT NULL",
-	"a word behind the ending":                     "CREATE TABLE ngc_blob (kind {{key}} NOT NULL){{opts}}x",
-	"a second ending against the first":            "CREATE TABLE ngc_blob (kind {{key}} NOT NULL){{opts}}{{opts}}",
-	"a digit against the column type":              "ALTER TABLE ngc_app ADD node {{int}}8 NOT NULL",
-	"an underscore against the column type":        "ALTER TABLE ngc_app ADD node {{key}}_x NOT NULL",
-	"the word COLUMN with the type against it":     "ALTER TABLE ngc_app ADD COLUMN{{key}} node NOT NULL",
-	"the table name with the type against it":      "CREATE TABLE ngc_blob{{key}} (kind {{key}} NOT NULL){{opts}}",
-	"the index name with the type against it":      "CREATE INDEX ngc_blob_{{key}} ON ngc_blob (kind)",
+	"a column type against the column name":        "CREATE TABLE cd_blob (kind{{key}} NOT NULL, id {{key}} NOT NULL){{opts}}",
+	"a column added with the type against it":      "ALTER TABLE cd_app ADD node{{key}}",
+	"NOT NULL against the column type":             "CREATE TABLE cd_blob (kind {{key}}NOT NULL, id {{key}} NOT NULL){{opts}}",
+	"NOT NULL against the type of an added column": "ALTER TABLE cd_app ADD node {{key}}NOT NULL",
+	"a word behind the ending":                     "CREATE TABLE cd_blob (kind {{key}} NOT NULL){{opts}}x",
+	"a second ending against the first":            "CREATE TABLE cd_blob (kind {{key}} NOT NULL){{opts}}{{opts}}",
+	"a digit against the column type":              "ALTER TABLE cd_app ADD node {{int}}8 NOT NULL",
+	"an underscore against the column type":        "ALTER TABLE cd_app ADD node {{key}}_x NOT NULL",
+	"the word COLUMN with the type against it":     "ALTER TABLE cd_app ADD COLUMN{{key}} node NOT NULL",
+	"the table name with the type against it":      "CREATE TABLE cd_blob{{key}} (kind {{key}} NOT NULL){{opts}}",
+	"the index name with the type against it":      "CREATE INDEX cd_blob_{{key}} ON cd_blob (kind)",
 }
 
 // nameByte says whether a byte may stand inside a name a database reads. It
@@ -369,8 +369,8 @@ func TestEveryStatementRunsAsItWasMeasured(t *testing.T) {
 // constant somebody wrote by hand, a string put together somewhere else.
 func TestFillRefusesWhatWasNotMeasured(t *testing.T) {
 	for name, s := range map[string]string{
-		"a column type against the name": "CREATE TABLE ngc_blob ( kind{{key}} NOT NULL ) {{opts}}",
-		"a word too much":                "CREATE TABLE ngc_blob ( kind {{key}} NOT NULL ) {{opts}} x",
+		"a column type against the name": "CREATE TABLE cd_blob ( kind{{key}} NOT NULL ) {{opts}}",
+		"a word too much":                "CREATE TABLE cd_blob ( kind {{key}} NOT NULL ) {{opts}} x",
 	} {
 		if _, err := fill(sqlstore.SQLite, s, fromMigration); err == nil {
 			t.Errorf("%s was filled and would have run: %q", name, s)
@@ -379,7 +379,7 @@ func TestFillRefusesWhatWasNotMeasured(t *testing.T) {
 	// A statement whose pieces are right but which does not stand in the form
 	// the rules wrote is refused for that reason and told so. The author has
 	// to read where to look: the names are all fine, the form is not.
-	_, err := fill(sqlstore.SQLite, "CREATE TABLE ngc_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
+	_, err := fill(sqlstore.SQLite, "CREATE TABLE cd_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
 	if err == nil {
 		t.Fatal("a statement in another form was filled and would have run")
 	}
@@ -387,7 +387,7 @@ func TestFillRefusesWhatWasNotMeasured(t *testing.T) {
 		t.Errorf("the message does not say that the form is the problem: %v", err)
 	}
 	// What the rules did write runs, and it runs unchanged.
-	form, err := checkStatement("CREATE TABLE ngc_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
+	form, err := checkStatement("CREATE TABLE cd_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -400,7 +400,7 @@ func TestFillRefusesWhatWasNotMeasured(t *testing.T) {
 // TestASplitMigrationIsBounded: the migrations are built in and come from
 // nobody outside, but a bound belongs on every count all the same.
 func TestASplitMigrationIsBounded(t *testing.T) {
-	one := "CREATE INDEX ngc_blob_seq ON ngc_blob (kind);\n"
+	one := "CREATE INDEX cd_blob_seq ON cd_blob (kind);\n"
 	if _, err := split(strings.Repeat(one, maxStatements)); err != nil {
 		t.Errorf("%d statements were refused: %v", maxStatements, err)
 	}
@@ -440,7 +440,7 @@ func (rogue) Type(string) string { return "BLOB; CREATE TABLE nonsense (x BLOB)"
 // comparison itself, and one that writes a whole statement into a column type
 // is refused before anything runs.
 func TestFillTrustsNobodyForTheFinishedText(t *testing.T) {
-	form, err := checkStatement("CREATE TABLE ngc_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
+	form, err := checkStatement("CREATE TABLE cd_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -603,7 +603,7 @@ var wrongEndings = map[string]string{
 // Nothing here trusts the guard: whatever it lets through is run on a real
 // SQLite, and then the database is asked what it made of it.
 func TestAColumnTypeKeepsItsForm(t *testing.T) {
-	form, err := checkStatement("CREATE TABLE ngc_blob (kind {{key}} NOT NULL, seq {{int}} NOT NULL, PRIMARY KEY (kind)){{opts}}", fromMigration)
+	form, err := checkStatement("CREATE TABLE cd_blob (kind {{key}} NOT NULL, seq {{int}} NOT NULL, PRIMARY KEY (kind)){{opts}}", fromMigration)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -647,12 +647,12 @@ func TestAColumnTypeKeepsItsForm(t *testing.T) {
 // so the oracle cannot go wrong the same way the rules could.
 func TestTheOracleSeesWhatTheDialectBringsAlong(t *testing.T) {
 	d := wrongType{Dialect: sqlstore.SQLite, typ: "BLOB , heimlich BLOB"}
-	sql := "CREATE TABLE ngc_blob ( kind " + d.Type("key") + " NOT NULL )"
+	sql := "CREATE TABLE cd_blob ( kind " + d.Type("key") + " NOT NULL )"
 	if bad := unlisted(d, sql); !slices.Contains(bad, "heimlich") {
 		t.Errorf("the oracle takes what the dialect brought along as listed, so it looks past it: %v", bad)
 	}
 	// And it stays quiet on what the real dialects write.
-	form, err := checkStatement("CREATE TABLE ngc_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
+	form, err := checkStatement("CREATE TABLE cd_blob (kind {{key}} NOT NULL){{opts}}", fromMigration)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -679,16 +679,16 @@ func TestTheOracleSeesWhatTheDialectBringsAlong(t *testing.T) {
 // break.
 func TestAColumnIsAddedNullable(t *testing.T) {
 	for _, s := range []string{
-		"ALTER TABLE ngc_app ADD COLUMN node {{key}}",
-		"ALTER TABLE ngc_app ADD node {{key}}",
+		"ALTER TABLE cd_app ADD COLUMN node {{key}}",
+		"ALTER TABLE cd_app ADD node {{key}}",
 	} {
 		if _, err := checkStatement(s, fromMigration); err != nil {
 			t.Errorf("%q: %v", s, err)
 		}
 	}
 	for _, s := range []string{
-		"ALTER TABLE ngc_app ADD COLUMN node {{key}} NOT NULL",
-		"ALTER TABLE ngc_app ADD node {{key}} NOT NULL",
+		"ALTER TABLE cd_app ADD COLUMN node {{key}} NOT NULL",
+		"ALTER TABLE cd_app ADD node {{key}} NOT NULL",
 	} {
 		_, err := checkStatement(s, fromMigration)
 		if err == nil {
@@ -699,12 +699,12 @@ func TestAColumnIsAddedNullable(t *testing.T) {
 			t.Errorf("the message does not say what the rule is: %v", err)
 		}
 	}
-	if _, err := checkStatement("CREATE TABLE ngc_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind)){{opts}}", fromMigration); err != nil {
+	if _, err := checkStatement("CREATE TABLE cd_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind)){{opts}}", fromMigration); err != nil {
 		t.Errorf("a CREATE TABLE lost its NOT NULL: %v", err)
 	}
 }
 
-// TestAMigrationLeavesTheRunnerTablesAlone: ngc_schema and ngc_lock are the
+// TestAMigrationLeavesTheRunnerTablesAlone: cd_schema and cd_lock are the
 // runner's own, made before the first migration runs. A statement of a
 // migration about either of them is therefore always either an error or
 // nothing - and the two databases do not even agree on which. SQLite answers
@@ -715,11 +715,11 @@ func TestAColumnIsAddedNullable(t *testing.T) {
 // carries only the ones they have.
 func TestAMigrationLeavesTheRunnerTablesAlone(t *testing.T) {
 	for name, s := range map[string]string{
-		"the table of the runner once more": "CREATE TABLE ngc_schema ( version {{int}} NOT NULL , PRIMARY KEY ( version ) ) {{opts}}",
-		"the lock table once more":          "CREATE TABLE ngc_lock ( name {{key}} NOT NULL , PRIMARY KEY ( name ) ) {{opts}}",
-		"a column on the lock":              "ALTER TABLE ngc_lock ADD until {{int}}",
-		"an index on the lock":              "CREATE INDEX ngc_lock_until ON ngc_lock (until)",
-		"an index on the schema":            "CREATE UNIQUE INDEX ngc_schema_done ON ngc_schema (done)",
+		"the table of the runner once more": "CREATE TABLE cd_schema ( version {{int}} NOT NULL , PRIMARY KEY ( version ) ) {{opts}}",
+		"the lock table once more":          "CREATE TABLE cd_lock ( name {{key}} NOT NULL , PRIMARY KEY ( name ) ) {{opts}}",
+		"a column on the lock":              "ALTER TABLE cd_lock ADD until {{int}}",
+		"an index on the lock":              "CREATE INDEX cd_lock_until ON cd_lock (until)",
+		"an index on the schema":            "CREATE UNIQUE INDEX cd_schema_done ON cd_schema (done)",
 	} {
 		if _, err := checkStatement(s, fromMigration); err == nil {
 			t.Errorf("a migration was allowed to name %s: %q", name, s)
@@ -732,8 +732,8 @@ func TestAMigrationLeavesTheRunnerTablesAlone(t *testing.T) {
 // too many, and that one is a DROP: whichever message comes back says which
 // of the two was looked at first.
 func TestABoundBitesBeforeTheWork(t *testing.T) {
-	one := "CREATE INDEX ngc_blob_seq ON ngc_blob (kind);\n"
-	_, err := split(strings.Repeat(one, maxStatements) + "DROP TABLE ngc_blob;\n")
+	one := "CREATE INDEX cd_blob_seq ON cd_blob (kind);\n"
+	_, err := split(strings.Repeat(one, maxStatements) + "DROP TABLE cd_blob;\n")
 	if err == nil {
 		t.Fatal("a migration past the bound was read")
 	}
@@ -744,7 +744,7 @@ func TestABoundBitesBeforeTheWork(t *testing.T) {
 
 // TestTheRunnerDoorIsOpenedOnce reads this package's own source and counts
 // where the runner's door is opened. who is a bool, so a bare true at a call
-// site would let a migration name ngc_schema and ngc_lock: the compiler takes
+// site would let a migration name cd_schema and cd_lock: the compiler takes
 // it, every test of behaviour still passes, and the guard of takeTable is
 // gone without a word.
 //
@@ -982,7 +982,7 @@ func TestTheRunnerDoorIsOpenedOnce(t *testing.T) {
 		}
 	}
 	if runner != 1 {
-		t.Errorf("%s stands at %d call sites; it belongs at the one that makes ngc_schema and ngc_lock",
+		t.Errorf("%s stands at %d call sites; it belongs at the one that makes cd_schema and cd_lock",
 			fromRunnerName, runner)
 	}
 }

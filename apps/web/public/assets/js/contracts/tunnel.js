@@ -13,8 +13,8 @@ import { validTunnelURL } from "./url.js";
 import { keyIDAsync } from "./sign.js";
 import { AUTO_API, AUTO_CONTROLLER, AUTO_WEB, NODE_API } from "./trust.js";
 
-export const PAIR_PREFIX = "ngc-pair:";
-export const JOIN_PREFIX = "ngc-join:";
+export const PAIR_PREFIX = "cd-pair:";
+export const JOIN_PREFIX = "cd-join:";
 export const MAX_PAIR_CODE = 1024; // also for join codes
 export const SECRET_SIZE = 16;
 // The version of the contracts. Every part also understands the previous one.
@@ -65,7 +65,7 @@ export async function fingerprint(key) {
 // byte that may appear in neither of them a longer label and a shorter node
 // would hash to the same bytes as a shorter label and a longer node (Go: the
 // same writes into sha256.New).
-const JOIN_LABEL = "ngc/join-fingerprint/v1";
+const JOIN_LABEL = "cd/join-fingerprint/v1";
 const SEPARATOR = new Uint8Array([0]);
 
 // joinFingerprint names what a joining API asks to be listed with, so the admin
@@ -178,9 +178,9 @@ export function checkCode(c, version) {
   }
 }
 
-// components returns the NGC software a server with these roles runs, sorted:
+// components returns the CirroDesk software a server with these roles runs, sorted:
 // always the controller, plus the API for ROLE_API and the web interface for
-// ROLE_WEB. ROLE_DB runs the migrations out of the ngc-api release file without
+// ROLE_WEB. ROLE_DB runs the migrations out of the cd-api release file without
 // installing it, ROLE_SERVICES runs app containers (Go: tunnel.Components).
 export function components(roles) {
   // Go is handed a []string. Here roles is whatever the caller has, and this

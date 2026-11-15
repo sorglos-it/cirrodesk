@@ -7,12 +7,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 func TestRightsOfARole(t *testing.T) {
@@ -56,7 +56,7 @@ func TestSetRefusesAnInvalidRole(t *testing.T) {
 	fx := newFixture(t)
 	for _, r := range []core.RoleRights{
 		{Role: "no name at all"},
-		{Role: "office", Rights: []string{"ngc.store/use"}},        // a core app grants no rights
+		{Role: "office", Rights: []string{"cd.store/use"}},         // a core app grants no rights
 		{Role: "office", Rights: []string{"org.sorglos.terminal"}}, // no action
 	} {
 		if err := Set(ctx, fx.DB, r); !errors.Is(err, ErrRights) {

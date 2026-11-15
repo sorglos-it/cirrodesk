@@ -81,7 +81,7 @@ test("the terminal shows the output of the service", async ({ shell }) => {
 });
 
 test("output from the service is never HTML", async ({ shell }) => {
-  await shell.evaluate(() => { window.__ngcTest.terminalOutput = "<img src=x onerror=alert(1)>"; });
+  await shell.evaluate(() => { window.__cdTest.terminalOutput = "<img src=x onerror=alert(1)>"; });
   const t = await terminal(shell);
   await ready(t);
   await t.input.press("Enter");
@@ -99,7 +99,7 @@ test("output from the service is never HTML", async ({ shell }) => {
 });
 
 test("a cut-off stream is an error, and it says what the shell said", async ({ shell }) => {
-  await shell.evaluate(() => { window.__ngcTest.terminalCut = true; });
+  await shell.evaluate(() => { window.__cdTest.terminalCut = true; });
   const t = await terminal(shell);
   // TWO SENTENCES: what happened, and the reason the shell sent with it. Until
   // 23.10.2026 the second one was thrown away at three stations in a row, and
@@ -112,7 +112,7 @@ test("a cut-off stream is an error, and it says what the shell said", async ({ s
 
 test("an open the shell could not make says the shell's own sentence", async ({ shell }) => {
   await shell.evaluate(() => {
-    window.__ngcTest.openFails = "Diese Anmeldung kann den Auftrag für diese App nicht unterschreiben. Bitte neu anmelden.";
+    window.__cdTest.openFails = "Diese Anmeldung kann den Auftrag für diese App nicht unterschreiben. Bitte neu anmelden.";
   });
   const t = await terminal(shell);
   // THE WHOLE WAY, in one case: the open throws in the shell
@@ -131,7 +131,7 @@ test("an open the shell could not make says the shell's own sentence", async ({ 
 
 test("a refused open says the sentence of its code, not the words of the error",
   async ({ shell }) => {
-    await shell.evaluate(() => { window.__ngcTest.openFailsCode = "E_CONFIRM"; });
+    await shell.evaluate(() => { window.__cdTest.openFailsCode = "E_CONFIRM"; });
     const t = await terminal(shell);
     // The CODE becomes the sentence - the German text of the contract
     // (wire.message) - and the words the error itself carried do not travel:
@@ -143,7 +143,7 @@ test("a refused open says the sentence of its code, not the words of the error",
 
 test("a refused open also says the reason the shell knows, over the app's window", async ({ shell }) => {
   await shell.evaluate(() => {
-    window.__ngcTest.openFails = "Nicht bestätigt. Die App wurde nicht geöffnet.";
+    window.__cdTest.openFails = "Nicht bestätigt. Die App wurde nicht geöffnet.";
   });
   const t = await terminal(shell);
   // THE REASON BELONGS TO THE SHELL, and that is the point of this case:
@@ -177,8 +177,8 @@ test("a refused open also says the reason the shell knows, over the app's window
 
 test("an ending with no sentence says the one thing it knows", async ({ shell }) => {
   await shell.evaluate(() => {
-    window.__ngcTest.terminalCut = true;
-    window.__ngcTest.terminalSaid = "";
+    window.__cdTest.terminalCut = true;
+    window.__cdTest.terminalSaid = "";
   });
   const t = await terminal(shell);
   // No sentence from the shell, no empty space behind the full stop: the app
@@ -189,8 +189,8 @@ test("an ending with no sentence says the one thing it knows", async ({ shell })
 
 test("the same sentence twice is said once", async ({ shell }) => {
   await shell.evaluate(() => {
-    window.__ngcTest.terminalCut = true;
-    window.__ngcTest.terminalSaid = "Die Verbindung wurde abgeschnitten.";
+    window.__cdTest.terminalCut = true;
+    window.__cdTest.terminalSaid = "Die Verbindung wurde abgeschnitten.";
   });
   const t = await terminal(shell);
   // The shell may send the very sentence this app would show on its own - a
@@ -222,18 +222,18 @@ test("the window closing takes the channel with it", async ({ shell }) => {
   // green against a shell that never closes a channel at all.
   const t = await terminal(shell);
   await ready(t);
-  expect(await shell.evaluate(() => window.__ngcStreamsClosed)).toBe(0);
-  const opened = await shell.evaluate(() => window.__ngcChannelsOpened);
+  expect(await shell.evaluate(() => window.__cdStreamsClosed)).toBe(0);
+  const opened = await shell.evaluate(() => window.__cdChannelsOpened);
   await t.win.getByRole("button", { name: "Schließen" }).click();
   await expect(t.win).toHaveCount(0);
   await expect(shell.locator(".appframe")).toHaveCount(0);
-  await expect.poll(() => shell.evaluate(() => window.__ngcStreamsClosed)).toBe(1);
+  await expect.poll(() => shell.evaluate(() => window.__cdStreamsClosed)).toBe(1);
   // And the next window opens a channel of its own instead of finding the old
   // one: the app's numbers start at one again in a document that is new.
   const again = await terminal(shell);
   await ready(again);
-  expect(await shell.evaluate(() => window.__ngcChannelsOpened)).toBeGreaterThan(opened);
-  expect(await shell.evaluate(() => window.__ngcStreamsClosed)).toBe(1);
+  expect(await shell.evaluate(() => window.__cdChannelsOpened)).toBeGreaterThan(opened);
+  expect(await shell.evaluate(() => window.__cdStreamsClosed)).toBe(1);
 });
 
 test("the terminal can be worked with the keyboard alone", async ({ shell }) => {
@@ -283,8 +283,8 @@ const MAX_DIM = 2000;           // terminal.MaxDim
 
 // framesOf and rawOf read the stand-in's two records: the frames it parsed and
 // the bytes of every write before any parser touched them.
-const framesOf = (shell) => shell.evaluate(() => window.__ngcTermFrames);
-const rawOf = (shell) => shell.evaluate(() => window.__ngcTermRaw);
+const framesOf = (shell) => shell.evaluate(() => window.__cdTermFrames);
+const rawOf = (shell) => shell.evaluate(() => window.__cdTermRaw);
 
 // noBadFrame is the fence under every case here: the stand-in is as strict as
 // the controller (pumpIn ends the run on the first frame that is none), so a

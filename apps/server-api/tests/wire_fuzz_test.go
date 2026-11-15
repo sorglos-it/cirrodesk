@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // FuzzWireParseGrant feeds a GRANT payload: 4 bytes of credit and nothing, or
@@ -48,8 +48,8 @@ func FuzzWireParseGrant(f *testing.F) {
 // purpose (the budget has already seen them), so a payload that passes the
 // short way and fails the long one is a real difference.
 func FuzzWireParseOpen(f *testing.F) {
-	f.Add([]byte(`{"app":"ngc.users","service":"a","action":"b","window":65536}`))
-	f.Add([]byte(`{"app":"ngc.users","service":"a","action":"b","window":0}`))
+	f.Add([]byte(`{"app":"cd.users","service":"a","action":"b","window":65536}`))
+	f.Add([]byte(`{"app":"cd.users","service":"a","action":"b","window":0}`))
 	f.Add([]byte("{}"))
 	f.Add([]byte(""))
 

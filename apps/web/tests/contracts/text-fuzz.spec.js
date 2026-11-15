@@ -21,9 +21,9 @@ import { test, expect } from "../fixtures/page.js";
 //     every rule above and proves nothing.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=50000 npm test -- contracts/text-fuzz
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 20000);
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=50000 npm test -- contracts/text-fuzz
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 20000);
 
 test(`fuzz: nothing but printable text, ${rounds} inputs from seed ${seed}`, async ({ shell }) => {
   const out = await shell.evaluate(async ([seed, rounds]) => {
@@ -41,7 +41,7 @@ test(`fuzz: nothing but printable text, ${rounds} inputs from seed ${seed}`, asy
 
     const pieces = ["a", "z", "A", "Z", "0", "9", "-", "_", ".", "/", "~", " ", "\t", "\n",
       "\u00e4", "\u00a0", "\u00ad", "\u202e", "\ufdd0", "\uffff", "\ud800", "\udfff",
-      "\u{1F600}", "\u2028", "\u0000", "\u007f", "ngc.", "ctl-", "1.0.0", "index.html",
+      "\u{1F600}", "\u2028", "\u0000", "\u007f", "cd.", "ctl-", "1.0.0", "index.html",
       "..", "a".repeat(31), "org.sorglos.terminal", "0123456789abcdef"];
     const from = (alphabet, n) => {
       let s = "";
@@ -140,7 +140,7 @@ test(`fuzz: nothing but printable text, ${rounds} inputs from seed ${seed}`, asy
       const logID = answer("validLogID", t.validLogID, s);
       const totp = answer("validTOTP", t.validTOTP, s);
       // coreApp asks for a prefix, not for a grammar: it belongs to no
-      // alsoText line, because "ngc." and any byte after it is what it says
+      // alsoText line, because "cd." and any byte after it is what it says
       // yes to. The floor below is the whole rule the fuzz has for it.
       const core = answer("coreApp", t.coreApp, s);
       alsoText("a name", name, 32);
@@ -177,14 +177,14 @@ test(`fuzz: nothing but printable text, ${rounds} inputs from seed ${seed}`, asy
           if (a && b) say(`two versions each newer than the other: ${other}`, s);
           if (!a && !b && s !== other) say(`two versions in no order: ${other}`, s);
         }
-        // A build that is a release version suits a minNgc it is not older
+        // A build that is a release version suits a minCd it is not older
         // than, and none that it is older than.
         for (const other of versions) {
-          if (t.supportsMinNGC(s, other) !== !t.newer(other, s)) say(`minNgc out of order: ${other}`, s);
+          if (t.supportsMinCD(s, other) !== !t.newer(other, s)) say(`minCd out of order: ${other}`, s);
         }
       }
-      if (t.supportsMinNGC(s, "1.2.3") && !(t.validVersion(s) && !t.newer("1.2.3", s))) {
-        say("a build that suits a minNgc it cannot", s);
+      if (t.supportsMinCD(s, "1.2.3") && !(t.validVersion(s) && !t.newer("1.2.3", s))) {
+        say("a build that suits a minCd it cannot", s);
       }
     }
     return { bad, count };

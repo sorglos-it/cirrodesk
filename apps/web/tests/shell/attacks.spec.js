@@ -101,12 +101,12 @@ test.describe("a user interface that does not fit its proof", () => {
     await shell.getByRole("menuitem", { name: "Terminal" }).click();
   };
 
-  const REFUSED = "Die Oberfläche dieser App ist nicht echt. NGC führt sie nicht aus.";
+  const REFUSED = "Die Oberfläche dieser App ist nicht echt. CirroDesk führt sie nicht aus.";
 
   test("is refused twice over, and the honest one still opens", async ({ shell }) => {
     // The stand-in hands out an archive that does not hash to what the signed
     // proof says.
-    await shell.evaluate(() => { window.__ngcTest.swapUI = true; });
+    await shell.evaluate(() => { window.__cdTest.swapUI = true; });
 
     await openTerminal(shell);
     await expect(shell.getByRole("alert")).toHaveText(REFUSED);
@@ -135,11 +135,11 @@ test.describe("a user interface that does not fit its proof", () => {
     // carried while nobody had written the terminal yet. The terminal is a real
     // app now, and its own surface is what says the honest archive ran: the
     // field it asks for commands with is there only if the page, its stylesheet
-    // and its script all came out of the archive and ngc.js reached the shell.
+    // and its script all came out of the archive and cd.js reached the shell.
     // That is strictly more than a heading, which a page shows even when its
     // script never ran.
     await shell.getByRole("button", { name: "Schließen" }).click();
-    await shell.evaluate(() => { window.__ngcTest.swapUI = false; });
+    await shell.evaluate(() => { window.__cdTest.swapUI = false; });
     await openTerminal(shell);
     await expect(shell.frameLocator(".appframe").getByRole("textbox", { name: "Eingabe" }))
       .toBeVisible();
@@ -296,7 +296,7 @@ const TWISTS = [
 
 for (const [what, twist] of TWISTS) {
   test(`an upload answered with another ${what} activates nothing`, async ({ page }) => {
-    await page.addInitScript((w) => { window.__ngcStore = w; }, { uploadTwist: twist });
+    await page.addInitScript((w) => { window.__cdStore = w; }, { uploadTwist: twist });
     await page.goto("/");
     await skipWithoutLogin(page);
     await signIn(page);
@@ -305,7 +305,7 @@ for (const [what, twist] of TWISTS) {
     await expect(page.locator(".store")).toBeVisible();
     await page.getByRole("tab", { name: "Hochladen", exact: true }).click();
     await page.locator(".store input[type=file]").setInputFiles({
-      name: "notizen.ngc", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
+      name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
     });
 
     // The sentence does not name the field: which number the API got wrong is
@@ -315,11 +315,11 @@ for (const [what, twist] of TWISTS) {
       .toHaveText("Die Anlage hat ein anderes Paket bekommen, als geschickt wurde.");
     await expect(page.locator(".store").getByRole("button", { name: "Aktivieren" })).toHaveCount(0);
     const names = await page.evaluate(() =>
-      (window.__ngcSent ?? []).map((s) => s.app + "/" + s.name));
+      (window.__cdSent ?? []).map((s) => s.app + "/" + s.name));
     // The upload itself went out - so this is a case about the ANSWER and not
     // about a shell that never got that far.
-    expect(names, "the upload really happened").toContain("ngc.store/upload");
-    expect(names).not.toContain("ngc.store/activate");
+    expect(names, "the upload really happened").toContain("cd.store/upload");
+    expect(names).not.toContain("cd.store/activate");
   });
 }
 
@@ -416,14 +416,14 @@ test("the password of the second confirmation reaches no wire and no link", asyn
   // The store with an admin at level root: every root task has to be signed a
   // second time by the user (trust.needsConfirm), and this user has no passkey
   // in the stand-in's list, so the question asks for the password.
-  await page.addInitScript((w) => { window.__ngcStore = w; }, {
+  await page.addInitScript((w) => { window.__cdStore = w; }, {
     level: "root",
     // passwordKey, so the admin's key in the stand-in's list really is the one
     // this password derives - otherwise the signature would be over a key
     // nobody holds and the case would measure the fixture.
     passwordKey: true,
     updates: [{
-      target: "ngc-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
+      target: "cd-web", node: "web-1", installed: "1.0.0", available: "1.1.0",
       sha256: "BgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgY", key: "", mode: "semi",
       window: "", state: "downloaded",
     }],
@@ -459,9 +459,9 @@ test("the password of the second confirmation reaches no wire and no link", asyn
   // off at once - a read that was too early would make the guard below fail
   // for the wrong reason.
   await page.waitForFunction(() =>
-    (window.__ngcSent ?? []).some((s) => s.app + "/" + s.name === "ngc.store/install"));
+    (window.__cdSent ?? []).some((s) => s.app + "/" + s.name === "cd.store/install"));
   const sent = await page.evaluate(() => {
-    const rec = (window.__ngcSent ?? []).find((s) => s.app + "/" + s.name === "ngc.store/install");
+    const rec = (window.__cdSent ?? []).find((s) => s.app + "/" + s.name === "cd.store/install");
     return rec === undefined ? null : { confirm: rec.confirm ?? "", task: rec.task ?? "" };
   });
   expect(sent, "the install task really went out").not.toBeNull();

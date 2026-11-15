@@ -1,4 +1,4 @@
-# Fremdcode in NGC
+# Fremdcode in CirroDesk
 
 Übernommen per `go mod vendor` (Ordner `vendor/`) beziehungsweise, für alles, was der Browser holt –
 JavaScript und die Schrift –, als Kopie unter `apps/web/public/assets/vendor/`. Jede Lizenz ist mit der AGPL-3.0 vereinbar. Sicherheitsupdates ziehen wir selbst

@@ -7,11 +7,11 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // PathKeys is where a new API server fetches the keys every API of the
@@ -23,7 +23,7 @@ const PathKeys = "/tunnel/keys"
 
 // PrologueKeys tells this handshake apart from the session, tunnel and
 // end-to-end ones (package noisep).
-const PrologueKeys = "ngc/apikeys/v1"
+const PrologueKeys = "cd/apikeys/v1"
 
 // sharedKeys is what travels: the two keys every API of the installation has
 // to have the same. SecretKey seals the database secrets -- the installation's

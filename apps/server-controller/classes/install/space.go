@@ -3,7 +3,7 @@ package install
 import (
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // What an activation may write into config.StageDir, and why it is not simply
@@ -23,8 +23,8 @@ import (
 // worst case of every package that is offered, not of every package that is
 // good.
 //
-// This server has nothing else to fall back on. /var/lib/ngc holds the
-// database and the data of every app, /etc/ngc holds its configuration and
+// This server has nothing else to fall back on. /var/lib/cd holds the
+// database and the data of every app, /etc/cd holds its configuration and
 // /etc/subuid the ranges every container needs, and on a single-disk machine -
 // which is what a Pi is - all of them are the same disk as config.StageDir. A
 // machine whose disk an app installation filled does not come back up after a
@@ -54,7 +54,7 @@ const (
 	// bytes free gave a bound of exactly 1 byte.
 	//
 	// 1 MiB is a decision like the reserve, and the same kind: no app package
-	// of NGC is that small - it carries a manifest, a UI and a container image
+	// of CirroDesk is that small - it carries a manifest, a UI and a container image
 	// - so a disk that cannot carry one twice over cannot install anything,
 	// and saying so is the honest answer.
 	MinBound = 1 << 20
@@ -84,7 +84,7 @@ var diskFree = freeSpace
 // caller, cut down to what the disk of this server can carry twice over, and
 // never above store.MaxPackage.
 //
-// A system that cannot be asked keeps the caller's bound. NGC runs on Debian
+// A system that cannot be asked keeps the caller's bound. CirroDesk runs on Debian
 // and Ubuntu, so that is not the server - it is the machine this is written
 // on, and the case for the arithmetic puts a disk behind diskFree rather than
 // leave it unmeasured.

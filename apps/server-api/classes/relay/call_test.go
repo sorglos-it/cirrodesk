@@ -6,18 +6,18 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestCallAsPutsTheUserOnTheWire is the whole difference between CallAs and
 // CallController, and it is measured on the OPEN the controller really gets,
 // not on the arguments: the certificate, the proof and the signed task must be
-// in the payload, because ngc.store/controller/deactivate and .../uninstall
+// in the payload, because cd.store/controller/deactivate and .../uninstall
 // are NOT in core.WithoutUser and a controller refuses them without a user.
 func TestCallAsPutsTheUserOnTheWire(t *testing.T) {
 	rl := newRelay()

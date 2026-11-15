@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // CallAs opens a channel to a controller for a core action of flow call and
@@ -16,7 +16,7 @@ import (
 // It is CallController with a user. The difference is the whole point and not
 // a convenience: CallController sends no client certificate and no proof, so
 // the controller may only let the actions of core.WithoutUser through on it
-// (tunnel.VerifyOpen). ngc.store/controller/deactivate and .../uninstall are
+// (tunnel.VerifyOpen). cd.store/controller/deactivate and .../uninstall are
 // not in that list -- they carry a signed task and the user it was signed for
 // -- so before this method there was no way at all to run them from the API,
 // and appstore.Sender.Call had no implementation that could work.

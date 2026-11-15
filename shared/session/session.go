@@ -40,7 +40,7 @@
 // bytes of the offer's Info, then Info). From it the shell builds version 1
 // of the trust list: the admin, the API nodes of Info, the global store of
 // Info unless the admin switches it off, and standing approvals only for
-// ngc-web, ngc-api and ngc-controller with Info's ReleaseKey and for system.
+// cd-web, cd-api and cd-controller with Info's ReleaseKey and for system.
 // It sends version 1 with SetupMAC over the exact bytes of its payload
 // (Setup), which the API checks with VerifySetup. The code itself never
 // travels, so no one between browser and API learns it, and without it no
@@ -56,11 +56,11 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // HTTP paths on the web server; Apache passes /api/ on to the APIs. The
@@ -69,7 +69,7 @@ import (
 // GET PathTrust?from=N pages through the versions of the trust list as
 // TrustChain says. The API tells the shell with the control message "trust"
 // (body TrustHint) that a newer version exists. Controllers get versions on
-// the channel ngc.users/controller/trust instead.
+// the channel cd.users/controller/trust instead.
 const (
 	PathSetup       = "/api/v1/setup" // GET answers a SetupOffer, POST takes a Setup
 	PathLoginStart  = "/api/v1/login/start"
@@ -77,8 +77,8 @@ const (
 	PathLogout      = "/api/v1/logout"
 	PathTrust       = "/api/v1/trust"
 	PathSocket      = "/api/v1/ws"
-	Subprotocol     = "ngc.v1"
-	CookieName      = "ngc_session"
+	Subprotocol     = "cd.v1"
+	CookieName      = "cd_session"
 )
 
 // CookieAttributes are the attributes of the session cookie CookieName, whose
@@ -228,12 +228,12 @@ type SetupInfo struct {
 	Installation string       `json:"installation"`
 	Nodes        []trust.Node `json:"nodes"` // the API servers for version 1 of the trust list
 	Now          int64        `json:"now"`
-	// ReleaseKey is the NGC release key as the API is configured
+	// ReleaseKey is the CirroDesk release key as the API is configured
 	// (config.API.ReleaseKey). The shell names it in version 1's standing
-	// approvals for ngc-web, ngc-api and ngc-controller.
+	// approvals for cd-web, cd-api and cd-controller.
 	ReleaseKey enc.Bytes `json:"releaseKey"`
 	// Store is the global store as the API is configured (config.API.StoreURL,
-	// StoreKey), ID trust.StoreGlobal, name "NGC Store". The shell lists it in
+	// StoreKey), ID trust.StoreGlobal, name "CirroDesk Store". The shell lists it in
 	// version 1 unless the admin switches it off.
 	Store *trust.Store `json:"store,omitempty"`
 }
@@ -322,7 +322,7 @@ func ParseLoginChallenge(b []byte) (LoginChallenge, error) {
 
 // ChallengeKeyLabel keeps the made-up answer's HMAC apart from every other
 // MAC, so the challenge key means one thing here and nothing elsewhere.
-const ChallengeKeyLabel = "ngc/login-unknown/v1"
+const ChallengeKeyLabel = "cd/login-unknown/v1"
 
 // ChallengeInput is what Challenge cannot take from the trust list: the values
 // of this request and the two things only the API knows about users.
@@ -905,8 +905,8 @@ func VerifyAPI(env sign.Envelope, l *trust.List, client []byte, now int64) (APIC
 // trust.Hash(s.Trust)} (so an admin in the list signed it), the same
 // Installation, Nodes equal to info.Nodes (compared as encoding/json
 // output), Stores either empty or exactly the global store info.Store; and
-// standing approvals only for system (without a key) and for ngc-web,
-// ngc-api and ngc-controller with info.ReleaseKey. Returns trust errors or
+// standing approvals only for system (without a key) and for cd-web,
+// cd-api and cd-controller with info.ReleaseKey. Returns trust errors or
 // ErrSetup.
 func VerifySetup(s Setup, info SetupInfo, code string) (trust.Version, error) {
 	if !ValidSetupCode(code) || !hmac.Equal(s.MAC, SetupMAC(code, s.Trust.Payload)) {
@@ -1007,12 +1007,12 @@ func NormalizeSetupCode(s string) (string, bool) {
 }
 
 // OfferMAC is HMAC-SHA256 keyed with the canonical setup code over
-// "ngc/setup-offer/v1", a zero byte and info.
-func OfferMAC(code string, info []byte) []byte { return setupHMAC(code, "ngc/setup-offer/v1", info) }
+// "cd/setup-offer/v1", a zero byte and info.
+func OfferMAC(code string, info []byte) []byte { return setupHMAC(code, "cd/setup-offer/v1", info) }
 
 // SetupMAC is HMAC-SHA256 keyed with the canonical setup code over
-// "ngc/setup/v1", a zero byte and payload.
-func SetupMAC(code string, payload []byte) []byte { return setupHMAC(code, "ngc/setup/v1", payload) }
+// "cd/setup/v1", a zero byte and payload.
+func SetupMAC(code string, payload []byte) []byte { return setupHMAC(code, "cd/setup/v1", payload) }
 
 // setupHMAC keeps the two MACs apart by their labels, so a MAC made for one
 // direction never passes for the other, whatever bytes it covers.

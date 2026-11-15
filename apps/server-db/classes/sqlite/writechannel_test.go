@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migrate"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migrate"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // The assurance of the one write channel: however many writers of this
@@ -41,8 +41,8 @@ const (
 	blockedWriters = 4
 	readDeadline   = time.Second
 	helperHold     = 20 * time.Second
-	helperEnvPath  = "NGC_TEST_BLOCK_PATH"
-	helperEnvKey   = "NGC_TEST_BLOCK_KEY"
+	helperEnvPath  = "CD_TEST_BLOCK_PATH"
+	helperEnvKey   = "CD_TEST_BLOCK_KEY"
 )
 
 func TestAReadDoesNotWaitBehindThisProcessesBlockedWriters(t *testing.T) {
@@ -69,7 +69,7 @@ func TestAReadDoesNotWaitBehindThisProcessesBlockedWriters(t *testing.T) {
 		t.Fatalf("start the helper: %v", err)
 	}
 	defer func() { cmd.Process.Kill(); cmd.Wait() }()
-	if err := waitForLine(out, "ngc-lock-held"); err != nil {
+	if err := waitForLine(out, "cd-lock-held"); err != nil {
 		t.Fatalf("the helper never took the lock: %v", err)
 	}
 
@@ -145,13 +145,13 @@ func TestBlockHelperProcess(t *testing.T) {
 	// _txlock=immediate took the lock at BEGIN; a real write proves it is
 	// held, so the line below is not a guess.
 	if _, err := tx.ExecContext(ctx,
-		"INSERT INTO ngc_log (id, ts, user_id, kind, app, action, node, result_code, detail) "+
+		"INSERT INTO cd_log (id, ts, user_id, kind, app, action, node, result_code, detail) "+
 			"VALUES (?,?,?,?,?,?,?,?,?)",
 		[]byte("ffffffffffffffffffffffffffffffff"), int64(1), []byte(""), []byte("probe"),
 		[]byte(""), []byte(""), []byte(""), []byte("ok"), []byte("")); err != nil {
 		t.Fatalf("helper: the lock is not held, nothing was written: %v", err)
 	}
-	fmt.Println("ngc-lock-held")
+	fmt.Println("cd-lock-held")
 	os.Stdout.Sync()
 	time.Sleep(helperHold)
 }

@@ -28,10 +28,10 @@ import { vectors } from "../fixtures/vectors.js";
 //     ones a step backwards stays green.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=50000 npm test -- contracts/uitar-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=50000 npm test -- contracts/uitar-fuzz
 const v = vectors("ui.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 6000);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 6000);
 
 test(`fuzz: files or BadPackage, ${rounds} archives from seed ${seed}`, async ({ shell }) => {
   test.setTimeout(180_000);

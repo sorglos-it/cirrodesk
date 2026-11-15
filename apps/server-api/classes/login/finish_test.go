@@ -13,15 +13,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/lock"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/lock"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 func TestFinishMakesASession(t *testing.T) {
@@ -69,7 +69,7 @@ func TestFinishMakesASession(t *testing.T) {
 		t.Fatal("the private session key lies in the clear")
 	}
 	// A login that worked writes the row back: the row's own two numbers at
-	// zero and the time of this login, which ngc.users/list shows. What the
+	// zero and the time of this login, which cd.users/list shows. What the
 	// wait is counted in is another thing entirely and stays where it is --
 	// see TestFinishLeavesTheCountingAlone.
 	user, err := h.S.DB.UserGet(ctx, fx.PasswordUser)
@@ -982,7 +982,7 @@ func timedFinish(t *testing.T, h *Handler, what string, body []byte) time.Durati
 // same moment.
 //
 // It did. Measured on the running installation on 17.10.2026 against a real
-// ngc-api on Debian 13: one after the other 3 attempts were answered 401 and
+// cd-api on Debian 13: one after the other 3 attempts were answered 401 and
 // the rest 429, while 20 at once were answered 401 between 7 and 14 times in
 // eight runs of 20 - so the free attempts an installation hands out grew with
 // the attacker's concurrency instead of standing at freeCount.

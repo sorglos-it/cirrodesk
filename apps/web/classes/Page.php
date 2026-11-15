@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Ngc;
+namespace CirroDesk;
 
 // Page sends the headers of the web interface and fills the template.
 //
@@ -44,11 +44,11 @@ final class Page
     //     'self': with 'self' the app could ask this server for any address
     //     it liked, and a request is a way to send something out.
     //   connect-src 'none' - no connection of the app's own. It talks to its
-    //     services through the shell (ngc.js) and in no other way.
+    //     services through the shell (cd.js) and in no other way.
     //
-    // frame-ancestors 'self' so that only NGC may frame it. It carries no
+    // frame-ancestors 'self' so that only CirroDesk may frame it. It carries no
     // secret and has an origin of its own, so this is about tidiness and not
-    // about a hole: whatever it shows, it shows out of what NGC gave it.
+    // about a hole: whatever it shows, it shows out of what CirroDesk gave it.
     public const FRAME_CSP = "sandbox allow-scripts; default-src 'none'; script-src data:; "
         . "style-src data: 'unsafe-inline'; img-src data:; font-src data:; media-src data:; "
         . "connect-src 'none'; worker-src 'none'; manifest-src 'none'; "
@@ -81,7 +81,7 @@ final class Page
     //
     // The bootstrap goes in as a data: address, because FRAME_CSP allows
     // scripts from data: and nothing else - the same one rule the app's own
-    // scripts follow, rather than a second one for NGC's own line of code.
+    // scripts follow, rather than a second one for CirroDesk's own line of code.
     // It is read from the file every time so that the script that runs is the
     // file in the repository and cannot drift from it; the file is a few
     // hundred bytes and a window is opened by hand, not in a loop.
@@ -91,7 +91,7 @@ final class Page
         // No bootstrap, no window. An empty frame would look like an app that
         // hangs, and there is nothing the person could do about it either way.
         if (!is_string($js) || $js === '') {
-            self::fail(500, 'NGC ist nicht eingerichtet.');
+            self::fail(500, 'CirroDesk ist nicht eingerichtet.');
             return;
         }
         self::render(__DIR__ . '/../templates/frame.php', [
@@ -112,7 +112,7 @@ final class Page
     {
         http_response_code($status);
         self::headers('text/html; charset=utf-8');
-        echo "<!DOCTYPE html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><title>NGC</title></head>"
+        echo "<!DOCTYPE html>\n<html lang=\"de\"><head><meta charset=\"utf-8\"><title>CirroDesk</title></head>"
             . '<body><p>' . htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p></body></html>';
     }
 }

@@ -15,17 +15,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -96,7 +96,7 @@ func TestTable(t *testing.T) {
 
 	// Who opens: the shell every action of service api and the root tasks on
 	// controllers, each with a signed task; stage, license and
-	// ngc.users/controller/trust only the API, without a user. Every action has
+	// cd.users/controller/trust only the API, without a user. Every action has
 	// someone who opens it.
 	shellRoot := map[string]bool{
 		AppStore + "/" + ServiceController + "/" + ActActivate:   true,
@@ -148,16 +148,16 @@ func TestTable(t *testing.T) {
 	}
 	ctlTrust := action(t, AppUsers, ServiceController, ActTrust)
 	if !ctlTrust.Admin || ctlTrust.Root || !ctlTrust.Changes || ctlTrust.Flow != FlowIn || ctlTrust.Params != nil {
-		t.Errorf("ngc.users/controller/trust: %+v", ctlTrust)
+		t.Errorf("cd.users/controller/trust: %+v", ctlTrust)
 	}
 	// A renewed license is no root task: the controller checks the store's
 	// signature itself, so the API brings it without a user and without a task.
 	ctlLicense := action(t, AppStore, ServiceController, ActLicense)
 	if !ctlLicense.Admin || ctlLicense.Root || !ctlLicense.Changes || ctlLicense.Flow != FlowIn ||
 		ctlLicense.Params == nil || ctlLicense.MaxIn != MaxLicenseIn {
-		t.Errorf("ngc.store/controller/license: %+v", ctlLicense)
+		t.Errorf("cd.store/controller/license: %+v", ctlLicense)
 	} else if _, ok := ctlLicense.Params().(*AppParams); !ok {
-		t.Errorf("ngc.store/controller/license takes %T", ctlLicense.Params())
+		t.Errorf("cd.store/controller/license takes %T", ctlLicense.Params())
 	}
 	if LocalStore != trust.StoreLocal {
 		t.Errorf("LocalStore %q", LocalStore)
@@ -173,7 +173,7 @@ func action(t *testing.T, app, service, name string) Action {
 	return a
 }
 
-// activateParams returns valid params of ngc.store/controller/activate with
+// activateParams returns valid params of cd.store/controller/activate with
 // extra members appended.
 func activateParams(extra string) json.RawMessage {
 	sum := enc.B64.EncodeToString(bytes.Repeat([]byte{1}, 32))
@@ -196,12 +196,12 @@ func TestParseParams(t *testing.T) {
 		{AppUsers, ServiceAPI, ActSetRights, `{"role":"user","rights":[]}`},
 		{AppUsers, ServiceAPI, ActSetRights, `{"role":"user"}`},
 		{AppUsers, ServiceAPI, ActLog, `{"limit":100}`},
-		{AppStore, ServiceAPI, ActSetUpdate, `{"target":"ngc-api","mode":"auto","window":"02:00-04:00"}`},
+		{AppStore, ServiceAPI, ActSetUpdate, `{"target":"cd-api","mode":"auto","window":"02:00-04:00"}`},
 		{AppStore, ServiceController, ActActivate, `{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","ui":"` + ui + `","store":"global","grants":["network"]}`},
 		{AppStore, ServiceController, ActActivate, `{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","ui":"` + ui + `","store":"local","grants":["root","network"]}`},
 		{AppStore, ServiceController, ActUninstall, `{"app":"org.sorglos.terminal","keepData":true}`},
 		{AppStore, ServiceController, ActInstall, `{"target":"system"}`},
-		{AppStore, ServiceController, ActInstall, `{"target":"ngc-controller","version":"1.1.0","sha256":"` + sum + `"}`},
+		{AppStore, ServiceController, ActInstall, `{"target":"cd-controller","version":"1.1.0","sha256":"` + sum + `"}`},
 	}
 	for _, c := range good {
 		if _, err := ParseParams(action(t, c.app, c.service, c.name), json.RawMessage(c.params)); err != nil {
@@ -214,19 +214,19 @@ func TestParseParams(t *testing.T) {
 		{AppDesktop, ServiceAPI, ActMe, `null`},
 		{AppDesktop, ServiceAPI, ActMe, `{} {}`},
 		{AppDesktop, ServiceAPI, ActUI, ``},
-		{AppDesktop, ServiceAPI, ActUI, `{"app":"ngc.users"}`},
+		{AppDesktop, ServiceAPI, ActUI, `{"app":"cd.users"}`},
 		{AppDesktop, ServiceAPI, ActUI, `{"app":null}`},
 		{AppDesktop, ServiceAPI, ActUI, `{"app":"org.sorglos.terminal","app":"org.sorglos.mail"}`},
 		{AppDesktop, ServiceAPI, ActUI, `{"App":"org.sorglos.terminal"}`},
 		{AppDesktop, ServiceAPI, ActUIProof, ``},
-		{AppDesktop, ServiceAPI, ActUIProof, `{"app":"ngc.store"}`},
+		{AppDesktop, ServiceAPI, ActUIProof, `{"app":"cd.store"}`},
 		{AppDesktop, ServiceAPI, ActTOTPConfirm, `{"code":"12345"}`},
 		{AppUsers, ServiceAPI, ActSetRights, `{"role":"user","rights":["everything"]}`},
 		{AppUsers, ServiceAPI, ActSetRights, `{"role":"user","rights":["org.sorglos.terminal/use","org.sorglos.terminal/use"]}`},
 		{AppUsers, ServiceAPI, ActSetRights, `{"role":"user","rights":null}`},
 		{AppUsers, ServiceAPI, ActLog, `{"limit":0}`},
 		{AppUsers, ServiceAPI, ActLog, `{"limit":501}`},
-		{AppStore, ServiceAPI, ActSetUpdate, `{"target":"ngc-api","mode":"always"}`},
+		{AppStore, ServiceAPI, ActSetUpdate, `{"target":"cd-api","mode":"always"}`},
 		{AppStore, ServiceController, ActActivate, `{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","ui":"` + ui + `","store":"global","grants":["host"]}`},
 		{AppStore, ServiceController, ActActivate, `{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","ui":"` + ui + `","store":"global","grants":["root","root"]}`},
 		{AppStore, ServiceController, ActActivate, `{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","ui":"` + ui + `","store":"global","grants":["root","network","root"]}`},
@@ -234,8 +234,8 @@ func TestParseParams(t *testing.T) {
 		{AppStore, ServiceController, ActActivate, `{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","store":"global"}`},
 		{AppStore, ServiceController, ActActivate, `{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","ui":"` + ui31 + `","store":"global"}`},
 		{AppStore, ServiceController, ActInstall, `{"target":"system","version":"1.0.0"}`},
-		{AppStore, ServiceController, ActInstall, `{"target":"ngc-controller","version":"1.1.0"}`},
-		{AppStore, ServiceController, ActInstall, `{"target":"ngc-controller","version":"1.1.0","sha256":"` + sum + `","size":1}`},
+		{AppStore, ServiceController, ActInstall, `{"target":"cd-controller","version":"1.1.0"}`},
+		{AppStore, ServiceController, ActInstall, `{"target":"cd-controller","version":"1.1.0","sha256":"` + sum + `","size":1}`},
 	}
 	for _, c := range bad {
 		if _, err := ParseParams(action(t, c.app, c.service, c.name), json.RawMessage(c.params)); err != ErrParams {
@@ -302,7 +302,7 @@ func TestParseNotice(t *testing.T) {
 		{"text over MaxMessageText bytes", `{"level":"info","text":"` + umlauts(wire.MaxMessageText/2) + `a"}`},
 		{"text with a line break", `{"level":"info","text":"a\nb"}`},
 		{"text with a control character", `{"level":"info","text":"a\u0007b"}`},
-		{"core app", `{"level":"info","text":"x","app":"ngc.store"}`},
+		{"core app", `{"level":"info","text":"x","app":"cd.store"}`},
 		{"invalid app id", `{"level":"info","text":"x","app":"Terminal"}`},
 		{"unknown member", `{"level":"info","text":"x","user":"admin"}`},
 		{"member in other case", `{"Level":"info","text":"x"}`},
@@ -534,7 +534,7 @@ func testTransfer() Transfer {
 	return Transfer{Catalog: &cat, Store: "global", License: &lic, Key: bytes.Repeat([]byte{3}, 32), Size: 5000000, SHA256: bytes.Repeat([]byte{4}, 32)}
 }
 
-// testRelease is testTransfer with an NGC release instead of a paid app.
+// testRelease is testTransfer with a CirroDesk release instead of a paid app.
 func testRelease() Transfer {
 	tr := testTransfer()
 	rel := sign.Envelope{Payload: []byte(`{}`), KeyID: testKeyID, Sig: bytes.Repeat([]byte{5}, 64)}
@@ -617,7 +617,7 @@ func TestRights(t *testing.T) {
 			t.Errorf("%s rejected", r)
 		}
 	}
-	for _, r := range []string{"org.sorglos.terminal", "ngc.users/use", "org.sorglos.terminal/Shell", "/use"} {
+	for _, r := range []string{"org.sorglos.terminal", "cd.users/use", "org.sorglos.terminal/Shell", "/use"} {
 		if ValidRight(r) {
 			t.Errorf("%s accepted", r)
 		}
@@ -669,11 +669,11 @@ func newUIFixture(t testing.TB) uiFixture {
 func uiCatalog() store.Catalog {
 	return store.Catalog{Store: trust.StoreGlobal, Seq: 5, Issued: 1790000000, Apps: []store.Entry{
 		{ID: "org.sorglos.calculator", Name: "Rechner", Publisher: "Sorglos IT", Versions: []store.Package{
-			{Version: "1.0.0", URL: "org.sorglos.calculator-1.0.0.ngc", Size: 12345, SHA256: bytes.Repeat([]byte{0x01}, 32), UI: uiCalculator},
+			{Version: "1.0.0", URL: "org.sorglos.calculator-1.0.0.cd", Size: 12345, SHA256: bytes.Repeat([]byte{0x01}, 32), UI: uiCalculator},
 		}},
 		{ID: "org.sorglos.terminal", Name: "Terminal", Publisher: "Sorglos IT", Versions: []store.Package{
-			{Version: "1.0.0", URL: "org.sorglos.terminal-1.0.0.ngc", Size: 5000000, SHA256: bytes.Repeat([]byte{0x02}, 32), UI: uiTerminal},
-			{Version: "1.1.0", URL: "org.sorglos.terminal-1.1.0.ngc", Size: 5100000, SHA256: bytes.Repeat([]byte{0x03}, 32), UI: uiTerminal11},
+			{Version: "1.0.0", URL: "org.sorglos.terminal-1.0.0.cd", Size: 5000000, SHA256: bytes.Repeat([]byte{0x02}, 32), UI: uiTerminal},
+			{Version: "1.1.0", URL: "org.sorglos.terminal-1.1.0.cd", Size: 5100000, SHA256: bytes.Repeat([]byte{0x03}, 32), UI: uiTerminal11},
 		}},
 	}}
 }
@@ -682,7 +682,7 @@ func uiCatalog() store.Catalog {
 func otherCatalog() store.Catalog {
 	return store.Catalog{Store: "other", Seq: 2, Issued: 1790000000, Apps: []store.Entry{
 		{ID: "org.example.weather", Name: "Wetter", Publisher: "Other Store", Versions: []store.Package{
-			{Version: "2.0.0", URL: "org.example.weather-2.0.0.ngc", Size: 23456, SHA256: bytes.Repeat([]byte{0x04}, 32), UI: uiWeather},
+			{Version: "2.0.0", URL: "org.example.weather-2.0.0.cd", Size: 23456, SHA256: bytes.Repeat([]byte{0x04}, 32), UI: uiWeather},
 		}},
 	}}
 }
@@ -710,7 +710,7 @@ func (f uiFixture) storeProof(t testing.TB) UIProof {
 // approval returns a proof of the uploaded app org.example.notes 0.1.0: a
 // client certificate of user with the fixture's session key (issued
 // 1790000000, valid for an hour), the proof of s over it, and the task of
-// ngc.store/controller/<action> on ctl-1 with params, signed with the session
+// cd.store/controller/<action> on ctl-1 with params, signed with the session
 // key and bound to that certificate.
 func (f uiFixture) approval(t testing.TB, user string, s trusttest.Signer, action string, params any) UIProof {
 	t.Helper()
@@ -1136,29 +1136,29 @@ func examples(t testing.TB) map[string]any {
 	join := tunnel.JoinCode{URL: "wss://api-1.test:7443/tunnel", Key: api1.Public, TLS: api1Pin,
 		Secret: bytes.Repeat([]byte{0x5F}, tunnel.SecretSize), Anchor: anchor}
 	return map[string]any{
-		"ngc.desktop/me": Me{ID: "ISEhISEhISEhISEhISEhIQ", Name: "admin", Roles: []string{trust.RoleAdmin}, Admin: true, PasswordLogin: true, Level: trust.LevelCritical},
-		"ngc.desktop/apps": []DesktopApp{{ID: "org.sorglos.terminal", Name: "Terminal", Version: "1.0.0", Icon: "icon.svg",
+		"cd.desktop/me": Me{ID: "ISEhISEhISEhISEhISEhIQ", Name: "admin", Roles: []string{trust.RoleAdmin}, Admin: true, PasswordLogin: true, Level: trust.LevelCritical},
+		"cd.desktop/apps": []DesktopApp{{ID: "org.sorglos.terminal", Name: "Terminal", Version: "1.0.0", Icon: "icon.svg",
 			Entry: "index.html", Width: 720, Height: 480, Actions: []string{"shell"}, State: AppOK, Node: "ctl-1"}},
-		"ngc.desktop/totp-begin": TOTPBegin{Secret: "JBSWY3DPEHPK3PXP", URI: "otpauth://totp/NGC:admin?secret=JBSWY3DPEHPK3PXP&issuer=NGC"},
-		"ngc.desktop/ui-proof":   f.storeProof(t),
-		"ngc.users/list":         []UserInfo{{ID: "ISEhISEhISEhISEhISEhIQ", Name: "admin", Roles: []string{trust.RoleAdmin}, TOTP: true, LastLogin: 1790000000}},
-		"ngc.users/rights":       []RoleRights{{Role: "user", Rights: []string{"org.sorglos.calculator/use"}}},
-		"ngc.users/trust":        TrustResult{Seq: 4},
-		"ngc.users/pair-code":    PairCodeResult{Code: pair.String(), Expires: 1790086400},
-		"ngc.users/join-code":    PairCodeResult{Code: join.String(), Expires: 1790086400},
-		"ngc.users/nodes":        []NodeInfo{{Node: "ctl-1", Online: true, Roles: []string{tunnel.RoleServices}, Version: "1.0.0", Arch: "amd64"}},
-		"ngc.users/pending":      []Pending{{Name: "dienste", Key: bytes.Repeat([]byte{0xC1}, 32), Since: 1790000000}},
-		"ngc.users/pending-api": []PendingAPI{{Node: "api-2", Noise: apiDH.Public, Sign: enc.Bytes(apiSign.Public().(ed25519.PublicKey)),
+		"cd.desktop/totp-begin": TOTPBegin{Secret: "JBSWY3DPEHPK3PXP", URI: "otpauth://totp/CirroDesk:admin?secret=JBSWY3DPEHPK3PXP&issuer=CirroDesk"},
+		"cd.desktop/ui-proof":   f.storeProof(t),
+		"cd.users/list":         []UserInfo{{ID: "ISEhISEhISEhISEhISEhIQ", Name: "admin", Roles: []string{trust.RoleAdmin}, TOTP: true, LastLogin: 1790000000}},
+		"cd.users/rights":       []RoleRights{{Role: "user", Rights: []string{"org.sorglos.calculator/use"}}},
+		"cd.users/trust":        TrustResult{Seq: 4},
+		"cd.users/pair-code":    PairCodeResult{Code: pair.String(), Expires: 1790086400},
+		"cd.users/join-code":    PairCodeResult{Code: join.String(), Expires: 1790086400},
+		"cd.users/nodes":        []NodeInfo{{Node: "ctl-1", Online: true, Roles: []string{tunnel.RoleServices}, Version: "1.0.0", Arch: "amd64"}},
+		"cd.users/pending":      []Pending{{Name: "dienste", Key: bytes.Repeat([]byte{0xC1}, 32), Since: 1790000000}},
+		"cd.users/pending-api": []PendingAPI{{Node: "api-2", Noise: apiDH.Public, Sign: enc.Bytes(apiSign.Public().(ed25519.PublicKey)),
 			TLS: apiPin, URL: "wss://api-2.test:7443/tunnel", Since: 1790000000}},
-		"ngc.users/log":         []LogEntry{{ID: "000102030405060708090a0b0c0d0e0f", Time: 1790000000, User: "ISEhISEhISEhISEhISEhIQ", Kind: LogTask, App: "ngc.store", Action: "activate", Node: "ctl-1", Result: "ok"}},
-		"ngc.store/sources":     []SourceInfo{{ID: "global", Name: "NGC Store", URL: "https://store.ngc.test", Seq: 5, Checked: 1790000000}},
-		"ngc.store/refresh":     []SourceInfo{{ID: "global", Name: "NGC Store", URL: "https://store.ngc.test", Seq: 5, Checked: 1790000000}},
-		"ngc.store/catalog":     CatalogResult{Catalog: *f.catalog(t, uiCatalog(), f.global)},
-		"ngc.store/installed":   []InstalledApp{{ID: "org.sorglos.terminal", Version: "1.0.0", Store: "global", Node: "ctl-1", Active: true, State: AppOK, License: LicenseValid}},
-		"ngc.store/upload":      UploadResult{ID: "org.example.notes", Version: "0.1.0", SHA256: bytes.Repeat([]byte{5}, 32), UI: uiNotes},
-		"ngc.store/license":     LicenseResult{App: "org.sorglos.terminal", State: LicenseValid},
-		"ngc.store/install-key": InstallKey{Installation: "EREREREREREREREREREREQ", Key: bytes.Repeat([]byte{6}, 32)},
-		"ngc.store/updates": []UpdateInfo{
+		"cd.users/log":         []LogEntry{{ID: "000102030405060708090a0b0c0d0e0f", Time: 1790000000, User: "ISEhISEhISEhISEhISEhIQ", Kind: LogTask, App: "cd.store", Action: "activate", Node: "ctl-1", Result: "ok"}},
+		"cd.store/sources":     []SourceInfo{{ID: "global", Name: "CirroDesk Store", URL: "https://store.cd.test", Seq: 5, Checked: 1790000000}},
+		"cd.store/refresh":     []SourceInfo{{ID: "global", Name: "CirroDesk Store", URL: "https://store.cd.test", Seq: 5, Checked: 1790000000}},
+		"cd.store/catalog":     CatalogResult{Catalog: *f.catalog(t, uiCatalog(), f.global)},
+		"cd.store/installed":   []InstalledApp{{ID: "org.sorglos.terminal", Version: "1.0.0", Store: "global", Node: "ctl-1", Active: true, State: AppOK, License: LicenseValid}},
+		"cd.store/upload":      UploadResult{ID: "org.example.notes", Version: "0.1.0", SHA256: bytes.Repeat([]byte{5}, 32), UI: uiNotes},
+		"cd.store/license":     LicenseResult{App: "org.sorglos.terminal", State: LicenseValid},
+		"cd.store/install-key": InstallKey{Installation: "EREREREREREREREREREREQ", Key: bytes.Repeat([]byte{6}, 32)},
+		"cd.store/updates": []UpdateInfo{
 			{Target: trust.AutoController, Node: "ctl-1", Installed: "1.0.0", Available: "1.1.0", SHA256: bytes.Repeat([]byte{0x05}, 32),
 				Key: enc.Bytes(releaseKey.Public().(ed25519.PublicKey)), Mode: store.ModeSemi, State: store.UpdateDownloaded},
 			{Target: "org.sorglos.terminal", Node: "ctl-1", Installed: "1.0.0", Available: "1.1.0", Mode: store.ModeAuto, Window: "02:00-04:00",
@@ -1177,12 +1177,12 @@ func examples(t testing.TB) map[string]any {
 func TestExamples(t *testing.T) {
 	examples := examples(t)
 	// The examples keep the rules the shell checks.
-	for _, e := range examples["ngc.users/log"].([]LogEntry) {
+	for _, e := range examples["cd.users/log"].([]LogEntry) {
 		if !ValidLogID(e.ID) {
 			t.Errorf("log entry ID %q", e.ID)
 		}
 	}
-	for _, a := range examples["ngc.desktop/apps"].([]DesktopApp) {
+	for _, a := range examples["cd.desktop/apps"].([]DesktopApp) {
 		if !wire.ValidName(a.Node) {
 			t.Errorf("desktop app node %q", a.Node)
 		}
@@ -1194,13 +1194,13 @@ func TestExamples(t *testing.T) {
 	}
 	// A version that would widen the grants is never installed, so no such row
 	// carries a checksum an update by click could be signed from.
-	for _, u := range examples["ngc.store/updates"].([]UpdateInfo) {
+	for _, u := range examples["cd.store/updates"].([]UpdateInfo) {
 		if u.State == store.UpdateNeedsGrants && len(u.SHA256) != 0 {
 			t.Errorf("update row %s on %s: state %s with a checksum", u.Target, u.Node, u.State)
 		}
 	}
 	// The rows are hints, but they name real nodes and real roles.
-	for _, n := range examples["ngc.users/nodes"].([]NodeInfo) {
+	for _, n := range examples["cd.users/nodes"].([]NodeInfo) {
 		if !wire.ValidName(n.Node) {
 			t.Errorf("node row %q", n.Node)
 		}
@@ -1219,14 +1219,14 @@ func TestExamples(t *testing.T) {
 	}
 	// The codes parse and fit version 1 of trust.json.
 	g := genesis(t)
-	pair, err := tunnel.ParsePairCode(examples["ngc.users/pair-code"].(PairCodeResult).Code)
+	pair, err := tunnel.ParsePairCode(examples["cd.users/pair-code"].(PairCodeResult).Code)
 	if err == nil {
 		err = pair.Check(g)
 	}
 	if err != nil {
 		t.Errorf("pairing code: %v", err)
 	}
-	join, err := tunnel.ParseJoinCode(examples["ngc.users/join-code"].(PairCodeResult).Code)
+	join, err := tunnel.ParseJoinCode(examples["cd.users/join-code"].(PairCodeResult).Code)
 	if err == nil {
 		err = join.Check(g)
 	}
@@ -1235,7 +1235,7 @@ func TestExamples(t *testing.T) {
 	}
 	// The catalog is real: its envelope has the strict form, and the global
 	// store of that version signed it.
-	cat, err := json.Marshal(examples["ngc.store/catalog"].(CatalogResult).Catalog)
+	cat, err := json.Marshal(examples["cd.store/catalog"].(CatalogResult).Catalog)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1275,7 +1275,7 @@ func TestExamples(t *testing.T) {
 	}
 	// A pending API server becomes an API node with exactly its values and
 	// Name = Node.
-	for _, p := range examples["ngc.users/pending-api"].([]PendingAPI) {
+	for _, p := range examples["cd.users/pending-api"].([]PendingAPI) {
 		n := trust.Node{ID: p.Node, Kind: trust.NodeAPI, Name: p.Node, Noise: p.Noise, Sign: p.Sign, URL: p.URL, TLS: p.TLS}
 		if !trust.ValidAPINode(n) {
 			t.Errorf("pending API server %+v is no valid API node", p)
@@ -1283,7 +1283,7 @@ func TestExamples(t *testing.T) {
 	}
 	// An update by click signs a row into InstallParams; a row's key is what
 	// the standing approval of Genesis for its target names.
-	for _, u := range examples["ngc.store/updates"].([]UpdateInfo) {
+	for _, u := range examples["cd.store/updates"].([]UpdateInfo) {
 		if !store.ValidTarget(u.Target) || !wire.ValidName(u.Node) || (len(u.Key) != 0 && !store.Approved(g.List, u.Target, u.Key)) {
 			t.Errorf("update row %+v", u)
 		}
@@ -1297,7 +1297,7 @@ func TestExamples(t *testing.T) {
 	}
 	// The UI proof is the valid store case of uiproof.json; the global store
 	// of Genesis signed it.
-	b, err := json.Marshal(examples["ngc.desktop/ui-proof"])
+	b, err := json.Marshal(examples["cd.desktop/ui-proof"])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1361,9 +1361,9 @@ func TestEncodeResult(t *testing.T) {
 		}
 	}
 	slices.Sort(lists)
-	want := []string{"ngc.desktop/apps", "ngc.store/installed", "ngc.store/refresh", "ngc.store/sources", "ngc.store/updates",
-		"ngc.users/list", "ngc.users/log", "ngc.users/nodes", "ngc.users/pending", "ngc.users/pending-api",
-		"ngc.users/rights"}
+	want := []string{"cd.desktop/apps", "cd.store/installed", "cd.store/refresh", "cd.store/sources", "cd.store/updates",
+		"cd.users/list", "cd.users/log", "cd.users/nodes", "cd.users/pending", "cd.users/pending-api",
+		"cd.users/rights"}
 	if !slices.Equal(lists, want) {
 		t.Errorf("results that are lists: %q", lists)
 	}
@@ -1399,7 +1399,7 @@ func TestEncodeResultOmitsZero(t *testing.T) {
 	user := UserInfo{ID: "ISEhISEhISEhISEhISEhIQ", Name: "admin"}
 	seen := user
 	seen.LastLogin = 1790000000
-	source := SourceInfo{ID: "global", Name: "NGC Store", URL: "https://store.ngc.test", Seq: 5}
+	source := SourceInfo{ID: "global", Name: "CirroDesk Store", URL: "https://store.cd.test", Seq: 5}
 	fetched := source
 	fetched.Checked = 1790000000
 	installed := InstalledApp{ID: "org.sorglos.terminal", Store: "global", Node: "ctl-1", State: AppOK, License: LicenseNone}

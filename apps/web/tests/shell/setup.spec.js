@@ -1,5 +1,5 @@
 // The first run: a fresh installation, the one-time code, and the first
-// admin. This is the first minute somebody ever spends with NGC, so what the
+// admin. This is the first minute somebody ever spends with CirroDesk, so what the
 // cases below measure is mostly what that person sees - and, twice, what the
 // wire does NOT carry.
 //
@@ -7,7 +7,7 @@
 // rather than argued. They are the same three the login's own file already
 // names, one of them twice over:
 //
-//  1. The brief steers the mock with `window.__ngcTest = { setup: true }` and
+//  1. The brief steers the mock with `window.__cdTest = { setup: true }` and
 //     then calls shell.reload(). A reload throws that window away, so the
 //     shell would read nothing at all - and a hook on window that decides
 //     whether the SETUP runs is a hook anything else on the page could set,
@@ -15,7 +15,7 @@
 //     the mock here is the mock's own test door (/api/v1/mock, which no line
 //     of the shell knows) and a route over /config.json, which is what a
 //     server without a paired web controller really sends.
-//  2. The brief's first case reads `window.__ngcSeenSetupRequests ?? 0` and
+//  2. The brief's first case reads `window.__cdSeenSetupRequests ?? 0` and
 //     expects 0. Nothing anywhere sets that name, so the expression is 0 for
 //     every implementation there could be, including one that fetches the
 //     offer before the code is typed: the assertion cannot fail for the thing
@@ -234,13 +234,13 @@ test("the one-time code never travels", async ({ shell }) => {
   // AND THE WHOLE WAY WAS THE REAL ONE. This case is a security proof, so what
   // it searched has to be the traffic of a real session and not a stand-in's:
   // signIn() in the fixtures switches twelve other files to shell/fake-link.js
-  // through window.__ngcStandIn, and main.js then CLOSES the socket it just
+  // through window.__cdStandIn, and main.js then CLOSES the socket it just
   // opened, which would leave nothing after the handshake to search. Nothing
   // here sets that flag, and this line is what keeps it that way - a later
   // round that reaches for the stand-in to make this case green again turns it
   // red instead. Measured on the merged tree: 71 requests and 9 WebSocket
   // frames searched, all of them of a real session.
-  expect(await shell.evaluate(() => window.__ngcStandIn),
+  expect(await shell.evaluate(() => window.__cdStandIn),
     "the desktop ran on the real session, not the stand-in").toBeUndefined();
 });
 
@@ -258,7 +258,7 @@ test("a setup that went through never leaves the person with nothing", async ({ 
   // happen is a page with nothing on it.
   await tellMock(shell, "lock=30");
   await shell.getByRole("button", { name: "Einrichten" }).click();
-  await expect(shell.getByText("NGC ist eingerichtet. Bitte jetzt anmelden.")).toBeVisible();
+  await expect(shell.getByText("CirroDesk ist eingerichtet. Bitte jetzt anmelden.")).toBeVisible();
   await expect(shell.getByRole("button", { name: "Anmelden", exact: true })).toBeVisible();
 
   // And it really is set up: a reload finds the anchor this browser kept -
@@ -292,7 +292,7 @@ test("the code is kept nowhere once it has been used", async ({ shell }) => {
       }
     }
     const db = await new Promise((ok) => {
-      const req = indexedDB.open("ngc", 1);
+      const req = indexedDB.open("cd", 1);
       req.onsuccess = () => ok(req.result);
       req.onerror = () => ok(null);
       req.onupgradeneeded = () => {

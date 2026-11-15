@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // controllerHello is the hello of the fixture's controller.
@@ -58,8 +58,8 @@ func TestTunnelTakesStatusAndReports(t *testing.T) {
 	c.writeControl(t, wire.CtlHello, controllerHello(fx))
 	c.readHello(t)
 	c.writeControl(t, wire.CtlStatus, tunnel.Status{DiskFree: 1 << 30,
-		Components: map[string]string{"ngc-controller": "0.1.0"}})
-	c.writeControl(t, wire.CtlUpdate, store.UpdateReport{Target: "ngc-controller",
+		Components: map[string]string{"cd-controller": "0.1.0"}})
+	c.writeControl(t, wire.CtlUpdate, store.UpdateReport{Target: "cd-controller",
 		Version: "0.2.0", State: store.UpdateDownloaded})
 	var r store.UpdateReport
 	select {
@@ -67,7 +67,7 @@ func TestTunnelTakesStatusAndReports(t *testing.T) {
 	case <-time.After(readWait):
 		t.Fatal("the report never reached OnReport")
 	}
-	if r.Target != "ngc-controller" || r.State != store.UpdateDownloaded {
+	if r.Target != "cd-controller" || r.State != store.UpdateDownloaded {
 		t.Fatalf("report %+v", r)
 	}
 	tun := waitForTunnel(t, srv, fx.ControllerNode)
@@ -495,7 +495,7 @@ func waitForTunnel(t *testing.T, srv *Server, node string) *Tunnel {
 // neither channel work nor a background round: the hook runs once per hello of
 // ONE controller, in a goroutine of its own (so it does not hold the tunnel's
 // single reader), and a goroutine is where a panic is final -- unqueued, it
-// takes the whole ngc-api, with every session of every user and every other
+// takes the whole cd-api, with every session of every user and every other
 // controller's tunnel (V1.2 point 38).
 //
 // What follows a catch here is therefore nothing but the line: the tunnel is
@@ -579,7 +579,7 @@ func catchLog(t *testing.T) *bytes.Buffer {
 
 // TestAnEndedTunnelIsWrittenDown measures what was missing on 18.10.2026 at
 // the running pair: the network between controller and API was cut, the
-// controller wrote nine lines, and ngc-api wrote nothing at all. An admin
+// controller wrote nine lines, and cd-api wrote nothing at all. An admin
 // reading the API's journal could not see that a server had fallen off.
 //
 // What MUST be true of the code is: every way out of run writes one line, and

@@ -14,18 +14,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/updates"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/updates"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
-// notServedHere names the actions of ngc.store/controller this API has no
+// notServedHere names the actions of cd.store/controller this API has no
 // handler for, and they are two different cases on purpose:
 //
 //   - delete-data and install are root tasks a shell may open and the
@@ -33,7 +33,7 @@ import (
 //   - stage and license the API alone may open, so a shell's OPEN for them is
 //     E_FORBIDDEN before any handler is looked for (core.ShellOpens).
 //
-// Everything else of ngc.store has to have a handler after Build, or it is
+// Everything else of cd.store has to have a handler after Build, or it is
 // unreachable from a shell. The list is written out rather than derived, so
 // that an action added to the contract cannot quietly join it:
 // TestEveryStoreActionIsServedAfterBuild holds every name in here against
@@ -42,12 +42,12 @@ var notServedHere = []string{core.ActDeleteData, core.ActInstall, core.ActStage,
 
 // TestEveryStoreActionIsServedAfterBuild measures the wiring and not a
 // comment: Build has to hand the dispatcher both seams, so that every action
-// of ngc.store the API serves itself really has a handler. Before this task
+// of cd.store the API serves itself really has a handler. Before this task
 // Deps had no field for either and the answer was E_NOTFOUND for all of them.
 //
 // Both directions are held. An action that should have a handler and has none
 // fails, and an action of notServedHere that HAS one fails too -- a handler
-// for ngc.store/controller/install would take a root task away from the
+// for cd.store/controller/install would take a root task away from the
 // controller that only it can carry out.
 func TestEveryStoreActionIsServedAfterBuild(t *testing.T) {
 	srv, _, _ := newServer(t)
@@ -59,14 +59,14 @@ func TestEveryStoreActionIsServedAfterBuild(t *testing.T) {
 		// controller cannot carry out an action of service api.
 		want := !(a.Service == core.ServiceController && slices.Contains(notServedHere, a.Name))
 		if got := srv.core.Serves(a.App, a.Service, a.Name); got != want {
-			t.Fatalf("ngc.store/%s/%s: served=%v, wanted %v", a.Service, a.Name, got, want)
+			t.Fatalf("cd.store/%s/%s: served=%v, wanted %v", a.Service, a.Name, got, want)
 		}
 	}
-	// And every name of the list is an action of ngc.store/controller, so a
+	// And every name of the list is an action of cd.store/controller, so a
 	// typo in it cannot make the loop above pass for nothing.
 	for _, name := range notServedHere {
 		if _, ok := core.Lookup(core.AppStore, core.ServiceController, name); !ok {
-			t.Fatalf("%q is in the list and is no action of ngc.store/controller", name)
+			t.Fatalf("%q is in the list and is no action of cd.store/controller", name)
 		}
 	}
 }
@@ -106,7 +106,7 @@ func TestTheUpdatesAreWired(t *testing.T) {
 
 // TestAReportOfAControllerReachesTheRows is seam 3 all the way through, and
 // not at its two ends: a report comes in the way a controller sends one --
-// through the hook Build set -- and comes out in the rows ngc.store/updates
+// through the hook Build set -- and comes out in the rows cd.store/updates
 // answers. The hook takes a tunnel and Report takes a node, so this is also
 // what holds that the wrapper passes the tunnel's node and not something else.
 func TestAReportOfAControllerReachesTheRows(t *testing.T) {
@@ -426,7 +426,7 @@ func (f *trustFlaky) BlobGet(ctx context.Context, kind, id string) (dbapi.Blob, 
 }
 
 // TestTheTrustLineIsSaidOnChangeAndNotEveryMinute nails the line down that was
-// measured on the small plant on 18.10.2026: ngc-api had been up 54 minutes
+// measured on the small plant on 18.10.2026: cd-api had been up 54 minutes
 // and had written "trust list could not be read" 54 times, all with the same
 // cause, "state: no trust list yet" -- the normal state of an installation
 // that nobody has paired yet.
@@ -533,7 +533,7 @@ func (c *catalogCounter) count() int {
 
 // TestTheFirstCatalogRoundDoesNotWaitAnHour is V1.2 point 66: before this, the
 // hourly ticker was the ONLY thing that fetched a catalog, so a freshly
-// installed plant had no catalog for an hour -- and every restart of ngc-api
+// installed plant had no catalog for an hour -- and every restart of cd-api
 // pushed the first fetch out by another full hour, which means a plant somebody
 // is working on never fetched one at all.
 //

@@ -41,7 +41,7 @@ set -uo pipefail
 #     in der ssh-Konfiguration des Benutzers (`ssh -G ngc-api-1` nennt Adresse,
 #     Benutzer und Schluessel), also sucht ssh den Schluessel selbst.
 #   - `StrictHostKeyChecking=no` schaltet die Pruefung der Gegenstelle ab. In
-#     einem Repo, dessen eigene Regel "TLS zwischen NGC-Teilen nie ungeprueft"
+#     einem Repo, dessen eigene Regel "TLS zwischen CirroDesk-Teilen nie ungeprueft"
 #     lautet, darf kein eingechecktes Werkzeug das Gegenteil vormachen - das
 #     naechste Werkzeug wird von diesem abgeschrieben. Wer das Skript zum
 #     ersten Mal fahrt, bestaetigt den Fingerabdruck einmal; die Konfiguration
@@ -59,9 +59,9 @@ H_SVC2=ngc-svc-2
 H_A1=ngc-api-1
 
 case "${1:-}" in
-  M1) ADDR=$A2;   HOST=ngc-api-2; DIENST=ngc-api;        KNOTEN=api-2; ART=einmal;    ;;
-  M2) ADDR=$A2;   HOST=ngc-api-2; DIENST=ngc-api;        KNOTEN=api-2; ART=schleife;  ;;
-  M3) ADDR=$SVC1; HOST=$H_SVC1;   DIENST=ngc-controller; KNOTEN=svc-1; ART=einmal;    ;;
+  M1) ADDR=$A2;   HOST=ngc-api-2; DIENST=cd-api;        KNOTEN=api-2; ART=einmal;    ;;
+  M2) ADDR=$A2;   HOST=ngc-api-2; DIENST=cd-api;        KNOTEN=api-2; ART=schleife;  ;;
+  M3) ADDR=$SVC1; HOST=$H_SVC1;   DIENST=cd-controller; KNOTEN=svc-1; ART=einmal;    ;;
   *) echo "Aufruf: $0 M1|M2|M3   (M4 ist nicht freigegeben)"; exit 2;;
 esac
 # Die Gegenprobe, dass die Konfiguration den Namen wirklich kennt - und sie
@@ -223,30 +223,30 @@ else
   TMP=$(mktemp)
   cat > "$TMP" <<'SKRIPT'
 #!/bin/sh
-# Toetet ngc-api alle 2 s, hoechstens DAUER Sekunden, und schreibt jede
+# Toetet cd-api alle 2 s, hoechstens DAUER Sekunden, und schreibt jede
 # Abtastung sofort auf die Platte - eine Langzeitmessung, die ihre Reihe erst
 # am Ende schreibt, verliert sie beim Abbruch.
 DAUER=$1
 ENDE=$(( $(date +%s) + DAUER ))
-: > /run/ngc-absturz-pids.txt
+: > /run/cd-absturz-pids.txt
 while [ "$(date +%s)" -lt "$ENDE" ]; do
-  P=$(systemctl show ngc-api -p MainPID --value)
-  echo "$(date -u +%H:%M:%S) pid=$P" >> /run/ngc-absturz-pids.txt
+  P=$(systemctl show cd-api -p MainPID --value)
+  echo "$(date -u +%H:%M:%S) pid=$P" >> /run/cd-absturz-pids.txt
   case "$P" in ''|0) : ;; *) kill -9 "$P" 2>/dev/null ;; esac
   sleep 2
 done
-echo "$(date -u +%H:%M:%S) ENDE" >> /run/ngc-absturz-pids.txt
+echo "$(date -u +%H:%M:%S) ENDE" >> /run/cd-absturz-pids.txt
 SKRIPT
-  scp -q "$TMP" "$HOST:/run/ngc-absturz.sh"
+  scp -q "$TMP" "$HOST:/run/cd-absturz.sh"
   rm -f "$TMP"
-  $SSH "$HOST" "chmod 0700 /run/ngc-absturz.sh" 2>&1 | tr -d '\r'
+  $SSH "$HOST" "chmod 0700 /run/cd-absturz.sh" 2>&1 | tr -d '\r'
   # Die Gegenprobe, dass die Datei wirklich angekommen ist: ohne sie messe
   # ich eine Schleife, die nie lief, und bekomme "Riegel greift" geschenkt.
-  Z=$($SSH "$HOST" "wc -l < /run/ngc-absturz.sh" 2>&1 | tr -d '\r ')
-  case "$Z" in ''|0|*[!0-9]*) echo "ABBRUCH: /run/ngc-absturz.sh ist nicht angekommen ('$Z' Zeilen)."; exit 3;; esac
+  Z=$($SSH "$HOST" "wc -l < /run/cd-absturz.sh" 2>&1 | tr -d '\r ')
+  case "$Z" in ''|0|*[!0-9]*) echo "ABBRUCH: /run/cd-absturz.sh ist nicht angekommen ('$Z' Zeilen)."; exit 3;; esac
   echo "    geprueft: Schlagskript liegt auf $KNOTEN, $Z Zeilen"
   echo
-  echo ">>> $(date -u '+%H:%M:%S') UTC  Dauerschleife: kill -9 auf ngc-api alle 2 s, ${SCHLEIFE}s lang"
+  echo ">>> $(date -u '+%H:%M:%S') UTC  Dauerschleife: kill -9 auf cd-api alle 2 s, ${SCHLEIFE}s lang"
   # BERICHTIGT am 30.10.2026, nachdem der erste Lauf NICHTS gemessen hat.
   # Vorher stand hier "setsid timeout … &" innerhalb des ssh-Befehls. Der
   # ssh-Klient endete mit dem Befehl, und die Schleife ging mit ihm - genau
@@ -256,13 +256,13 @@ SKRIPT
   # greift nicht, nichts passiert"), war aber eine Messung des GESUNDEN
   # Betriebs. Jetzt bleibt der Klient fuer die ganze Dauer am Leben, weil er
   # im Vordergrund derselben Schale laeuft, die auch die Anmeldungen macht.
-  $SSH "$HOST" "timeout $((SCHLEIFE+30)) sh /run/ngc-absturz.sh $SCHLEIFE" >/dev/null 2>&1 &
+  $SSH "$HOST" "timeout $((SCHLEIFE+30)) sh /run/cd-absturz.sh $SCHLEIFE" >/dev/null 2>&1 &
   SCHLAEGER=$!
   sleep 3
   # Und die Pruefung, die beim ersten Lauf gefehlt hat: nicht, dass die DATEI
   # angekommen ist, sondern dass die SCHLEIFE LAEUFT. Eine angekommene Datei
   # ist keine laufende Schleife.
-  L=$($SSH "$HOST" "wc -l < /run/ngc-absturz-pids.txt 2>/dev/null" 2>&1 | tr -d '\r ')
+  L=$($SSH "$HOST" "wc -l < /run/cd-absturz-pids.txt 2>/dev/null" 2>&1 | tr -d '\r ')
   case "$L" in ''|0|*[!0-9]*) kill "$SCHLAEGER" 2>/dev/null; echo "ABBRUCH: die Schleife schreibt nicht ('$L'). Sie laeuft nicht, nichts gemessen."; exit 3;; esac
   echo "    geprueft: die Schleife laeuft und schreibt ($L Zeilen nach 3 s)"
   echo
@@ -299,7 +299,7 @@ SKRIPT
   echo
   wait "$SCHLAEGER" 2>/dev/null
   echo "    Die PID-Reihe des Knotens (so viele Neustarts hat es wirklich gegeben):"
-  REIHE=$($SSH "$HOST" "cat /run/ngc-absturz-pids.txt" 2>&1 | tr -d '\r')
+  REIHE=$($SSH "$HOST" "cat /run/cd-absturz-pids.txt" 2>&1 | tr -d '\r')
   printf '%s\n' "$REIHE" | sed 's/^/      /'
   # Die Gegenprobe gegen den eigenen Lauf: hat sich die PID ueberhaupt
   # bewegt? Eine Reihe aus einer einzigen PID heisst, dass kein Schlag
@@ -310,10 +310,10 @@ SKRIPT
   [ "${VERSCH:-0}" -ge 2 ] || echo "    ACHTUNG: weniger als zwei verschiedene PIDs - die Schleife hat nicht getroffen, die Zahlen oben gelten NICHT."
   echo
   echo "    Hat der Riegel gegriffen? Das sagt diese Zeile, nicht meine Rechnung:"
-  $SSH "$HOST" "systemctl show ngc-api -p Result -p NRestarts -p ActiveState -p StartLimitBurst -p StartLimitIntervalUSec" 2>&1 | tr -d '\r' | sed 's/^/      /'
+  $SSH "$HOST" "systemctl show cd-api -p Result -p NRestarts -p ActiveState -p StartLimitBurst -p StartLimitIntervalUSec" 2>&1 | tr -d '\r' | sed 's/^/      /'
   echo "    Und das Journal dazu:"
-  $SSH "$HOST" "journalctl -u ngc-api --since '$VOR' --no-pager 2>/dev/null | grep -iE 'start request repeated|rate limit|failed|killed|signal|Scheduled restart' | tail -12 | sed 's/^/      /'" 2>&1
-  $SSH "$HOST" "rm -f /run/ngc-absturz.sh" 2>&1 | tr -d '\r'
+  $SSH "$HOST" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | grep -iE 'start request repeated|rate limit|failed|killed|signal|Scheduled restart' | tail -12 | sed 's/^/      /'" 2>&1
+  $SSH "$HOST" "rm -f /run/cd-absturz.sh" 2>&1 | tr -d '\r'
 fi
 
 # --- Wieder anwerfen, und nachweisen, dass es gelungen ist ----------------
@@ -332,11 +332,11 @@ echo
 echo "    Was die beiden APIs im Journal sagen:"
 for a in $H_A1 ngc-api-2; do
   echo "      --- $a:"
-  $SSH "$a" "journalctl -u ngc-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
+  $SSH "$a" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
 done
 if [ "$KNOTEN" = svc-1 ]; then
   echo "      --- Controller svc-1:"
-  $SSH "$H_SVC1" "journalctl -u ngc-controller --since '$VOR' --no-pager 2>/dev/null | tail -12 | sed 's/^/        /'" 2>&1
+  $SSH "$H_SVC1" "journalctl -u cd-controller --since '$VOR' --no-pager 2>/dev/null | tail -12 | sed 's/^/        /'" 2>&1
 fi
 echo
 sleep 15

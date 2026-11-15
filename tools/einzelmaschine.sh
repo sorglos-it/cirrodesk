@@ -11,7 +11,7 @@
 #   bash tools/einzelmaschine.sh anlegen    # clone the template and start it
 #   bash tools/einzelmaschine.sh abbauen    # remove it again
 #
-# Runs ON the Proxmox host, or over ssh from anywhere via NGC_PVE_SSH.
+# Runs ON the Proxmox host, or over ssh from anywhere via CD_PVE_SSH.
 # Add --trocken to any command to print what it would do and change nothing.
 #
 # The values come from tools/proxmox-sechs.sh, where each one is measured and
@@ -19,37 +19,37 @@
 # reasoning: it reads the same defaults and may be overridden the same way.
 set -u -o pipefail
 
-ZONE=${NGC_ZONE:-mein.lan}
+ZONE=${CD_ZONE:-mein.lan}
 
-STORAGE=${NGC_PVE_STORAGE:-ssd_2TB}
-BRIDGE=${NGC_PVE_BRIDGE:-vmbr0}
-FIREWALL=${NGC_PVE_FIREWALL:-1}
-VORLAGE_ID=${NGC_PVE_TEMPLATE_ID:-300}
-CIDR=${NGC_PVE_CIDR:-8}
-GATEWAY=${NGC_PVE_GATEWAY:-10.0.0.1}
-CPUTYPE=${NGC_PVE_CPU:-x86-64-v2-AES}
+STORAGE=${CD_PVE_STORAGE:-ssd_2TB}
+BRIDGE=${CD_PVE_BRIDGE:-vmbr0}
+FIREWALL=${CD_PVE_FIREWALL:-1}
+VORLAGE_ID=${CD_PVE_TEMPLATE_ID:-300}
+CIDR=${CD_PVE_CIDR:-8}
+GATEWAY=${CD_PVE_GATEWAY:-10.0.0.1}
+CPUTYPE=${CD_PVE_CPU:-x86-64-v2-AES}
 
 # VMID 307 and 10.2.3.216 were free on 24.10.2026 ("qm list", and 216-220
 # answered no ping). The six of the distributed installation hold 301-306.
-VMID=${NGC_EIN_VMID:-307}
-IP=${NGC_EIN_IP:-10.2.3.216}
-NAME=${NGC_EIN_NAME:-ein}
+VMID=${CD_EIN_VMID:-307}
+IP=${CD_EIN_IP:-10.2.3.216}
+NAME=${CD_EIN_NAME:-ein}
 
 # It carries every role at once, so it needs more than any single one of the
 # six: web+api 2048, db 2560, services 3072 there. 4096 MiB is above the
 # largest and below the sum - the small case runs one API, one controller and
 # SQLite, not six servers. The host had 13 GiB available of 62 when this was
 # written, so this fits with room left.
-MEM=${NGC_EIN_MEM:-4096}
-CORES=${NGC_EIN_CORES:-2}
-DISK=${NGC_EIN_DISK:-32}
+MEM=${CD_EIN_MEM:-4096}
+CORES=${CD_EIN_CORES:-2}
+DISK=${CD_EIN_DISK:-32}
 # Second disk for the same reason the services nodes get one: podman images
 # (the terminal image alone is 108 MB) and an activation spooling a package of
 # up to store.MaxPackage = 4 GiB. It is also what lets fscrypt be measured
 # without touching the mounted root filesystem.
-EXTRA=${NGC_EIN_EXTRA:-16}
+EXTRA=${CD_EIN_EXTRA:-16}
 
-SSH=${NGC_PVE_SSH:-}
+SSH=${CD_PVE_SSH:-}
 trocken=0
 
 fehler() { printf 'einzelmaschine: %s\n' "$*" >&2; exit 1; }
@@ -65,7 +65,7 @@ still() {
 }
 
 # A command ON THE NEW VM, not on the Proxmox host. Its own function because
-# "still ssh root@IP ..." looked right and was not: with NGC_PVE_SSH set, the
+# "still ssh root@IP ..." looked right and was not: with CD_PVE_SSH set, the
 # arguments are joined into one string, the inner quoting falls apart and
 # everything after the first ";" runs on the HOST. The readiness check then
 # printed the host's kernel and its 20 cores and called the VM ready. One
@@ -105,7 +105,7 @@ pruefen() {
 		{ echo "  VMID $VORLAGE_ID is not a template"; fehlt=1; }
 
 	if still qm status "$VMID" >/dev/null; then
-		echo "  VMID $VMID is ALREADY taken - set NGC_EIN_VMID to a free one"; fehlt=1
+		echo "  VMID $VMID is ALREADY taken - set CD_EIN_VMID to a free one"; fehlt=1
 	else
 		echo "  VMID $VMID free"
 	fi
@@ -141,7 +141,7 @@ pruefen() {
 # through it - 22. The six machines got their ports per ROLE, by hand, on the
 # machines; those rules are in NO repository (docs/messreste-je-maschine.md
 # lists "nftables" as a leftover on every one of them). The small case has no
-# role rules at all, and neither ngc-all.sh nor ngc-web.sh opens a port - they
+# role rules at all, and neither cd-all.sh nor cd-web.sh opens a port - they
 # are installers, not firewall tools, and ulh has no business guessing a
 # network policy.
 #
@@ -156,7 +156,7 @@ pruefen() {
 #   443   the interface itself.
 #   7443  the API. /config.json names apis[] by NAME and the BROWSER connects
 #         there ITSELF, not through the interface - so this one is not internal.
-#   80    the one page a plain http:// call gets: "NGC braucht eine sichere
+#   80    the one page a plain http:// call gets: "CirroDesk braucht eine sichere
 #         Verbindung" (step 5). Closed, that sentence is a timeout instead.
 # The source stays 10.0.0.0/8, the same scope the template allows ssh from -
 # this opens the ports to the local network, not to the internet, and that is
@@ -202,8 +202,8 @@ haertung_oeffnen() {
 	# of its own would not do - with a base chain at the same hook that says
 	# policy drop, a second chain accepting changes nothing.
 	auf_vm "mkdir -p /etc/nftables.d
-cat > /etc/nftables.d/10-ngc-ports.nft <<'EOF'
-# Written by tools/einzelmaschine.sh of github.com/sorglos-it/nextgencloud.
+cat > /etc/nftables.d/10-cd-ports.nft <<'EOF'
+# Written by tools/einzelmaschine.sh of github.com/sorglos-it/cirrodesk.
 # The small case carries web, api, db and services on ONE machine, and the
 # template lets only 22 through. 443 is the interface, 7443 the API (the
 # BROWSER calls it itself - /config.json names it in apis[]), 80 the one page
@@ -256,7 +256,7 @@ $nft -f /etc/nftables.conf" >/dev/null
 # mode on the directory it makes; it is set here too, because the mount point
 # is this script's.
 appplatte_richten() {
-	local ziel=/var/lib/ngc/apps platte=/dev/sdb schon
+	local ziel=/var/lib/cd/apps platte=/dev/sdb schon
 	[ "$EXTRA" = 0 ] && return 0
 	schon=$(auf_vm "test -b $platte && echo ja")
 	[ "$schon" = ja ] || {
@@ -270,10 +270,10 @@ appplatte_richten() {
 	if [ "$belegt" = ja ]; then
 		echo "einzelmaschine: $platte already carries a filesystem - left alone"
 	else
-		auf_vm "mkfs.ext4 -q -F -O encrypt -L ngc-apps $platte" >/dev/null
+		auf_vm "mkfs.ext4 -q -F -O encrypt -L cd-apps $platte" >/dev/null
 	fi
 	auf_vm "mkdir -p $ziel
-grep -q ' $ziel ' /etc/fstab || echo 'LABEL=ngc-apps $ziel ext4 defaults,noatime 0 2' >> /etc/fstab
+grep -q ' $ziel ' /etc/fstab || echo 'LABEL=cd-apps $ziel ext4 defaults,noatime 0 2' >> /etc/fstab
 mountpoint -q $ziel || mount $ziel
 chmod 0711 $ziel" >/dev/null
 	# Held against the machine: the feature and the mount, not the exit codes.
@@ -290,14 +290,14 @@ chmod 0711 $ziel" >/dev/null
 
 anlegen() {
 	pruefen
-	lauf qm clone "$VORLAGE_ID" "$VMID" --name "ngc-$NAME" --full 1 --storage "$STORAGE"
+	lauf qm clone "$VORLAGE_ID" "$VMID" --name "cd-$NAME" --full 1 --storage "$STORAGE"
 	lauf qm set "$VMID" --memory "$MEM" --cores "$CORES" --cpu "$CPUTYPE" --onboot 1 \
 		--net0 "virtio,bridge=$BRIDGE,firewall=$FIREWALL" \
 		--ipconfig0 "ip=$IP/$CIDR,gw=$GATEWAY"
 	lauf qm disk resize "$VMID" scsi0 "${DISK}G"
 	[ "$EXTRA" = 0 ] || lauf qm set "$VMID" --scsi1 "$STORAGE:${EXTRA},iothread=1"
 	lauf qm start "$VMID"
-	printf 'angelegt: ngc-%s (VMID %s) -> %s, alle Rollen\n' "$NAME" "$VMID" "$IP"
+	printf 'angelegt: cd-%s (VMID %s) -> %s, alle Rollen\n' "$NAME" "$VMID" "$IP"
 	[ "$trocken" = 1 ] && return 0
 
 	# Started is not reachable. Without this the script reports success on a
@@ -305,7 +305,7 @@ anlegen() {
 	local i wer
 	for i in $(seq 1 30); do
 		wer=$(auf_vm 'hostname')
-		if [ "$wer" = "ngc-$NAME" ]; then
+		if [ "$wer" = "cd-$NAME" ]; then
 			echo "einzelmaschine: ssh answers after ~$((i * 5))s"
 			auf_vm '. /etc/os-release; echo "  $PRETTY_NAME, kernel $(uname -r), $(nproc) cores, $(free -m | awk "/^Mem:/{print \$2}") MiB"'
 			haertung_oeffnen
@@ -315,7 +315,7 @@ anlegen() {
 		# A reachable machine with the WRONG name is worse than silence: it
 		# means the probe went somewhere else, and every later measurement
 		# would be about that other machine.
-		[ -z "$wer" ] || fehler "ssh on $IP answers as '$wer', expected 'ngc-$NAME'"
+		[ -z "$wer" ] || fehler "ssh on $IP answers as '$wer', expected 'cd-$NAME'"
 		sleep 5
 	done
 	fehler "VM $VMID runs but does not answer ssh on $IP after 150s"
@@ -323,8 +323,8 @@ anlegen() {
 
 abbauen() {
 	still qm status "$VMID" >/dev/null || fehler "there is no VMID $VMID"
-	still qm config "$VMID" | grep -q "^name: ngc-$NAME" ||
-		fehler "VMID $VMID is not ngc-$NAME - refusing to remove someone else's VM"
+	still qm config "$VMID" | grep -q "^name: cd-$NAME" ||
+		fehler "VMID $VMID is not cd-$NAME - refusing to remove someone else's VM"
 	lauf qm stop "$VMID" || true
 	lauf qm destroy "$VMID" --purge 1
 	echo "abgebaut: VMID $VMID"

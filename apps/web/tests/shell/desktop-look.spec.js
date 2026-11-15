@@ -175,15 +175,24 @@ test("a colour picked while an app is open reaches that app's frame", async ({ s
 // THE NAME OF THE START BUTTON IS TRANSLATED TOO since 2026-11-01, so it is
 // named per language here. MEASURED, and it cost two red cases: these two
 // clicked "Start" and waited thirty seconds for it in Spanish and French.
-for (const [locale, want, start] of [
-  ["de-DE", "Farbe Türkis", "Start"],
-  ["en-US", "Color Turquoise", "Start"],
-  ["es-ES", "Color Turquesa", "Inicio"],
-  ["fr-FR", "Couleur Turquoise", "Démarrer"],
-  ["it-IT", "Colore Turchese", "Start"],
+for (const [locale, want, start, words] of [
+  ["de-DE", "Farbe Türkis", "Start", ["Wie das System", "Glas", "Hintergrund Polarlicht", "Alle schließen"]],
+  ["en-US", "Color Turquoise", "Start", ["Like the system", "Glass", "Background Aurora", "Close all"]],
+  ["es-ES", "Color Turquesa", "Inicio", ["Como el sistema", "Cristal", "Fondo Aurora", "Cerrar todo"]],
+  ["fr-FR", "Couleur Turquoise", "Démarrer", ["Comme le système", "Verre", "Fond Aurore", "Tout fermer"]],
+  ["it-IT", "Colore Turchese", "Start", ["Come il sistema", "Vetro", "Sfondo Aurora", "Chiudi tutto"]],
 ]) {
   test.describe(`in ${locale}`, () => {
     test.use({ locale });
+    // S12, Schreibtisch: the start menu's own words, as the browser names them.
+    test("the start menu speaks this language", async ({ shell }) => {
+      await shell.getByRole("button", { name: start, exact: true }).click();
+      const [system, glass, wallpaper, closeAll] = words;
+      await expect(shell.getByRole("button", { name: system, exact: true })).toBeVisible();
+      await expect(shell.getByRole("button", { name: glass, exact: true })).toBeVisible();
+      await expect(shell.getByRole("button", { name: wallpaper, exact: true })).toBeAttached();
+      await expect(shell.getByRole("button", { name: closeAll, exact: true })).toBeAttached();
+    });
     test("the second swatch is named in this language", async ({ shell }) => {
       await shell.getByRole("button", { name: start, exact: true }).click();
       const second = shell.locator("#smlook .swatches button").nth(1);
@@ -250,7 +259,7 @@ test("a hostile app name reaches the dock as text and not as markup", async ({ s
 // The name of the app in front, in the band, and its menu.
 test("the band names the app in front, and forgets it again", async ({ shell }) => {
   const btn = shell.locator("#appbtn");
-  // Nothing in front, nothing named: NGC has no app that is always running.
+  // Nothing in front, nothing named: CirroDesk has no app that is always running.
   await expect(btn).toBeHidden();
 
   await shell.getByRole("button", { name: "Start" }).click();
@@ -589,7 +598,7 @@ test("the font steps are fixed and the density moves only the body", async ({ sh
   expect(await shell.locator("#taskbar").evaluate((e) => getComputedStyle(e).fontSize)).toBe("13px");
 });
 
-test("the font travels with NGC instead of coming from the machine", async ({ shell }) => {
+test("the font travels with CirroDesk instead of coming from the machine", async ({ shell }) => {
   // WHAT THIS CASE IS FOR. The sizes above are fixed now, but a size only
   // means something together with the shape it is measured in: 13px of Segoe
   // UI, of Roboto and of San Francisco are three different widths, so one

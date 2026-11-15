@@ -5,26 +5,26 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // Every statement of this file, as a constant. Nothing is ever put together
 // at run time: the names come from the fixed lists, the values from
 // placeholders.
 const (
-	blobSelect = "SELECT seq, data, updated FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobUpdate = "UPDATE ngc_blob SET seq = ?, data = ?, updated = ? WHERE kind = ? AND id = ?"
-	blobInsert = "INSERT INTO ngc_blob (kind, id, seq, data, updated) VALUES (?, ?, ?, ?, ?)"
-	blobFrom   = "SELECT id, seq, data, updated FROM ngc_blob WHERE kind = ? AND seq >= ? ORDER BY seq, id"
-	blobDelete = "DELETE FROM ngc_blob WHERE kind = ? AND id = ?"
+	blobSelect = "SELECT seq, data, updated FROM cd_blob WHERE kind = ? AND id = ?"
+	blobUpdate = "UPDATE cd_blob SET seq = ?, data = ?, updated = ? WHERE kind = ? AND id = ?"
+	blobInsert = "INSERT INTO cd_blob (kind, id, seq, data, updated) VALUES (?, ?, ?, ?, ?)"
+	blobFrom   = "SELECT id, seq, data, updated FROM cd_blob WHERE kind = ? AND seq >= ? ORDER BY seq, id"
+	blobDelete = "DELETE FROM cd_blob WHERE kind = ? AND id = ?"
 
-	appSelect = "SELECT version, store, node, active, manifest, sha256, grants, kept_data, updated FROM ngc_app WHERE id = ?"
-	appUpdate = "UPDATE ngc_app SET version = ?, store = ?, node = ?, active = ?, manifest = ?, " +
+	appSelect = "SELECT version, store, node, active, manifest, sha256, grants, kept_data, updated FROM cd_app WHERE id = ?"
+	appUpdate = "UPDATE cd_app SET version = ?, store = ?, node = ?, active = ?, manifest = ?, " +
 		"sha256 = ?, grants = ?, kept_data = ?, updated = ? WHERE id = ?"
-	appInsert = "INSERT INTO ngc_app (id, version, store, node, active, manifest, sha256, grants, kept_data, updated) " +
+	appInsert = "INSERT INTO cd_app (id, version, store, node, active, manifest, sha256, grants, kept_data, updated) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	appList   = "SELECT id, version, store, node, active, manifest, sha256, grants, kept_data, updated FROM ngc_app ORDER BY id"
-	appDelete = "DELETE FROM ngc_app WHERE id = ?"
+	appList   = "SELECT id, version, store, node, active, manifest, sha256, grants, kept_data, updated FROM cd_app ORDER BY id"
+	appDelete = "DELETE FROM cd_app WHERE id = ?"
 )
 
 func (s *store) BlobPut(ctx context.Context, b dbapi.Blob) error {
@@ -114,7 +114,7 @@ func (s *store) BlobDelete(ctx context.Context, kind, id string) error {
 	return err
 }
 
-// appColumns are the places one row of ngc_app is read into, in the order of
+// appColumns are the places one row of cd_app is read into, in the order of
 // appSelect and of appList behind its id. AppGet and AppList read the same
 // row, so they read it through the same two functions and can never drift
 // apart. Two columns need converting: active is a number, and grants is one

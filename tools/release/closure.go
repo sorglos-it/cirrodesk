@@ -69,7 +69,7 @@ var (
 )
 
 // webRoot is the folder Apache serves, so a URL path resolves against it:
-// apache-vhost.conf has DocumentRoot "/var/www/ngc/public".
+// apache-vhost.conf has DocumentRoot "/var/www/cd/public".
 const webRoot = "public"
 
 // Closure walks the references of dir from entrypoints outwards. Both the

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // 1. The probe Parts uses has to PASS on a pair that is known good,
@@ -29,11 +29,11 @@ func TestTheProbeItselfWouldPass(t *testing.T) {
 // to be read and confirmed, not merely absorbed.
 func TestTheContractNamesFiveParts(t *testing.T) {
 	want := []string{
-		"ngc-api-amd64.tar",
-		"ngc-api-arm64.tar",
-		"ngc-controller-amd64.tar",
-		"ngc-controller-arm64.tar",
-		"ngc-web-all.tar",
+		"cd-api-amd64.tar",
+		"cd-api-arm64.tar",
+		"cd-controller-amd64.tar",
+		"cd-controller-arm64.tar",
+		"cd-web-all.tar",
 	}
 	got := Parts()
 	if len(got) != len(want) {
@@ -48,8 +48,8 @@ func TestTheContractNamesFiveParts(t *testing.T) {
 	t.Logf("the contract accepts %d of %d offered pairs", len(got), len(candidates.names)*len(candidates.archs))
 }
 
-// 3. There is NO ngc-db part, and that is not an oversight: the comment of
-// the contract says the API release "includes ngc-store and the database
+// 3. There is NO cd-db part, and that is not an oversight: the comment of
+// the contract says the API release "includes cd-store and the database
 // migrations" (shared/store/catalog.go, ReleaseAPI). The case holds it,
 // because a release path that quietly grows a fourth component would ship
 // the migrations twice.
@@ -69,11 +69,11 @@ func TestThereIsNoDatabasePart(t *testing.T) {
 // own counter-probe caught it. webtar_test.go builds the blocks by hand,
 // proves the base case passes first, and then names one cause at a time.
 
-// 5. What the controller installs for ngc-api is the release FILE ITSELF:
+// 5. What the controller installs for cd-api is the release FILE ITSELF:
 // installPart copies its bytes into BinDir, chmods 0755 and renames it onto
 // the name of the program (install.go, copyInto and partFile - nothing on
 // that path unpacks anything). The release names that file
-// "ngc-api-amd64.tar".
+// "cd-api-amd64.tar".
 //
 // So if the file is a real tar, the service is handed a tar to execute.
 // That half is measured on Linux and written down in docs/release-weg.md
@@ -87,7 +87,7 @@ func TestThereIsNoDatabasePart(t *testing.T) {
 func TestATarIsNotAProgram(t *testing.T) {
 	const elf = "\x7fELF"
 	prog := []byte(elf + "\x02\x01\x01the rest of a linux program")
-	ar := tarOf(t, map[string]string{"ngc-api": string(prog)})
+	ar := tarOf(t, map[string]string{"cd-api": string(prog)})
 	if bytes.HasPrefix(ar, []byte(elf)) {
 		t.Fatalf("a tar begins with an ELF header - then this case says nothing")
 	}

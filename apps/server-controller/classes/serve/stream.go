@@ -9,9 +9,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // chanReader hands out the DATA of one core channel as an io.Reader and gives

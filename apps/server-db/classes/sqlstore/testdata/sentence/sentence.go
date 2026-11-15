@@ -35,13 +35,13 @@ type failure string
 func (f failure) Error() string { return string(f) }
 
 const (
-	onceInsert = "INSERT INTO ngc_once (kind, token, data, expires, used) VALUES (?, ?, ?, ?, ?)"
-	onceUse    = "UPDATE ngc_once SET used = ? WHERE kind = ? AND token = ? AND used = ? AND expires > ?"
-	onceRead   = "SELECT data FROM ngc_once WHERE kind = ? AND token = ?"
-	onceCount  = "SELECT count(*) FROM ngc_once WHERE kind = ?"
-	oncePurge  = "DELETE FROM ngc_once WHERE expires <= ?"
-	lockFree   = "DELETE FROM ngc_lock WHERE name = ? AND owner = ?"
-	lockList   = "SELECT name, owner FROM ngc_lock WHERE until > ?"
+	onceInsert = "INSERT INTO cd_once (kind, token, data, expires, used) VALUES (?, ?, ?, ?, ?)"
+	onceUse    = "UPDATE cd_once SET used = ? WHERE kind = ? AND token = ? AND used = ? AND expires > ?"
+	onceRead   = "SELECT data FROM cd_once WHERE kind = ? AND token = ?"
+	onceCount  = "SELECT count(*) FROM cd_once WHERE kind = ?"
+	oncePurge  = "DELETE FROM cd_once WHERE expires <= ?"
+	lockFree   = "DELETE FROM cd_lock WHERE name = ? AND owner = ?"
+	lockList   = "SELECT name, owner FROM cd_lock WHERE until > ?"
 )
 
 type store struct {

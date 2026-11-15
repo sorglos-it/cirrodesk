@@ -1,9 +1,9 @@
 # Server-Controller
 
-Dein Ordner: `apps/server-controller/`, dazu `scripts/ngc-controller.sh` im ulh-Repo
+Dein Ordner: `apps/server-controller/`, dazu `scripts/cd-controller.sh` im ulh-Repo
 (`shared/ulh.md`). Verträge: V1, V2, V3, V4, V5, V6, V7.
 
-Aufbau: `main.go` ist der Einstiegspunkt von `ngc-controller`, die Logik liegt in `classes/`
+Aufbau: `main.go` ist der Einstiegspunkt von `cd-controller`, die Logik liegt in `classes/`
 (Regeln: `CLAUDE.md` im Stamm, Abschnitt „Aufbau“).
 
 ## Aufgabe
@@ -26,7 +26,7 @@ so klein wie möglich.
   Vertrauensliste stehst). Die neuere Seite spricht die Fassung der älteren; API und Controller
   liegen höchstens eine Fassung auseinander.
 - Vertrauensliste selbst prüfen (`trust`), Fassungen in SQLite; neue Fassungen kommen über den Kanal
-  `ngc.users/controller/trust` (`session.ParseTrustChain`, `trust.Advance`). Du antwortest mit
+  `cd.users/controller/trust` (`session.ParseTrustChain`, `trust.Advance`). Du antwortest mit
   `core.TrustResult` oder schließt mit `E_VERIFY`.
 - Kanäle: `tunnel.VerifyOpen` prüft das OPEN samt Client-Zertifikat. Der Benutzer eines Kanals ist
   nur `Opened.Session.Cert().User`, und `Opened.Session` beweist ihn nur zusammen mit dem
@@ -42,8 +42,8 @@ so klein wie möglich.
   empfangen); ein Frame darüber beendet den Tunnel. Was du auf einem Kanal zuerst schicken darfst,
   gibt `Opened.Window` frei (die Freigabe der API auf dem Tunnel), nicht `window` im OPEN des
   Browsers: Das gilt nur zwischen Browser und API. Was die API bei `transfer`
-  (`ngc.store/controller/activate`, `ngc.store/controller/stage`) und bei
-  `ngc.users/controller/trust` schickt, begrenzt `core.Action.MaxIn`; bei mehr schließt du mit
+  (`cd.store/controller/activate`, `cd.store/controller/stage`) und bei
+  `cd.users/controller/trust` schickt, begrenzt `core.Action.MaxIn`; bei mehr schließt du mit
   `E_TOOLARGE`. Kopf und Datei von `transfer` kommen immer von der API, auch bei `activate`, das
   die Shell mit Aufgabe geöffnet hat.
 - Ende zu Ende (`shared/README.md`, Abschnitt „Kanäle“): Prolog `noisep.E2EPrologue` mit deiner
@@ -60,7 +60,7 @@ so klein wie möglich.
   kein Netz (außer mit `network`), Grenzen für CPU und Speicher, verschlüsselter Datenordner als
   `/data`, Startaktion nach jedem Start, auch ohne API. Die Parameter sind mit Aufgabe die der
   Aufgabe, sonst die des OPEN (`service.Call`); auf Ende-zu-Ende-Kanälen bindet der Prolog das
-  Feld `params` des OPEN oder, mit Aufgabe, deren Bytes. `NGC_PARAMS` nie ins Log.
+  Feld `params` des OPEN oder, mit Aufgabe, deren Bytes. `CD_PARAMS` nie ins Log.
 - Container nur über eine eigene Schnittstelle ansprechen, damit LXC später danebenpassen kann.
 - Apps aktivieren, deaktivieren, deinstallieren (`core`, `store`): Paket prüfen (`store.Walk`,
   höchstens `store.MaxDirs` Verzeichnisse), Kauf-Apps entschlüsseln, Image laden, Daten löschen
@@ -70,7 +70,7 @@ so klein wie möglich.
   Installieren und Update, mit oder ohne Benutzer, zu `ui` des Katalogeintrags passen; sonst
   `E_VERIFY`.
 - Die Lizenz einer Kauf-App kommt beim Aktivieren und bei Updates im Kopf der Übertragung
-  (`core.Transfer`), eine erneuerte über `ngc.store/controller/license` (`in`, ohne Benutzer,
+  (`core.Transfer`), eine erneuerte über `cd.store/controller/license` (`in`, ohne Benutzer,
   Parameter `app`, Antwort `core.LicenseResult`). Du prüfst sie selbst mit
   `store.VerifyLicenseFor`: der Store aus `dbapi.App.Store`, wie ihn deine Vertrauensliste führt,
   deine Installation und die App. Ob die App laufen darf, beantwortet erst
@@ -96,17 +96,17 @@ so klein wie möglich.
   - `activate` einer installierten App mit derselben oder einer neueren Version ersetzt sie samt
     Rechten und behält die Daten; eine ältere Version gibt `E_FORBIDDEN`.
   - Eine App mit Diensten nur auf einem Server mit Rolle `services`, sonst `E_FORBIDDEN`.
-  - `minNgc` vergleichst du mit `store.SupportsMinNGC` gegen deine eigene NGC-Version; ein
-    Entwicklungsstand (keine Release-Version) gilt als älter als jedes `minNgc`.
+  - `minCd` vergleichst du mit `store.SupportsMinCD` gegen deine eigene CirroDesk-Version; ein
+    Entwicklungsstand (keine Release-Version) gilt als älter als jedes `minCd`.
 - Updates einspielen und bei Fehlschlag zurücknehmen; ohne Unterschrift nur mit Dauerfreigabe
   (`core.Unattended`) und nie eine ältere Version. Ohne Benutzer zählt dabei nur, was Release- oder
   Store-Schlüssel signiert haben: Version und SHA-256 nimmst du aus dem geprüften Release oder
   Katalogeintrag der bereitgelegten Datei (dessen `seq` du gegen den neuesten gesehenen geprüft
   hast) und lehnst Parameter ab, die davon abweichen; die Parameter eines solchen Kanals sind nicht
   unterschrieben. Releases prüfst du nur mit deinem eigenen Release-Schlüssel
-  (`config.Controller.ReleaseKey`); eine Dauerfreigabe für einen NGC-Teil zählt nur mit diesem
+  (`config.Controller.ReleaseKey`); eine Dauerfreigabe für einen CirroDesk-Teil zählt nur mit diesem
   Schlüssel.
-- Mit Rolle `db` spielst du die Migrationen aus der Datei `ngc-api` ein, mit dem Zugang aus
+- Mit Rolle `db` spielst du die Migrationen aus der Datei `cd-api` ein, mit dem Zugang aus
   `controller.json` (`migrate`), wenn die API, die das Update steuert, dich dafür bestimmt: Sie
   nimmt unter den verbundenen Controllern mit Rolle `db` den mit der kleinsten Node-ID, scheitert
   er, den nächsten. MariaDB erreichst du dabei nur über `config.DB.TLSConfig` (CA aus
@@ -125,7 +125,7 @@ so klein wie möglich.
   Schlüssel, das beweist der Fingerabdruck), schreibst du die Datei neu und lädst Apache neu.
   Vertrauen trägt nur der Fingerabdruck, nicht das Zertifikat; so sperrt weder ein erneuertes
   Zertifikat noch ein Datum Apache aus. Den Anker schreibst du mit `config.SaveAnchor`. Vor
-  deiner ersten Fassung der Vertrauensliste hat ngc-web `config.APITrustFile` aus `api_pins`
+  deiner ersten Fassung der Vertrauensliste hat cd-web `config.APITrustFile` aus `api_pins`
   geschrieben.
 - Der Dienst „virtuelles Terminal" als Beispiel-Dienst.
 
@@ -172,19 +172,19 @@ Release-Weg zu hängen gehört zum Release-Packer, sobald der auf `main` ist.
 Aus dem Stamm des Repos:
 
 ```bash
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(cat apps/server-controller/VERSION)" -o build/ngc-controller ./apps/server-controller
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(cat apps/server-controller/VERSION)" -o build/cd-controller ./apps/server-controller
 go run ./apps/server-controller image -arch amd64 -out services/amd64.tar
 ```
 
 Dasselbe mit `arm64` an beiden Stellen und `services/arm64.tar` als Ziel. Das Paket baut danach
-die Sitzung API mit `ngc-store pack` aus `templates/terminal/manifest.json`, der `ui/` der
+die Sitzung API mit `cd-store pack` aus `templates/terminal/manifest.json`, der `ui/` der
 Sitzung Webinterface und den beiden Tars.
 
 Bis zum 12.10.2026 standen hier **drei** Zeilen: die beiden `podman`-Aufrufe von Hand. Seit es
 das Kommando `image` gibt, ruft es sie selbst – `podman build --arch … --file … --tag …
 --pull=always` und danach `podman save --format docker-archive --output …`
 (`classes/runtime/build.go`, `buildArgs` und `saveArgs`). Und es nimmt dabei zwei Fehler ab, die
-von Hand niemand bemerkt: den **Namen** des Abbilds liest es aus `manifest.json` (`ngc/terminal:`
+von Hand niemand bemerkt: den **Namen** des Abbilds liest es aus `manifest.json` (`cd/terminal:`
 plus `version`), also kann der Tag nie von der Fassung im Manifest abweichen, und die
 **Architektur** prüft es am ELF-Kopf des Programms in `build/` – wer `GOARCH` in der ersten
 Zeile vergisst, bekommt sonst ein Abbild, das baut, lädt, einbaut und erst auf dem Server an
@@ -194,7 +194,7 @@ Zeile vergisst, bekommt sonst ein Abbild, das baut, lädt, einbaut und erst auf 
 - `GOOS`/`GOARCH` gelten **nur** für die erste Zeile. Mit `GOOS=linux` davor übersetzt `go run`
   sich selbst für Linux und kann es dann auf Windows nicht starten
   (`exec: "…\exe\server-controller": executable file not found`). Darum `go run` und nicht
-  `build/ngc-controller`: das Programm in `build/` ist das **Ziel**-Programm, auf einem
+  `build/cd-controller`: das Programm in `build/` ist das **Ziel**-Programm, auf einem
   amd64-Baurechner zufällig lauffähig und für `arm64` nie.
 - `-out` darf ein Unterverzeichnis nennen – `services/amd64.tar` geht, gemessen am Lauf oben.
   Was `validOut` (`classes/node/main.go:384`) verbietet, ist allein `..`; hier stand zuerst, es
@@ -204,7 +204,7 @@ Zeile vergisst, bekommt sonst ein Abbild, das baut, lädt, einbaut und erst auf 
 
 **Welche Stufe erreicht ist** (geschrieben · übersetzt · im Abbild enthalten · ausgeführt), am
 12.10.2026 im Arbeitsbaum auf `C:` gemessen:
-- Zeile 1: **ausgeführt**, für beide Architekturen. `file build/ngc-controller` sagt
+- Zeile 1: **ausgeführt**, für beide Architekturen. `file build/cd-controller` sagt
   „ELF 64-bit … x86-64, statically linked" bzw. „ARM aarch64".
 - Zeile 2: **ausgeführt bis zum Bauer**, nicht weiter. Der Aufruf antwortet
   „podman ist auf diesem Rechner nicht zu finden …" mit Code 1 – und weil diese Meldung
@@ -216,8 +216,8 @@ Zeile vergisst, bekommt sonst ein Abbild, das baut, lädt, einbaut und erst auf 
 - **Es fehlen** „im Abbild enthalten" und „ausgeführt" für das Abbild selbst: kein Container ist
   je gebaut, gespeichert, geladen oder gestartet worden.
 
-Der Dienst selbst ist `ngc-controller terminal`; er läuft **im Container**, liest die Rahmen des
-Kanals von stdin und schreibt die rohe Ausgabe der Shell nach stdout. `ngc-controller hold` hält
+Der Dienst selbst ist `cd-controller terminal`; er läuft **im Container**, liest die Rahmen des
+Kanals von stdin und schreibt die rohe Ausgabe der Shell nach stdout. `cd-controller hold` hält
 den Container zwischen zwei Kanälen am Leben, damit das Abbild kein eigenes Programm braucht.
 
 ## Tests

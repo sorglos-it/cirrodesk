@@ -470,7 +470,7 @@ leitungszeilen() {       # $1 = Mitschnitt
 # 17,8 / 17,9 s against 17,7 / 17,7 / 17,9 s, one machine, back to back. An
 # earlier version of this line claimed 16,7 s against 19,3 s; that was not
 # measured that way and is withdrawn. The walk over the project is the cheap
-# half: over a tree of 8550 files, the size of a whole NGC checkout, find
+# half: over a tree of 8550 files, the size of a whole CirroDesk checkout, find
 # takes 71 ms.
 klartext_suche() {       # $1 = Zeitpunkt, für die Meldung
 	local liste neu datei

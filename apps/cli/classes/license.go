@@ -9,21 +9,21 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // Errors of signing a licence. Like the key errors in crypt.go they are
 // sentinels, so no message can carry a seed, a private key or a content key.
 var (
 	// ErrSignKey reports a file that is no Ed25519 seed of 32 bytes as base64url.
-	ErrSignKey = errors.New("ngc-store: the file is no signing key")
+	ErrSignKey = errors.New("cd-store: the file is no signing key")
 	// ErrInstallKey reports an installation key that is not 32 bytes of
 	// base64url. A key of the right shape that X25519 itself refuses — all
 	// zeroes, for instance — comes back as store.ErrEncrypted from
 	// store.WrapKey instead; both are refusals, and neither is this one.
-	ErrInstallKey = errors.New("ngc-store: the installation key is no X25519 key")
+	ErrInstallKey = errors.New("cd-store: the installation key is no X25519 key")
 )
 
 // licenseIDSize is how many random bytes a licence ID carries when the
@@ -35,7 +35,7 @@ const licenseIDSize = 16
 // installation or a key. Issued must be set: nothing here reads the clock,
 // so the same options give the same licence apart from the random ID and the
 // random one-time key of the wrapping. Who signs reads the time — in
-// ngc-store that is Run.
+// cd-store that is Run.
 type LicenseOpts struct {
 	Per     string // store.PerSite (the default when empty) or store.PerUser
 	Users   int    // per user only: how many users may get the right "use"

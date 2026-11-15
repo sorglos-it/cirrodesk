@@ -31,13 +31,13 @@ import (
 	"runtime"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 const (
@@ -71,7 +71,7 @@ var errNoTunnel = errors.New("node: this controller has no tunnel to an API")
 
 // ReportConfig is what a Reporter needs.
 type ReportConfig struct {
-	Version string   // NGC version of this build (tunnel.Hello.Version)
+	Version string   // CirroDesk version of this build (tunnel.Hello.Version)
 	Roles   []string // config.Controller.Roles
 	OS      string   // what OSRelease read, e.g. debian-13; empty if it read nothing
 	State   *state.Store
@@ -177,10 +177,10 @@ func arch() string {
 }
 
 // Status is what this server is doing: every app it knows with its version and
-// its state, the NGC parts its roles carry, and the space left for app data.
+// its state, the CirroDesk parts its roles carry, and the space left for app data.
 //
 // Four kinds of row are left out. Two of them the contract cannot carry, and a
-// status the API refuses costs the tunnel and tells it nothing: a row of NGC's
+// status the API refuses costs the tunnel and tells it nothing: a row of CirroDesk's
 // own (wire.CoreApp), which the API serves itself, and a row without a release
 // version - an app of which only kept data remains has none (dbapi.App). The
 // third is every row behind the one that filled the list to

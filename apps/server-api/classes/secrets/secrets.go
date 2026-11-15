@@ -10,7 +10,7 @@ import (
 	"crypto/cipher"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // MaxSecret is the largest plaintext Seal takes. Everything sealed here is a

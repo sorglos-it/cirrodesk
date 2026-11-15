@@ -6,7 +6,7 @@ package runtime
 // signatures below are the ones of the Linux half.
 const keyIdentifierSize = 16
 
-// Directory encryption is a thing of the Linux kernel, and NGC is written on
+// Directory encryption is a thing of the Linux kernel, and CirroDesk is written on
 // Windows and run on Debian and Ubuntu. These four say so instead of doing
 // nothing quietly: a data directory that is not encrypted must never come out
 // of a call that says it encrypted one. Every case that needs them skips itself

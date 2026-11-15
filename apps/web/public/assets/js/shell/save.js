@@ -1,4 +1,4 @@
-// Saving a file an app hands over (ngc.save). The app's frame has no
+// Saving a file an app hands over (cd.save). The app's frame has no
 // allow-downloads and keeps it that way: an app that could start downloads on
 // its own could drop any file it likes onto the person's disk. The shell does
 // it instead, and only for what passes the checks below - one plain file name,

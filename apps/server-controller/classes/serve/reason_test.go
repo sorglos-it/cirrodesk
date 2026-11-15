@@ -14,10 +14,10 @@ import (
 
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // lines keeps what this package wrote, with the attributes. The notes handler
@@ -109,7 +109,7 @@ func (e *orderEngine) Start(ctx context.Context, name string, l runtime.Limits) 
 // says so in the journal.
 //
 // This is the fault measured on the Debian machine on 22.10.2026: the machine
-// had rebooted at 04:44, /run/ngc held nothing but itself, and every podman
+// had rebooted at 04:44, /run/cd held nothing but itself, and every podman
 // call of the installed app failed on a directory that was not there. What the
 // person in the browser saw was "Die Verbindung wurde abgeschnitten."; what
 // the journal of the controller held was nothing at all.
@@ -120,7 +120,7 @@ func TestARuntimeDirectoryThatCannotBePreparedSaysSo(t *testing.T) {
 	w.rebuild(func(d *Deps) {
 		d.Log = slog.New(l)
 		d.Prepare = func(context.Context, string) error {
-			return errors.New("runtime: mkdir /run/ngc/ngc-terminal-439982dd: read-only file system")
+			return errors.New("runtime: mkdir /run/cd/cd-terminal-439982dd: read-only file system")
 		}
 	})
 	payload, hs := w.appOpen(t, nil)

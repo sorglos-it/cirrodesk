@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/mariadb"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migrate"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/mariadb"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migrate"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // The MariaDB half of the measurement of 03.11.2026
@@ -32,7 +32,7 @@ const (
 	lockUntil = lockNow + 600
 )
 
-// bentLock gives the migrate account and a store, with ngc_lock.until changed
+// bentLock gives the migrate account and a store, with cd_lock.until changed
 // to the named column type. The migrate account is the only one allowed to
 // change a column - the account of the API may not, and TestAccountRights
 // holds that - so the DDL goes through that handle and the questions through
@@ -52,15 +52,15 @@ func bentLock(t *testing.T, typ string) (dbapi.Store, *sql.DB) {
 		// INTEGER value: 'irgendwann'"), the column stays bent, and the next
 		// run of this package answered with 19 red cases over a schema this
 		// test left behind.
-		if _, err := admin.ExecContext(ctx, "DELETE FROM ngc_lock"); err != nil {
-			t.Errorf("ngc_lock leeren: %v", err)
+		if _, err := admin.ExecContext(ctx, "DELETE FROM cd_lock"); err != nil {
+			t.Errorf("cd_lock leeren: %v", err)
 		}
-		if _, err := admin.ExecContext(ctx, "ALTER TABLE ngc_lock MODIFY until BIGINT NOT NULL"); err != nil {
+		if _, err := admin.ExecContext(ctx, "ALTER TABLE cd_lock MODIFY until BIGINT NOT NULL"); err != nil {
 			t.Errorf("die Spalte zurueckbauen: %v", err)
 		}
 		admin.Close()
 	})
-	if _, err := admin.ExecContext(ctx, "ALTER TABLE ngc_lock MODIFY until "+typ+" NOT NULL"); err != nil {
+	if _, err := admin.ExecContext(ctx, "ALTER TABLE cd_lock MODIFY until "+typ+" NOT NULL"); err != nil {
 		t.Fatalf("die Spalte verbiegen: %v", err)
 	}
 	// The rig says what it did. MariaDB echoes the type back in its own
@@ -69,22 +69,22 @@ func bentLock(t *testing.T, typ string) (dbapi.Store, *sql.DB) {
 	var got string
 	if err := admin.QueryRowContext(ctx,
 		"SELECT COLUMN_TYPE FROM information_schema.columns WHERE table_schema = DATABASE() "+
-			"AND table_name = 'ngc_lock' AND column_name = 'until'").Scan(&got); err != nil {
+			"AND table_name = 'cd_lock' AND column_name = 'until'").Scan(&got); err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("ngc_lock.until ist %q", got)
+	t.Logf("cd_lock.until ist %q", got)
 	return s, admin
 }
 
-// holdRow puts a row of its own into ngc_lock, the deadline as given: a
+// holdRow puts a row of its own into cd_lock, the deadline as given: a
 // number for the ordinary case, a string for the case a bent column allows.
 func holdRow(t *testing.T, db *sql.DB, owner string, until any) {
 	t.Helper()
-	if _, err := db.ExecContext(ctx, "DELETE FROM ngc_lock"); err != nil {
+	if _, err := db.ExecContext(ctx, "DELETE FROM cd_lock"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := db.ExecContext(ctx,
-		"INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)",
+		"INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)",
 		[]byte(dbapi.LockUpdate), []byte(owner), until); err != nil {
 		t.Fatal(err)
 	}
@@ -147,11 +147,11 @@ func TestLockTakeOnATextColumnDoesNotOrderByDigits(t *testing.T) {
 // name the runner uses.
 func holdMigrate(t *testing.T, db *sql.DB, until any) {
 	t.Helper()
-	if _, err := db.ExecContext(ctx, "DELETE FROM ngc_lock"); err != nil {
+	if _, err := db.ExecContext(ctx, "DELETE FROM cd_lock"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := db.ExecContext(ctx,
-		"INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)",
+		"INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)",
 		[]byte("migrate"), []byte("ein-fremder-lauf"), until); err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func TestMigrateTakeOnADeadlineThatIsNoNumber(t *testing.T) {
 	// And the row still stands as it stood - nothing of this take was kept.
 	var owner []byte
 	if err := db.QueryRowContext(ctx,
-		"SELECT owner FROM ngc_lock WHERE name = ?", []byte("migrate")).Scan(&owner); err != nil {
+		"SELECT owner FROM cd_lock WHERE name = ?", []byte("migrate")).Scan(&owner); err != nil {
 		t.Fatal(err)
 	}
 	if string(owner) != "ein-fremder-lauf" {

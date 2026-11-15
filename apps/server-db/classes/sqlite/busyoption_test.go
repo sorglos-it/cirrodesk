@@ -65,10 +65,10 @@ func TestTheBusyDeadlineOfTheOptionsReachesTheFile(t *testing.T) {
 	}
 }
 
-// TestTheZeroOptionsIsWhatNGCOpensWith: OpenDB takes no options, so the only
+// TestTheZeroOptionsIsWhatCDOpensWith: OpenDB takes no options, so the only
 // way the production deadline can change by accident is through the zero
 // value. Asked of the file, not of the constant.
-func TestTheZeroOptionsIsWhatNGCOpensWith(t *testing.T) {
+func TestTheZeroOptionsIsWhatCDOpensWith(t *testing.T) {
 	db, err := OpenDBWith(testConfig(t, "state.db"), Options{})
 	if err != nil {
 		t.Fatal(err)
@@ -91,7 +91,7 @@ func TestTheZeroOptionsIsWhatNGCOpensWith(t *testing.T) {
 
 // TestABusyDeadlineBelowAMillisecondIsRefused. SQLite takes whole
 // milliseconds, so anything under one would arrive as 0 - "do not wait at
-// all", which is a different file than the one NGC opens. The pool is refused
+// all", which is a different file than the one CirroDesk opens. The pool is refused
 // instead, and a refused pool is nil: a test that mistypes its deadline gets
 // an error, not a case that passes in no time.
 func TestABusyDeadlineBelowAMillisecondIsRefused(t *testing.T) {

@@ -10,7 +10,7 @@
 // long-name block), and store.Walk decides which of those entries a package
 // may hold. Being STRICTER than Go here is not the safe side: the API would
 // take a package this shell refuses to weigh, and an admin would be told his
-// package is broken by one half of NGC and fine by the other. So the corners
+// package is broken by one half of CirroDesk and fine by the other. So the corners
 // archive/tar reads - the USTAR prefix field, base-256 numbers, a checksum
 // counted signed, a V7 header without magic - are read here too, and the
 // refusing is left where Go leaves it: in the rules of Walk.

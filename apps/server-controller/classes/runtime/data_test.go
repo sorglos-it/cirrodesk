@@ -27,7 +27,7 @@ func dataIn(t *testing.T) string {
 
 // fscryptDir is a directory on a filesystem that can do fscrypt, or nothing. A
 // test cannot make a filesystem - it needs mkfs and a mount, and both are the
-// harness's job - so the harness names one in NGC_TEST_FSCRYPT_DIR.
+// harness's job - so the harness names one in CD_TEST_FSCRYPT_DIR.
 //
 // It then asks the kernel, and that question is not a formality: a kernel built
 // without CONFIG_FS_ENCRYPTION answers every one of these ioctls with
@@ -40,9 +40,9 @@ func fscryptDir(t *testing.T) string {
 	if goruntime.GOOS != "linux" {
 		t.Skip("fscrypt is a thing of the Linux kernel")
 	}
-	dir := os.Getenv("NGC_TEST_FSCRYPT_DIR")
+	dir := os.Getenv("CD_TEST_FSCRYPT_DIR")
 	if dir == "" {
-		t.Skip("no filesystem with fscrypt here: set NGC_TEST_FSCRYPT_DIR to a mount point of an ext4 or f2fs with encryption")
+		t.Skip("no filesystem with fscrypt here: set CD_TEST_FSCRYPT_DIR to a mount point of an ext4 or f2fs with encryption")
 	}
 	if os.Geteuid() != 0 {
 		t.Skip("adding a key to a filesystem and owning a directory to another user needs root")
@@ -50,7 +50,7 @@ func fscryptDir(t *testing.T) string {
 	if _, err := addKey(dir, bytes.Repeat([]byte{0x11}, 64)); errors.Is(err, ErrNoFscrypt) {
 		t.Skip("this kernel or this filesystem cannot encrypt a directory: " + err.Error())
 	} else if err != nil {
-		t.Fatalf("the filesystem of NGC_TEST_FSCRYPT_DIR answered %v", err)
+		t.Fatalf("the filesystem of CD_TEST_FSCRYPT_DIR answered %v", err)
 	}
 	was := paths
 	t.Cleanup(func() { paths = was })
@@ -107,7 +107,7 @@ func TestTheDataCallsRefuseWhatIsNoApp(t *testing.T) {
 	ctx := context.Background()
 	for _, app := range []string{"", "no-dot", "UPPER.CASE", "org.example.a/b",
 		"../etc", "org.example.a\nb", "org.example.a:b"} {
-		if _, err := EnsureData(ctx, app, User{Name: "ngc-a", UID: 1, GID: 1}, aKey); !errors.Is(err, ErrApp) {
+		if _, err := EnsureData(ctx, app, User{Name: "cd-a", UID: 1, GID: 1}, aKey); !errors.Is(err, ErrApp) {
 			t.Errorf("EnsureData(%q) = %v, want ErrApp", app, err)
 		}
 		if err := UnlockData(ctx, app, aKey); !errors.Is(err, ErrApp) {
@@ -127,7 +127,7 @@ func TestTheDataCallsRefuseWhatIsNoApp(t *testing.T) {
 // /data would write as root.
 func TestEnsureDataRefusesRoot(t *testing.T) {
 	dataIn(t)
-	for _, u := range []User{{Name: "ngc-a", UID: 0, GID: 1}, {Name: "ngc-a", UID: 1, GID: 0}} {
+	for _, u := range []User{{Name: "cd-a", UID: 0, GID: 1}, {Name: "cd-a", UID: 1, GID: 0}} {
 		if _, err := EnsureData(context.Background(), "org.example.a", u, aKey); !errors.Is(err, ErrIdentity) {
 			t.Errorf("EnsureData with %+v = %v, want ErrIdentity", u, err)
 		}
@@ -287,12 +287,12 @@ func TestEnsureDataSetsAPolicy(t *testing.T) {
 // a sentence a user can read. Measured where it is always true: a tmpfs.
 func TestEnsureDataSaysSoWhenTheFilesystemCannot(t *testing.T) {
 	linuxOnly(t)
-	if os.Getenv("NGC_TEST_PLAIN_DIR") == "" {
-		t.Skip("set NGC_TEST_PLAIN_DIR to a directory on a filesystem without encryption")
+	if os.Getenv("CD_TEST_PLAIN_DIR") == "" {
+		t.Skip("set CD_TEST_PLAIN_DIR to a directory on a filesystem without encryption")
 	}
 	was := paths
 	t.Cleanup(func() { paths = was })
-	paths.appData = filepath.Join(os.Getenv("NGC_TEST_PLAIN_DIR"), "apps")
+	paths.appData = filepath.Join(os.Getenv("CD_TEST_PLAIN_DIR"), "apps")
 	t.Cleanup(func() { _ = os.RemoveAll(paths.appData) })
 	app := "org.example.a"
 	u := User{Name: UserName(app), UID: 65534, GID: 65534}
@@ -309,7 +309,7 @@ func TestEnsureDataSaysSoWhenTheFilesystemCannot(t *testing.T) {
 }
 
 // NoFscryptText is the sentence a user reads, and it is German, because every
-// text of NGC that a person sees is.
+// text of CirroDesk that a person sees is.
 func TestTheSentenceForAUserIsGerman(t *testing.T) {
 	if NoFscryptText == "" {
 		t.Fatal("there is no sentence")

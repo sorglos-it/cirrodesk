@@ -85,7 +85,7 @@ test("an engine that can be asked for an assertion keeps the passkey route", asy
   await withoutSeedStep(shell);
   await shell.reload();
 
-  await expect(shell.getByRole("heading", { name: "Bei NGC anmelden" })).toBeVisible();
+  await expect(shell.getByRole("heading", { name: "Bei CirroDesk anmelden" })).toBeVisible();
   await expect(shell.getByRole("button", { name: "Mit Passkey anmelden" })).toBeEnabled();
   await expect(shell.getByLabel("Passwort")).toBeDisabled();
 });
@@ -100,7 +100,7 @@ test("without an authenticator the password route still gets in", async ({ shell
   await withoutAuthenticator(shell);
   await shell.reload();
 
-  await expect(shell.getByRole("heading", { name: "Bei NGC anmelden" })).toBeVisible();
+  await expect(shell.getByRole("heading", { name: "Bei CirroDesk anmelden" })).toBeVisible();
   await expect(shell.getByLabel("Passwort")).toBeEnabled();
   await expect(shell.getByRole("button", { name: "Anmelden", exact: true })).toBeEnabled();
   // The one thing that goes: an offer nothing can serve.
@@ -248,13 +248,13 @@ async function withoutCFRGCurves(page) {
 //
 // MEASURED, AND IT COST A RUN: the first attempt emptied config.rp.id instead,
 // to make the installation half of the passkey route say no. The configuration
-// contract refuses an empty id, so the screen read "NGC ist nicht
+// contract refuses an empty id, so the screen read "CirroDesk ist nicht
 // eingerichtet." - the sentence of a missing installation - and four cases
 // failed against the EARLIER WALL. The comment here used to claim that could
 // not happen. It did.
 async function withoutTrustAnchor(page) {
   await page.addInitScript(() => {
-    try { indexedDB.deleteDatabase("ngc"); } catch { /* nothing kept here */ }
+    try { indexedDB.deleteDatabase("cd"); } catch { /* nothing kept here */ }
     const real = window.fetch.bind(window);
     window.fetch = async function (input, init) {
       const url = typeof input === "string" ? input : input?.url ?? "";
@@ -276,8 +276,8 @@ const TURNED_AWAY = [
     // The curves go, which is the gate's own question (generateKey).
     reach: async (page) => { await withoutCFRGCurves(page); },
     everywhere: true,
-    de: "Dieser Browser kann die Schlüssel nicht erzeugen, die NGC für eine Anmeldung braucht. Bitte ein aktuelles Chrome oder Safari benutzen.",
-    en: "This browser cannot create the keys NGC needs for a login. Please use a current Chrome or Safari.",
+    de: "Dieser Browser kann die Schlüssel nicht erzeugen, die CirroDesk für eine Anmeldung braucht. Bitte ein aktuelles Chrome oder Safari benutzen.",
+    en: "This browser cannot create the keys CirroDesk needs for a login. Please use a current Chrome or Safari.",
   },
   {
     key: "boot.noroute.password",
@@ -289,8 +289,8 @@ const TURNED_AWAY = [
     // This sentence lives on the branch where the passkey route EXISTS, so it
     // needs an engine that can be asked for one.
     needsPasskeyRoute: true,
-    de: "Dieser Browser kann die Passwort-Anmeldung von NGC nicht ausführen: er gibt den öffentlichen Teil eines Passwort-Schlüssels nicht heraus. Bitte ein aktuelles Chrome oder Safari benutzen. Firefox kann es derzeit nicht.",
-    en: "This browser cannot do NGC's password login: it does not hand out the public half of a password key. Please use a current Chrome or Safari. Firefox cannot do it at present.",
+    de: "Dieser Browser kann die Passwort-Anmeldung von CirroDesk nicht ausführen: er gibt den öffentlichen Teil eines Passwort-Schlüssels nicht heraus. Bitte ein aktuelles Chrome oder Safari benutzen. Firefox kann es derzeit nicht.",
+    en: "This browser cannot do CirroDesk's password login: it does not hand out the public half of a password key. Please use a current Chrome or Safari. Firefox cannot do it at present.",
   },
   {
     key: "boot.noroute.passkeysoff",

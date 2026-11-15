@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // Backuper writes a copy of the database cfg names to target. apps/server-db
@@ -28,7 +28,7 @@ import (
 type Backuper func(ctx context.Context, cfg config.DB, target string) error
 
 // ErrNoBackuper reports that no part registered a backuper, so
-// "ngc-api backup" cannot run.
+// "cd-api backup" cannot run.
 //
 // It is its own value and neither ErrNoOpener nor ErrNoMigrator: a program may
 // well open a database, even migrate it, and still carry no way to copy it.

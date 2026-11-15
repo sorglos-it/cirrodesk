@@ -101,7 +101,7 @@ const MAX_URL = 512;
 // configuration file, a shell word or an HTML attribute.
 const FORBIDDEN = "\"'<>\\#";
 
-// validHTTPSURL reports whether u is an address NGC fetches a package from, or
+// validHTTPSURL reports whether u is an address CirroDesk fetches a package from, or
 // shows as a shop link: "https://", a host by validHost with an optional ":"
 // and port (validHostPort), then nothing, or "/" and a path and query of
 // printable ASCII without " ' < > \ and #; at most MAX_URL bytes
@@ -109,7 +109,7 @@ const FORBIDDEN = "\"'<>\\#";
 //
 // It follows the address grammar of url.js and calls it, so a host is judged
 // the same everywhere. Unlike validStoreURL it allows a query, since stores
-// sign download links, but it allows no fragment: NGC fetches these addresses,
+// sign download links, but it allows no fragment: CirroDesk fetches these addresses,
 // and a fragment says nothing to a server. User info cannot pass: it is part
 // of the authority, and neither host rule allows "@".
 function validHTTPSURL(u) {
@@ -159,7 +159,7 @@ function validNeeds(needs) {
 const priceShape = P({ model: str, per: str, amount: int, currency: str, period: str, shop: str });
 const packageShape = S({
   version: str, url: str, size: int, sha256: bytes, ui: bytes,
-  encrypted: bool, needs: A(str), minNgc: str,
+  encrypted: bool, needs: A(str), minCd: str,
 });
 const entryShape = S({
   id: str, name: str, publisher: str, description: str, price: priceShape, versions: A(packageShape),
@@ -206,7 +206,7 @@ function validEntry(e) {
       // content key nobody can ever be given, and a paid one whose package is
       // plain is the paid app handed out for nothing.
       || p.encrypted !== (e.price !== null) || !validNeeds(p.needs)
-      || (p.minNgc !== "" && !validVersion(p.minNgc))) {
+      || (p.minCd !== "" && !validVersion(p.minCd))) {
       return false;
     }
   }
@@ -301,7 +301,7 @@ const serviceShape = S({ name: str, command: A(str) });
 export const manifestShape = S({
   id: str, name: str, version: str, publisher: str, description: str, icon: str, ui: uiShape,
   actions: A(actionShape), services: A(serviceShape), start: str, runtime: str, needs: A(str),
-  cpu: int, memory: int, minNgc: str,
+  cpu: int, memory: int, minCd: str,
 });
 
 // manifestBudget bounds a manifest while it is decoded.
@@ -319,7 +319,7 @@ const size = (v) => v === 0 || (v >= 200 && v <= 4000);
 function validManifest(m) {
   if (!validAppID(m.id) || coreApp(m.id) || !validText(m.name, 64) || !validText(m.publisher, 64)
     || !validVersion(m.version) || byteLength(m.description) > 1000
-    || (m.icon !== "" && !validPath(m.icon)) || (m.minNgc !== "" && !validVersion(m.minNgc))) {
+    || (m.icon !== "" && !validPath(m.icon)) || (m.minCd !== "" && !validVersion(m.minCd))) {
     return false;
   }
   // An app is a window, a set of services, or both. Neither is nothing an
@@ -338,7 +338,7 @@ function validManifest(m) {
     }
     for (const arg of s.command) {
       // A NUL would end the argument where the kernel reads it and leave the
-      // rest of it standing where NGC reads it: two different commands.
+      // rest of it standing where CirroDesk reads it: two different commands.
       if (arg === "" || byteLength(arg) > 256 || arg.includes("\u0000")) return false;
     }
     services.add(s.name);
@@ -386,7 +386,7 @@ const reportShape = S({ target: str, version: str, state: str, message: str });
 // reportBudget bounds an update row while it is decoded: it has no array.
 const reportBudget = new Budget({ size: MAX_REPORT });
 
-// validTarget reports whether t names something that can be updated: an NGC
+// validTarget reports whether t names something that can be updated: a CirroDesk
 // part, the system packages or an app (Go: store.ValidTarget).
 export const validTarget = (t) => t === AUTO_WEB || t === AUTO_API || t === AUTO_CONTROLLER
   || t === AUTO_SYSTEM || (validAppID(t) && !coreApp(t));

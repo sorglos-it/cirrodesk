@@ -34,7 +34,7 @@ import (
 	"log/slog"
 	"syscall"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // A step of a setup, as it stands in the journal. The names are the ones

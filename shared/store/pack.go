@@ -25,7 +25,7 @@ const (
 	KeySize    = 32
 	KindUI     = "ui"
 	KindImage  = "image"
-	encMagic   = "NGCENC1\n"
+	encMagic   = "CD-ENC1\n"
 )
 
 // PackFile is a checked file of an app package.
@@ -197,7 +197,7 @@ func (t *tree) add(name string, file bool) bool {
 }
 
 func packageAEAD(key, fileID []byte) (cipher.AEAD, error) {
-	k, err := hkdf.Key(sha256.New, key, fileID, "ngc/package/v1", KeySize)
+	k, err := hkdf.Key(sha256.New, key, fileID, "cd/package/v1", KeySize)
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +327,7 @@ func (d *decrypter) next() {
 
 func wrapAEAD(shared, eph, installPub []byte, app string) (cipher.AEAD, error) {
 	salt := append(append([]byte{}, eph...), installPub...)
-	k, err := hkdf.Key(sha256.New, shared, salt, "ngc/license-key/v1\x00"+app, KeySize)
+	k, err := hkdf.Key(sha256.New, shared, salt, "cd/license-key/v1\x00"+app, KeySize)
 	if err != nil {
 		return nil, err
 	}

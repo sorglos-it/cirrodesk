@@ -15,21 +15,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// --- The seams of ngc.store, as a case can hold them -----------------------
+// --- The seams of cd.store, as a case can hold them -----------------------
 
 // fakeStore answers like appstore without reaching a store, a controller or a
 // disk, and writes down what it was handed. It is what lets a case measure the
@@ -178,7 +178,7 @@ func (f *fakeUpdates) SetSetting(_ context.Context, s core.UpdateSetting) error 
 	return nil
 }
 
-// storeHarness is the fixture with both seams of ngc.store set.
+// storeHarness is the fixture with both seams of cd.store set.
 type storeHarness struct {
 	*harness
 	Store *fakeStore
@@ -186,7 +186,7 @@ type storeHarness struct {
 }
 
 // newStoreFixture builds the API with the app store and the updates wired, so
-// every action of ngc.store has a handler.
+// every action of cd.store has a handler.
 func newStoreFixture(t *testing.T) *storeHarness {
 	t.Helper()
 	sh := &storeHarness{Store: &fakeStore{}, Up: &fakeUpdates{}}
@@ -215,7 +215,7 @@ func licenceBody(t *testing.T, h *harness, app string) []byte {
 }
 
 // rootTask signs a root task of this session's admin for one action of
-// ngc.store/controller on the controller the trust list lets admins root on.
+// cd.store/controller on the controller the trust list lets admins root on.
 func rootTask(t *testing.T, h *harness, fill byte, action string, params string) *sign.Envelope {
 	t.Helper()
 	return h.Task(t, task.Task{ID: taskID(fill), Node: ctlNode, App: core.AppStore,
@@ -238,7 +238,7 @@ const (
 	byForbidden = "forbidden" // the contract keeps the shell out (core.ShellOpens)
 )
 
-// storeCase is one action of ngc.store and how a shell opens it.
+// storeCase is one action of cd.store and how a shell opens it.
 type storeCase struct {
 	service string
 	action  string
@@ -248,7 +248,7 @@ type storeCase struct {
 	drive func(t *testing.T, fx *storeHarness) wire.Code
 }
 
-// storeCases is the whole of ngc.store, one row per action. The two assertions
+// storeCases is the whole of cd.store, one row per action. The two assertions
 // of TestEveryStoreActionIsReachable hold it against core.All() in BOTH
 // directions, so neither a row for an action that does not exist nor an action
 // without a row can stay quiet.
@@ -339,7 +339,7 @@ func storeCases() []storeCase {
 }
 
 // TestEveryStoreActionIsReachable is the case this task exists for: before it,
-// NO handler of ngc.store was registered and every action of it answered
+// NO handler of cd.store was registered and every action of it answered
 // E_NOTFOUND to a shell. Each row drives its action through the real
 // dispatcher over a real session link and holds that the answer is NOT
 // E_NOTFOUND -- and, for the nine this API serves, that the app store or the
@@ -350,7 +350,7 @@ func storeCases() []storeCase {
 // measured by nobody, and the test would still be green.
 func TestEveryStoreActionIsReachable(t *testing.T) {
 	cases := storeCases()
-	// Every action of ngc.store has a row.
+	// Every action of cd.store has a row.
 	for _, a := range core.All() {
 		if a.App != core.AppStore {
 			continue
@@ -358,13 +358,13 @@ func TestEveryStoreActionIsReachable(t *testing.T) {
 		if !slices.ContainsFunc(cases, func(c storeCase) bool {
 			return c.service == a.Service && c.action == a.Name
 		}) {
-			t.Fatalf("ngc.store/%s/%s is in the contract and in no row of this table", a.Service, a.Name)
+			t.Fatalf("cd.store/%s/%s is in the contract and in no row of this table", a.Service, a.Name)
 		}
 	}
-	// And every row names an action of ngc.store.
+	// And every row names an action of cd.store.
 	for _, c := range cases {
 		if _, ok := core.Lookup(core.AppStore, c.service, c.action); !ok {
-			t.Fatalf("row ngc.store/%s/%s names no action of the contract", c.service, c.action)
+			t.Fatalf("row cd.store/%s/%s names no action of the contract", c.service, c.action)
 		}
 	}
 	for _, c := range cases {
@@ -372,7 +372,7 @@ func TestEveryStoreActionIsReachable(t *testing.T) {
 			fx := newStoreFixture(t)
 			code := c.drive(t, fx)
 			if code == wire.CodeNotFound {
-				t.Fatalf("E_NOTFOUND: nothing serves ngc.store/%s/%s", c.service, c.action)
+				t.Fatalf("E_NOTFOUND: nothing serves cd.store/%s/%s", c.service, c.action)
 			}
 			switch c.want {
 			case byHandler:
@@ -404,7 +404,7 @@ func TestEveryStoreActionIsReachable(t *testing.T) {
 // --- Who may open one: one case per refusal, with the control in between ---
 
 // TestOnlyAnAdminReachesAStoreAction is the other half of registering a
-// handler. Every action of ngc.store carries core.Action.Admin, so a user who
+// handler. Every action of cd.store carries core.Action.Admin, so a user who
 // is no admin must not reach one -- and a handler that is registered is a door
 // that is now open, so this is measured per action and not once.
 //
@@ -631,7 +631,7 @@ func TestTheNodeOfAStoreActionIsLogged(t *testing.T) {
 // the credit the shell may spend comes from the API's GRANT alone. A shell
 // that writes DATA before it has that GRANT is over its credit, and the
 // channel ends with E_PROTOCOL instead of reaching the handler -- measured on
-// ngc.store/upload, where verifying the signed task and the re-confirmation
+// cd.store/upload, where verifying the signed task and the re-confirmation
 // takes the API long enough that the DATA overtook its GRANT every time.
 // Without this the case would have measured flow control and called it the
 // handler.
@@ -945,7 +945,7 @@ func TestAModeTheInstallationDidNotAllowIsForbidden(t *testing.T) {
 	}
 }
 
-// --- The memory of ngc.store/api/upload ------------------------------------
+// --- The memory of cd.store/api/upload ------------------------------------
 
 // peakHeap runs fn and answers how far the LIVE heap rose above where it stood
 // when fn started. The peak and not the increase: a run that holds a package
@@ -1002,7 +1002,7 @@ func peakHeap(fn func()) int64 {
 	return peak.Load() - base
 }
 
-// uploadPeak sends size bytes through a real channel to ngc.store/api/upload
+// uploadPeak sends size bytes through a real channel to cd.store/api/upload
 // and answers the peak of the heap while they go. With hold the seam collects
 // the package instead of streaming it (fakeStore.hold), which is the null
 // control of the case below.
@@ -1038,7 +1038,7 @@ func uploadPeak(t *testing.T, size int, hold bool) int64 {
 	return peak
 }
 
-// TestUploadHoldsNoPackageOnTheChannel is the memory of ngc.store/api/upload,
+// TestUploadHoldsNoPackageOnTheChannel is the memory of cd.store/api/upload,
 // measured over a REAL channel and not against the handler: the package goes
 // in as DATA frames through the session, the dispatcher and on to the seam.
 //
@@ -1148,7 +1148,7 @@ func TestTheReConfirmationOfTheOpenReachesTheHandler(t *testing.T) {
 
 // TestACatalogThatWasNeverFetchedIsNotFound holds the one thing the shell's
 // new sentence rests on: a store that verifies, is in the trust list and has
-// no catalog row yet answers ngc.store/catalog with E_NOTFOUND -- not with
+// no catalog row yet answers cd.store/catalog with E_NOTFOUND -- not with
 // the E_VERIFY of a document nobody signed.
 //
 // That is the whole of V1.2 point 65 on this side of the wire. The hourly

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // ErrInput is what Read answers for an input that will not arrive whole: the
@@ -21,7 +21,7 @@ var ErrInput = errors.New("browser: the input of the channel did not arrive whol
 // what this process holds of an upload is one frame and not the package.
 //
 // Why a stream and not a []byte, and this is the whole reason the type exists:
-// core.Action.MaxIn for ngc.store/api/upload is store.MaxPackage, four
+// core.Action.MaxIn for cd.store/api/upload is store.MaxPackage, four
 // gigabytes. A reader that answers a []byte has to hold every one of them, and
 // an admin who really uploads a large package then kills the process on a
 // small server -- measured over this channel at 16 and 64 MiB before this type

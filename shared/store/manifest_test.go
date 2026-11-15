@@ -12,7 +12,7 @@ func terminalManifest() *Manifest {
 		ID: "org.sorglos.terminal", Name: "Terminal", Version: "1.0.0", Publisher: "Sorglos IT",
 		Icon: "icon.svg", UI: &UI{Entry: "index.html", Width: 720, Height: 480},
 		Actions:  []Action{{Name: "shell", Title: "Befehle auf dem Server ausführen", Service: "terminal", Stream: true}},
-		Services: []Service{{Name: "terminal", Command: []string{"/usr/local/bin/ngc-terminal"}}},
+		Services: []Service{{Name: "terminal", Command: []string{"/usr/local/bin/cd-terminal"}}},
 		Memory:   128,
 	}
 }
@@ -40,7 +40,7 @@ func TestManifest(t *testing.T) {
 
 func TestManifestRejects(t *testing.T) {
 	cases := map[string]func(m *Manifest){
-		"core app id":             func(m *Manifest) { m.ID = "ngc.store" },
+		"core app id":             func(m *Manifest) { m.ID = "cd.store" },
 		"version":                 func(m *Manifest) { m.Version = "1.0" },
 		"leading zero":            func(m *Manifest) { m.Version = "1.01.0" },
 		"path traversal":          func(m *Manifest) { m.UI.Entry = "../index.html" },
@@ -48,7 +48,7 @@ func TestManifestRejects(t *testing.T) {
 		"hidden file":             func(m *Manifest) { m.Icon = ".icon.svg" },
 		"unknown service":         func(m *Manifest) { m.Actions[0].Service = "mail" },
 		"stream with timeout":     func(m *Manifest) { m.Actions[0].Timeout = 10 },
-		"relative command":        func(m *Manifest) { m.Services[0].Command = []string{"ngc-terminal"} },
+		"relative command":        func(m *Manifest) { m.Services[0].Command = []string{"cd-terminal"} },
 		"duplicate action":        func(m *Manifest) { m.Actions = append(m.Actions, m.Actions[0]) },
 		"unknown need":            func(m *Manifest) { m.Needs = []string{"host"} },
 		"lxc not yet":             func(m *Manifest) { m.Runtime = "lxc" },
@@ -57,7 +57,7 @@ func TestManifestRejects(t *testing.T) {
 		"nothing to do":           func(m *Manifest) { m.UI, m.Actions, m.Services = nil, nil, nil },
 		"ui width":                func(m *Manifest) { m.UI.Width = 100 },
 		"cpu":                     func(m *Manifest) { m.CPU = 50 },
-		"minNgc":                  func(m *Manifest) { m.MinNGC = "abc" },
+		"minCd":                   func(m *Manifest) { m.MinCD = "abc" },
 		"description":             func(m *Manifest) { m.Description = strings.Repeat("a", 1001) },
 		"bare root command":       func(m *Manifest) { m.Services[0].Command = []string{"/"} },
 		"service without command": func(m *Manifest) { m.Services[0].Command = nil },
@@ -279,10 +279,10 @@ func TestGranted(t *testing.T) {
 	}
 }
 
-func TestSupportsMinNGC(t *testing.T) {
+func TestSupportsMinCD(t *testing.T) {
 	cases := []struct {
-		ngc, minNGC string
-		want        bool
+		cd, minCD string
+		want      bool
 	}{
 		{"1.2.0", "", true},
 		{"0.0.0-dev", "", true},
@@ -291,15 +291,15 @@ func TestSupportsMinNGC(t *testing.T) {
 		{"1.10.0", "1.9.0", true},
 		{"1.2.0", "1.2.1", false},
 		// A build that is no release version counts as older than every
-		// minNgc, so a development NGC never installs a package that asks for
+		// minCd, so a development CirroDesk never installs a package that asks for
 		// one.
 		{"0.0.0-dev", "0.0.1", false},
 		{"0.0.0-dev", "0.0.0", false},
 		{"1.2.0", "1.2", false},
 	}
 	for _, c := range cases {
-		if got := SupportsMinNGC(c.ngc, c.minNGC); got != c.want {
-			t.Errorf("SupportsMinNGC(%q, %q) = %v", c.ngc, c.minNGC, got)
+		if got := SupportsMinCD(c.cd, c.minCD); got != c.want {
+			t.Errorf("SupportsMinCD(%q, %q) = %v", c.cd, c.minCD, got)
 		}
 	}
 }

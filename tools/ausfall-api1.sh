@@ -12,7 +12,7 @@
 set -uo pipefail
 
 PVE=root@10.2.3.2
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 VMID=301
 A1=10.2.3.210
@@ -48,7 +48,7 @@ apps_laufen() { # knoten
   echo "${n:-KEINE}"
 }
 tunnel() { # knoten
-  $SSH "root@$1" 'systemctl is-active ngc-controller 2>/dev/null | tr "\n" " "; journalctl -u ngc-controller --no-pager -n 3 2>/dev/null | tail -3 | sed "s/^/        /"' 2>&1
+  $SSH "root@$1" 'systemctl is-active cd-controller 2>/dev/null | tr "\n" " "; journalctl -u cd-controller --no-pager -n 3 2>/dev/null | tail -3 | sed "s/^/        /"' 2>&1
 }
 
 runde() {
@@ -68,7 +68,7 @@ runde() {
 echo "=========== Fall: api-1 aus (VMID 301, $A1) ==========="
 echo "Gemessen von diesem PC aus, $(date -u '+%Y-%m-%d %H:%M:%S') UTC."
 echo
-echo "Vor dem Schalten gemessen, aus /etc/ngc/controller.json:"
+echo "Vor dem Schalten gemessen, aus /etc/cd/controller.json:"
 echo "  db-1, svc-1 und svc-2 nennen ALLE NUR wss://api-1...:7443/tunnel."
 echo "  api-2 steht in keiner Controller-Konfiguration. Nur web.json auf api-1"
 echo "  nennt beide APIs."
@@ -101,11 +101,11 @@ echo
 echo "    Versuchen die Controller api-2? (Journal seit dem Abschalten)"
 for n in $DB 10.2.3.213 10.2.3.214; do
   printf "      %s: " "$n"
-  $SSH "root@$n" "journalctl -u ngc-controller --since '$VOR' --no-pager 2>/dev/null | grep -ciE 'api-2|10\.2\.3\.211' || echo 0" 2>&1 | tr -d '\n'
+  $SSH "root@$n" "journalctl -u cd-controller --since '$VOR' --no-pager 2>/dev/null | grep -ciE 'api-2|10\.2\.3\.211' || echo 0" 2>&1 | tr -d '\n'
   echo " Treffer auf api-2"
 done
 echo "    Was die Controller stattdessen sagen:"
-$SSH "root@10.2.3.213" "journalctl -u ngc-controller --since '$VOR' --no-pager 2>/dev/null | tail -6 | sed 's/^/      /'" 2>&1
+$SSH "root@10.2.3.213" "journalctl -u cd-controller --since '$VOR' --no-pager 2>/dev/null | tail -6 | sed 's/^/      /'" 2>&1
 
 echo
 echo ">>> qm start $VMID   (faengt sich die Anlage von selbst?)"

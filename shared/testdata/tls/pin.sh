@@ -1,5 +1,5 @@
 #!/bin/sh
-# Prints the pin NGC gives a TLS key (trust.TLSPin): base64url without
+# Prints the pin CirroDesk gives a TLS key (trust.TLSPin): base64url without
 # padding of the SHA-256 of the certificate's SubjectPublicKeyInfo.
 # Usage: pin.sh <certificate.pem>
 set -eu

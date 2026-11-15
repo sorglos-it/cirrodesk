@@ -5,8 +5,8 @@ import (
 
 	"github.com/pquerna/otp/totp"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/session"
 )
 
 func TestTOTP(t *testing.T) {

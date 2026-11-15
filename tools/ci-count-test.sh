@@ -98,7 +98,7 @@ mkstream "$n" "$work/none.json"
 # The floor is 200 in CI because this repo has thousands of cases; the fixtures
 # have five, so it is lowered for them. It is NOT switched off: claim 2 below
 # proves the floor and the empty bolt still bite.
-export NGC_COUNT_FLOOR=3
+export CD_COUNT_FLOOR=3
 
 # ---------------------------------------------------------------- the claims
 # ci-count.sh is called the way the workflow calls it, and its exit code is read
@@ -161,16 +161,16 @@ for c in claim_green claim_red claim_nothing claim_empty claim_missing; do
 done
 
 # ---------------------------------------------------------------- the two halves
-# The drift itself: the workflow hands check.sh a path in NGC_CHECK_TEST_JSON and
+# The drift itself: the workflow hands check.sh a path in CD_CHECK_TEST_JSON and
 # then counts that same path. Both halves have to still be there. This is the
 # check that did not exist on 18.10.2026, and its absence is what let the two
 # files walk apart for three days without anyone being told.
 echo
 echo "== the two halves still agree =="
 wf=$repo/.github/workflows/linux.yml
-if grep -q 'NGC_CHECK_TEST_JSON' "$wf"; then ok "the workflow sets NGC_CHECK_TEST_JSON"; else bad "the workflow no longer sets NGC_CHECK_TEST_JSON"; fi
+if grep -q 'CD_CHECK_TEST_JSON' "$wf"; then ok "the workflow sets CD_CHECK_TEST_JSON"; else bad "the workflow no longer sets CD_CHECK_TEST_JSON"; fi
 if grep -q 'ci-count.sh' "$wf"; then ok "the workflow counts with ci-count.sh"; else bad "the workflow no longer calls ci-count.sh"; fi
-if grep -q 'NGC_CHECK_TEST_JSON' "$repo/tools/check.sh"; then ok "check.sh writes the stream the workflow asks for"; else bad "check.sh does not write NGC_CHECK_TEST_JSON - this is exactly the 18.10.2026 drift"; fi
+if grep -q 'CD_CHECK_TEST_JSON' "$repo/tools/check.sh"; then ok "check.sh writes the stream the workflow asks for"; else bad "check.sh does not write CD_CHECK_TEST_JSON - this is exactly the 18.10.2026 drift"; fi
 if grep -q 'test2json' "$repo/tools/check.sh"; then ok "the stream comes from the ONE run, via test2json"; else bad "check.sh no longer builds the stream from its own run"; fi
 # A second test run just to count would undo the whole point, so it is counted.
 runs=$(grep -cE '^[[:space:]]*(if )?go test ' "$repo/tools/check.sh" || true)

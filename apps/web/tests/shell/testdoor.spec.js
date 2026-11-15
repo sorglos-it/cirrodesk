@@ -22,13 +22,13 @@ import { test, expect } from "@playwright/test";
 // door". It went RED, with two hits that are not mine:
 //
 //   assets/js/net/testlink.js   names /api/v1/mock
-//   assets/js/shell/fake-link.js  reads and writes window.__ngcTest
+//   assets/js/shell/fake-link.js  reads and writes window.__cdTest
 //
 // Measured afterwards, because a hit is not yet a finding:
 //
 //   shell/main.js:15   statically imports fake-link.js - so it is fetched on
 //                      every boot of a real installation, not only in tests
-//   shell/main.js:306  const standIn = () => window.__ngcStandIn === true
+//   shell/main.js:306  const standIn = () => window.__cdStandIn === true
 //   shell/main.js:327  if (standIn()) the whole session becomes fakeWorld()
 //   net/testlink.js    is loaded by 11 places in tests/shell (attacks 1,
 //                      channels 8, world 2) - over HTTP, out of the SERVED
@@ -50,7 +50,7 @@ import { test, expect } from "@playwright/test";
 // 11 cases turning red on a 404. It is test scaffolding that has to be served
 // to be reachable at all - which is the finding, not that it is dead.
 //
-// WHAT IT IS AND IS NOT: it is not an escalation. __ngcStandIn swaps the
+// WHAT IT IS AND IS NOT: it is not an escalation. __cdStandIn swaps the
 // session for a fake one in the viewer's OWN browser, and whoever can set it
 // can already run script on the page. What it is, is shipped test code with
 // no date on it - and the measured proof of why way 3 was chosen over way 2
@@ -70,12 +70,12 @@ const KNOWN = [
   // 11 places named above load it, so it goes when channels.spec.js,
   // world.spec.js and attacks.spec.js stop asking the served shell for it.
   { file: "assets/js/net/testlink.js", needle: "/api/v1/mock" },
-  { file: "assets/js/shell/fake-link.js", needle: "__ngcTest" },
-  // The switch itself: main.js:306 reads window.__ngcStandIn and main.js:327
+  { file: "assets/js/shell/fake-link.js", needle: "__cdTest" },
+  // The switch itself: main.js:306 reads window.__cdStandIn and main.js:327
   // hands the whole session to fakeWorld() when it is set. This is the line
   // the two above hang from, and the one that makes the shipped shell carry a
   // runtime test switch at all.
-  { file: "assets/js/shell/main.js", needle: "__ngcStandIn" },
+  { file: "assets/js/shell/main.js", needle: "__cdStandIn" },
 ];
 
 // MEASURED on 03.11.2026 at origin/main 0471b02d: those three are ALL of them.
@@ -108,7 +108,7 @@ test("the shipped shell names no test door but the two that are known", async ()
       // The path as the repository spells it, so a hit reads the same on
       // every machine and the exceptions above can be written down at all.
       const rel = p.slice(root.length + 1).split("\\").join("/");
-      for (const needle of ["/api/v1/mock", "break=", "__ngcTest", "__ngcStandIn"]) {
+      for (const needle of ["/api/v1/mock", "break=", "__cdTest", "__cdStandIn"]) {
         if (!text.includes(needle)) continue;
         const hit = `${rel}: ${needle}`;
         seen.push(hit);

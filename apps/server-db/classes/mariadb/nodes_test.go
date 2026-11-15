@@ -119,7 +119,7 @@ func (f *fakeConn) count() int {
 // Connect asks all of them, and the error it returns carries neither the
 // address nor the user name the driver would name.
 func TestConnectTriesEveryNodeAndHidesTheDriverText(t *testing.T) {
-	secret := errors.New("dial tcp db-1.ngc.test:3306: user 'ngc' rejected")
+	secret := errors.New("dial tcp db-1.cd.test:3306: user 'cd' rejected")
 	a, b := &fakeConn{err: secret}, &fakeConn{err: secret}
 	now := time.Unix(1790000000, 0)
 	bal := &balancer{nodes: []driver.Connector{a, b}, pick: &picker{count: 2},
@@ -131,7 +131,7 @@ func TestConnectTriesEveryNodeAndHidesTheDriverText(t *testing.T) {
 	if a.count() != 1 || b.count() != 1 {
 		t.Errorf("tries: %d and %d, want one each", a.count(), b.count())
 	}
-	for _, leak := range []string{"db-1.ngc.test", "3306", "ngc"} {
+	for _, leak := range []string{"db-1.cd.test", "3306", "cd"} {
 		if strings.Contains(err.Error(), leak) {
 			t.Errorf("the error names %q: %v", leak, err)
 		}
@@ -266,7 +266,7 @@ func TestOrderKeepsTheRoundRobinAmongManyNodes(t *testing.T) {
 // line does carry them is the decision, not an accident: the debug log is
 // turned on deliberately.
 func TestConnectLogsTheDriverTextOncePerNodeAndReturnsAFixedText(t *testing.T) {
-	driverErr := errors.New("dial tcp db-1.ngc.test:3306: user 'ngcreader' rejected")
+	driverErr := errors.New("dial tcp db-1.cd.test:3306: user 'cdreader' rejected")
 	a, b := &fakeConn{err: driverErr}, &fakeConn{err: driverErr}
 	now := time.Unix(1790000000, 0)
 	var buf bytes.Buffer
@@ -289,10 +289,10 @@ func TestConnectLogsTheDriverTextOncePerNodeAndReturnsAFixedText(t *testing.T) {
 			t.Errorf("the debug log misses %q", want)
 		}
 	}
-	if !strings.Contains(out, "ngcreader") {
+	if !strings.Contains(out, "cdreader") {
 		t.Error("the driver's own text did not reach the debug log")
 	}
-	if strings.Contains(err.Error(), "db-1.ngc.test") || strings.Contains(err.Error(), "ngcreader") {
+	if strings.Contains(err.Error(), "db-1.cd.test") || strings.Contains(err.Error(), "cdreader") {
 		t.Errorf("the returned error names the node or the user: %v", err)
 	}
 }

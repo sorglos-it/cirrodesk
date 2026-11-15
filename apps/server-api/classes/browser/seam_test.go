@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The seam a dispatcher and the relay work over: frames come out of the

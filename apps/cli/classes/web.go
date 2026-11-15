@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // webSkip are the paths of apps/web that never go into a release: the tests
 // and the test link, the same two tools/pack-release.sh excludes.
 var webSkip = []string{"tests", "public/assets/js/net/testlink.js"}
 
-// PackWeb writes the tree of apps/web in dir as a release file of ngc-web: a
+// PackWeb writes the tree of apps/web in dir as a release file of cd-web: a
 // UI tar (store.UIWriter), every file under ui/, in sorted order, no
 // directory entries. That is the form the controller unpacks and
 // store.WalkUI reads (S7, decided 15.11.2026); the old form with the names

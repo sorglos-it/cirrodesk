@@ -19,7 +19,7 @@ test("a call channel returns its result", async ({ shell }) => {
   const out = await shell.evaluate(async () => {
     const { connectForTest } = await import("/assets/js/net/testlink.js");
     const link = await connectForTest();
-    const me = await link.call("ngc.desktop", "api", "me", null);
+    const me = await link.call("cd.desktop", "api", "me", null);
     link.close();
     return me;
   });
@@ -32,9 +32,9 @@ test("the shell never opens more channels than MaxSessionChannels", async ({ she
     const w = await import("/assets/js/contracts/wire.js");
     const link = await connectForTest();
     const open = [];
-    for (let i = 0; i < w.MAX_SESSION_CHANNELS; i++) open.push(await link.openRaw("ngc.desktop", "api", "apps"));
+    for (let i = 0; i < w.MAX_SESSION_CHANNELS; i++) open.push(await link.openRaw("cd.desktop", "api", "apps"));
     let refused = false;
-    try { await link.openRaw("ngc.desktop", "api", "apps"); } catch { refused = true; }
+    try { await link.openRaw("cd.desktop", "api", "apps"); } catch { refused = true; }
     const count = link.channelCount();
     for (const c of open) c.close("ok");
     link.close();
@@ -49,7 +49,7 @@ test("a result over MaxCallResult closes the channel with E_TOOLARGE", async ({ 
     const link = await connectForTest();
     try {
       // The mock API sends 9 MiB for this action on purpose.
-      await link.call("ngc.users", "api", "log", { limit: 500, beforeTime: 1 });
+      await link.call("cd.users", "api", "log", { limit: 500, beforeTime: 1 });
       return "none";
     } catch (e) {
       return e.code;
@@ -84,7 +84,7 @@ test("a result counts only when the channel ends with ok", async ({ shell }) => 
     const link = await connectForTest();
     try {
       // The mock API sends data and then closes with E_EXIT.
-      await link.call("ngc.store", "api", "sources", null, { failAfterData: true });
+      await link.call("cd.store", "api", "sources", null, { failAfterData: true });
       return "none";
     } catch (e) {
       return e.code;

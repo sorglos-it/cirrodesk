@@ -27,13 +27,13 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var (
@@ -288,7 +288,7 @@ func (lg *Log) Note(ctx context.Context, kind, user, app, node, detail string) e
 	return lg.Add(ctx, core.LogEntry{User: user, Kind: kind, App: app, Node: node, Detail: detail})
 }
 
-// Query answers ngc.users/log. It checks the query against the contract first,
+// Query answers cd.users/log. It checks the query against the contract first,
 // so a query no node would accept never reaches a database.
 func (lg *Log) Query(ctx context.Context, q core.LogQuery) ([]core.LogEntry, error) {
 	if err := q.Validate(); err != nil {

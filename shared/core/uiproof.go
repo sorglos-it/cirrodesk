@@ -3,19 +3,19 @@ package core
 import (
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// UIProof answers ngc.desktop/ui-proof: signed evidence of the UI hash of the
+// UIProof answers cd.desktop/ui-proof: signed evidence of the UI hash of the
 // installed version of an app, which the shell checks the ui-tar of
-// ngc.desktop/ui against before it runs any of it. A store app brings the
+// cd.desktop/ui against before it runs any of it. A store app brings the
 // catalog of its store that lists the version (store-signed; payload at most
 // sign.MaxPayload); an uploaded app brings the activate task that installed it
 // with the client certificate and the proof that make it (admin-signed). The
@@ -77,7 +77,7 @@ func ParseUIProof(b []byte) (UIProof, error) {
 // the hash; any store of l may vouch so, whichever store the app came from
 // (UIProof, "Which store vouches"). Uploaded app:
 // session.VerifyApproval(p.Client, *p.Proof, l) gives the certificate,
-// task.VerifyApproval gives the task, which is ngc.store/controller/activate
+// task.VerifyApproval gives the task, which is cd.store/controller/activate
 // on a node where that user may run root tasks (l.MayRoot), with params
 // (ParseParams) naming app, version and LocalStore; their ui is the hash. No
 // time is checked: the approval holds while its key and root permission stay

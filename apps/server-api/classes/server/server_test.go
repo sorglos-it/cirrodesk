@@ -16,18 +16,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/apitls"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbopen"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/join"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/apitls"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbopen"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/join"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestHandlerServesEveryPath walks every path of the contract -- the shell's
@@ -278,7 +278,7 @@ func TestTheSpoolIsEmptiedAtEveryStart(t *testing.T) {
 		t.Fatalf("first start: %v", err)
 	}
 	// What a killed run leaves: a package and a directory beside it.
-	left := filepath.Join(spool, "ngc-package-123")
+	left := filepath.Join(spool, "cd-package-123")
 	if err := os.WriteFile(left, []byte("half a package"), 0o600); err != nil {
 		t.Fatalf("leftover: %v", err)
 	}
@@ -425,18 +425,18 @@ func TestBuildClosesTheSetupWithATrustList(t *testing.T) {
 	}
 }
 
-// TestMigrateSaysSoWithoutAMigrator: ngc-api migrate is this program's
+// TestMigrateSaysSoWithoutAMigrator: cd-api migrate is this program's
 // subcommand (Verträge V1.2, Punkt 28), and a build without the database part
 // says that plainly instead of doing nothing quietly.
 func TestMigrateSaysSoWithoutAMigrator(t *testing.T) {
 	dbopen.RegisterMigrator(nil)
-	if err := dbopen.Migrate(ctx, config.DB{}, "ngc-api/n1", nil); err != dbopen.ErrNoMigrator {
+	if err := dbopen.Migrate(ctx, config.DB{}, "cd-api/n1", nil); err != dbopen.ErrNoMigrator {
 		t.Fatalf("Migrate: got %v, want ErrNoMigrator", err)
 	}
 	ran := false
 	dbopen.RegisterMigrator(func(context.Context, config.DB, string, io.Writer) error { ran = true; return nil })
 	t.Cleanup(func() { dbopen.RegisterMigrator(nil) })
-	if err := dbopen.Migrate(ctx, config.DB{}, "ngc-api/n1", nil); err != nil {
+	if err := dbopen.Migrate(ctx, config.DB{}, "cd-api/n1", nil); err != nil {
 		t.Fatalf("Migrate: %v", err)
 	}
 	if !ran {
@@ -588,7 +588,7 @@ func TestANoticeOfAControllerLeavesALineWhereNoShellTakesIt(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(&said, nil)))
 	t.Cleanup(func() { slog.SetDefault(before) })
 	srv.ctl.OnNotice(ctx, &controllers.Tunnel{Node: "ctl-1"},
-		core.Notice{Level: core.NoticeError, Text: "Mein Dienst ist gestorben", App: "ngc.test"})
+		core.Notice{Level: core.NoticeError, Text: "Mein Dienst ist gestorben", App: "cd.test"})
 	line := said.String()
 	if !strings.Contains(line, "reached no shell") || !strings.Contains(line, "ctl-1") ||
 		!strings.Contains(line, core.NoticeError) {
@@ -607,11 +607,11 @@ func TestANoticeOfAControllerLeavesALineWhereNoShellTakesIt(t *testing.T) {
 //
 // Measured on 18.10.2026 at the installation on Debian 13: a pin in
 // config.AnchorFile that names a version the rows do not carry killed
-// ngc-api in a restart loop, and the one line it printed was "der Einmal-Code
+// cd-api in a restart loop, and the one line it printed was "der Einmal-Code
 // für die Ersteinrichtung lässt sich nicht anlegen". The code file had
 // nothing to do with it and was never touched -- EnsureCode reads the trust
 // list FIRST, so everything that goes wrong there came out under the name of
-// the code file. An admin who reads that line goes to /var/lib/ngc and finds
+// the code file. An admin who reads that line goes to /var/lib/cd and finds
 // nothing wrong.
 //
 // What it does here instead of a pin is rows that contradict each other --

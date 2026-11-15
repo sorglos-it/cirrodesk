@@ -5,7 +5,7 @@ package appstore
 // holds.
 //
 // Everything here goes through apps/cli/classes, the code behind the three
-// subcommands of ngc-store: Pack writes the package, Encrypt seals it with a
+// subcommands of cd-store: Pack writes the package, Encrypt seals it with a
 // content key, License wraps that key for this installation and signs the
 // licence with the store's key. Nothing is minted by hand, because a licence
 // a test builds itself measures the test's idea of a licence and not the one
@@ -27,18 +27,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	cli "github.com/sorglos-it/nextgencloud/apps/cli/classes"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	cli "github.com/sorglos-it/cirrodesk/apps/cli/classes"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // paidApp is the app these cases pack. It is not the licenceApp of the vectors
-// (org.sorglos.terminal), because a manifest may not carry the ID of an NGC
+// (org.sorglos.terminal), because a manifest may not carry the ID of a CirroDesk
 // part at all (store.Manifest.Validate, wire.CoreApp).
 const paidApp = "org.example.paid"
 
@@ -59,7 +59,7 @@ type goods struct {
 	sum        []byte // SHA-256 of the plain package, as Pack reports it
 }
 
-// build runs ngc-store's own three steps over a freshly written app. The seed
+// build runs cd-store's own three steps over a freshly written app. The seed
 // of the store key is the one the vectors sign with (0x71), so a licence from
 // here verifies against the trust list the fixture set up; the content key is
 // the tool's own random one, which is the point -- nothing below knows it.
@@ -79,10 +79,10 @@ func build(t *testing.T) goods {
 		[]byte("<!doctype html><title>Kaufapp</title>\n"), 0o600); err != nil {
 		t.Fatalf("ui file: %v", err)
 	}
-	plainPath := filepath.Join(dir, "paid.ngc")
+	plainPath := filepath.Join(dir, "paid.cd")
 	m, sum, err := cli.Pack(src, plainPath)
 	if err != nil {
-		t.Fatalf("ngc-store pack: %v", err)
+		t.Fatalf("cd-store pack: %v", err)
 	}
 	g := goods{dir: dir, manifest: m, sum: sum,
 		storeKey:   filepath.Join(dir, "store.key"),
@@ -96,10 +96,10 @@ func build(t *testing.T) goods {
 		t.Fatalf("store key file: %v", err)
 	}
 	if _, err := cli.NewContentKey(g.contentKey); err != nil {
-		t.Fatalf("ngc-store content key: %v", err)
+		t.Fatalf("cd-store content key: %v", err)
 	}
 	if err := cli.Encrypt(plainPath, g.sealedPath, g.contentKey); err != nil {
-		t.Fatalf("ngc-store encrypt: %v", err)
+		t.Fatalf("cd-store encrypt: %v", err)
 	}
 	if g.plain, err = os.ReadFile(plainPath); err != nil {
 		t.Fatalf("plain package: %v", err)
@@ -113,8 +113,8 @@ func build(t *testing.T) goods {
 	if bytes.Equal(g.plain, g.sealed) {
 		t.Fatal("encrypt did not change the package")
 	}
-	if !bytes.HasPrefix(g.sealed, []byte("NGCENC1\n")) {
-		t.Fatalf("the sealed package carries no NGCENC1 header: % x", g.sealed[:8])
+	if !bytes.HasPrefix(g.sealed, []byte("CD-ENC1\n")) {
+		t.Fatalf("the sealed package carries no CD-ENC1 header: % x", g.sealed[:8])
 	}
 	if bytes.Contains(g.sealed, []byte("manifest.json")) {
 		t.Fatal("the sealed package still carries the name manifest.json in the clear")
@@ -149,7 +149,7 @@ func (g goods) licence(t *testing.T, app, installation string, key []byte, opts 
 	env, err := cli.License(app, installation, keyFile, g.contentKey,
 		enc.B64.EncodeToString(key), opts)
 	if err != nil {
-		t.Fatalf("ngc-store license: %v", err)
+		t.Fatalf("cd-store license: %v", err)
 	}
 	b, err := json.Marshal(env)
 	if err != nil {
@@ -230,7 +230,7 @@ func TestThePaidWayRunsFromEndToEnd(t *testing.T) {
 }
 
 // TestALicenceOfAnotherInstallationIsRefused is case 1 of the six: a licence
-// the store issued for somebody else's NGC, with that one's key in it. It is
+// the store issued for somebody else's CirroDesk, with that one's key in it. It is
 // refused, and what the admin reads is the one sentence of E_LICENSE.
 func TestALicenceOfAnotherInstallationIsRefused(t *testing.T) {
 	lf, g := pathFixture(t)
@@ -469,7 +469,7 @@ func TestNoContentKeyIsStoredInTheClear(t *testing.T) {
 	}
 	fromFile, err := enc.B64.DecodeString(string(bytes.TrimSpace(raw)))
 	if err != nil || !bytes.Equal(fromFile, key) {
-		t.Fatalf("the unwrapped key is not the one ngc-store wrote: %v", err)
+		t.Fatalf("the unwrapped key is not the one cd-store wrote: %v", err)
 	}
 
 	rows := []struct {

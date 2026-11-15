@@ -10,17 +10,17 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // StoreKeyFile is the public half of the store's signing key in a store
 // directory, as a PEM "PUBLIC KEY" — the same shape as ReleaseKeyFile, and
 // read with the same function. The secret seed is never in the directory a
 // store is served from; it lies wherever its owner keeps it and reaches
-// ngc-store as a file of its own (Catalog, License).
+// cd-store as a file of its own (Catalog, License).
 const StoreKeyFile = "store-key.pem"
 
 // CheckStore judges a whole store directory: the signed catalog in
@@ -180,7 +180,7 @@ func checkVersion(dir string, e store.Entry, p store.Package) (string, error) {
 	// price and be refused by every reader (Encrypted != (Price != nil)).
 	// That is the defect this question finds.
 	if e.Price != nil {
-		priceFile := strings.TrimSuffix(plain, ".ngc") + PriceSuffix
+		priceFile := strings.TrimSuffix(plain, ".cd") + PriceSuffix
 		price, err := readPrice(filepath.Join(dir, plain))
 		if err != nil {
 			return name, fmt.Errorf("price unreadable: %s", priceFile)
@@ -198,7 +198,7 @@ func checkVersion(dir string, e store.Entry, p store.Package) (string, error) {
 // which case nobody can install it, or it should not be there at all. The
 // owner has to decide which, so it is a reason and not a hint.
 func checkUnlisted(dir string, listed map[string]bool) error {
-	names, err := filepath.Glob(filepath.Join(dir, "*.ngc"))
+	names, err := filepath.Glob(filepath.Join(dir, "*.cd"))
 	if err != nil {
 		return err
 	}

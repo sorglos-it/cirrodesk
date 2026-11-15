@@ -14,52 +14,52 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
 )
 
-// Usage is what ngc-store prints for a wrong call. Messages of ngc-store are
+// Usage is what cd-store prints for a wrong call. Messages of cd-store are
 // German: they are read by whoever runs their own store.
-const Usage = `ngc-store packt Apps und unterschreibt Stores.
+const Usage = `cd-store packt Apps und unterschreibt Stores.
 
 Aufrufe:
-  ngc-store pack <Verzeichnis> <Paket.ngc>        Paket einer App schreiben
-  ngc-store encrypt <Paket.ngc> <Schlüsseldatei>  Kauf-App verschlüsseln
-  ngc-store catalog <Verzeichnis> <Schlüsseldatei> <Store> <Folge> [Basisadresse]
+  cd-store pack <Verzeichnis> <Paket.cd>        Paket einer App schreiben
+  cd-store encrypt <Paket.cd> <Schlüsseldatei>  Kauf-App verschlüsseln
+  cd-store catalog <Verzeichnis> <Schlüsseldatei> <Store> <Folge> [Basisadresse]
                                                   Katalog schreiben und unterschreiben
-  ngc-store license <App> <Installation> <Schlüsseldatei> <Inhaltsschlüssel> <Installationsschlüssel> <Store>
+  cd-store license <App> <Installation> <Schlüsseldatei> <Inhaltsschlüssel> <Installationsschlüssel> <Store>
                                                   Lizenz für einen Test-Store
-  ngc-store release -version <Fassung> -seq <Folge> <Verzeichnis> <Schlüsseldatei>
+  cd-store release -version <Fassung> -seq <Folge> <Verzeichnis> <Schlüsseldatei>
                                                   Release zum Testen unterschreiben
-  ngc-store check <Verzeichnis> <Teil> <Architektur>  Release prüfen wie verify.sh
-  ngc-store check -store <Store> <Verzeichnis>    ganzen Store prüfen
-  ngc-store contents <Verzeichnis>                Inhalt der Release-Tars prüfen
-  ngc-store web <apps/web> <ngc-web-all.tar>      Oberfläche als Release-Datei packen (unter ui/)
-  ngc-store key <Schlüsseldatei>                  öffentlichen Schlüssel eines Stores nennen
-                                                  (storeKey der Installation, NGC_STORE_KEY)
+  cd-store check <Verzeichnis> <Teil> <Architektur>  Release prüfen wie verify.sh
+  cd-store check -store <Store> <Verzeichnis>    ganzen Store prüfen
+  cd-store contents <Verzeichnis>                Inhalt der Release-Tars prüfen
+  cd-store web <apps/web> <cd-web-all.tar>      Oberfläche als Release-Datei packen (unter ui/)
+  cd-store key <Schlüsseldatei>                  öffentlichen Schlüssel eines Stores nennen
+                                                  (storeKey der Installation, CD_STORE_KEY)
 
 Von null zu einem geprüften Release:
   1. Die Archive mit genau diesen Namen in ein leeres Verzeichnis legen:
-       ngc-web-all.tar           darin  ui/public/index.php
+       cd-web-all.tar           darin  ui/public/index.php
                                         ui/templates/apache-vhost.conf
-                                 (packt "ngc-store web" aus apps/web)
-       ngc-api-amd64.tar         darin  genau die Dateien ngc-api und ngc-store
-       ngc-controller-amd64.tar  darin  genau die Datei ngc-controller
-     Für arm64 heißen sie ngc-api-arm64.tar und ngc-controller-arm64.tar.
+                                 (packt "cd-store web" aus apps/web)
+       cd-api-amd64.tar         darin  genau die Dateien cd-api und cd-store
+       cd-controller-amd64.tar  darin  genau die Datei cd-controller
+     Für arm64 heißen sie cd-api-arm64.tar und cd-controller-arm64.tar.
      Ein Teil darf fehlen; ein falsch benannter wird übergangen.
-  2. ngc-store contents <Verzeichnis>
+  2. cd-store contents <Verzeichnis>
      Sagt, was in einem Archiv fehlt oder zu viel ist — hier, nicht erst auf
      dem Server.
-  3. ngc-store release -version 1.1.0 -seq 1 <Verzeichnis> <Schlüsseldatei>
+  3. cd-store release -version 1.1.0 -seq 1 <Verzeichnis> <Schlüsseldatei>
      Die Fassung ist MAJOR.MINOR.PATCH oder MAJOR.MINOR.PATCH.BUILD, also
      drei oder vier Zahlen, jede ohne führende Null (1.1.0, 1.1.0.3).
      Schreibt release.json und release-key.pem in das Verzeichnis.
-  4. ngc-store check <Verzeichnis> ngc-web all
-     Je Teil einmal. Die Teile heißen ngc-web, ngc-api und ngc-controller —
-     mit dem Vorsatz "ngc-", wie die Dateien.
+  4. cd-store check <Verzeichnis> cd-web all
+     Je Teil einmal. Die Teile heißen cd-web, cd-api und cd-controller —
+     mit dem Vorsatz "cd-", wie die Dateien.
 
 Zusätze von "release", vor den Angaben:
-  -version <Fassung>  die NGC-Fassung dieses Release, drei oder vier Zahlen; nötig
+  -version <Fassung>  die CirroDesk-Fassung dieses Release, drei oder vier Zahlen; nötig
   -seq <Folge>        Folgenummer, höher als die letzte; nötig
   -notes <Text>       was sich geändert hat
   -base <Adresse>     wo die Dateien liegen; leer schreibt nur die Namen
@@ -78,14 +78,14 @@ Zusätze von "license", vor den Angaben:
   -issued <Zeit>   Unix-Sekunden der Ausstellung; Vorgabe ist jetzt
 
 Geheime Schlüssel stehen nie in einem Aufruf, nur in einer Datei, die
-ngc-store mit Rechten 0600 anlegt (Windows kann diese Rechte nicht, dort
+cd-store mit Rechten 0600 anlegt (Windows kann diese Rechte nicht, dort
 schützt nur der Ordner): ein Aufruf steht in der Prozessliste und ist für
 jeden anderen lesbar. <Installationsschlüssel> ist der öffentliche Schlüssel
 der Installation und darf darum im Aufruf stehen. Fehlt eine Schlüsseldatei,
-legt ngc-store sie an und nennt nur ihren Pfad, nie ihren Inhalt.
+legt cd-store sie an und nennt nur ihren Pfad, nie ihren Inhalt.
 `
 
-// Run carries out one call of ngc-store and returns the exit status: 0 for
+// Run carries out one call of cd-store and returns the exit status: 0 for
 // done, 1 for a call that failed, 2 for a call Run does not understand.
 //
 // Run is the one place that reads the clock (the issue time of a licence)
@@ -183,7 +183,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprint(stderr, Usage)
 			return 2
 		}
-		// The value an installation needs (config storeKey, ulh NGC_STORE_KEY)
+		// The value an installation needs (config storeKey, ulh CD_STORE_KEY)
 		// was printed only once, when the key file was created; whoever sets
 		// up a second installation had no way to read it again.
 		if _, err := os.Stat(args[1]); errors.Is(err, os.ErrNotExist) {
@@ -234,7 +234,7 @@ func writeCatalog(path string, env sign.Envelope) error {
 }
 
 // runEncrypt seals a package. The output is the package's own name with
-// EncSuffix behind it ("app.ngc" becomes "app.ngc.enc"), beside it: that is
+// EncSuffix behind it ("app.cd" becomes "app.cd.enc"), beside it: that is
 // the name Catalog of Task 28 looks for, and both halves are merged now, so
 // this is the one constant and not a literal. Encrypt itself takes the
 // output path, so anything that needs another name says so.
@@ -243,8 +243,8 @@ func writeCatalog(path string, env sign.Envelope) error {
 // whoever encrypts their first paid app has no key yet. What is printed is
 // the path, never the key.
 func runEncrypt(in, keyFile string, stdout, stderr io.Writer) int {
-	if !strings.HasSuffix(in, ".ngc") {
-		fmt.Fprint(stderr, "Das Paket muss auf .ngc enden\n")
+	if !strings.HasSuffix(in, ".cd") {
+		fmt.Fprint(stderr, "Das Paket muss auf .cd enden\n")
 		return 1
 	}
 	if _, err := os.Stat(keyFile); errors.Is(err, os.ErrNotExist) {
@@ -332,7 +332,7 @@ func writeEnvelope(env sign.Envelope, stdout, stderr io.Writer) int {
 // because whoever signs their first test release has no key yet. What is
 // printed is the path and the public key, never the seed.
 //
-// The real release key of NGC lies on a hardware stick and never on a
+// The real release key of CirroDesk lies on a hardware stick and never on a
 // server (Entwurf 4.8). This subcommand signs releases for testing, and the
 // usage says so.
 func runRelease(args []string, stdout, stderr io.Writer) int {
@@ -340,7 +340,7 @@ func runRelease(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("release", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() { fmt.Fprint(stderr, Usage) }
-	fs.StringVar(&opts.Version, "version", "", "the NGC version of this release")
+	fs.StringVar(&opts.Version, "version", "", "the CirroDesk version of this release")
 	fs.Uint64Var(&opts.Seq, "seq", 0, "sequence number, higher than the last one")
 	fs.StringVar(&opts.Notes, "notes", "", "what changed, shown to admins")
 	fs.StringVar(&opts.BaseURL, "base", "", "where the files lie; empty writes names")
@@ -390,7 +390,7 @@ func runRelease(args []string, stdout, stderr io.Writer) int {
 	// travelling to a server is the name of the subcommand that looks
 	// inside, so it is printed where the release was just made and not
 	// only in the usage nobody reads twice.
-	fmt.Fprint(stdout, "Inhalt der Archive nicht geprüft: ngc-store contents <Verzeichnis>\n")
+	fmt.Fprint(stdout, "Inhalt der Archive nicht geprüft: cd-store contents <Verzeichnis>\n")
 	return 0
 }
 
@@ -462,7 +462,7 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 // the installation scripts unpack (CheckContents). It is the step between
 // packing and signing: a wrongly packed archive is signed, downloaded and
 // unpacked without a word today, and the first place it shows is the
-// server, where half an interface or a missing ngc-store costs an
+// server, where half an interface or a missing cd-store costs an
 // installation.
 //
 // A directory in which no release file lies at all is its own answer and

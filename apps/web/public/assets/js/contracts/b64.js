@@ -1,4 +1,4 @@
-// Package b64: the only binary-to-text encoding of the NGC contracts is
+// Package b64: the only binary-to-text encoding of the CirroDesk contracts is
 // base64url without padding (RFC 4648 section 5), decoded strictly: every
 // byte from the alphabet, no padding, and the unused bits at the end are 0,
 // so every byte string has exactly one encoding (Go: enc.B64).

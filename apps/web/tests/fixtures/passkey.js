@@ -199,7 +199,7 @@ export async function putSoftwareAuthenticator(shell, who) {
 }
 
 // putEmptySoftwareAuthenticator puts an authenticator in front of the page
-// that WORKS and holds nothing for this installation - the state every NGC
+// that WORKS and holds nothing for this installation - the state every CirroDesk
 // account is in today, since apps/web has no credentials.create. It is the
 // counterpart of the CDP authenticator with no credential added, and it
 // refuses the way a real one does: NotAllowedError, nothing signed.

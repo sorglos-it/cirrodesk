@@ -1,5 +1,7 @@
 # Vertragsdeckung — was von `shared/` je ein echter Lauf berührt hat
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Stand 17.10.2026.** Dieses Dokument ändert nichts. In `shared/` ist nichts angefasst.
 
 Die Frage war: `shared/` ist eingefroren und gilt als der Vertrag des ganzen Systems. Seit dem

@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/mariadb"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migrate"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/dbtest"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/mariadb"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migrate"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/dbtest"
 )
 
 var ctx = context.Background()
@@ -23,22 +23,22 @@ var ctx = context.Background()
 // here skips itself, so tools/check.sh runs on a machine without a cluster.
 func clusterConfig(t *testing.T, migrateAccount bool) config.DB {
 	t.Helper()
-	nodes := os.Getenv("NGC_DB_NODES")
-	caFile := os.Getenv("NGC_DB_CA")
+	nodes := os.Getenv("CD_DB_NODES")
+	caFile := os.Getenv("CD_DB_CA")
 	if nodes == "" || caFile == "" {
-		t.Skip("kein Verbund: NGC_DB_NODES und NGC_DB_CA fehlen (apps/server-db/config/dbtest.env.example)")
+		t.Skip("kein Verbund: CD_DB_NODES und CD_DB_CA fehlen (apps/server-db/config/dbtest.env.example)")
 	}
 	ca, err := os.ReadFile(caFile)
 	if err != nil {
 		t.Fatalf("das Zertifikat der CA ist nicht lesbar: %v", err)
 	}
-	user, password := os.Getenv("NGC_DB_USER"), os.Getenv("NGC_DB_PASSWORD")
+	user, password := os.Getenv("CD_DB_USER"), os.Getenv("CD_DB_PASSWORD")
 	if migrateAccount {
-		user, password = os.Getenv("NGC_DB_MIGRATE_USER"), os.Getenv("NGC_DB_MIGRATE_PASSWORD")
+		user, password = os.Getenv("CD_DB_MIGRATE_USER"), os.Getenv("CD_DB_MIGRATE_PASSWORD")
 	}
 	return config.DB{
 		Driver: config.DriverMariaDB, Nodes: strings.Split(nodes, ","),
-		Name: os.Getenv("NGC_DB_NAME"), User: user,
+		Name: os.Getenv("CD_DB_NAME"), User: user,
 		Password: config.NewSecretText(password), CA: string(ca),
 	}
 }
@@ -56,7 +56,7 @@ func fresh(t *testing.T) dbapi.Store {
 		t.Fatal(err)
 	}
 	for _, table := range sqlstore.Tables {
-		if table == "ngc_schema" {
+		if table == "cd_schema" {
 			continue // the record of the migrations stays
 		}
 		if _, err := admin.ExecContext(ctx, "DELETE FROM "+table); err != nil {
@@ -90,9 +90,9 @@ func TestAccountRights(t *testing.T) {
 	}
 	defer db.Close()
 	for _, stmt := range []string{
-		"CREATE TABLE ngc_probe (id BIGINT NOT NULL, PRIMARY KEY (id))",
-		"DROP TABLE ngc_blob",
-		"GRANT SELECT ON ngc.* TO ngc@'%'",
+		"CREATE TABLE cd_probe (id BIGINT NOT NULL, PRIMARY KEY (id))",
+		"DROP TABLE cd_blob",
+		"GRANT SELECT ON cd.* TO cd@'%'",
 	} {
 		if _, err := db.ExecContext(ctx, stmt); err == nil {
 			t.Errorf("the account of the API was allowed to: %s", stmt)
@@ -104,8 +104,8 @@ func TestAccountRights(t *testing.T) {
 // store keeps working through the others. It needs root and only runs on
 // DB 1, where the session sits.
 func TestFailover(t *testing.T) {
-	if os.Getenv("NGC_DB_FAILOVER") != "local" {
-		t.Skip("kein Ausfalltest: NGC_DB_FAILOVER=local fehlt")
+	if os.Getenv("CD_DB_FAILOVER") != "local" {
+		t.Skip("kein Ausfalltest: CD_DB_FAILOVER=local fehlt")
 	}
 	s := fresh(t)
 	defer s.Close()

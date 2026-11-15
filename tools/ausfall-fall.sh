@@ -15,7 +15,7 @@
 set -uo pipefail
 
 PVE=root@10.2.3.2
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 API1=10.2.3.210
 
@@ -70,7 +70,7 @@ reihe() {
 }
 journal() {
   local host=$1 seit=$2
-  $SSH "root@$host" "journalctl -u ngc-api -u ngc-controller --since '$seit' --no-pager 2>/dev/null | tail -25" \
+  $SSH "root@$host" "journalctl -u cd-api -u cd-controller --since '$seit' --no-pager 2>/dev/null | tail -25" \
     2>&1 || echo "      (Knoten nicht erreichbar)"
 }
 
@@ -122,6 +122,6 @@ lebt && echo "    $ADDR antwortet nach dem Hochfahren" || echo "    $ADDR antwor
 sleep 20
 runde "NACHHER, von selbst"
 echo "    Laufende Dienste auf $NAME:"
-$SSH "root@$ADDR" 'systemctl list-units --type=service --state=running --no-legend --plain 2>/dev/null | grep -E "ngc-|nginx|mariadb" | awk "{print \"      \"\$1, \$3, \$4}"; true' 2>&1
+$SSH "root@$ADDR" 'systemctl list-units --type=service --state=running --no-legend --plain 2>/dev/null | grep -E "cd-|nginx|mariadb" | awk "{print \"      \"\$1, \$3, \$4}"; true' 2>&1
 echo "    Journal auf $NAME seit dem Hochfahren:"; journal "$ADDR" "$AUS"
 echo "=========== Ende Fall $NAME ==========="

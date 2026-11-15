@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // TestRequestLogNamesNodePathAndStatusOnly holds A8c: one line per request

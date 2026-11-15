@@ -4,15 +4,15 @@ declare(strict_types=1);
 // Checks the PHP side of the contracts against shared/testdata/, the common
 // truth for Go and JavaScript. The address grammar of Url has to decide every
 // case of url.json exactly as trust/url.go does; anything laxer would hand
-// the browser an address the rest of NGC never accepted.
+// the browser an address the rest of CirroDesk never accepted.
 //
 // Run:  php apps/web/tests/php/config-test.php
 // It needs nothing but PHP: no npm, no browser, no API.
 
 require_once __DIR__ . '/../../classes/Config.php';
 
-use Ngc\Config;
-use Ngc\Url;
+use CirroDesk\Config;
+use CirroDesk\Url;
 
 $root = dirname(__DIR__, 4);
 $failed = 0;
@@ -115,7 +115,7 @@ printf("%-9s %d cases\n", 'robust', count($nasty) * 4);
 
 // --- Config against real files -------------------------------------------
 
-$tmp = sys_get_temp_dir() . '/ngc-web-config-test';
+$tmp = sys_get_temp_dir() . '/cd-web-config-test';
 @mkdir($tmp, 0700, true);
 
 /**
@@ -160,37 +160,37 @@ $cases = [
     ['line feed on the anchor hash', $goodWeb,
         '{"seq":1,"hash":"q6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6s\n"}', false],
     ['line feed on rp.id', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org\n","origins":["https://ngc.example.org"]}}', null, false],
+        . '"rp":{"id":"cd.example.org\n","origins":["https://cd.example.org"]}}', null, false],
 
     // Wichtig 2: the same answers as the vectors, through Config.
     ['api address without a port', '{"apis":[{"url":"https://a.test","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}]}', null, false],
     ['api address with a path', '{"apis":[{"url":"https://a.test:7443/tunnel","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}]}', null, false],
     ['origin with the default port', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org","origins":["https://ngc.example.org:443"]}}', null, false],
+        . '"rp":{"id":"cd.example.org","origins":["https://cd.example.org:443"]}}', null, false],
     ['origin with port 0', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org","origins":["https://ngc.example.org:0"]}}', null, false],
+        . '"rp":{"id":"cd.example.org","origins":["https://cd.example.org:0"]}}', null, false],
     ['origin of colons', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org","origins":["https://:::"]}}', null, false],
+        . '"rp":{"id":"cd.example.org","origins":["https://:::"]}}', null, false],
     ['origin of brackets', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org","origins":["https://]]]"]}}', null, false],
+        . '"rp":{"id":"cd.example.org","origins":["https://]]]"]}}', null, false],
 
     // Wichtig 3: a wrong type has to fail as loudly as a wrong value.
-    ['rp is a string', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],"rp":"ngc"}', null, false],
+    ['rp is a string', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],"rp":"cd"}', null, false],
     ['rp.id is a number', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":42,"origins":["https://ngc.example.org"]}}', null, false],
+        . '"rp":{"id":42,"origins":["https://cd.example.org"]}}', null, false],
     ['rp.origins is a string', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org","origins":"https://ngc.example.org"}}', null, false],
+        . '"rp":{"id":"cd.example.org","origins":"https://cd.example.org"}}', null, false],
     ['rp.id without origins', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org"}}', null, false],
+        . '"rp":{"id":"cd.example.org"}}', null, false],
     ['origins without rp.id', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"origins":["https://ngc.example.org"]}}', null, false],
+        . '"rp":{"origins":["https://cd.example.org"]}}', null, false],
 
     // Strict JSON: a field nobody reads is a typo or a leftover, never a
     // reason to carry on.
     ['unknown field at the top', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],"foo":1}', null, false],
     ['unknown field in apis[]', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE","foo":1}]}', null, false],
     ['unknown field in rp', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],'
-        . '"rp":{"id":"ngc.example.org","origins":["https://ngc.example.org"],"foo":1}}', null, false],
+        . '"rp":{"id":"cd.example.org","origins":["https://cd.example.org"],"foo":1}}', null, false],
     ['unknown field in the anchor', $goodWeb,
         '{"seq":1,"hash":"q6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6s","foo":1}', false],
     ['field spelled differently', '{"apis":[{"url":"https://a.test:7443","tls":"4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eE"}],"APIs":1}', null, false],
@@ -258,7 +258,7 @@ function messageOf(string $tmp, string $web): string
     try {
         Config::load($tmp . '/web.json', $tmp . '/anchor.json');
         return '';
-    } catch (Ngc\ConfigError $e) {
+    } catch (CirroDesk\ConfigError $e) {
         return $e->getMessage();
     } catch (Throwable) {
         return '(kein ConfigError)';
@@ -286,15 +286,15 @@ printf("%-9s %d cases\n", 'message', count($messages));
 // The shipped files must also produce exactly the values /config.json sends.
 $c = Config::load(__DIR__ . '/../web.json', __DIR__ . '/../trust-anchor.json');
 check('config', 'apis of the test files', true,
-    $c->apis === ['https://api-1.ngc.test:7443', 'https://api-2.ngc.test:7443']);
+    $c->apis === ['https://api-1.cd.test:7443', 'https://api-2.cd.test:7443']);
 check('config', 'rp of the test files', true,
-    $c->rp === ['id' => 'ngc.example.org', 'origins' => ['https://ngc.example.org']]);
+    $c->rp === ['id' => 'cd.example.org', 'origins' => ['https://cd.example.org']]);
 // The anchor is no longer 0xAB repeated: apps/web/tests/trust-anchor.json
 // carries the hash derived from the mock world's own seeds. The value is
 // derived a second time, independently, in tests/contracts/anchor.spec.js -
 // this check only holds that Config::load hands it through unchanged.
 check('config', 'anchor of the test files', true,
-    $c->anchor === ['seq' => 1, 'hash' => 'J3qr4-1LBiBkYpH6_a_Z1xWiTfVkmDfSEfg_yfahMUQ']);
+    $c->anchor === ['seq' => 1, 'hash' => 'pRy62CiEG12gvugmTUoTiCgidCSPo4u-4wInAHkFtGc']);
 
 @unlink($tmp . '/web.json');
 @unlink($tmp . '/anchor.json');

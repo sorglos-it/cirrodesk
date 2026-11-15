@@ -97,7 +97,7 @@ jobs:
       # BEFORE check.sh, and for the same reason check.sh puts its structural
       # checks before its builds: a counter that counts wrong makes the three
       # minutes after it worthless. This step also asserts that this workflow
-      # and check.sh still agree on NGC_CHECK_TEST_JSON - the drift that made
+      # and check.sh still agree on CD_CHECK_TEST_JSON - the drift that made
       # 42 of 82 red runs here report "nothing ran" while check.sh was green.
       - name: zaehlwerk selbst pruefen
         run: bash tools/ci-count-test.sh
@@ -106,7 +106,7 @@ jobs:
         env:
           # check.sh writes the JSON stream of its own test run here instead of
           # running the suite a second time just to count it.
-          NGC_CHECK_TEST_JSON: ${{ runner.temp }}/test.json
+          CD_CHECK_TEST_JSON: ${{ runner.temp }}/test.json
         run: bash tools/check.sh
 
       - name: zaehlen - bestanden / rot / uebersprungen
@@ -150,7 +150,7 @@ jobs:
           sudo -E env "PATH=$PATH" "GOFLAGS=$GOFLAGS" \
             go test -count=1 -json ./apps/server-controller/... > "${{ runner.temp }}/root.json" || true
       - name: zaehlen
-        run: NGC_COUNT_FLOOR=50 bash tools/ci-count.sh "${{ runner.temp }}/root.json" "Linux als root (controller)"
+        run: CD_COUNT_FLOOR=50 bash tools/ci-count.sh "${{ runner.temp }}/root.json" "Linux als root (controller)"
 
   # ---------------------------------------------------------------- race
   # The race detector needs cgo and a C compiler. On the Windows machine that
@@ -178,7 +178,7 @@ jobs:
       - name: -race ueber alles ausser shared/trust
         run: |
           set -o pipefail
-          pkgs=$(go list ./... | grep -v '^github.com/sorglos-it/nextgencloud/shared/trust$')
+          pkgs=$(go list ./... | grep -v '^github.com/sorglos-it/cirrodesk/shared/trust$')
           n=$(printf '%s\n' "$pkgs" | grep -c .)
           # A package list that comes back nearly empty is a failed list, not a
           # small repo: go list answers "packages=0" when it cannot stat a tree.
@@ -299,7 +299,7 @@ jobs:
           # already answering measures another working tree, and that is
           # exactly the trap the config was written against. 8161/8171/8181
           # keep them apart whatever the runner does.
-          NGC_WEB_TEST_PORT: ${{ matrix.engine == 'chromium' && '8161' || matrix.engine == 'firefox' && '8171' || '8181' }}
+          CD_WEB_TEST_PORT: ${{ matrix.engine == 'chromium' && '8161' || matrix.engine == 'firefox' && '8171' || '8181' }}
           # The reporter writes to a FILE, not to stdout. Measured in run
           # 41716631146: all three shards died at the counter with
           # "Unexpected token 'G', \"GitCommitI\"..." - playwright prints its

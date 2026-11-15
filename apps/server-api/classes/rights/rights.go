@@ -18,10 +18,10 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // ErrRights reports a rights row the database cannot hold.
@@ -119,7 +119,7 @@ func Set(ctx context.Context, db dbapi.Store, r core.RoleRights) error {
 }
 
 // All returns the rights of every role of the trust list, for
-// ngc.users/rights. A role without a row comes with an empty list, so the
+// cd.users/rights. A role without a row comes with an empty list, so the
 // shell shows every role.
 //
 // A row of a role the trust list no longer holds is left out here, and nothing

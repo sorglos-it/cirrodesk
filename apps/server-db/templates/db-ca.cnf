@@ -1,5 +1,5 @@
-# The CA of one NGC installation and the certificates of its database nodes.
-# ngc-db.sh uses it with openssl; the placeholder @HOST@ becomes the host of
+# The CA of one CirroDesk installation and the certificates of its database nodes.
+# cd-db.sh uses it with openssl; the placeholder @HOST@ becomes the host of
 # the node, as a DNS name or, for an IPv4 address, as an IP.
 #
 # openssl req reads its options from the section -section names, so ca_dn and
@@ -7,10 +7,10 @@
 # Measured with OpenSSL 3.5.7: a section that holds the name alone makes
 # "req -section" stop with "No objects specified in config file".
 #
-# This file has a SECOND copy: ngc-db.sh of the ulh repository carries it as a
-# here-document, because ngc-db installs no NGC program files and so has no
+# This file has a SECOND copy: cd-db.sh of the ulh repository carries it as a
+# here-document, because cd-db installs no CirroDesk program files and so has no
 # release to read this file from. A change here belongs there as well, and
-# apps/cli/tests/ngc-db.test.sh of ulh builds a real CA and a real node
+# apps/cli/tests/cd-db.test.sh of ulh builds a real CA and a real node
 # certificate from that copy.
 
 [ca_dn]
@@ -18,7 +18,7 @@ prompt = no
 distinguished_name = ca_name
 
 [ca_name]
-CN = NGC DB CA
+CN = CirroDesk DB CA
 
 [ca_ext]
 basicConstraints = critical,CA:TRUE,pathlen:0

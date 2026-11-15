@@ -3,10 +3,10 @@ package rights
 import (
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestARootTaskWithoutTheGrantSaysSo is the case of 19.10.2026, staged. On the
@@ -25,7 +25,7 @@ func TestARootTaskWithoutTheGrantSaysSo(t *testing.T) {
 	fx := newFixture(t)
 	action, ok := core.Lookup(core.AppStore, core.ServiceController, core.ActDeactivate)
 	if !ok {
-		t.Fatal("the contract has no ngc.store/controller/deactivate")
+		t.Fatal("the contract has no cd.store/controller/deactivate")
 	}
 	// The control FIRST, because a task counts once: the same ID may not be
 	// spent before the measurement. Two fixtures, so the two calls share no

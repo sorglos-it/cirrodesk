@@ -1,5 +1,7 @@
 # Erste Anmeldung sagt "Anmeldung fehlgeschlagen."
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Erscheinung (Thomas, wörtlich): "der fehler is immer noch drin das er das erste
 mal anmelden sagt passwort falsch". Zweiter Versuch mit demselben Passwort geht
 durch.

@@ -1,4 +1,4 @@
-# NGC – Entwurf für den Kern
+# CirroDesk – Entwurf für den Kern
 
 **Stand:** 19.09.2026 · **Status:** Von Thomas am 19.09.2026 freigegeben. Nächster Schritt: der Umsetzungsplan
 **Einstieg für die nächste Sitzung:** [`docs/STAND.md`](../../STAND.md)
@@ -19,7 +19,7 @@ Kompatibilität.
 - Der App-Store ist „die erste App": Er bindet mehrere Stores an, darunter einen globalen
   Store von uns mit Gratis- und Kauf-Apps (Abo oder Kauf, pro Benutzer oder pro Site). Eigene
   Apps lassen sich hochladen.
-- NGC hat vier Teile: Webinterface, API, Datenbank und Server-Controller. Alle vier können auf
+- CirroDesk hat vier Teile: Webinterface, API, Datenbank und Server-Controller. Alle vier können auf
   einer Maschine laufen, müssen aber nicht. Das Webinterface spricht mit x APIs, die mit y
   Datenbanken arbeiten; die APIs können z Server-Controller haben.
 - Endausbau, nicht der Anfang: Webinterface auf einem Webserver, API auf einem
@@ -87,16 +87,16 @@ mit Galera und Podman aus den Paketquellen von Debian und Ubuntu, und die instal
 
 ### Lizenz
 
-NGC steht unter der **AGPL-3.0**. `ngc.js` und die Verträge in `shared/` stehen unter
+CirroDesk steht unter der **AGPL-3.0**. `cd.js` und die Verträge in `shared/` stehen unter
 **MIT**, damit auch geschlossene, bezahlte Apps möglich sind. Solange alle Rechte bei Thomas
 liegen, kann er Firmen zusätzlich eine kommerzielle Lizenz verkaufen. Nimmt er Code von anderen
-Entwicklern an, braucht er dafür deren schriftliche Zustimmung. Bevor NGC öffentlich wird,
+Entwicklern an, braucht er dafür deren schriftliche Zustimmung. Bevor CirroDesk öffentlich wird,
 schaut jemand mit Ahnung von Lizenzrecht drauf.
 
 ### Sprachen und Plattformen
 
 - API, Controller und Werkzeuge in **Go**, Webinterface in **HTML, CSS, JS und PHP**.
-- **Debian und Ubuntu**, jeweils **amd64 und arm64**, damit NGC auch auf dem Pi läuft.
+- **Debian und Ubuntu**, jeweils **amd64 und arm64**, damit CirroDesk auch auf dem Pi läuft.
 - **Windows** wird nicht umgesetzt. Der Entwurf soll es nur nicht ausschließen.
 
 ## 3. Teilprojekte
@@ -104,7 +104,7 @@ schaut jemand mit Ahnung von Lizenzrecht drauf.
 | # | Teilprojekt | Inhalt |
 |---|---|---|
 | 1 | **Kern** | Die Pipeline von Anfang an verteilt auf sieben Servern: ein Webserver, zwei API-Server mit Lastverteilung, drei Datenbankknoten (MariaDB Galera) und ein Server für die Dienste der Apps, auf jedem ein Controller. Dasselbe läuft auch komplett auf einem Pi mit SQLite. Dazu App-Modell, App-Store mit mehreren Quellen, verschlüsselte Kauf-Apps, Benutzer & Rechte, Anmeldung mit Passwort oder Passkey, Sicherheitsmodell mit Ende-zu-Ende-Verschlüsselung, Dienste in Containern, Autoupdate für alle Teile, Beispiel-Apps und die Installation über ulh. |
-| 2 | **NGC-Zertifizierungsstelle** | Eigene App: Zertifikate für Server und Geräte, damit auch ein Heimnetz ohne Aufwand ein vertrauenswürdiges Zertifikat bekommt und auf Passkeys umstellen kann; PIV-Zertifikate für USB-/NFC-Sticks |
+| 2 | **CirroDesk-Zertifizierungsstelle** | Eigene App: Zertifikate für Server und Geräte, damit auch ein Heimnetz ohne Aufwand ein vertrauenswürdiges Zertifikat bekommt und auf Passkeys umstellen kann; PIV-Zertifikate für USB-/NFC-Sticks |
 | 3 | **Verteilung** | Mehrere Server für Dienste (z Controller) und Dienste an bestimmte Server zuweisen. Mehrere APIs und Datenbanken mit Lastverteilung gibt es schon im Kern. |
 | 4 | **Datenbanken** | MySQL, MSSQL und Oracle hinter derselben Schnittstelle wie MariaDB und SQLite |
 | 5 | **Handy und Tablet** | Eine zweite Oberfläche für Touch, dieselben Apps im Vollbild |
@@ -113,7 +113,7 @@ schaut jemand mit Ahnung von Lizenzrecht drauf.
 
 Der Kern kommt zuerst, weil er die Schnittstellen festlegt, an die alles andere andockt. Direkt
 danach kommt die Zertifizierungsstelle, weil sie das Problem mit Zertifikaten im Heimnetz löst,
-einer der Gründe für NGC. Die
+einer der Gründe für CirroDesk. Die
 Reihenfolge von 2 bis 7 können wir noch ändern. Jedes Teilprojekt bekommt einen eigenen
 Entwurf, einen Plan und wird dann gebaut.
 
@@ -124,7 +124,7 @@ Entwurf, einen Plan und wird dann gebaut.
 Der Kern ist fertig, wenn der folgende Ablauf zweimal klappt: einmal verteilt auf sieben
 Servern und einmal komplett auf einem Pi mit SQLite. Installiert wird jeweils über ulh.
 
-1. NGC installieren und als erster Admin anmelden: mit Benutzer, Passwort und TOTP, solange das
+1. CirroDesk installieren und als erster Admin anmelden: mit Benutzer, Passwort und TOTP, solange das
    Zertifikat nicht vertrauenswürdig ist, sonst mit Passkey.
 2. Im App-Store die Terminal-App aktivieren. Das Aktivieren ist eine Root-Aufgabe und gelingt
    nur mit der Unterschrift des Admins, die der Controller prüft.
@@ -137,7 +137,7 @@ Servern und einmal komplett auf einem Pi mit SQLite. Installiert wird jeweils ü
 7. Die Verbindung zwischen API und Controller wird getrennt, und der Server mit dem Controller
    wird neu gestartet. Der Controller stellt den Zustand seiner Apps trotzdem wieder her
    (Test-App mit Startaktion, 4.6).
-8. Ein NGC-Update und ein App-Update werden im Modus „automatisch" selbst eingespielt. Ein
+8. Ein CirroDesk-Update und ein App-Update werden im Modus „automatisch" selbst eingespielt. Ein
    absichtlich kaputtes Update wird selbst zurückgenommen, und eine ältere Version lässt sich
    nicht einspielen (4.8).
 9. Ein Mitschnitt auf dem API-Server zeigt vom Inhalt der Kanäle nichts, nur verschlüsselte
@@ -159,7 +159,7 @@ Browser ─HTTPS─► Web (Apache + apps/web/) ─/api/─► API 1 oder API 2 
                                                           ▲
                                       Tunnel zu jeder API │
                                                           │
-                                     Dienste: ngc-controller ─stdin/stdout─► Dienst (Container)
+                                     Dienste: cd-controller ─stdin/stdout─► Dienst (Container)
                                             │
                                           SQLite (lokaler Zustand)
 ```
@@ -175,7 +175,7 @@ dasselbe für die Datenbank.
 - In der PHP-Konfiguration des Webinterface steht die Liste der API-Server mit Hostname, Port
   und TLS-Fingerabdruck. Daraus richtet der Controller auf dem Webserver die Lastverteilung in Apache ein
   (`mod_proxy_balancer`) in einer eigenen Datei (`config.BalancerFile`), die vor seiner Kopplung
-  ngc-web schreibt. Ändert sich die Liste, stellt er Apache selbst um.
+  cd-web schreibt. Ändert sich die Liste, stellt er Apache selbst um.
 - Apache prüft laufend, welche APIs antworten, und schickt jede neue Verbindung an eine davon.
   Fällt eine API aus, verbindet sich der Browser neu und landet bei einer anderen. Weil die
   Sitzungen in der Datenbank liegen, geht es ohne neue Anmeldung weiter.
@@ -197,12 +197,12 @@ API muss nicht offen im Netz stehen.
 
 | Teil | Ordner | Aufgabe | Server im Kern-Aufbau |
 |---|---|---|---|
-| Webinterface | `apps/web/` | Desktop aus dem Prototyp (Fenster, Taskleiste, Startmenü). Anmeldung mit Passwort, TOTP oder Passkey, Verschlüsselung im Browser bis zum Dienst, Prüfung der Vertrauensliste, App-Fenster und `ngc.js`, die Oberflächen der mitgelieferten Apps. PHP liefert die Desktop-Seite aus, verwaltet die Liste der APIs und merkt sich den Admin-Schlüssel der Vertrauensliste. | Web |
-| API | `apps/server-api/`, `ngc-store` in `apps/cli/` | Sitzungen und Sitzungszertifikate, Rechte, Weiterleitung, Tunnel zu den Controllern, Apps, Stores, Lizenzen und die Schlüssel der Kauf-Apps, Protokoll, Verteilung der Vertrauensliste und der Updates. Dazu das Werkzeug `ngc-store`, das Apps packt, verschlüsselt und Kataloge signiert. | API 1 und 2 |
+| Webinterface | `apps/web/` | Desktop aus dem Prototyp (Fenster, Taskleiste, Startmenü). Anmeldung mit Passwort, TOTP oder Passkey, Verschlüsselung im Browser bis zum Dienst, Prüfung der Vertrauensliste, App-Fenster und `cd.js`, die Oberflächen der mitgelieferten Apps. PHP liefert die Desktop-Seite aus, verwaltet die Liste der APIs und merkt sich den Admin-Schlüssel der Vertrauensliste. | Web |
+| API | `apps/server-api/`, `cd-store` in `apps/cli/` | Sitzungen und Sitzungszertifikate, Rechte, Weiterleitung, Tunnel zu den Controllern, Apps, Stores, Lizenzen und die Schlüssel der Kauf-Apps, Protokoll, Verteilung der Vertrauensliste und der Updates. Dazu das Werkzeug `cd-store`, das Apps packt, verschlüsselt und Kataloge signiert. | API 1 und 2 |
 | Controller | `apps/server-controller/` | Tunnel zur API, Kopplung, Dienste in Containern starten, Ende-zu-Ende-Verschlüsselung, Vertrauensliste und Root-Unterschriften prüfen, Kauf-Apps entschlüsseln, lokaler Zustand, Updates einspielen und zurücknehmen, der Dienst „virtuelles Terminal" | alle sieben |
 | Datenbank | `apps/server-db/` | MariaDB-Galera-Cluster einrichten und absichern, Datenzugriff für API und Controller (MariaDB und SQLite), Migrationen, Verschlüsselung der Geheimnisse | DB 1 bis 3 |
 | Verträge | `shared/` | Schnittstellen zwischen den Teilen und Testdaten; gehört dem Koordinator (4.7) | – |
-| Installation | im ulh-Repo: `scripts/ngc-*.sh` | ulh-Skripte je Teil und für „alles auf einem Pi" | – |
+| Installation | im ulh-Repo: `scripts/cd-*.sh` | ulh-Skripte je Teil und für „alles auf einem Pi" | – |
 | Mitgelieferte Apps | Oberflächen in `apps/web/`, Dienst des Terminals in `apps/server-controller/` | Fest dabei: **App-Store** und **Benutzer & Rechte**. Zum Aktivieren: **Rechner** aus dem Prototyp (nur Oberfläche) und **Terminal** (Oberfläche und Dienst). | – |
 | Fremdcode | `vendor/` (Go), `apps/web/public/assets/vendor/` (Browser), `THIRD-PARTY.md` | Kopiert und mit Herkunft notiert, Kandidaten in Kapitel 7 | – |
 | Prototyp | `docs/prototype.html` | Unverändert als Vorlage für den Desktop | – |
@@ -216,13 +216,13 @@ Speicher einer einzelnen API. Jede API kann jede andere ersetzen.
 
 ### 4.3 Die Pipeline (Abschnitt 2, abgestimmt)
 
-**Kanäle.** Alles, was durch NGC läuft, ist ein Kanal, ähnlich wie ein Tunnel im VPN: öffnen,
+**Kanäle.** Alles, was durch CirroDesk läuft, ist ein Kanal, ähnlich wie ein Tunnel im VPN: öffnen,
 Daten in beide Richtungen, schließen. „Mail senden" ist ein Kanal mit einer Nachricht hin und
 einer zurück, ein Terminal ist ein Kanal, der offen bleibt. In einer App:
 
 ```js
-await ngc.call("mail", "send", mail)            // Auftrag, danach kommt die Antwort zurück
-const t = await ngc.open("terminal", "shell")   // Datenstrom, der offen bleibt
+await cd.call("mail", "send", mail)            // Auftrag, danach kommt die Antwort zurück
+const t = await cd.open("terminal", "shell")   // Datenstrom, der offen bleibt
 ```
 
 **Öffnen.**
@@ -245,7 +245,7 @@ im Container der App.
 
 - Daten aus dem Kanal kommen auf stdin an, was das Programm auf stdout schreibt, geht zurück,
   stderr landet im Log. Exit-Code 0 heißt Erfolg.
-- Wer fragt, steht in den Umgebungsvariablen `NGC_USER`, `NGC_APP` und `NGC_ACTION`.
+- Wer fragt, steht in den Umgebungsvariablen `CD_USER`, `CD_APP` und `CD_ACTION`.
 - Das beherrscht jede Programmiersprache, auch ein Bash-Skript.
 - Verlangt ein Update mehr Rechte, spielt der Controller es nicht ein; der Admin aktiviert dann
   die neue Version mit den neuen Rechten.
@@ -314,19 +314,19 @@ braucht (heute Podman) und ob er Netz, root-Rechte oder andere Sonderrechte brau
 Katalog mit Apps, Versionen und Preisen sowie den Paketen. Der Store signiert seinen Katalog,
 und im Katalog steht zu jedem Paket eine Prüfsumme. So fällt jede Manipulation auf.
 
-- Den Schlüssel des globalen Stores bringt NGC mit. Bei jedem weiteren Store bestätigt der
+- Den Schlüssel des globalen Stores bringt CirroDesk mit. Bei jedem weiteren Store bestätigt der
   Admin dessen Schlüssel einmal beim Eintragen.
 - Eigene Apps haben keine Signatur und lassen sich nur mit ausdrücklicher Bestätigung
   installieren.
-- Mit `ngc-store` kann jeder Apps packen und einen signierten Katalog erzeugen, also einen
+- Mit `cd-store` kann jeder Apps packen und einen signierten Katalog erzeugen, also einen
   eigenen Store aufsetzen.
 - Wer Apps verkaufen will, braucht zusätzlich einen Store-Server (Teilprojekt 6), der die
   Lizenzen ausstellt. Die Kauf-Apps selbst sind verschlüsselt und können wie Gratis-Apps als
   einfache Dateien bereitliegen (siehe „Verschlüsselte Kauf-Apps").
 
 **Gratis und Kauf.** Im Katalog steht für jede App: gratis, Kauf oder Abo, jeweils pro Site
-oder pro Benutzer. Bezahlt wird auf der Webseite des Stores, nie in NGC, deshalb sieht NGC keine
-Zahlungsdaten. Danach stellt der Store eine signierte Lizenz für diese Installation aus. NGC
+oder pro Benutzer. Bezahlt wird auf der Webseite des Stores, nie in CirroDesk, deshalb sieht CirroDesk keine
+Zahlungsdaten. Danach stellt der Store eine signierte Lizenz für diese Installation aus. CirroDesk
 prüft sie selbst, auch ohne Internet:
 
 - **Pro Benutzer:** Nur so viele Benutzer bekommen das Recht „benutzen", wie die Lizenz
@@ -349,7 +349,7 @@ Installation öffnen, für die sie gekauft wurde:
    Dienste entschlüsselt und geladen. Die Oberfläche entschlüsselt die API für den Browser.
 4. Läuft ein Abo aus, gibt die API den Schlüssel nicht mehr heraus. Nach der Übergangsfrist
    starten die Controller den Dienst nicht mehr. Erneuerte Lizenzen bringt die API den
-   Controllern über `ngc.store/controller/license`; Unterschrift, Installation und App prüfen die
+   Controllern über `cd.store/controller/license`; Unterschrift, Installation und App prüfen die
    Controller selbst, den Schlüssel der Installation nur die API.
 
 Grenzen:
@@ -362,11 +362,11 @@ Grenzen:
 - Wer die ganze Installation samt Schlüssel auf eine andere Maschine kopiert, nimmt die Apps
   mit. Später hilft dagegen, den privaten Schlüssel im TPM-Chip des Servers abzulegen (offene
   Frage 8).
-- Wer NGC selbst umbaut, kann Lizenzprüfung und Verschlüsselung umgehen. Einfaches Weitergeben
+- Wer CirroDesk selbst umbaut, kann Lizenzprüfung und Verschlüsselung umgehen. Einfaches Weitergeben
   und das Herunterladen ohne Kauf bringen aber nichts mehr.
 
 Bis der Store-Server fertig ist, besteht der globale Store nur aus einem signierten Katalog mit
-Gratis-Apps. Kauf-Apps testet der Kern mit einem Test-Store: `ngc-store` verschlüsselt die
+Gratis-Apps. Kauf-Apps testet der Kern mit einem Test-Store: `cd-store` verschlüsselt die
 Test-Apps und stellt Test-Lizenzen aus.
 
 **Aktivieren.** Die API prüft das Manifest und trägt die App in die Datenbank ein. Die
@@ -396,9 +396,9 @@ erhalten, auch wenn die App gelöscht wird.
 - Jede App-Oberfläche läuft in einem abgeschotteten iframe. Sie kommt weder an die Shell noch
   an andere Apps heran und darf keine eigenen Verbindungen aufbauen, das blockiert der Browser
   über die Sicherheitsrichtlinie (CSP).
-- Mit der Außenwelt redet sie nur über `ngc.call` und `ngc.open`, und zwar nur mit ihren eigenen
+- Mit der Außenwelt redet sie nur über `cd.call` und `cd.open`, und zwar nur mit ihren eigenen
   Diensten. Daten speichern kann sie deshalb nur über ihren Dienst.
-- Die Bibliothek `ngc.js` teilt der App mit, ob die Shell hell oder dunkel ist und welche
+- Die Bibliothek `cd.js` teilt der App mit, ob die Shell hell oder dunkel ist und welche
   Akzentfarbe gilt.
 - Apps müssen in jeder Fenstergröße funktionieren, weil die Oberfläche für Handy und Tablet sie
   später im Vollbild zeigt.
@@ -414,7 +414,7 @@ Administratoren sichtbar.
 **Vorgaben von Thomas:** AES-256 symmetrisch beziehungsweise asymmetrisch, wo nötig. Root-Aufgaben
 aus dem Webinterface müssen vom Benutzer signiert sein, mit einem eigenen Zertifikat pro
 Benutzer, das nur für die Sitzungsdauer gilt. Passkeys sowie YubiKey 5 NFC und Nitrokey 3 NFC
-mit PIN müssen funktionieren. Im Heimnetz ohne vertrauenswürdiges Zertifikat beginnt NGC mit
+mit PIN müssen funktionieren. Im Heimnetz ohne vertrauenswürdiges Zertifikat beginnt CirroDesk mit
 Benutzer und Passwort, TOTP lässt sich dazuschalten, und man stellt auf Passkeys um, sobald es
 geht.
 
@@ -427,7 +427,7 @@ gegenseitig aus (MAC über das Angebot der API und über Fassung 1).
 **Anmeldung in zwei Stufen** (am 19.09.2026 abgestimmt).
 
 1. **Benutzer und Passwort:** Das funktioniert immer, auch im Heimnetz ohne vertrauenswürdiges
-   Zertifikat. Ein zweiter Faktor per Authenticator-App (TOTP) lässt sich zuschalten, und NGC
+   Zertifikat. Ein zweiter Faktor per Authenticator-App (TOTP) lässt sich zuschalten, und CirroDesk
    empfiehlt das.
 2. **Passkey oder Stick:** sobald die Installation ein vertrauenswürdiges Zertifikat hat.
    Umgestellt wird pro Benutzer oder für ganze Rollen. Für die Umgestellten ist die Anmeldung
@@ -445,7 +445,7 @@ gegenseitig aus (MAC über das Angebot der API und über Fassung 1).
 - TOTP prüft die API. Es schützt die Anmeldung, falls jemand das Passwort stiehlt. Das
   Geheimnis dafür liegt verschlüsselt in der Datenbank.
 - Nach Fehlversuchen werden weitere Versuche verzögert und das Konto kurz gesperrt.
-- Mit Passwort-Anmeldung zeigt NGC dauerhaft den Hinweis, auf Passkeys umzustellen, sobald es
+- Mit Passwort-Anmeldung zeigt CirroDesk dauerhaft den Hinweis, auf Passkeys umzustellen, sobald es
   geht.
 
 **Passkeys und Sticks.** Passkeys vom Handy, aus Windows Hello und aus Passwortmanagern
@@ -457,12 +457,12 @@ oder den Nitrokey 3 NFC (Open Source), per USB und per NFC am Handy.
 - **FIDO2 (im Kern):** dasselbe Verfahren wie Passkeys. Der Admin richtet den Stick für einen
   Benutzer ein und gibt ihn aus, Name und Schlüssel liegen dann auf dem Stick. Der Benutzer
   steckt ihn ein oder hält ihn ans Handy, gibt seine PIN ein und ist angemeldet, für alle Apps
-  und Server von NGC. **Pflicht (Thomas, 19.09.2026):** YubiKey 5 NFC und Nitrokey 3 NFC
-  funktionieren als Anmeldung mit PIN, per USB am Rechner und per NFC am Handy. NGC verlangt
+  und Server von CirroDesk. **Pflicht (Thomas, 19.09.2026):** YubiKey 5 NFC und Nitrokey 3 NFC
+  funktionieren als Anmeldung mit PIN, per USB am Rechner und per NFC am Handy. CirroDesk verlangt
   dabei immer die PIN des Sticks, bloßes Antippen reicht nicht.
 - **PIV (mit der Zertifizierungsstelle, Teilprojekt 2):** Der Stick arbeitet als Smartcard,
   der Admin schreibt ein Zertifikat unserer Zertifizierungsstelle darauf. Das ist der Weg zu
-  Single Sign-on über NGC hinaus, etwa für die Windows-Anmeldung mit der späteren
+  Single Sign-on über CirroDesk hinaus, etwa für die Windows-Anmeldung mit der späteren
   LDAP/AD-App.
 
 **Wiederherstellung.** Wer sein Passwort oder alle Schlüssel verliert, hat drei Wege zurück:
@@ -583,7 +583,7 @@ jedem Kanal neu, anhand von Benutzer, Rolle, App, Aktion und Lizenz.
 
 **Controller.** API und Controller weisen sich gegenseitig mit Schlüsseln aus. Einen Controller
 auf einem anderen Server koppelt man einmalig mit einem Kopplungscode, den die API ausgibt;
-läuft alles auf einer Maschine, koppelt ngc-all den Controller nach der Ersteinrichtung mit einem
+läuft alles auf einer Maschine, koppelt cd-all den Controller nach der Ersteinrichtung mit einem
 Kopplungscode aus dem Browser. Der Controller startet nur
 Container aktivierter Apps, jeweils unter dem eigenen Systembenutzer der App. Er selbst läuft
 als root, weil er diese Benutzer anlegen muss. Deshalb bleibt sein Code so klein wie möglich.
@@ -615,11 +615,11 @@ als root, weil er diese Benutzer anlegen muss. Deshalb bleibt sein Code so klein
   vertrauenswürdig eingetragen ist.
 - Import eines Zertifikats von einer anderen Zertifizierungsstelle.
 
-Die NGC-Zertifizierungsstelle wird eine eigene App und direkt nach dem Kern gebaut
-(Teilprojekt 2). Thomas: Sie ist ein Grund, NGC überhaupt zu bauen. Mit ihr wird der Umstieg
+Die CirroDesk-Zertifizierungsstelle wird eine eigene App und direkt nach dem Kern gebaut
+(Teilprojekt 2). Thomas: Sie ist ein Grund, CirroDesk überhaupt zu bauen. Mit ihr wird der Umstieg
 vom Passwort auf Passkeys im Heimnetz zu ein paar Klicks.
 
-**Folge für Passkeys:** Sie funktionieren nur, wenn NGC über einen Namen statt einer IP-Adresse
+**Folge für Passkeys:** Sie funktionieren nur, wenn CirroDesk über einen Namen statt einer IP-Adresse
 aufgerufen wird und der Browser dem Zertifikat vertraut. Das ulh-Skript fragt deshalb nach dem
 Namen. Fehlt eins von beiden, bleibt es bei der Anmeldung mit Passwort.
 
@@ -634,7 +634,7 @@ in der App Benutzer & Rechte.
 
 **Grenzen.**
 
-- Wer NGC selbst umbaut, kann Lizenzprüfung und Verschlüsselung der Kauf-Apps umgehen (4.4).
+- Wer CirroDesk selbst umbaut, kann Lizenzprüfung und Verschlüsselung der Kauf-Apps umgehen (4.4).
 - Die API entscheidet weiterhin über die Rechte bei Aufgaben ohne root. Eine übernommene API
   könnte einem echten Benutzer also etwas erlauben, was seine Rechte nicht hergeben, und sie
   sieht, wer wann welchen Dienst aufruft. Den Inhalt sieht sie nicht, und als Benutzer oder
@@ -733,9 +733,9 @@ in der App Benutzer & Rechte.
   und Verschlüsselung, die Lastverteilung in Apache, Podman auf den Servern mit Diensten, das
   Schlüsselpaar der Installation und die Kopplung von Controllern und weiteren API-Servern. Am Ende zeigen sie den Einmal-Code für den ersten Admin an.
 - Programmdateien lädt ein Skript nur herunter, wenn ihre Signatur stimmt.
-- Die Skripte liegen direkt im öffentlichen ulh-Repo (`scripts/ngc-*.sh`, Einträge in dessen
-  `config.yaml`), auch solange NGC privat ist (Entscheidung vom 21.09.2026).
-- Updates spielt danach der Controller ein (4.8). ulh bleibt der Notweg, falls NGC selbst nicht
+- Die Skripte liegen direkt im öffentlichen ulh-Repo (`scripts/cd-*.sh`, Einträge in dessen
+  `config.yaml`), auch solange CirroDesk privat ist (Entscheidung vom 21.09.2026).
+- Updates spielt danach der Controller ein (4.8). ulh bleibt der Notweg, falls CirroDesk selbst nicht
   mehr startet.
 
 **Fehlerbehandlung.**
@@ -780,7 +780,7 @@ in der App Benutzer & Rechte.
   Mitschnitt zeigt, dass das Passwort den Browser nie verlässt.
 - Das Webinterface prüfen wir automatisch mit Playwright in den Engines von Chrome, Firefox und
   Safari. Playwright kommt per npm, aber streng abgegrenzt: nur im Ordner `apps/web/tests/`, mit
-  festgeschriebenen Versionen, nur auf Test-Servern und nie nötig, um NGC zu bauen oder
+  festgeschriebenen Versionen, nur auf Test-Servern und nie nötig, um CirroDesk zu bauen oder
   laufen zu lassen. Thomas: „zum Testen unserer Software darfst du bauen was du willst. solange
   der core davon nicht betroffen wird".
 
@@ -792,12 +792,12 @@ Server ihres Teils und betreut alle Server, die dazugehören:
 
 | Server | Teil | Ordner | Was dort gebaut wird |
 |---|---|---|---|
-| Web | Webinterface | `apps/web/` | Desktop, Anmeldung mit Passwort, TOTP oder Passkey, Verschlüsselung im Browser bis zum Dienst, Prüfung der Vertrauensliste, App-Fenster und `ngc.js`, die Oberflächen von App-Store, Benutzer & Rechte, Rechner und Terminal, Anzeige und Einstellung der Updates, dazu der PHP-Teil mit der Liste der API-Server |
-| API 1 und 2 | API | `apps/server-api/`, `apps/cli/` | Anmeldung mit Passwortschlüssel, TOTP und Passkeys, Sitzungen und Zertifikate, Zusammenspiel mehrerer APIs mit gemeinsamen Schlüsseln, Rechte, Weiterleitung, Tunnel zu den Controllern, Apps, Stores, Lizenzen und Schlüssel der Kauf-Apps, Protokoll, Verteilung der Vertrauensliste und der Updates, das Werkzeug `ngc-store` |
+| Web | Webinterface | `apps/web/` | Desktop, Anmeldung mit Passwort, TOTP oder Passkey, Verschlüsselung im Browser bis zum Dienst, Prüfung der Vertrauensliste, App-Fenster und `cd.js`, die Oberflächen von App-Store, Benutzer & Rechte, Rechner und Terminal, Anzeige und Einstellung der Updates, dazu der PHP-Teil mit der Liste der API-Server |
+| API 1 und 2 | API | `apps/server-api/`, `apps/cli/` | Anmeldung mit Passwortschlüssel, TOTP und Passkeys, Sitzungen und Zertifikate, Zusammenspiel mehrerer APIs mit gemeinsamen Schlüsseln, Rechte, Weiterleitung, Tunnel zu den Controllern, Apps, Stores, Lizenzen und Schlüssel der Kauf-Apps, Protokoll, Verteilung der Vertrauensliste und der Updates, das Werkzeug `cd-store` |
 | Dienste | Controller | `apps/server-controller/` | Der Controller, der auf allen sieben Servern läuft: Tunnel zu jeder API, Lastverteilung in Apache auf dem Webserver einrichten, Kopplung, Dienste in Podman-Containern starten, Ende-zu-Ende-Verschlüsselung auf Serverseite, Vertrauensliste, Root-Unterschriften und Dauerfreigaben prüfen, Kauf-Apps entschlüsseln, lokaler Zustand in SQLite, verschlüsselte App-Datenordner, Startaktionen, Updates einspielen und zurücknehmen, dazu der Dienst „virtuelles Terminal" |
 | DB 1 bis 3 | Datenbank | `apps/server-db/` | MariaDB-Galera-Cluster auf DB 1 bis 3 einrichten und absichern, Datenzugriff für API und Controller (MariaDB und SQLite), Migrationen, die auch mit der vorigen API-Version funktionieren, Verschlüsselung der Geheimnisse |
 
-Jeder Teil schreibt auch sein eigenes ulh-Skript, im ulh-Repo unter `scripts/ngc-<teil>.sh`.
+Jeder Teil schreibt auch sein eigenes ulh-Skript, im ulh-Repo unter `scripts/cd-<teil>.sh`.
 
 **Zuerst die Verträge.** Bevor jemand baut, legt der Koordinator die Schnittstellen schriftlich
 in `shared/` fest, und Thomas gibt sie frei:
@@ -806,7 +806,7 @@ in `shared/` fest, und Thomas gibt sie frei:
 2. API ↔ Controller
 3. Controller ↔ Dienst im Container
 4. API und Controller ↔ Datenbank, als Go-Schnittstelle
-5. App-Paket, Store-Katalog und Lizenz, samt Verschlüsselung der Kauf-Apps, dazu NGC-Updates
+5. App-Paket, Store-Katalog und Lizenz, samt Verschlüsselung der Kauf-Apps, dazu CirroDesk-Updates
    und Dauerfreigaben
 6. ulh-Konventionen und Konfiguration: Pfade, Dienste, Ports, `answer.yaml`, die Listen der
    API-Server und Datenbankknoten
@@ -849,12 +849,12 @@ Server-Controller, Datenbank und Apps.
 
 | Teil | Wer aktualisiert | Woher kommt das Update |
 |---|---|---|
-| Webinterface, API, Controller | der Controller auf dem jeweiligen Server | NGC-Updates, signiert mit dem Release-Schlüssel von NGC |
+| Webinterface, API, Controller | der Controller auf dem jeweiligen Server | CirroDesk-Updates, signiert mit dem Release-Schlüssel von CirroDesk |
 | Datenbank | Die Migrationen gehören zur jeweiligen API-Version. Der Controller spielt sie ein, bevor die neue API startet. | kommt mit dem API-Update |
 | Apps (Oberfläche und Dienste) | API und Controller | aus dem jeweiligen Store, vom Store signiert |
 | Apache, PHP, MariaDB und das übrige System | der Controller über apt | Paketquellen von Debian und Ubuntu, dort signiert |
 
-Vorschlag, im Plan festzulegen: NGC-Updates kommen über den globalen Store als eigener,
+Vorschlag, im Plan festzulegen: CirroDesk-Updates kommen über den globalen Store als eigener,
 signierter Katalog.
 
 **Drei Modi, pro Teil und pro App einstellbar:**
@@ -863,7 +863,7 @@ signierter Katalog.
   nachts in einem festen Wartungsfenster.
 - **Halbautomatisch:** Das Update wird vorab heruntergeladen und geprüft, installiert wird es
   per Klick.
-- **Nur Benachrichtigung:** NGC meldet nur, dass es ein Update gibt. Ein Klick lädt es
+- **Nur Benachrichtigung:** CirroDesk meldet nur, dass es ein Update gibt. Ein Klick lädt es
   herunter und installiert es.
 
 **Dauerfreigabe.** Ein Update ist eine Root-Aufgabe, und nachts ist niemand da, der
@@ -872,7 +872,7 @@ unterschreiben könnte. Deshalb unterschreibt der Admin einmal eine Dauerfreigab
 dürfen selbst installiert werden." Die Freigabe liegt beim Controller. Er installiert nur
 Updates, die mit genau diesem Schlüssel signiert und neuer als die installierte Version sind.
 Die API allein kann also weiterhin nichts unterschieben. Bei der Ersteinrichtung unterschreibt
-der erste Admin diese Freigaben für NGC selbst, deshalb ist „automatisch" von Anfang an aktiv.
+der erste Admin diese Freigaben für CirroDesk selbst, deshalb ist „automatisch" von Anfang an aktiv.
 Neue Rechte deckt die Freigabe nicht: Verlangt eine neue Version mehr (`needs`), spielt der
 Controller sie weder automatisch noch per Klick ein; der Admin aktiviert sie neu.
 
@@ -881,10 +881,10 @@ aktualisierte Teil nicht sauber, stellt der Controller selbst die alte Version w
 ältere Version als die installierte wird sonst nie eingespielt, damit niemand eine Version mit
 bekannter Sicherheitslücke zurückbringen kann.
 
-**Reihenfolge.** Die API verteilt ein NGC-Update Schritt für Schritt: erst die Datenbank, dann
+**Reihenfolge.** Die API verteilt ein CirroDesk-Update Schritt für Schritt: erst die Datenbank, dann
 die APIs, dann die Controller, zuletzt das Webinterface. Der nächste Schritt beginnt erst, wenn
 der vorige läuft. APIs und Datenbankknoten kommen nacheinander dran, damit immer einer läuft;
-so bleibt NGC während des Updates erreichbar. Dafür versteht jeder Teil auch die vorige
+so bleibt CirroDesk während des Updates erreichbar. Dafür versteht jeder Teil auch die vorige
 Version der Verträge, und jede Migration lässt die vorige API-Version weiterlaufen.
 Den Ablauf steuert immer nur eine API; welche, regelt eine
 Sperre in der Datenbank.
@@ -892,24 +892,24 @@ Sperre in der Datenbank.
 **Folgen.**
 
 - Auf jedem Server läuft ein Controller, im Kern also sieben.
-- Der Release-Schlüssel, mit dem NGC-Updates signiert werden, ist der wichtigste Schlüssel
+- Der Release-Schlüssel, mit dem CirroDesk-Updates signiert werden, ist der wichtigste Schlüssel
   überhaupt: Wer ihn hat, kann Code auf alle Installationen mit Autoupdate bringen. Er liegt
   deshalb auf einem Hardware-Stick und nie auf einem Server.
 - ulh bleibt für Installation, Konfiguration und Deinstallation zuständig und ist der Notweg,
-  falls NGC selbst nicht mehr startet.
+  falls CirroDesk selbst nicht mehr startet.
 
 ## 5. Offene Fragen
 
 **Für den Kern:** alle fünf entschieden.
 
-1. **Lizenz von NGC:** entschieden am 19.09.2026, siehe Kapitel 2.
+1. **Lizenz von CirroDesk:** entschieden am 19.09.2026, siehe Kapitel 2.
 2. **App-Updates:** entschieden am 19.09.2026, Autoupdate für alle Teile (4.8).
 3. **Erneute Bestätigung:** entschieden am 19.09.2026, einstellbar in vier Stufen mit
    eigenen Listen (4.5).
 4. **Die zwei Restrisiken:** entschieden am 19.09.2026, Variante B und
    Ende-zu-Ende-Verschlüsselung (4.5).
 5. **Testwerkzeuge:** entschieden am 19.09.2026. Für Tests ist alles erlaubt, auch npm,
-   solange NGC selbst nicht davon abhängt (4.6).
+   solange CirroDesk selbst nicht davon abhängt (4.6).
 
 **Für spätere Teilprojekte:**
 
@@ -924,7 +924,7 @@ Sperre in der Datenbank.
 10. LXC als zweite Container-Laufzeit einbauen, sobald eine App ein komplettes System braucht,
     etwa der AD-Server (4.3).
 11. Teilprojekt 2: Let's Encrypt über eine DNS-Prüfung für Installationen mit eigener Domain,
-    die von außen nicht erreichbar sind, und ein eigener Namensdienst von NGC wie `synology.me`
+    die von außen nicht erreichbar sind, und ein eigener Namensdienst von CirroDesk wie `synology.me`
     bei Synology.
 
 ## 6. Entscheidungsprotokoll
@@ -1068,6 +1068,7 @@ Sperre in der Datenbank.
 | 15.11.2026 | **A25: Kern-Aktion `ngc.store/refresh`** (nur Admin, keine Parameter, Ergebnis wie `ngc.store/sources`). Die API ruft höchstens einmal je Minute ab. |
 | 15.11.2026 | **Store-Apps:** jede App ist ein eigener Teil `apps/store-<name>/`. Die erste ist ein Taschenrechner mit Klammern (`org.sorglos.calc`); er ersetzt das Beispiel `apps/web/assets/apps/calculator/`. Texteditor und Bildbetrachter sind Teil des Dateimanagers (`org.sorglos.files`), weil jede App nur ihr eigenes `/data` sieht. Herunterladen läuft über die Shell (`ngc.save`): die App reicht die Datei per postMessage, der Rahmen bekommt kein `allow-downloads`. |
 | 15.11.2026 | **Oberfläche:** zuerst der WhiteSur-Look (eigenes CSS im Stil, keine GPL-Dateien übernommen), danach die Übersetzungen S12. |
+| 15.11.2026 | **Name: NGC (NextGenCloud) heißt jetzt CirroDesk, Kürzel cd**, auf allen Ebenen: Go-Modul `github.com/sorglos-it/cirrodesk`, Programme `cd-api`, `cd-controller`, `cd-store`, Pfade `/etc/cd` usw., Tabellen `cd_*`, Kern-Apps `cd.desktop` usw., Unterprotokoll `cd.v1`, alle Krypto-Bezeichner `cd/…/v1` (Versionen bleiben v1). Migrationen werden an Ort und Stelle geändert, weil jede Anlage neu aufgesetzt wird. Die Zeilen dieses Protokolls davor behalten die alten Namen. Dateiname dieses Entwurfs bleibt. |
 
 ## 7. Fremdcode-Kandidaten
 
@@ -1084,5 +1085,5 @@ sein. Übernahme per `go mod vendor`, Herkunft in `THIRD-PARTY.md`.
 | TOTP | `github.com/pquerna/otp` | Übernommen am 22.09.2026: v1.5.0, Apache-2.0; bringt barcode (MIT) für den QR-Code der Einrichtung mit, zusammen 0,15 MB. Eigene Umsetzung nach RFC 6238 damit nicht nötig. |
 | WebAuthn (Passkeys, FIDO2) | `github.com/go-webauthn/webauthn` | Übernommen am 22.09.2026: v0.18.2, BSD-3-Clause; bringt acht weitere Module mit (CBOR, TPM, JWT, Metadaten), alle vereinbar. Siehe `THIRD-PARTY.md`. |
 | Noise-Tunnel | `github.com/flynn/noise` | Übernommen in Plan 0: v1.1.0, BSD-3-Clause, in `shared/noisep` |
-| Browser-Tests (nur Tests, nicht Teil von NGC) | Playwright per npm in `apps/web/tests/` | erlaubt seit 19.09.2026 |
+| Browser-Tests (nur Tests, nicht Teil von CirroDesk) | Playwright per npm in `apps/web/tests/` | erlaubt seit 19.09.2026 |
 | Noise im Browser (Ende zu Ende) | JavaScript-Umsetzung ohne npm | zu prüfen; findet sich keine geprüfte, dann eigene Umsetzung des Ablaufs nach der Spezifikation, getestet mit den offiziellen Testvektoren. Die Kryptografie selbst kommt aus der Web Crypto API des Browsers. |

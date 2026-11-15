@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestARefusedChannelWritesItsReasonAndSaysItOnTheScreen is the finding of
@@ -177,7 +177,7 @@ func TestEveryRefusalOfTheseHandlersNamesACheck(t *testing.T) {
 		{"an action the contract does not have",
 			wire.Open{App: core.AppDesktop, Service: core.ServiceAPI, Action: "kein-vertrag"},
 			wire.CodeNotFound, reason.ActionUnknown},
-		{"an action of ngc.store with no seam wired",
+		{"an action of cd.store with no seam wired",
 			wire.Open{App: core.AppStore, Service: core.ServiceAPI, Action: core.ActInstalled},
 			wire.CodeNotFound, reason.ActionUnserved},
 		{"a call whose parameters do not fit",

@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // switchConn is a node whose answer the case changes while it runs: a node
@@ -168,8 +168,8 @@ func TestTheConnectDeadlineStaysBetweenTheDialAndTheRead(t *testing.T) {
 	if connectDeadline != 10*time.Second {
 		t.Errorf("connectDeadline is %v, want 10s", connectDeadline)
 	}
-	cfg := config.DB{Driver: config.DriverMariaDB, Nodes: []string{"db-1.ngc.test:3306"},
-		Name: "ngc", User: "ngc", Password: config.NewSecretText("x"), CA: testCA(t)}
+	cfg := config.DB{Driver: config.DriverMariaDB, Nodes: []string{"db-1.cd.test:3306"},
+		Name: "cd", User: "cd", Password: config.NewSecretText("x"), CA: testCA(t)}
 	mc, err := nodeConfig(cfg, cfg.Nodes[0])
 	if err != nil {
 		t.Fatalf("nodeConfig: %v", err)

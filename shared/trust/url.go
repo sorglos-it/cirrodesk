@@ -1,6 +1,6 @@
 package trust
 
-// Hosts and addresses. Each has one grammar and exactly one spelling: NGC
+// Hosts and addresses. Each has one grammar and exactly one spelling: CirroDesk
 // compares them as text (trust list against codes, configurations against
 // the trust list), and they end up in configuration files of other
 // programs (Apache, the database driver), so they hold nothing but what the

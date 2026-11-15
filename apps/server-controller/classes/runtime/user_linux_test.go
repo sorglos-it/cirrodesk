@@ -16,7 +16,7 @@ import (
 func TestSubIDsReplaceTheFileInsteadOfWritingIntoIt(t *testing.T) {
 	fakeUseradd(t)
 	before := inodeOf(t, paths.subuid)
-	if err := ensureSubIDs("ngc-a"); err != nil {
+	if err := ensureSubIDs("cd-a"); err != nil {
 		t.Fatal(err)
 	}
 	after := inodeOf(t, paths.subuid)

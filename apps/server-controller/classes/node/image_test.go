@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	ctrlrt "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	ctrlrt "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // No case here starts a builder, and that is deliberate twice over: there is
@@ -71,7 +71,7 @@ func TestImageSpecIsBuiltFromTheFilesOfTheApp(t *testing.T) {
 	}
 	want := ctrlrt.BuildSpec{
 		Arch:    "arm64",
-		Ref:     "ngc/terminal:" + m.Version,
+		Ref:     "cd/terminal:" + m.Version,
 		File:    root + "/apps/server-controller/templates/terminal/Containerfile",
 		Context: root + "/build",
 		Out:     "services/arm64.tar",
@@ -127,8 +127,8 @@ func TestImageSpecTakesItsTagFromTheManifest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("imageSpec: %v", err)
 	}
-	if spec.Ref != "ngc/terminal:4.5.6" {
-		t.Fatalf("Ref = %q, want ngc/terminal:4.5.6 - the tag does not follow the manifest", spec.Ref)
+	if spec.Ref != "cd/terminal:4.5.6" {
+		t.Fatalf("Ref = %q, want cd/terminal:4.5.6 - the tag does not follow the manifest", spec.Ref)
 	}
 }
 

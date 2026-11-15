@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	appstore "github.com/sorglos-it/nextgencloud/shared/store" // store is the type of this package
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	appstore "github.com/sorglos-it/cirrodesk/shared/store" // store is the type of this package
 )
 
 // The bound of every column kind. Go checks each value before it goes into a

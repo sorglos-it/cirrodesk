@@ -322,7 +322,7 @@ export function loginView(root, { config, onSession, onNotSetUp, openTrust, pass
   box.append(said);
   root.append(box);
 
-  // docs/gestaltung.md point 6: NGC stands small, UNDER the box. Who you are
+  // docs/gestaltung.md point 6: CirroDesk stands small, UNDER the box. Who you are
   // signing in to belongs at the top of this page, and what it runs on
   // belongs at the bottom - a person signs in to their firm, not to a
   // product.
@@ -331,11 +331,11 @@ export function loginView(root, { config, onSession, onNotSetUp, openTrust, pass
   // this page by the same point, are NOT here: where they are kept and who
   // may change them is expressly not decided in gestaltung.md, and inventing
   // a place for them would be deciding it quietly. The heading above says
-  // "Bei NGC anmelden" until that is decided.
+  // "Bei CirroDesk anmelden" until that is decided.
   //
   // The version is left out rather than faked when there is none:
   // public/index.php leaves it empty rather than taking the page down over
-  // it (net/config.js), and "läuft mit NGC" with nothing after it says less
+  // it (net/config.js), and "läuft mit CirroDesk" with nothing after it says less
   // than no line at all.
   const version = typeof config?.version === "string" ? config.version : "";
   if (version !== "") {

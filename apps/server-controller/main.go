@@ -1,11 +1,11 @@
-// Command ngc-controller runs on every server: tunnel to the APIs, services
+// Command cd-controller runs on every server: tunnel to the APIs, services
 // in containers, updates.
 package main
 
 import (
 	"os"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/node"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/node"
 )
 
 // Version is set when building.

@@ -135,14 +135,14 @@ step "5. the release directory"
 if [ -z "$dir" ]; then
 	say "no directory given - steps 5 and 6 skipped. This is NOT a pass."
 	say "A release directory holds, for every part of tools/release:"
-	say "  ngc-web-all.tar  ngc-api-{amd64,arm64}.tar  ngc-controller-{amd64,arm64}.tar"
+	say "  cd-web-all.tar  cd-api-{amd64,arm64}.tar  cd-controller-{amd64,arm64}.tar"
 	say "  release.json (the signed sign.Envelope)  release-key.pem"
 else
 	[ -d "$dir" ] || bad "no such directory: $dir"
 	for f in release.json release-key.pem; do
 		[ -f "$dir/$f" ] || bad "the release directory holds no $f"
 	done
-	# ngc-store check judges one part at a time, the same way
+	# cd-store check judges one part at a time, the same way
 	# shared/testdata/release/verify.sh judges it on the server.
 	#
 	# -trimpath, although this binary is thrown away after the loop: it was
@@ -156,11 +156,11 @@ else
 	# carries over is that the path stops leaking in.
 	# docs/release-weg.md:70 names the flag for the shipped parts; this
 	# keeps the one exception out. RUN 18.10.2026, exit 0.
-	go build -buildvcs=false -trimpath -o "${TMPDIR:-/tmp}/ngc-store" ./apps/cli || bad "ngc-store does not build"
-	for pa in "ngc-web all" "ngc-api amd64" "ngc-api arm64" "ngc-controller amd64" "ngc-controller arm64"; do
+	go build -buildvcs=false -trimpath -o "${TMPDIR:-/tmp}/cd-store" ./apps/cli || bad "cd-store does not build"
+	for pa in "cd-web all" "cd-api amd64" "cd-api arm64" "cd-controller amd64" "cd-controller arm64"; do
 		set -- $pa
 		if [ -f "$dir/$1-$2.tar" ]; then
-			"${TMPDIR:-/tmp}/ngc-store" check "$dir" "$1" "$2" || bad "ngc-store check refuses $1 $2"
+			"${TMPDIR:-/tmp}/cd-store" check "$dir" "$1" "$2" || bad "cd-store check refuses $1 $2"
 		else
 			say "  $1-$2.tar is not in this release"
 		fi

@@ -15,20 +15,20 @@ import (
 	"os"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 func main() {
-	cfgPath := flag.String("config", "/etc/ngc/api.json", "configuration file")
+	cfgPath := flag.String("config", "/etc/cd/api.json", "configuration file")
 	dbPath := flag.String("db", "", "override the database path from the configuration")
 	writes := flag.Int("write", 0, "add this many log rows (0 = none)")
 	forever := flag.Bool("forever", false, "keep writing log rows until killed")
-	blobs := flag.Bool("blobs", false, "list kind, id and seq of ngc_blob (no values)")
-	digest := flag.Bool("digest", false, "print a digest over the rows of ngc_log")
+	blobs := flag.Bool("blobs", false, "list kind, id and seq of cd_blob (no values)")
+	digest := flag.Bool("digest", false, "print a digest over the rows of cd_log")
 	check := flag.Bool("check", false, "run PRAGMA integrity_check and count rows")
 	flag.Parse()
 
@@ -128,7 +128,7 @@ func runCheck(db *sql.DB) {
 		rows.Close()
 	}
 
-	for _, t := range []string{"ngc_user", "ngc_log", "ngc_blob", "ngc_app", "ngc_session"} {
+	for _, t := range []string{"cd_user", "cd_log", "cd_blob", "cd_app", "cd_session"} {
 		var c int64
 		err := db.QueryRowContext(ctx, "SELECT count(*) FROM "+t).Scan(&c)
 		if err != nil {
@@ -139,12 +139,12 @@ func runCheck(db *sql.DB) {
 	}
 }
 
-// runBlobs names the rows of ngc_blob. It prints kind, id, seq and the SIZE
+// runBlobs names the rows of cd_blob. It prints kind, id, seq and the SIZE
 // of the value, never the value: a trust list and a catalogue are in there.
 func runBlobs(db *sql.DB) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-	rows, err := db.QueryContext(ctx, "SELECT kind, id, seq, length(data) FROM ngc_blob ORDER BY kind, seq, id")
+	rows, err := db.QueryContext(ctx, "SELECT kind, id, seq, length(data) FROM cd_blob ORDER BY kind, seq, id")
 	if err != nil {
 		fmt.Println("BLOBS-ERROR:", err)
 		return
@@ -167,14 +167,14 @@ func runBlobs(db *sql.DB) {
 	fmt.Printf("blob: %d row(s)\n", n)
 }
 
-// runDigest reads every row of ngc_log in a fixed order and prints one hash
+// runDigest reads every row of cd_log in a fixed order and prints one hash
 // over it. Two runs on two files with the same rows print the same hash, so a
 // changed hash with an unchanged row COUNT is content that changed silently.
 // It prints the hash and the number of rows, never a row.
 func runDigest(db *sql.DB) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
-	rows, err := db.QueryContext(ctx, "SELECT id, ts, kind, result_code, detail FROM ngc_log ORDER BY id")
+	rows, err := db.QueryContext(ctx, "SELECT id, ts, kind, result_code, detail FROM cd_log ORDER BY id")
 	if err != nil {
 		fmt.Println("DIGEST-ERROR:", err)
 		return

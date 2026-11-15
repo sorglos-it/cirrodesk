@@ -8,21 +8,21 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // termApp is the app a root task of these cases names. Nothing has to be
-// installed for it: ngc.store/controller/delete-data is a core action of
+// installed for it: cd.store/controller/delete-data is a core action of
 // service controller with no handler, so the API forwards it without reading
 // an app row.
 const termApp = "org.sorglos.terminal"
@@ -37,8 +37,8 @@ const termApp = "org.sorglos.terminal"
 // E_UNREACHABLE -- a code no wall before the relay answers, which is what
 // makes "the way was open" measurable instead of asserted.
 //
-// ngc.store/controller/delete-data is such an action. The deactivate action
-// was, until the strand that wired the ngc.store handlers landed; with a
+// cd.store/controller/delete-data is such an action. The deactivate action
+// was, until the strand that wired the cd.store handlers landed; with a
 // handler the same sound task answers E_NOTFOUND, because the app of the task
 // is not installed. Measured, and the reason the reachability check earns its
 // lines: the wall moved while this file was being written, and the check said
@@ -342,7 +342,7 @@ func TestReplayedMessagesDoNothing(t *testing.T) {
 // This case stays at the level of the verifier, with the vectors of the
 // contract file. The SAME attack over the channel a licence really arrives on
 // is measured in TestAForeignLicenceOnTheChannelKeepsNothing -- which only
-// became possible when the ngc.store handlers were wired; until then that
+// became possible when the cd.store handlers were wired; until then that
 // channel answered E_NOTFOUND whatever was sent.
 func TestForeignLicenseDoesNotOpenAnApp(t *testing.T) {
 	v := loadVectors(t)
@@ -533,7 +533,7 @@ func TestTruncatedDataIsAnError(t *testing.T) {
 // would also be green if the limit stood at one.
 func TestBeyondTheChannelLimitEndsTheLink(t *testing.T) {
 	a := newAPI(t)
-	// Every channel is a call of ngc.desktop/me, the cheapest action there is,
+	// Every channel is a call of cd.desktop/me, the cheapest action there is,
 	// and each is read to its close before the next opens: what is measured is
 	// how many numbers one link hands out, not how many run at once.
 	for i := 1; i <= wire.MaxSessionChannels; i++ {
@@ -639,7 +639,7 @@ func TestManInTheMiddleAtSetup(t *testing.T) {
 
 // --- the two codes a case asks the API for, over the channel the shell uses ---
 
-// pairCode asks for a pairing code over ngc.users/pair-code, so the code of a
+// pairCode asks for a pairing code over cd.users/pair-code, so the code of a
 // case is one this API really handed out.
 func (a *api) pairCode(t *testing.T) tunnel.PairCode {
 	t.Helper()

@@ -25,7 +25,7 @@
     return;
   }
 
-  const lang = pickLang([window.ngc && ngc.lang, document.documentElement.lang]);
+  const lang = pickLang([window.cd && cd.lang, document.documentElement.lang]);
   document.documentElement.lang = lang;
   document.title = TITLES[lang];
 
@@ -76,7 +76,7 @@
     document.documentElement.dataset.theme = theme === "light" ? "light" : "dark";
     if (/^#[0-9a-fA-F]{3,8}$/.test(String(accent))) document.documentElement.style.setProperty("--accent", accent);
   };
-  if (typeof ngc === "object" && ngc) { paint(ngc.theme, ngc.accent); ngc.onTheme(paint); }
+  if (typeof cd === "object" && cd) { paint(cd.theme, cd.accent); cd.onTheme(paint); }
 
   document.body.append(box);
   tick();

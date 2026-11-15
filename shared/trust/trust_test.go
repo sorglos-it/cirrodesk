@@ -17,12 +17,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -309,19 +309,19 @@ func TestValidate(t *testing.T) {
 		"bad list entry":                    func(l *trust.List) { l.Roles[0].Black = []string{"everything"} },
 		"api without url":                   func(l *trust.List) { l.Nodes[0].URL = "" },
 		"genesis with prev":                 func(l *trust.List) { l.Prev = make([]byte, 32) },
-		"store without https":               func(l *trust.List) { l.Stores[0].URL = "http://store.ngc.example" },
+		"store without https":               func(l *trust.List) { l.Stores[0].URL = "http://store.cd.example" },
 		// An origin reaches web.json and the browser compares it as text, so it
 		// is scheme, host and port and nothing else (trust.ValidOrigin).
-		"origin with a path":         func(l *trust.List) { l.RP.Origins = []string{"https://ngc.example.org/x"} },
-		"origin on port 443":         func(l *trust.List) { l.RP.Origins = []string{"https://ngc.example.org:443"} },
-		"origin with a line feed":    func(l *trust.List) { l.RP.Origins = []string{"https://ngc.example.org\x0a"} },
-		"origin in upper case":       func(l *trust.List) { l.RP.Origins = []string{"https://NGC.example.org"} },
+		"origin with a path":         func(l *trust.List) { l.RP.Origins = []string{"https://cd.example.org/x"} },
+		"origin on port 443":         func(l *trust.List) { l.RP.Origins = []string{"https://cd.example.org:443"} },
+		"origin with a line feed":    func(l *trust.List) { l.RP.Origins = []string{"https://cd.example.org\x0a"} },
+		"origin in upper case":       func(l *trust.List) { l.RP.Origins = []string{"https://CirroDesk.example.org"} },
 		"AutoSystem with a key":      func(l *trust.List) { l.Auto[1].Key = make([]byte, ed25519.PublicKeySize) },
 		"valid target without a key": func(l *trust.List) { l.Auto[0].Key = nil },
 		"unknown target":             func(l *trust.List) { l.Auto = append(l.Auto, trust.Auto{Target: "unknown-target"}) },
 		"store named local":          func(l *trust.List) { l.Stores[0].ID = trust.StoreLocal },
 		"core app as standing approval target": func(l *trust.List) {
-			l.Auto = []trust.Auto{l.Auto[0], {Target: "ngc.store", Key: make([]byte, ed25519.PublicKeySize)}, l.Auto[1]}
+			l.Auto = []trust.Auto{l.Auto[0], {Target: "cd.store", Key: make([]byte, ed25519.PublicKeySize)}, l.Auto[1]}
 		},
 		"passkey-only role that also asks for the password": func(l *trust.List) {
 			l.Roles = append(l.Roles, trust.Role{Name: "strict", Level: trust.LevelCritical, PasskeyOnly: true, PasswordToo: true})
@@ -358,7 +358,7 @@ func TestValidate(t *testing.T) {
 		// A pin is a hash: any 32 bytes are one.
 		"API node with another pin of 32 bytes": func(l *trust.List) { l.Nodes[0].TLS = bytes.Repeat([]byte{0x77}, 32) },
 		"passkey with rp":                       func(l *trust.List) { l.Users[0].Keys = append(l.Users[0].Keys, pk) },
-		"origin with a port":                    func(l *trust.List) { l.RP.Origins = []string{"https://ngc.example.org:8443"} },
+		"origin with a port":                    func(l *trust.List) { l.RP.Origins = []string{"https://cd.example.org:8443"} },
 		"app as standing approval target": func(l *trust.List) {
 			l.Auto = []trust.Auto{l.Auto[0], {Target: "org.sorglos.terminal", Key: make([]byte, ed25519.PublicKeySize)}, l.Auto[1]}
 		},
@@ -468,16 +468,16 @@ func TestValidStore(t *testing.T) {
 	}{
 		"another ID":                {func(s *trust.Store) { s.ID = "other" }, true},
 		"URL of 256 bytes":          {func(s *trust.Store) { s.URL = url(256) }, true},
-		"URL with a path":           {func(s *trust.Store) { s.URL = "https://store.ngc.example/ngc" }, true},
+		"URL with a path":           {func(s *trust.Store) { s.URL = "https://store.cd.example/cd" }, true},
 		"name of 64 bytes":          {func(s *trust.Store) { s.Name = strings.Repeat("S", 64) }, true},
 		"URL with a trailing slash": {func(s *trust.Store) { s.URL += "/" }, false},
-		"URL with user info":        {func(s *trust.Store) { s.URL = "https://user@store.ngc.example" }, false},
+		"URL with user info":        {func(s *trust.Store) { s.URL = "https://user@store.cd.example" }, false},
 		"ID local":                  {func(s *trust.Store) { s.ID = trust.StoreLocal }, false},
 		"ID not a name":             {func(s *trust.Store) { s.ID = "Global" }, false},
 		"no name":                   {func(s *trust.Store) { s.Name = "" }, false},
-		"name with a line feed":     {func(s *trust.Store) { s.Name = "NGC\nStore" }, false},
+		"name with a line feed":     {func(s *trust.Store) { s.Name = "CirroDesk\nStore" }, false},
 		"name of 65 bytes":          {func(s *trust.Store) { s.Name = strings.Repeat("S", 65) }, false},
-		"URL with http":             {func(s *trust.Store) { s.URL = "http://store.ngc.example" }, false},
+		"URL with http":             {func(s *trust.Store) { s.URL = "http://store.cd.example" }, false},
 		"URL of 257 bytes":          {func(s *trust.Store) { s.URL = url(257) }, false},
 		"key of 31 bytes":           {func(s *trust.Store) { s.Key = s.Key[:31] }, false},
 	} {
@@ -540,7 +540,7 @@ func TestPasswordToo(t *testing.T) {
 func TestPolicy(t *testing.T) {
 	l := trusttest.Genesis(admin)
 	l.Roles = []trust.Role{
-		{Name: trust.RoleAdmin, Level: trust.LevelCritical, White: []string{"app/ngc.store/install"}},
+		{Name: trust.RoleAdmin, Level: trust.LevelCritical, White: []string{"app/cd.store/install"}},
 		{Name: "ops", Level: trust.LevelHardcore},
 		{Name: "user", Level: trust.LevelOff, Black: []string{"app/org.sorglos.terminal"}},
 	}
@@ -561,8 +561,8 @@ func TestPolicy(t *testing.T) {
 		want bool
 	}{
 		{"admin, normal channel", adminID, shell, false},
-		{"admin, critical", adminID, trust.Op{App: "ngc.store", Action: "upload", Critical: true}, true},
-		{"admin, whitelisted", adminID, trust.Op{App: "ngc.store", Action: "install", Root: true, Critical: true}, false},
+		{"admin, critical", adminID, trust.Op{App: "cd.store", Action: "upload", Critical: true}, true},
+		{"admin, whitelisted", adminID, trust.Op{App: "cd.store", Action: "install", Root: true, Critical: true}, false},
 		{"user, blacklisted", bob, shell, true},
 		{"user, level off", bob, calc, false},
 		{"strictest role wins", carol, calc, true},

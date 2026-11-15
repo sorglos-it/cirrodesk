@@ -22,16 +22,16 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // TestOpenRefusesWithoutTLS: without a CA nothing opens. A connection without
 // a checked certificate must be impossible to configure, not just unusual.
 func TestOpenRefusesWithoutTLS(t *testing.T) {
-	base := config.DB{Driver: config.DriverMariaDB, Nodes: []string{"db-1.ngc.test:3306"},
-		Name: "ngc", User: "ngc", Password: config.NewSecretText("x")}
+	base := config.DB{Driver: config.DriverMariaDB, Nodes: []string{"db-1.cd.test:3306"},
+		Name: "cd", User: "cd", Password: config.NewSecretText("x")}
 	if db, err := OpenDB(base); err == nil {
 		db.Close()
 		t.Error("a cluster without a CA was opened")
@@ -52,7 +52,7 @@ func TestOpenRefusesWithoutTLS(t *testing.T) {
 // TestOpenRefusesWithoutANode: an empty node list is refused before anything
 // is built, so no connection ever goes to a node nobody named.
 func TestOpenRefusesWithoutANode(t *testing.T) {
-	cfg := config.DB{Driver: config.DriverMariaDB, Name: "ngc", User: "ngc",
+	cfg := config.DB{Driver: config.DriverMariaDB, Name: "cd", User: "cd",
 		Password: config.NewSecretText("x"), CA: testCA(t)}
 	if db, err := OpenDB(cfg); err == nil {
 		db.Close()
@@ -66,14 +66,14 @@ func TestOpenRefusesWithoutANode(t *testing.T) {
 // grammar of package trust before it reaches the driver's DSN, so nothing that
 // could carry a parameter of its own gets there.
 func TestConnectorRefusesAnAddressThatIsNoHostPort(t *testing.T) {
-	cfg := config.DB{Driver: config.DriverMariaDB, Name: "ngc", User: "ngc",
+	cfg := config.DB{Driver: config.DriverMariaDB, Name: "cd", User: "cd",
 		Password: config.NewSecretText("x"), CA: testCA(t)}
 	for _, node := range []string{
-		"db-1.ngc.test",                         // no port
-		"db-1.ngc.test:3306?tls=false",          // a parameter behind the port
-		"db-1.ngc.test:3306/other",              // another database behind it
-		"db-1.ngc.test:0",                       // no port number
-		"db-1.ngc.test:3306,db-2.ngc.test:3306", // two of them in one entry
+		"db-1.cd.test",                        // no port
+		"db-1.cd.test:3306?tls=false",         // a parameter behind the port
+		"db-1.cd.test:3306/other",             // another database behind it
+		"db-1.cd.test:0",                      // no port number
+		"db-1.cd.test:3306,db-2.cd.test:3306", // two of them in one entry
 		"",
 	} {
 		cfg.Nodes = []string{node}
@@ -91,18 +91,18 @@ func TestConnectorRefusesAnAddressThatIsNoHostPort(t *testing.T) {
 //
 // It runs over three nodes of three different names - one of them an IPv6
 // address, whose brackets config.DB.TLSConfig does not want - and over a
-// database and a user that are not called "ngc", so that a hard-wired
+// database and a user that are not called "cd", so that a hard-wired
 // constant in nodeConfig cannot pass as the value that was configured.
 func TestConnectorPinsTheSecureSettings(t *testing.T) {
 	const password = "not-the-real-one"
 	cfg := config.DB{Driver: config.DriverMariaDB,
-		Nodes: []string{"db-1.ngc.test:3306", "db-zwei.example:3307", "[2001:db8::5]:3306"},
-		Name:  "ngc_other", User: "ngc_reader", Password: config.NewSecretText(password),
+		Nodes: []string{"db-1.cd.test:3306", "db-zwei.example:3307", "[2001:db8::5]:3306"},
+		Name:  "cd_other", User: "cd_reader", Password: config.NewSecretText(password),
 		CA: testCA(t)}
 	// The server name of each node, as config.DB.TLSConfig asks for it: an
 	// IPv6 address without its brackets.
 	want := map[string]string{
-		"db-1.ngc.test:3306":   "db-1.ngc.test",
+		"db-1.cd.test:3306":    "db-1.cd.test",
 		"db-zwei.example:3307": "db-zwei.example",
 		"[2001:db8::5]:3306":   "2001:db8::5",
 	}
@@ -135,10 +135,10 @@ func TestConnectorPinsTheSecureSettings(t *testing.T) {
 		if mc.Passwd != password {
 			t.Errorf("%s: the password of the configuration did not arrive", node)
 		}
-		if mc.User != "ngc_reader" {
+		if mc.User != "cd_reader" {
 			t.Errorf("%s: user %q", node, mc.User)
 		}
-		if mc.DBName != "ngc_other" {
+		if mc.DBName != "cd_other" {
 			t.Errorf("%s: database %q", node, mc.DBName)
 		}
 		if mc.Net != "tcp" {
@@ -253,8 +253,8 @@ func TestPoolLimits(t *testing.T) {
 		t.Errorf("pool: %d open, %d idle, %v lifetime, %v idle time",
 			maxOpenConns, maxIdleConns, time.Duration(connLifetime), time.Duration(connIdleTime))
 	}
-	cfg := config.DB{Driver: config.DriverMariaDB, Nodes: []string{"db-1.ngc.test:3306"},
-		Name: "ngc", User: "ngc", Password: config.NewSecretText("x"), CA: testCA(t)}
+	cfg := config.DB{Driver: config.DriverMariaDB, Nodes: []string{"db-1.cd.test:3306"},
+		Name: "cd", User: "cd", Password: config.NewSecretText("x"), CA: testCA(t)}
 	db, err := OpenDB(cfg)
 	if err != nil {
 		t.Fatalf("OpenDB: %v", err)
@@ -276,7 +276,7 @@ func testCA(t *testing.T) string {
 	}
 	tmpl := &x509.Certificate{
 		SerialNumber:          big.NewInt(1),
-		Subject:               pkix.Name{CommonName: "ngc-test-ca"},
+		Subject:               pkix.Name{CommonName: "cd-test-ca"},
 		NotBefore:             time.Now().Add(-time.Hour),
 		NotAfter:              time.Now().Add(24 * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign,

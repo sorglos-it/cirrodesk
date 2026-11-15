@@ -1,4 +1,4 @@
-// Package shared holds the contracts between the parts of NGC: web
+// Package shared holds the contracts between the parts of CirroDesk: web
 // interface, API, controller and database. The sub-packages are the source of
 // truth; the web interface implements the same rules in JavaScript and checks
 // itself against the vectors in shared/testdata.

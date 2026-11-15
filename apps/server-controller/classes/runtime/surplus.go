@@ -17,7 +17,7 @@ import (
 // take. Here there IS one: the container podman knows. Emptying the cgroup
 // would kill it too, so the surplus tasks have to be named one by one.
 //
-// Where they come from. Point 98: systemd deletes /run/ngc with the unit,
+// Where they come from. Point 98: systemd deletes /run/cd with the unit,
 // podman refreshes its own state, says nothing runs, and the controller starts
 // a set beside the one that lives on - once per start. And after an app is
 // raised to a new version podman DELETES the old container record while its

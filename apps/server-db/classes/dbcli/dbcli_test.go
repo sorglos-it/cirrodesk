@@ -33,7 +33,7 @@ func TestCheckDir(t *testing.T) {
 			t.Errorf("checkDir(%q) accepted", p)
 		}
 	}
-	if _, err := checkDir("/var/backups/ngc/2026-11-14"); err != nil {
+	if _, err := checkDir("/var/backups/cd/2026-11-14"); err != nil {
 		t.Error(err)
 	}
 }
@@ -45,7 +45,7 @@ func TestMainUsage(t *testing.T) {
 			t.Errorf("%q: code %d", a, c)
 		}
 	}
-	if c := Main("1.2", []string{"version"}, &out, &errb); c != 0 || !strings.Contains(out.String(), "ngc-db 1.2") {
+	if c := Main("1.2", []string{"version"}, &out, &errb); c != 0 || !strings.Contains(out.String(), "cd-db 1.2") {
 		t.Errorf("version: %d %q", c, out.String())
 	}
 }

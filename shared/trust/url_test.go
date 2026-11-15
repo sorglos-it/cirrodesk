@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // urlVectors is url.json: hosts and addresses, each valid or not.
@@ -74,7 +74,7 @@ func addressCases() urlVectors {
 			{Name: "quote", Value: "api\".test"},
 		},
 		HostPort: []urlCase{
-			{Name: "host name", Value: "db-1.ngc.test:3306", Valid: true},
+			{Name: "host name", Value: "db-1.cd.test:3306", Valid: true},
 			{Name: "IPv4", Value: "192.0.2.5:3306", Valid: true},
 			{Name: "IPv6", Value: "[2001:db8::5]:3306", Valid: true},
 			// The rule bounds the host (253) and the port (5), not the whole:
@@ -82,12 +82,12 @@ func addressCases() urlVectors {
 			// so itself (config.MaxField on config.DB.Nodes).
 			{Name: "longest host and port", Value: h(253) + ":65535", Valid: true},
 			{Name: "host of 254 bytes", Value: h(254) + ":65535"},
-			{Name: "no port", Value: "db-1.ngc.test"},
-			{Name: "port 0", Value: "db-1.ngc.test:0"},
-			{Name: "port 65536", Value: "db-1.ngc.test:65536"},
-			{Name: "port with a leading zero", Value: "db-1.ngc.test:03306"},
-			{Name: "DSN parameters", Value: "db-1.ngc.test:3306)/ngc?allowAllFiles=true"},
-			{Name: "upper case", Value: "DB-1.ngc.test:3306"},
+			{Name: "no port", Value: "db-1.cd.test"},
+			{Name: "port 0", Value: "db-1.cd.test:0"},
+			{Name: "port 65536", Value: "db-1.cd.test:65536"},
+			{Name: "port with a leading zero", Value: "db-1.cd.test:03306"},
+			{Name: "DSN parameters", Value: "db-1.cd.test:3306)/cd?allowAllFiles=true"},
+			{Name: "upper case", Value: "DB-1.cd.test:3306"},
 			{Name: "IPv6 without brackets", Value: "2001:db8::5:3306"},
 		},
 		Tunnel: []urlCase{
@@ -129,47 +129,47 @@ func addressCases() urlVectors {
 			{Name: "257 bytes", Value: "https://" + h(244) + ":7443"},
 		},
 		Origins: []urlCase{
-			{Name: "host only", Value: "https://ngc.example.org", Valid: true},
-			{Name: "port", Value: "https://ngc.example.org:8443", Valid: true},
+			{Name: "host only", Value: "https://cd.example.org", Valid: true},
+			{Name: "port", Value: "https://cd.example.org:8443", Valid: true},
 			{Name: "IPv6", Value: "https://[2001:db8::1]:8443", Valid: true},
 			{Name: "IPv6 without a port", Value: "https://[2001:db8::1]", Valid: true},
 			{Name: "256 bytes", Value: "https://" + h(248), Valid: true},
 			// A browser leaves the default port out, so an entry with it
 			// matches no origin a browser ever sends.
-			{Name: "default port", Value: "https://ngc.example.org:443"},
+			{Name: "default port", Value: "https://cd.example.org:443"},
 			{Name: "IPv6 with the default port", Value: "https://[2001:db8::1]:443"},
-			{Name: "plain http", Value: "http://ngc.example.org"},
-			{Name: "trailing slash", Value: "https://ngc.example.org/"},
-			{Name: "path", Value: "https://ngc.example.org/x"},
-			{Name: "query", Value: "https://ngc.example.org?y=1"},
-			{Name: "fragment", Value: "https://ngc.example.org#z"},
-			{Name: "user info", Value: "https://user@ngc.example.org"},
-			{Name: "host in upper case", Value: "https://NGC.example.org"},
-			{Name: "trailing space", Value: "https://ngc.example.org "},
-			{Name: "line feed", Value: "https://ngc.example.org\x0a"},
-			{Name: "quote", Value: "https://ngc.example.org\""},
-			{Name: "port 0", Value: "https://ngc.example.org:0"},
+			{Name: "plain http", Value: "http://cd.example.org"},
+			{Name: "trailing slash", Value: "https://cd.example.org/"},
+			{Name: "path", Value: "https://cd.example.org/x"},
+			{Name: "query", Value: "https://cd.example.org?y=1"},
+			{Name: "fragment", Value: "https://cd.example.org#z"},
+			{Name: "user info", Value: "https://user@cd.example.org"},
+			{Name: "host in upper case", Value: "https://CirroDesk.example.org"},
+			{Name: "trailing space", Value: "https://cd.example.org "},
+			{Name: "line feed", Value: "https://cd.example.org\x0a"},
+			{Name: "quote", Value: "https://cd.example.org\""},
+			{Name: "port 0", Value: "https://cd.example.org:0"},
 			{Name: "257 bytes", Value: "https://" + h(249)},
 		},
 		Store: []urlCase{
-			{Name: "host only", Value: "https://store.ngc.example", Valid: true},
-			{Name: "port", Value: "https://store.ngc.example:8443", Valid: true},
-			{Name: "path", Value: "https://example.org/ngc/store", Valid: true},
+			{Name: "host only", Value: "https://store.cd.example", Valid: true},
+			{Name: "port", Value: "https://store.cd.example:8443", Valid: true},
+			{Name: "path", Value: "https://example.org/cd/store", Valid: true},
 			{Name: "path characters", Value: "https://example.org/a-b_c.d~e", Valid: true},
-			{Name: "IPv6", Value: "https://[2001:db8::1]:8443/ngc", Valid: true},
+			{Name: "IPv6", Value: "https://[2001:db8::1]:8443/cd", Valid: true},
 			{Name: "256 bytes", Value: "https://" + h(248), Valid: true},
-			{Name: "plain http", Value: "http://store.ngc.example"},
-			{Name: "trailing slash", Value: "https://store.ngc.example/"},
+			{Name: "plain http", Value: "http://store.cd.example"},
+			{Name: "trailing slash", Value: "https://store.cd.example/"},
 			{Name: "empty segment", Value: "https://example.org/a//b"},
 			{Name: "dot segment", Value: "https://example.org/./a"},
 			{Name: "dot-dot segment", Value: "https://example.org/a/../b"},
-			{Name: "query", Value: "https://store.ngc.example?x=1"},
-			{Name: "fragment", Value: "https://store.ngc.example#x"},
-			{Name: "user info", Value: "https://user@store.ngc.example"},
+			{Name: "query", Value: "https://store.cd.example?x=1"},
+			{Name: "fragment", Value: "https://store.cd.example#x"},
+			{Name: "user info", Value: "https://user@store.cd.example"},
 			{Name: "space in the path", Value: "https://example.org/a b"},
 			{Name: "percent escape", Value: "https://example.org/%41"},
-			{Name: "host in upper case", Value: "https://Store.ngc.example"},
-			{Name: "port 0", Value: "https://store.ngc.example:0"},
+			{Name: "host in upper case", Value: "https://Store.cd.example"},
+			{Name: "port 0", Value: "https://store.cd.example:0"},
 			{Name: "257 bytes", Value: "https://" + h(249)},
 		},
 	}
@@ -236,7 +236,7 @@ func TestHostScript(t *testing.T) {
 		t.Helper()
 		script, env := "sh host.sh", os.Environ()
 		for i, a := range args {
-			name := fmt.Sprintf("NGC_HOST%d", i)
+			name := fmt.Sprintf("CD_HOST%d", i)
 			script += ` "$` + name + `"`
 			env = append(env, name+"="+a)
 		}

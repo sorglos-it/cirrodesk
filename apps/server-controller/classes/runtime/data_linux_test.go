@@ -183,7 +183,7 @@ func TestAddKeyRefusesAKeyOfTheWrongLength(t *testing.T) {
 // controller set stayed green". So here nothing is bent but the two kernel
 // calls that need a filesystem with encryption, and the mode is stat'ed.
 //
-// What must be true: a foreign user can ENTER /var/lib/ngc/apps (podman runs
+// What must be true: a foreign user can ENTER /var/lib/cd/apps (podman runs
 // as the app's user, with its directory in there as its home) and can LIST
 // none of it (the installed apps are nothing a user of this machine reads off
 // a directory). That is 0711, and both halves are read.
@@ -236,7 +236,7 @@ func TestTheDirectoryAboveEveryAppIsEnterableAndNotListable(t *testing.T) {
 			// this case does not. It happens after the lines this case is
 			// about, so an error is noted: what is read below is the disk.
 			_, err := EnsureData(context.Background(), "org.sorglos.terminal",
-				User{Name: "ngc-a-00000000", UID: 1234, GID: 1234}, make([]byte, 32))
+				User{Name: "cd-a-00000000", UID: 1234, GID: 1234}, make([]byte, 32))
 			if err != nil {
 				t.Logf("EnsureData ended with %v - the mode below is still the case", err)
 			}

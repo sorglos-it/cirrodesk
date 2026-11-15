@@ -1,6 +1,6 @@
 // The first run: an installation nobody has set up yet, a one-time code from
 // the server's screen, and the first admin. It is the first minute anybody
-// ever spends with NGC, and the person in front of it has never seen a trust
+// ever spends with CirroDesk, and the person in front of it has never seen a trust
 // list, a fingerprint or a standing approval.
 //
 // THE ONE PROMISE OF THIS FILE: the one-time code never leaves the browser.
@@ -79,7 +79,7 @@ const UNREACHABLE = () => t("err.unreachable");
 //
 // That is point 50's own mistake moved one screen along - a false statement
 // about the one thing the person holds, and a worse one than the login's was:
-// a code is good ONCE, so somebody who believes this sentence installs NGC
+// a code is good ONCE, so somebody who believes this sentence installs CirroDesk
 // again for nothing. The code is untouched by a 500, which is why this
 // sentence says so.
 const SILENT = () => t("setup.silent");
@@ -190,7 +190,7 @@ export async function runSetup({ code, info, rp, name, password, store }) {
     // none.
     stores: store === true && info.store !== null ? [info.store] : [],
     // The standing approvals of version 1, sorted by target as a trust list
-    // demands: the three parts of NGC itself with the release key the offer
+    // demands: the three parts of CirroDesk itself with the release key the offer
     // named, and `system` with no key at all. Apps come later, with the key
     // of their store.
     auto: [
@@ -221,7 +221,7 @@ export async function runSetup({ code, info, rp, name, password, store }) {
   // very anchor), and it runs BEFORE the code is spent. The brief has it
   // afterwards, "zur Kontrolle"; here it is before, because the setup happens
   // ONCE: a version 1 that cannot be opened would come back as E_VERIFY, and
-  // the only way on from there is to install NGC again. Finding that out
+  // the only way on from there is to install CirroDesk again. Finding that out
   // before anything is sent costs one SHA-256 and one signature check.
   const version = await trust.open(anchor, [signed]);
 
@@ -290,7 +290,7 @@ export function setupView(root, { config, onDone } = {}) {
   // because GET /api/v1/setup already answers the whole offer to anyone who
   // knows the endpoint, and the page must not read that file out a second time
   // to somebody who does not (docs/setup-auskunft-und-meldung.md, part B).
-  function box(lead, heading = "NGC einrichten") {
+  function box(lead, heading = "CirroDesk einrichten") {
     const form = el("form", "loginbox setupbox");
     // A form, so Enter works in every field - and one that never submits
     // itself, because a shell that navigates away from itself is gone.
@@ -449,7 +449,7 @@ export function setupView(root, { config, onDone } = {}) {
       storeBox = el("input", null);
       storeBox.type = "checkbox";
       storeBox.checked = true;
-      label.append(storeBox, el("span", null, "Apps aus dem NGC-Store installieren können"));
+      label.append(storeBox, el("span", null, "Apps aus dem CirroDesk-Store installieren können"));
       form.append(label, el("p", "setupvalue", info.store.url));
     }
 

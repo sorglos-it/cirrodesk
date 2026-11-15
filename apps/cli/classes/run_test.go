@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 func sha256Of(b []byte) []byte {
@@ -25,7 +25,7 @@ func sha256Of(b []byte) []byte {
 
 func TestRunPacks(t *testing.T) {
 	dir := writeApp(t)
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	var stdout, stderr bytes.Buffer
 	if code := Run([]string{"pack", dir, out}, &stdout, &stderr); code != 0 {
 		t.Fatalf("exit %d, %s", code, stderr.String())
@@ -40,7 +40,7 @@ func TestRunPacks(t *testing.T) {
 }
 
 func TestRunReportsAPackThatFailed(t *testing.T) {
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	var stdout, stderr bytes.Buffer
 	if code := Run([]string{"pack", t.TempDir(), out}, &stdout, &stderr); code != 1 {
 		t.Errorf("exit %d", code)
@@ -99,9 +99,9 @@ func TestRunPrintsTheUsageForAWrongCall(t *testing.T) {
 		{"catalog", []string{"catalog", in("x"), in("y"), "teststore", "1"}},
 		{"license", []string{"license", "a", "b", in("c"), in("d"), "e", "f"}},
 		{"release", []string{"release", "-version", "1.1.0", "-seq", "1", in("x"), in("y")}},
-		{"check", []string{"check", in("x"), "ngc-web", "all"}},
+		{"check", []string{"check", in("x"), "cd-web", "all"}},
 	} {
-		if !strings.Contains(Usage, "ngc-store "+c.name+" ") {
+		if !strings.Contains(Usage, "cd-store "+c.name+" ") {
 			t.Errorf("the usage text does not name %s", c.name)
 		}
 		var stdout, stderr bytes.Buffer
@@ -121,7 +121,7 @@ func TestRunPrintsTheUsageForAWrongCall(t *testing.T) {
 
 func TestRunEncryptsAndCreatesItsKeyFile(t *testing.T) {
 	dir := t.TempDir()
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	write(t, plain, []byte("package"))
 	keyFile := filepath.Join(dir, "content.key")
 	var stdout, stderr bytes.Buffer
@@ -132,7 +132,7 @@ func TestRunEncryptsAndCreatesItsKeyFile(t *testing.T) {
 	// on purpose: Catalog of Task 28 looks for exactly this file beside the
 	// plain package (its EncSuffix), and a name taken from a variable would
 	// not say which one that is.
-	sealed := filepath.Join(dir, "app.ngc.enc")
+	sealed := filepath.Join(dir, "app.cd.enc")
 	if sealed != plain+".enc" {
 		t.Fatalf("the test disagrees with itself: %q", sealed)
 	}
@@ -157,7 +157,7 @@ func TestRunEncryptsAndCreatesItsKeyFile(t *testing.T) {
 	}
 }
 
-func TestRunRefusesAPackageThatIsNoNGC(t *testing.T) {
+func TestRunRefusesAPackageThatIsNoCD(t *testing.T) {
 	dir := t.TempDir()
 	plain := filepath.Join(dir, "app.tar")
 	write(t, plain, []byte("package"))
@@ -165,7 +165,7 @@ func TestRunRefusesAPackageThatIsNoNGC(t *testing.T) {
 	if code := Run([]string{"encrypt", plain, filepath.Join(dir, "c.key")}, &stdout, &stderr); code != 1 {
 		t.Fatalf("exit %d", code)
 	}
-	if !strings.Contains(stderr.String(), ".ngc") {
+	if !strings.Contains(stderr.String(), ".cd") {
 		t.Errorf("stderr %q", stderr.String())
 	}
 	// Nothing was created on the way, not even the key file.
@@ -239,7 +239,7 @@ func TestEverySigningSubcommandCreatesAMissingKeyFile(t *testing.T) {
 		args func(dir, key string) []string
 	}{
 		{"catalog", func(dir, key string) []string { return []string{"catalog", dir, key, "teststore", "1"} }},
-		{"encrypt", func(dir, key string) []string { return []string{"encrypt", filepath.Join(dir, "a.ngc"), key} }},
+		{"encrypt", func(dir, key string) []string { return []string{"encrypt", filepath.Join(dir, "a.cd"), key} }},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			dir := t.TempDir()

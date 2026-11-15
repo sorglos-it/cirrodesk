@@ -61,10 +61,10 @@ import { vectors } from "../fixtures/vectors.js";
 // hash never moved and have not moved now.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=5000 npm test -- contracts/pack-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=5000 npm test -- contracts/pack-fuzz
 const v = vectors("packui.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 700);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 700);
 
 test(`fuzz: a package or BadPackage, ${rounds} packages from seed ${seed}`, async ({ shell }) => {
   test.setTimeout(300_000);
@@ -200,7 +200,7 @@ test(`fuzz: a package or BadPackage, ${rounds} packages from seed ${seed}`, asyn
         icon: withIcon ? "icon.svg" : "",
         services: withServices,
         version: s === 1 ? pick(["1.0", "01.0.0", ""]) : "1.0.0",
-        id: s === 2 ? pick(["ngc.desktop", "Terminal", ""]) : "org.sorglos.terminal",
+        id: s === 2 ? pick(["cd.desktop", "Terminal", ""]) : "org.sorglos.terminal",
         ui: s === 3 ? null : undefined,
       }));
       // The manifest, first and named exactly: everything else is refused at

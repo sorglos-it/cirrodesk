@@ -6,16 +6,16 @@
 # {"checked":1792845105} = 12:31:45 UTC, elf Minuten VOR dem Ausfall.
 #
 # Der Takt steht in server.go: FirstCatalog = time.Minute, danach stuendlich.
-# Ein Neustart von ngc-api holt die erste Runde also in einer Minute. Gemessen
+# Ein Neustart von cd-api holt die erste Runde also in einer Minute. Gemessen
 # wird auf api-2, weil api-1 der einzige Eingang der Anlage ist.
 #
 # Das Skript prueft seine eigene Vorbereitung an drei Stellen und bricht ab,
-# statt eine Zahl zu nennen: der Laden muss nachweisbar aus sein, ngc-api muss
+# statt eine Zahl zu nennen: der Laden muss nachweisbar aus sein, cd-api muss
 # eine NEUE PID haben, und die Ladenzeile muss sich ueberhaupt bewegt haben.
 set -uo pipefail
 
 PVE=root@10.2.3.2
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 API2=10.2.3.211
 DB=10.2.3.212
@@ -26,11 +26,11 @@ VMID=306
 erlaubt "$VMID" || { echo "ABBRUCH: VMID $VMID steht nicht auf der Liste"; exit 2; }
 ADDR=10.2.3.215
 
-zeile() { $SSH "root@$DB" 'mysql ngc -N -e "select data from ngc_blob where kind=\"setting\" and id=\"store.global\";"' 2>&1; }
-katalog() { $SSH "root@$DB" 'mysql ngc -N -e "select seq,length(data) from ngc_blob where kind=\"catalog\";"' 2>&1; }
-apps() { $SSH "root@$DB" 'mysql ngc -N -e "select id,node,active from ngc_app;"' 2>&1 | tr '\n' ' '; }
-vertrauen() { $SSH "root@$DB" 'mysql ngc -N -e "select max(seq) from ngc_blob where kind=\"trust\";"' 2>&1; }
-pid() { $SSH "root@$API2" 'systemctl show -p MainPID --value ngc-api' 2>&1; }
+zeile() { $SSH "root@$DB" 'mysql cd -N -e "select data from cd_blob where kind=\"setting\" and id=\"store.global\";"' 2>&1; }
+katalog() { $SSH "root@$DB" 'mysql cd -N -e "select seq,length(data) from cd_blob where kind=\"catalog\";"' 2>&1; }
+apps() { $SSH "root@$DB" 'mysql cd -N -e "select id,node,active from cd_app;"' 2>&1 | tr '\n' ' '; }
+vertrauen() { $SSH "root@$DB" 'mysql cd -N -e "select max(seq) from cd_blob where kind=\"trust\";"' 2>&1; }
+pid() { $SSH "root@$API2" 'systemctl show -p MainPID --value cd-api' 2>&1; }
 lebt() { ping -n 1 -w 1500 "$ADDR" >/dev/null 2>&1; }
 stand() {
   echo "    Ladenzeile  : $(zeile)"
@@ -43,14 +43,14 @@ stand() {
 runde_erzwingen() {
   local vorher=$1 altpid neupid
   altpid=$(pid)
-  $SSH "root@$API2" 'systemctl restart ngc-api' 2>&1
+  $SSH "root@$API2" 'systemctl restart cd-api' 2>&1
   sleep 3
   neupid=$(pid)
   if [ -z "$neupid" ] || [ "$neupid" = "0" ] || [ "$neupid" = "$altpid" ]; then
-    echo "    ABBRUCH: ngc-api auf api-2 hat keine neue PID (alt=$altpid neu=$neupid)."
+    echo "    ABBRUCH: cd-api auf api-2 hat keine neue PID (alt=$altpid neu=$neupid)."
     return 1
   fi
-  echo "    ngc-api auf api-2 neu gestartet, PID $altpid -> $neupid"
+  echo "    cd-api auf api-2 neu gestartet, PID $altpid -> $neupid"
   echo "    warte auf die Runde (FirstCatalog = 1 min)..."
   for i in $(seq 1 24); do
     sleep 10
@@ -92,9 +92,9 @@ else
   echo "    (kein Ergebnis fuer diese Runde)"
 fi
 echo "    Journal api-2 seit dem Abschalten:"
-$SSH "root@$API2" "journalctl -u ngc-api --since '$UTC_AUS' --no-pager | tail -30" 2>&1
+$SSH "root@$API2" "journalctl -u cd-api --since '$UTC_AUS' --no-pager | tail -30" 2>&1
 echo "    -- gezielt nach der Meldung gesucht, die es laut Code geben koennte:"
-$SSH "root@$API2" "journalctl -u ngc-api --since '$UTC_AUS' --no-pager | grep -icE 'catalog|store|laden' || echo 0" 2>&1
+$SSH "root@$API2" "journalctl -u cd-api --since '$UTC_AUS' --no-pager | grep -icE 'catalog|store|laden' || echo 0" 2>&1
 
 echo
 echo ">>> qm start $VMID"

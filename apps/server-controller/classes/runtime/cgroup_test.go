@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // A stand-in for the one thing these cases are about: a kernel that takes a
@@ -248,7 +248,7 @@ func (k *fakeKernel) of(app, file string) string {
 // reason: nothing wrote a cgroup file at all.
 func TestEnsureCgroupPutsTheThreeLimitsIntoTheKernel(t *testing.T) {
 	k := aKernel(t)
-	held, err := ensureCgroup("ngc-uhr-1", Limits{CPU: 500, Memory: 128})
+	held, err := ensureCgroup("cd-uhr-1", Limits{CPU: 500, Memory: 128})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +262,7 @@ func TestEnsureCgroupPutsTheThreeLimitsIntoTheKernel(t *testing.T) {
 		"cpu.max":         "50000 100000",
 	}
 	for file, w := range want {
-		if got := k.of("ngc-uhr-1", file); got != w {
+		if got := k.of("cd-uhr-1", file); got != w {
 			t.Errorf("%s = %q, want %q", file, got, w)
 		}
 	}
@@ -273,14 +273,14 @@ func TestEnsureCgroupPutsTheThreeLimitsIntoTheKernel(t *testing.T) {
 // turn into max.
 func TestEnsureCgroupReadsNoughtAsTheDefaultOfTheContract(t *testing.T) {
 	k := aKernel(t)
-	if _, err := ensureCgroup("ngc-uhr-1", Limits{}); err != nil {
+	if _, err := ensureCgroup("cd-uhr-1", Limits{}); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := k.of("ngc-uhr-1", "memory.max"),
+	if got, want := k.of("cd-uhr-1", "memory.max"),
 		strconv.Itoa(store.DefaultMemory<<20); got != want {
 		t.Errorf("memory.max = %q, want %q (store.DefaultMemory)", got, want)
 	}
-	if got, want := k.of("ngc-uhr-1", "cpu.max"),
+	if got, want := k.of("cd-uhr-1", "cpu.max"),
 		strconv.Itoa(store.DefaultCPU*cpuPeriod/1000)+" "+strconv.Itoa(cpuPeriod); got != want {
 		t.Errorf("cpu.max = %q, want %q (store.DefaultCPU)", got, want)
 	}
@@ -294,7 +294,7 @@ func TestEnsureCgroupRefusesWhenTheKernelDoesNotHoldTheLimit(t *testing.T) {
 		t.Run(file, func(t *testing.T) {
 			k := aKernel(t)
 			k.drop[file] = true
-			held, err := ensureCgroup("ngc-uhr-1", Limits{})
+			held, err := ensureCgroup("cd-uhr-1", Limits{})
 			if !errors.Is(err, ErrCgroupDropped) {
 				t.Fatalf("err = %v, want ErrCgroupDropped", err)
 			}
@@ -321,7 +321,7 @@ func TestEnsureCgroupRefusesWithoutThePidsOrTheMemoryController(t *testing.T) {
 	for _, offer := range [][]string{{"memory", "cpu"}, {"pids", "cpu"}} {
 		t.Run(strings.Join(offer, "+"), func(t *testing.T) {
 			aKernel(t, offer...)
-			if _, err := ensureCgroup("ngc-uhr-1", Limits{}); !errors.Is(err, ErrCgroupDropped) {
+			if _, err := ensureCgroup("cd-uhr-1", Limits{}); !errors.Is(err, ErrCgroupDropped) {
 				t.Fatalf("err = %v, want ErrCgroupDropped", err)
 			}
 		})
@@ -334,7 +334,7 @@ func TestEnsureCgroupRefusesWithoutThePidsOrTheMemoryController(t *testing.T) {
 // nobody would otherwise run no app at all. What it must not do is claim it.
 func TestACgroupWithoutTheCPUControllerStillStartsTheApp(t *testing.T) {
 	k := aKernel(t, "pids", "memory")
-	held, err := ensureCgroup("ngc-uhr-1", Limits{})
+	held, err := ensureCgroup("cd-uhr-1", Limits{})
 	if err != nil {
 		t.Fatalf("err = %v, want the app to start", err)
 	}
@@ -344,7 +344,7 @@ func TestACgroupWithoutTheCPUControllerStillStartsTheApp(t *testing.T) {
 	if !held.PIDs || !held.Memory {
 		t.Fatalf("held = %s, want pids and memory", held)
 	}
-	if k.of("ngc-uhr-1", "cpu.max") != "" {
+	if k.of("cd-uhr-1", "cpu.max") != "" {
 		t.Error("a cpu.max was written where no cpu controller was handed down")
 	}
 }
@@ -369,7 +369,7 @@ func TestACgroupWithoutTheCPUControllerStillStartsTheApp(t *testing.T) {
 func TestOneMissingControllerDoesNotCostTheOthers(t *testing.T) {
 	k := aKernel(t, "cpuset", "cpu", "io", "memory", "hugetlb", "pids", "rdma", "misc")
 	k.handsDown("memory", "pids") // what svc-2 looked like at boot
-	held, err := ensureCgroup("ngc-uhr-1", Limits{Memory: 128})
+	held, err := ensureCgroup("cd-uhr-1", Limits{Memory: 128})
 	if err != nil {
 		t.Fatalf("err = %v, want the app to start on pids and memory", err)
 	}
@@ -382,10 +382,10 @@ func TestOneMissingControllerDoesNotCostTheOthers(t *testing.T) {
 	// The intermediate check, without which this case could pass on a parent
 	// that offers nothing at all: the two that must hold really are in the
 	// kernel, with the numbers asked for.
-	if got, want := k.of("ngc-uhr-1", "pids.max"), strconv.Itoa(PIDsLimit); got != want {
+	if got, want := k.of("cd-uhr-1", "pids.max"), strconv.Itoa(PIDsLimit); got != want {
 		t.Errorf("pids.max = %q, want %q", got, want)
 	}
-	if got, want := k.of("ngc-uhr-1", "memory.max"), strconv.Itoa(128<<20); got != want {
+	if got, want := k.of("cd-uhr-1", "memory.max"), strconv.Itoa(128<<20); got != want {
 		t.Errorf("memory.max = %q, want %q", got, want)
 	}
 }
@@ -399,7 +399,7 @@ func TestEnsureCgroupRefusesWithoutACgroupV2Tree(t *testing.T) {
 	if err := os.Remove(filepath.Join(k.root, "cgroup.controllers")); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := ensureCgroup("ngc-uhr-1", Limits{}); !errors.Is(err, ErrCgroup) {
+	if _, err := ensureCgroup("cd-uhr-1", Limits{}); !errors.Is(err, ErrCgroup) {
 		t.Fatalf("err = %v, want ErrCgroup", err)
 	}
 }
@@ -410,16 +410,16 @@ func TestEnsureCgroupRefusesWithoutACgroupV2Tree(t *testing.T) {
 // allowed to believe the directory it finds.
 func TestEnsureCgroupWritesAgainIntoACgroupAlreadyThere(t *testing.T) {
 	k := aKernel(t)
-	if _, err := ensureCgroup("ngc-uhr-1", Limits{Memory: 128}); err != nil {
+	if _, err := ensureCgroup("cd-uhr-1", Limits{Memory: 128}); err != nil {
 		t.Fatal(err)
 	}
 	// Somebody else widened it - this is what a run before, or a kernel
 	// default, leaves behind.
-	k.write(filepath.Join(k.root, cgroupParent, "ngc-uhr-1", "memory.max"), "max")
-	if _, err := ensureCgroup("ngc-uhr-1", Limits{Memory: 128}); err != nil {
+	k.write(filepath.Join(k.root, cgroupParent, "cd-uhr-1", "memory.max"), "max")
+	if _, err := ensureCgroup("cd-uhr-1", Limits{Memory: 128}); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := k.of("ngc-uhr-1", "memory.max"), strconv.Itoa(128<<20); got != want {
+	if got, want := k.of("cd-uhr-1", "memory.max"), strconv.Itoa(128<<20); got != want {
 		t.Errorf("memory.max = %q, want %q", got, want)
 	}
 }
@@ -448,17 +448,17 @@ func TestTheCgroupCallsRefuseANameThatIsNoName(t *testing.T) {
 // "there is a cgroup".
 func TestHasCgroupIsAboutTasksAndNotAboutADirectory(t *testing.T) {
 	k := aKernel(t)
-	if HasCgroup("ngc-uhr-1") {
+	if HasCgroup("cd-uhr-1") {
 		t.Error("says yes without a cgroup at all")
 	}
-	if _, err := ensureCgroup("ngc-uhr-1", Limits{}); err != nil {
+	if _, err := ensureCgroup("cd-uhr-1", Limits{}); err != nil {
 		t.Fatal(err)
 	}
-	if HasCgroup("ngc-uhr-1") {
+	if HasCgroup("cd-uhr-1") {
 		t.Error("says yes for a cgroup that holds no task")
 	}
-	k.write(filepath.Join(k.root, cgroupParent, "ngc-uhr-1", "cgroup.procs"), "4711")
-	if !HasCgroup("ngc-uhr-1") {
+	k.write(filepath.Join(k.root, cgroupParent, "cd-uhr-1", "cgroup.procs"), "4711")
+	if !HasCgroup("cd-uhr-1") {
 		t.Error("says no for a cgroup that holds a task")
 	}
 }
@@ -467,16 +467,16 @@ func TestHasCgroupIsAboutTasksAndNotAboutADirectory(t *testing.T) {
 // no error - after a restart of the machine none of them is.
 func TestDropCgroupTakesTheDirectoryAndForgivesAMissingOne(t *testing.T) {
 	k := aKernel(t)
-	if _, err := ensureCgroup("ngc-uhr-1", Limits{}); err != nil {
+	if _, err := ensureCgroup("cd-uhr-1", Limits{}); err != nil {
 		t.Fatal(err)
 	}
-	if err := DropCgroup("ngc-uhr-1"); err != nil {
+	if err := DropCgroup("cd-uhr-1"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(k.root, cgroupParent, "ngc-uhr-1")); err == nil {
+	if _, err := os.Stat(filepath.Join(k.root, cgroupParent, "cd-uhr-1")); err == nil {
 		t.Error("the cgroup is still there")
 	}
-	if err := DropCgroup("ngc-uhr-1"); err != nil {
+	if err := DropCgroup("cd-uhr-1"); err != nil {
 		t.Errorf("a second call = %v, want nothing", err)
 	}
 }
@@ -601,7 +601,7 @@ func TestKillCgroupEndsTheTasksAndWaitsForTheCgroupToBeEmpty(t *testing.T) {
 	// case that ran). Two mutants of 30.10.2026 lived on that, and they are
 	// what found it. KillCgroup asks no user; it only needs a name the regexp
 	// takes.
-	const name = "ngc-uhr-ad8c00e2"
+	const name = "cd-uhr-ad8c00e2"
 	// No podman here: what is measured is KillCgroup, and for that the cgroup
 	// only has to HOLD a task. A start would drag the whole engine into a case
 	// about one write, and on a machine without the engine the case would skip
@@ -640,7 +640,7 @@ func TestKillCgroupEndsTheTasksAndWaitsForTheCgroupToBeEmpty(t *testing.T) {
 func TestKillCgroupTakesTheDirectoryAwayAndNotOnlyTheTasks(t *testing.T) {
 	k := aKernel(t)
 	paths.sleep = func(time.Duration) {}
-	const name = "ngc-uhr-ad8c00e2"
+	const name = "cd-uhr-ad8c00e2"
 	if _, err := ensureCgroup(name, Limits{}); err != nil {
 		t.Fatal(err)
 	}
@@ -674,7 +674,7 @@ func TestKillCgroupSaysSoWhenATaskSurvives(t *testing.T) {
 	// case that ran). Two mutants of 30.10.2026 lived on that, and they are
 	// what found it. KillCgroup asks no user; it only needs a name the regexp
 	// takes.
-	const name = "ngc-uhr-ad8c00e2"
+	const name = "cd-uhr-ad8c00e2"
 	if _, err := ensureCgroup(name, Limits{}); err != nil {
 		t.Fatal(err)
 	}

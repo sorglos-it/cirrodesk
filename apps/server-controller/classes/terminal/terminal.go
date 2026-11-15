@@ -1,6 +1,6 @@
 // Package terminal is the service program of the terminal app. It runs inside
 // that app's container, not on the server: the controller starts it as
-// "ngc-controller terminal" (the manifest's service terminal), hands it the
+// "cd-controller terminal" (the manifest's service terminal), hands it the
 // input of the channel on stdin and takes the output of the shell from stdout.
 //
 // Nothing of what passes through here is written anywhere. A terminal sees
@@ -11,13 +11,13 @@
 // with a SHORT marker on purpose: a logger that throws long details away would
 // let a mutation "write the whole line" pass with a long one.
 //
-// THE PARAMETERS OF ngc.open ARE DECORATION, AND THAT IS A DECISION. The plan
+// THE PARAMETERS OF cd.open ARE DECORATION, AND THAT IS A DECISION. The plan
 // of the web side writes the call as
-// ngc.open("terminal", "shell", {cols, rows}), and a reader takes that for the
+// cd.open("terminal", "shell", {cols, rows}), and a reader takes that for the
 // way the size travels. It is not. This program reads NO parameters: the size
 // comes in a resize frame and nowhere else (ParseFrame, pumpIn), and shellEnv
 // below builds the environment of the shell out of five fixed lines, so
-// NGC_PARAMS reaches neither the shell nor the pseudo terminal.
+// CD_PARAMS reaches neither the shell nor the pseudo terminal.
 //
 // It stays that way on purpose, and the reason is measured on the other side:
 // the web app sends the size as the FIRST thing it sends after the channel is
@@ -54,10 +54,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The frames of the channel: one byte kind, two bytes length of the payload
@@ -198,7 +198,7 @@ var errBug = errors.New("terminal: a programming error ended this terminal")
 // and comes back to the caller.
 //
 // Without it a panic in one of them was final -- a goroutine is where nothing
-// above can catch one -- and it took the whole ngc-controller with it, every
+// above can catch one -- and it took the whole cd-controller with it, every
 // terminal and every channel of every user (V1.2 point 38). The send matters
 // as much as the catch: a caught panic nobody is told about would leave
 // runShell waiting on a goroutine that is already gone, which is the silent
@@ -278,11 +278,11 @@ func EncodeOutput(b []byte) []byte {
 }
 
 // shellEnv is the whole environment of the shell. It is built from nothing but
-// these five lines and HOME, so NGC_PARAMS - which carries whatever the user
+// these five lines and HOME, so CD_PARAMS - which carries whatever the user
 // typed into the app - cannot travel on: a shell that had it would put it in
 // front of the next person who reads the process list. This is also the second
 // half of "the parameters are decoration" (see the head of this file): there is
-// no door here for a cols or rows out of NGC_PARAMS, and a case holds that for
+// no door here for a cols or rows out of CD_PARAMS, and a case holds that for
 // an environment poisoned with all of them (TestShellEnvCarriesNothing).
 //
 // It stands in this file and not beside the pseudo terminal, although only

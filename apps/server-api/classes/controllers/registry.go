@@ -18,8 +18,8 @@ package controllers
 import (
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // Tunnel is one open tunnel.

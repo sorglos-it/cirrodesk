@@ -8,14 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbopen"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbopen"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // The hole these cases hold shut, measured on 12.10.2026 and the reason this
 // file exists: classes/dbopen declared Register and RegisterMigrator, and no
 // line of production code anywhere called either -- only tests did. So
-// server.Build ran into dbopen.ErrNoOpener and ngc-api could not start at
+// server.Build ran into dbopen.ErrNoOpener and cd-api could not start at
 // all, while every part of it compiled and every test was green. The seam is
 // the blank import of apps/server-db/classes/register in main.go, and these
 // cases fail without it.
@@ -37,7 +37,7 @@ func dbFile(t *testing.T) config.DB {
 	}
 	return config.DB{
 		Driver: config.DriverSQLite,
-		Path:   filepath.Join(t.TempDir(), "ngc.db"),
+		Path:   filepath.Join(t.TempDir(), "cd.db"),
 		Key:    config.NewSecret(key),
 	}
 }
@@ -63,7 +63,7 @@ func TestTheDatabasePartIsRegistered(t *testing.T) {
 	}
 }
 
-// TestTheMigrationsAreRegistered is the same for ngc-api migrate: the count
+// TestTheMigrationsAreRegistered is the same for cd-api migrate: the count
 // it prints is what an admin reads, so the case reads it too.
 func TestTheMigrationsAreRegistered(t *testing.T) {
 	var out bytes.Buffer
@@ -109,19 +109,19 @@ func TestADriverNobodyRegisteredIsNamed(t *testing.T) {
 }
 
 // TestTheOwnerNamesThisProgramAndThisNode nails the form down. It is read by
-// a human out of ngc_lock, and the controller's counterpart is
-// "ngc-controller/<name>[/<node>]"; the API has no name field, so the node is
+// a human out of cd_lock, and the controller's counterpart is
+// "cd-controller/<name>[/<node>]"; the API has no name field, so the node is
 // the whole of what identifies it.
 func TestTheOwnerNamesThisProgramAndThisNode(t *testing.T) {
-	if got := dbopen.OwnerOf("api-1"); got != "ngc-api/api-1" {
+	if got := dbopen.OwnerOf("api-1"); got != "cd-api/api-1" {
 		t.Fatalf("OwnerOf: %q", got)
 	}
-	if dbopen.Owner != "ngc-api" {
+	if dbopen.Owner != "cd-api" {
 		t.Fatalf("Owner: %q", dbopen.Owner)
 	}
 }
 
-// TestTheBackupIsRegistered is the same seam again for "ngc-api backup", and
+// TestTheBackupIsRegistered is the same seam again for "cd-api backup", and
 // it is the one of the three that had no caller at all until this round:
 // sqlite.Backup was built, measured and tested, and no program could reach
 // it. A case that only asked dbopen.Backup for a nil error would have passed
@@ -187,7 +187,7 @@ func TestABackupOfAClusterNamesTheProgramThatCanDoIt(t *testing.T) {
 	if err == nil {
 		t.Fatalf("a cluster reported a backup that nothing wrote")
 	}
-	if !strings.Contains(err.Error(), "ngc-db") {
+	if !strings.Contains(err.Error(), "cd-db") {
 		t.Fatalf("the error does not name the program that can do it: %v", err)
 	}
 	if _, err := os.Stat(target); !os.IsNotExist(err) {

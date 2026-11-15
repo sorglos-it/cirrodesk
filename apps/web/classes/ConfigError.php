@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Ngc;
+namespace CirroDesk;
 
 use RuntimeException;
 
@@ -11,7 +11,7 @@ use RuntimeException;
 // failure keeps the short, blank answer of index.php.
 //
 // It exists so that a typo in web.json says what is wrong. Otherwise the
-// person setting NGC up reads "nicht eingerichtet" and has no idea which of
+// person setting CirroDesk up reads "nicht eingerichtet" and has no idea which of
 // the two files carries the mistake.
 final class ConfigError extends RuntimeException
 {

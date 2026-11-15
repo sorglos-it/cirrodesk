@@ -32,7 +32,7 @@ const GOOD = "admin adds a user, user adds an own key, passkey admin re-signs";
 const INSTALLATION = "EREREREREREREREREREREQ";
 const CONTROLLER = "ctl-1";
 const ALARM = "Die Vertrauensliste dieser Anlage stimmt nicht. "
-  + "NGC hat Sie sicherheitshalber abgemeldet.";
+  + "CirroDesk hat Sie sicherheitshalber abgemeldet.";
 
 // Does this engine's Web Crypto know Ed25519? Every key in trust.json is
 // Ed25519, so an engine without it can check no signature in any chain here
@@ -69,8 +69,8 @@ const wired = new WeakMap();
 // past the newest and 404 E_NOTFOUND past that.
 //
 // visible is how many versions this API owns up to. A case raises it with
-// __ngcVisible() to make a new version appear, which is what a trust hint is
-// about; __ngcDead() breaks the connection instead.
+// __cdVisible() to make a new version appear, which is what a trust hint is
+// about; __cdDead() breaks the connection instead.
 async function serve(shell, c, { size = 64, visible = c.chain.length } = {}) {
   const state = {
     chain: c.chain, first: c.anchor.seq, size, visible, all: c.chain.length,
@@ -116,14 +116,14 @@ async function serve(shell, c, { size = 64, visible = c.chain.length } = {}) {
     held.state.log.push("logout");
     await route.fulfill({ status: 204 });
   });
-  await shell.exposeFunction("__ngcVisible", () => { held.state.visible = held.state.all; });
-  await shell.exposeFunction("__ngcDead", () => { held.state.dead = true; });
-  // The counterpart of __ngcDead: the connection comes back. A case that has
+  await shell.exposeFunction("__cdVisible", () => { held.state.visible = held.state.all; });
+  await shell.exposeFunction("__cdDead", () => { held.state.dead = true; });
+  // The counterpart of __cdDead: the connection comes back. A case that has
   // to prove that something did NOT happen needs a working line again, so it
   // can send a request whose ARRIVAL is the proof that the shell is through.
-  await shell.exposeFunction("__ngcAlive", () => { held.state.dead = false; });
-  await shell.exposeFunction("__ngcAsked", () => held.state.from.slice());
-  await shell.exposeFunction("__ngcForget", () => { held.state.from = []; });
+  await shell.exposeFunction("__cdAlive", () => { held.state.dead = false; });
+  await shell.exposeFunction("__cdAsked", () => held.state.from.slice());
+  await shell.exposeFunction("__cdForget", () => { held.state.from = []; });
   return state;
 }
 
@@ -188,7 +188,7 @@ test.describe("the chain", () => {
       s.onAlarm((text) => alarms.push(text));
       const before = await s.bootstrap({ seq: raw.seq, hash: b64decode(raw.hash) });
       // The API now owns up to a second version - and it is one nobody signed.
-      await window.__ngcVisible();
+      await window.__cdVisible();
       await s.refresh(2).catch(() => {});
       return { before, alarms, after: s.current() };
     }, anchorOf(c));
@@ -209,11 +209,11 @@ test.describe("the chain", () => {
       const { TrustStore } = await import("/assets/js/shell/trustlist.js");
       const s = new TrustStore();
       await s.bootstrap({ seq: raw.seq, hash: b64decode(raw.hash) });
-      const asked = (await window.__ngcAsked()).length;
+      const asked = (await window.__cdAsked()).length;
       // Both name versions that are already in force.
       const same = await s.refresh(4);
       const older = await s.refresh(1);
-      return { asked, same, older, after: (await window.__ngcAsked()).length };
+      return { asked, same, older, after: (await window.__cdAsked()).length };
     }, anchorOf(c));
     expect(got.same).toBe(4);
     expect(got.older).toBe(4);
@@ -232,7 +232,7 @@ test.describe("the chain", () => {
       const alarms = [];
       s.onAlarm((t) => alarms.push(t));
       await s.bootstrap({ seq: raw.seq, hash: b64decode(raw.hash) });
-      await window.__ngcVisible();
+      await window.__cdVisible();
       // Two hints in one turn of the event loop. Whoever reads the number of
       // the version in force BEFORE the first await and works with it after
       // fetches the same versions twice - and a version the shell already has
@@ -261,7 +261,7 @@ test.describe("the chain", () => {
       const seen = [];
       s.onChange((v) => seen.push(v.list.seq));
       await s.bootstrap({ seq: raw.seq, hash: b64decode(raw.hash) });
-      await window.__ngcVisible();
+      await window.__cdVisible();
       await s.refresh(4);
       // A hint about nothing new must tell nobody.
       await s.refresh(4);
@@ -335,12 +335,12 @@ test.describe("the chain", () => {
       const alarms = [];
       s.onAlarm((t) => alarms.push(t));
       await s.bootstrap({ seq: raw.seq, hash: b64decode(raw.hash) });
-      await window.__ngcDead();
+      await window.__cdDead();
       const failed = await s.refresh(4).then(() => false, () => true);
       // The store is kept for the barrier below, which has to use THIS one:
       // a fresh store would prove nothing about the turn that just failed.
-      window.__ngcStore = s;
-      window.__ngcAlarms = alarms;
+      window.__cdStore = s;
+      window.__cdAlarms = alarms;
       return { failed, alarms: alarms.slice(), seq: s.current()?.list?.seq ?? 0 };
     }, anchorOf(c));
     // A trust list nobody could fetch is a trust list that did not change.
@@ -352,10 +352,10 @@ test.describe("the chain", () => {
 
     // --- the barrier, first half: the shell's own path is through ----------
     const after = await shell.evaluate(async () => {
-      await window.__ngcAlive();
-      await window.__ngcVisible();
-      const seq = await window.__ngcStore.refresh(4);
-      return { seq, alarms: window.__ngcAlarms.slice() };
+      await window.__cdAlive();
+      await window.__cdVisible();
+      const seq = await window.__cdStore.refresh(4);
+      return { seq, alarms: window.__cdAlarms.slice() };
     });
     expect(after.seq).toBe(4);
     expect(after.alarms).toEqual([]);
@@ -416,9 +416,9 @@ test.describe("the chain", () => {
       other.hash[3] ^= 1;
       const s = new TrustStore();
       const kept = await s.load(inst);
-      await window.__ngcForget();
+      await window.__cdForget();
       const broke = await s.bootstrap(other).then(() => false, () => true);
-      return { keptSeq: kept === null ? 0 : kept.list.seq, broke, from: await window.__ngcAsked() };
+      return { keptSeq: kept === null ? 0 : kept.list.seq, broke, from: await window.__cdAsked() };
     }, { raw: anchorOf(c), inst: INSTALLATION });
     expect(got.keptSeq).toBe(4);
     // The chain is walked again from the new anchor - not carried on from a
@@ -477,7 +477,7 @@ test("the alarm says what is the matter and cannot be clicked away", async ({ sh
   });
   const box = shell.getByRole("alertdialog");
   await expect(box).toContainText(
-    "Die Vertrauensliste dieser Anlage stimmt nicht. NGC hat Sie sicherheitshalber abgemeldet.");
+    "Die Vertrauensliste dieser Anlage stimmt nicht. CirroDesk hat Sie sicherheitshalber abgemeldet.");
   // It says what to do, and without one word of jargon.
   await expect(box).toContainText("Bitte geben Sie hier kein Passwort mehr ein");
   // There is no way out of it: nothing to press, and Escape does nothing. An

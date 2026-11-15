@@ -7,20 +7,20 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestTheStoreChannelsAreWired is the reachability check all the attacks of
 // this file rest on, and it replaces a case that held the opposite: until the
-// strand that wired the ngc.store handlers landed, coreapp.New registered
+// strand that wired the cd.store handlers landed, coreapp.New registered
 // none of them and every one of these channels answered E_NOTFOUND, so an
 // attack through them measured the missing handler and nothing else.
 //
@@ -33,7 +33,7 @@ func TestTheStoreChannelsAreWired(t *testing.T) {
 		core.ActUpdates} {
 		if got := a.callCode(t, wire.Open{App: core.AppStore, Service: core.ServiceAPI,
 			Action: act}); got != "" {
-			t.Errorf("ngc.store/api/%s answered %q, want a channel that ran", act, got)
+			t.Errorf("cd.store/api/%s answered %q, want a channel that ran", act, got)
 		}
 	}
 	// catalog answers E_NOTFOUND here, and that is NOT "unwired": nothing has
@@ -46,7 +46,7 @@ func TestTheStoreChannelsAreWired(t *testing.T) {
 	}
 	if got := a.callCode(t, wire.Open{App: core.AppStore, Service: core.ServiceAPI,
 		Action: core.ActCatalog, Params: params}); got != wire.CodeNotFound {
-		t.Fatalf("ngc.store/api/catalog for the global store answered %q, want %q",
+		t.Fatalf("cd.store/api/catalog for the global store answered %q, want %q",
 			got, wire.CodeNotFound)
 	}
 }
@@ -78,7 +78,7 @@ func TestInjectedSQLInAStoreNameDoesNothing(t *testing.T) {
 	}
 }
 
-// uploadOpen is the OPEN of ngc.store/api/upload. The task and the
+// uploadOpen is the OPEN of cd.store/api/upload. The task and the
 // confirmation are not decoration: upload is core.Critical, so without them
 // task.Check answers ErrConfirm and the channel ends with E_CONFIRM before a
 // byte of the package is read -- measured, and the reason an upload attack
@@ -104,7 +104,7 @@ func upload(t *testing.T, a *api, fill byte, pkg []byte) (wire.Code, []byte) {
 }
 
 // TestAHostilePackageOnTheUploadChannelIsRefused attacks
-// ngc.store/api/upload, the channel an admin really hands a package over.
+// cd.store/api/upload, the channel an admin really hands a package over.
 //
 // The reachability check is the sound package of this package's own builder:
 // it is taken, and the result names id, version and the checksum the API read.
@@ -197,7 +197,7 @@ func TestAHostilePackageOnTheUploadChannelIsRefused(t *testing.T) {
 	})
 }
 
-// licenceOpen is the OPEN of ngc.store/api/license. The action carries no
+// licenceOpen is the OPEN of cd.store/api/license. The action carries no
 // parameters of its own, so the app comes out of the licence.
 func licenceOpen() wire.Open {
 	return wire.Open{App: core.AppStore, Service: core.ServiceAPI, Action: core.ActLicense,
@@ -228,7 +228,7 @@ func mustJSON(t *testing.T, v any) []byte {
 	return b
 }
 
-// TestAForeignLicenceOnTheChannelKeepsNothing attacks ngc.store/api/license,
+// TestAForeignLicenceOnTheChannelKeepsNothing attacks cd.store/api/license,
 // the channel a licence really arrives on. Everything is the same but one
 // field: the same store KEY signs it (so the signature is sound, it is just
 // over other bytes), the same app, the same install key -- and another

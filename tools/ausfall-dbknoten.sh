@@ -15,7 +15,7 @@
 set -uo pipefail
 
 PVE=root@10.2.3.2
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 A1=10.2.3.210
 A2=10.2.3.211
@@ -98,7 +98,7 @@ echo "Zeuge fuer den Verbund: $ZEUGE (bleibt stehen)."
 echo "db.nodes der APIs:"
 for a in $A1 $A2; do
   printf "    %s: " "$a"
-  $SSH "root@$a" 'python3 -c "import json;print(json.load(open(\"/etc/ngc/api.json\"))[\"db\"][\"nodes\"])"' 2>&1
+  $SSH "root@$a" 'python3 -c "import json;print(json.load(open(\"/etc/cd/api.json\"))[\"db\"][\"nodes\"])"' 2>&1
 done
 echo
 runde "VORHER"
@@ -128,7 +128,7 @@ echo
 echo "    Was die APIs sagen:"
 for a in $A1 $A2; do
   echo "      --- $a:"
-  $SSH "root@$a" "journalctl -u ngc-api --since '$VOR' --no-pager 2>/dev/null | tail -6 | sed 's/^/        /'" 2>&1
+  $SSH "root@$a" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | tail -6 | sed 's/^/        /'" 2>&1
 done
 
 echo

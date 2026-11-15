@@ -224,7 +224,7 @@ test("a result over MaxCallResult is refused", async ({ shell }) => {
   const out = await shell.evaluate(async () => {
     const c = await import("/assets/js/contracts/core.js");
     const w = await import("/assets/js/contracts/wire.js");
-    const action = c.lookupByKey("ngc.desktop", "me");
+    const action = c.lookupByKey("cd.desktop", "me");
     const big = new Uint8Array(w.MAX_CALL_RESULT + 1).fill(0x20);
     big[0] = 0x7b; big[big.length - 1] = 0x7d;
     try { c.parseResult(action, big); return false; } catch { return true; }
@@ -271,7 +271,7 @@ test("the limits and the result table are Go's, and the table cannot be written 
     // wrote, or clear the admin flag of one that stands there.
     let pushed = false, changed = false;
     try {
-      c.ACTIONS.push({ app: "ngc.store", service: "api", name: "mine", admin: false });
+      c.ACTIONS.push({ app: "cd.store", service: "api", name: "mine", admin: false });
       pushed = true;
     } catch { /* frozen, as it must be */ }
     try {
@@ -304,8 +304,8 @@ test("the limits and the result table are Go's, and the table cannot be written 
 test("shellOpens and critical decide for every row as Go decides", async ({ shell }) => {
   const got = await shell.evaluate(async () => {
     const c = await import("/assets/js/contracts/core.js");
-    const activate = c.lookup("ngc.store", "controller", "activate");
-    const uninstall = c.lookup("ngc.store", "controller", "uninstall");
+    const activate = c.lookup("cd.store", "controller", "activate");
+    const uninstall = c.lookup("cd.store", "controller", "uninstall");
     return {
       rows: c.ACTIONS.map((a) => ({
         app: a.app, service: a.service, name: a.name,
@@ -317,21 +317,21 @@ test("shellOpens and critical decide for every row as Go decides", async ({ shel
         "activate with root": c.critical(activate, { grants: ["root"] }),
         "uninstall, keep data": c.critical(uninstall, { keepData: true }),
         "uninstall, delete data": c.critical(uninstall, {}),
-        "upload": c.critical(c.lookup("ngc.store", "api", "upload"), null),
-        "delete kept data": c.critical(c.lookup("ngc.store", "controller", "delete-data"), { app: "org.a.b" }),
-        "list users": c.critical(c.lookup("ngc.users", "api", "list"), null),
+        "upload": c.critical(c.lookup("cd.store", "api", "upload"), null),
+        "delete kept data": c.critical(c.lookup("cd.store", "controller", "delete-data"), { app: "org.a.b" }),
+        "list users": c.critical(c.lookup("cd.users", "api", "list"), null),
       },
       // Neither answers with an exception for something that is no action.
       nothing: [c.shellOpens(null), c.shellOpens({}), c.critical(null, null), c.critical(undefined, {})],
       // lookup and lookupByKey: the api row first, the controller row where
       // there is no api row, and null for a name nobody has.
       lookup: {
-        trust: c.lookupByKey("ngc.users", "trust")?.service,
-        activate: c.lookupByKey("ngc.store", "activate")?.service,
-        license: c.lookupByKey("ngc.store", "license")?.service,
-        missing: c.lookupByKey("ngc.desktop", "nope"),
+        trust: c.lookupByKey("cd.users", "trust")?.service,
+        activate: c.lookupByKey("cd.store", "activate")?.service,
+        license: c.lookupByKey("cd.store", "license")?.service,
+        missing: c.lookupByKey("cd.desktop", "nope"),
         noApp: c.lookup(null, "api", "me"),
-        both: c.lookup("ngc.users", "controller", "trust")?.maxIn,
+        both: c.lookup("cd.users", "controller", "trust")?.maxIn,
       },
     };
   });
@@ -343,10 +343,10 @@ test("shellOpens and critical decide for every row as Go decides", async ({ shel
   expect(got.nothing).toEqual([false, false, false, false]);
   expect(got.lookup).toEqual({
     trust: "api", activate: "controller", license: "api", missing: null, noApp: null,
-    both: GO_ACTIONS.find((a) => a.app === "ngc.users" && a.service === "controller").maxIn,
+    both: GO_ACTIONS.find((a) => a.app === "cd.users" && a.service === "controller").maxIn,
   });
   // ShellOpens of Go is "service api, or a root task", and Critical without
-  // params is "ngc.store upload or delete-data" - both read off Go's own table
+  // params is "cd.store upload or delete-data" - both read off Go's own table
   // rather than written out here.
   //
   // One row answers otherwise, and it is the one deliberate difference of this
@@ -362,7 +362,7 @@ test("shellOpens and critical decide for every row as Go decides", async ({ shel
     const opens = go.service === "api" || go.root;
     const critical = go.name === "uninstall"
       ? true
-      : go.app === "ngc.store" && (go.name === "upload" || go.name === "delete-data");
+      : go.app === "cd.store" && (go.name === "upload" || go.name === "delete-data");
     return r.opens !== opens || r.critical !== critical;
   }).map((r) => `${r.app}/${r.service}/${r.name}`);
   expect(wrong).toEqual([]);
@@ -375,7 +375,7 @@ test("validRight takes what Go's ValidRight takes", async ({ shell }) => {
     const check = (list) => list.map((r) => c.validRight(r));
     return {
       good: check(["org.sorglos.terminal/use", "org.sorglos.terminal/shell"]),
-      bad: check(["org.sorglos.terminal", "ngc.users/use", "org.sorglos.terminal/Shell", "/use"]),
+      bad: check(["org.sorglos.terminal", "cd.users/use", "org.sorglos.terminal/Shell", "/use"]),
       // Go is handed a string and can be handed nothing else.
       notText: check([null, undefined, 7, {}, ["org.a.b/use"]]),
     };
@@ -396,27 +396,27 @@ test("encodeParams writes the members Go's json.Marshal writes, in Go's order", 
     // every member filled in, and one with nothing but the members Go writes
     // even when they are empty.
     const cases = {
-      AppParams: ["ngc.desktop", "api", "ui-proof", { app: "org.example.notes" }, { app: "org.example.notes" }],
-      CodeParams: ["ngc.desktop", "api", "totp-confirm", { code: "123456" }, { code: "123456" }],
-      StoreParams: ["ngc.store", "api", "catalog", { store: "global" }, { store: "global" }],
-      RoleRights: ["ngc.users", "api", "set-rights",
+      AppParams: ["cd.desktop", "api", "ui-proof", { app: "org.example.notes" }, { app: "org.example.notes" }],
+      CodeParams: ["cd.desktop", "api", "totp-confirm", { code: "123456" }, { code: "123456" }],
+      StoreParams: ["cd.store", "api", "catalog", { store: "global" }, { store: "global" }],
+      RoleRights: ["cd.users", "api", "set-rights",
         { role: "user", rights: ["org.example.notes/use"] }, { role: "user" }],
-      LogQuery: ["ngc.users", "api", "log",
+      LogQuery: ["cd.users", "api", "log",
         { beforeTime: 1790000000, beforeId: "000102030405060708090a0b0c0d0e0f", limit: 50, user: "ISEhISEhISEhISEhISEhIQ" },
         { limit: 50 }],
-      UpdateSetting: ["ngc.store", "api", "set-update",
-        { target: "ngc-web", mode: "auto", window: "02:00-04:00" }, { target: "ngc-web", mode: "auto" }],
-      ActivateParams: ["ngc.store", "controller", "activate",
+      UpdateSetting: ["cd.store", "api", "set-update",
+        { target: "cd-web", mode: "auto", window: "02:00-04:00" }, { target: "cd-web", mode: "auto" }],
+      ActivateParams: ["cd.store", "controller", "activate",
         { app: "org.example.notes", version: "0.1.0", sha256: sha, ui, store: "local", grants: ["root", "network"] },
         { app: "org.example.notes", version: "0.1.0", sha256: sha, ui, store: "local" }],
-      UninstallParams: ["ngc.store", "controller", "uninstall",
+      UninstallParams: ["cd.store", "controller", "uninstall",
         { app: "org.example.notes", keepData: true }, { app: "org.example.notes" }],
-      StageParams: ["ngc.store", "controller", "stage",
-        { target: "ngc-web", version: "1.1.0" }, { target: "ngc-web", version: "1.1.0" }],
+      StageParams: ["cd.store", "controller", "stage",
+        { target: "cd-web", version: "1.1.0" }, { target: "cd-web", version: "1.1.0" }],
       // The system takes neither a version nor a checksum: the controller runs
       // apt, and there is nothing to name.
-      InstallParams: ["ngc.store", "controller", "install",
-        { target: "ngc-web", version: "1.1.0", sha256: sha }, { target: "system" }],
+      InstallParams: ["cd.store", "controller", "install",
+        { target: "cd-web", version: "1.1.0", sha256: sha }, { target: "system" }],
     };
     const out = {};
     for (const [type, [app, service, name, full, minimal]] of Object.entries(cases)) {
@@ -425,7 +425,7 @@ test("encodeParams writes the members Go's json.Marshal writes, in Go's order", 
     }
     // An action without parameters writes an empty object and takes nothing
     // else (Go: ParseParams with a nil Params).
-    out.none = { full: dec.decode(c.encodeParams(c.lookup("ngc.desktop", "api", "me"), {})), minimal: "{}" };
+    out.none = { full: dec.decode(c.encodeParams(c.lookup("cd.desktop", "api", "me"), {})), minimal: "{}" };
     return out;
   });
   // A parameter type Go grows and nobody covers here turns this red.
@@ -460,7 +460,7 @@ test("encodeParams writes the very bytes Go marshalled into uiproof.json", async
     const proof = c.parseUIProof(b64decode(d.proof));
     const fromGo = dec.decode(t.parseTask(proof.task.payload).params);
     const v = JSON.parse(fromGo);
-    const mine = c.encodeParams(c.lookup("ngc.store", "controller", "activate"), {
+    const mine = c.encodeParams(c.lookup("cd.store", "controller", "activate"), {
       app: v.app, version: v.version, sha256: b64decode(v.sha256), ui: b64decode(v.ui), store: v.store,
     });
     return { fromGo, mine: dec.decode(mine) };
@@ -473,7 +473,7 @@ test("encodeParams decides on the copy it writes, not on a second reading", asyn
     const c = await import("/assets/js/contracts/core.js");
     const { b64decode, b64encode } = await import("/assets/js/contracts/b64.js");
     const ui = b64decode("CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgo");
-    const activate = c.lookup("ngc.store", "controller", "activate");
+    const activate = c.lookup("cd.store", "controller", "activate");
     const params = (sha256) => ({ app: "org.example.notes", version: "0.1.0", sha256, ui, store: "local" });
     // A checksum whose own length says 32 on the first reading and the truth
     // afterwards. These bytes are signed inside a task; a check that reads the
@@ -525,19 +525,19 @@ test("validateParams holds the rules of Go's Validate methods", async ({ shell }
     const sha = b64decode("BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU");
     const ui = b64decode("CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgo");
     const a = (app, service, name) => c.lookup(app, service, name);
-    const activate = a("ngc.store", "controller", "activate");
-    const log = a("ngc.users", "api", "log");
-    const install = a("ngc.store", "controller", "install");
-    const stage = a("ngc.store", "controller", "stage");
-    const setUpdate = a("ngc.store", "api", "set-update");
-    const rights = a("ngc.users", "api", "set-rights");
+    const activate = a("cd.store", "controller", "activate");
+    const log = a("cd.users", "api", "log");
+    const install = a("cd.store", "controller", "install");
+    const stage = a("cd.store", "controller", "stage");
+    const setUpdate = a("cd.store", "api", "set-update");
+    const rights = a("cd.users", "api", "set-rights");
     const good = { app: "org.example.notes", version: "0.1.0", sha256: sha, ui, store: "local" };
     const named = {};
     const put = (name, action, params) => { named[name] = c.validateParams(action, params); };
 
     put("activate", activate, good);
     put("activate with both grants", activate, { ...good, grants: ["root", "network"] });
-    put("activate of a core app", activate, { ...good, app: "ngc.store" });
+    put("activate of a core app", activate, { ...good, app: "cd.store" });
     put("activate of no version", activate, { ...good, version: "1.0" });
     put("activate with a short checksum", activate, { ...good, sha256: sha.slice(0, 31) });
     put("activate with a short ui hash", activate, { ...good, ui: ui.slice(0, 31) });
@@ -559,26 +559,26 @@ test("validateParams holds the rules of Go's Validate methods", async ({ shell }
 
     put("install the system", install, { target: "system" });
     put("install the system with a version", install, { target: "system", version: "1.0.0" });
-    put("install a part", install, { target: "ngc-web", version: "1.1.0", sha256: sha });
-    put("install a part without a checksum", install, { target: "ngc-web", version: "1.1.0" });
+    put("install a part", install, { target: "cd-web", version: "1.1.0", sha256: sha });
+    put("install a part without a checksum", install, { target: "cd-web", version: "1.1.0" });
     put("stage the system", stage, { target: "system", version: "1.0.0" });
-    put("stage a part", stage, { target: "ngc-web", version: "1.1.0" });
+    put("stage a part", stage, { target: "cd-web", version: "1.1.0" });
 
-    put("a window", setUpdate, { target: "ngc-web", mode: "auto", window: "02:00-04:00" });
-    put("no window", setUpdate, { target: "ngc-web", mode: "semi" });
-    put("a window of 24 hours", setUpdate, { target: "ngc-web", mode: "auto", window: "24:00-04:00" });
-    put("a mode nobody has", setUpdate, { target: "ngc-web", mode: "later" });
+    put("a window", setUpdate, { target: "cd-web", mode: "auto", window: "02:00-04:00" });
+    put("no window", setUpdate, { target: "cd-web", mode: "semi" });
+    put("a window of 24 hours", setUpdate, { target: "cd-web", mode: "auto", window: "24:00-04:00" });
+    put("a mode nobody has", setUpdate, { target: "cd-web", mode: "later" });
 
     put("rights", rights, { role: "user", rights: ["org.a.b/use", "org.a.b/shell"] });
     put("no rights", rights, { role: "user" });
     put("the same right twice", rights, { role: "user", rights: ["org.a.b/use", "org.a.b/use"] });
-    put("a right on a core app", rights, { role: "user", rights: ["ngc.users/use"] });
+    put("a right on a core app", rights, { role: "user", rights: ["cd.users/use"] });
     put("a role that is no name", rights, { role: "User", rights: [] });
 
-    const me = a("ngc.desktop", "api", "me");
+    const me = a("cd.desktop", "api", "me");
     put("an action without parameters", me, {});
     put("an action without parameters, and some", me, { app: "org.a.b" });
-    put("a row nobody wrote", { app: "ngc.store", service: "controller", name: "made-up" }, {});
+    put("a row nobody wrote", { app: "cd.store", service: "controller", name: "made-up" }, {});
     put("no action at all", null, {});
     put("parameters that are no object", activate, "app=org.example.notes");
     return named;

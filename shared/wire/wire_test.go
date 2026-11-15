@@ -12,10 +12,10 @@ import (
 	"testing"
 	"unicode"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -200,7 +200,7 @@ func openCases(t testing.TB) []openCase {
 	}
 	return []openCase{
 		{"valid terminal", valid, true},
-		{"valid core app", marshal(func(o *Open) { o.App, o.Service, o.Action, o.Params, o.E2E = "ngc.desktop", "api", "apps", nil, nil }), true},
+		{"valid core app", marshal(func(o *Open) { o.App, o.Service, o.Action, o.Params, o.E2E = "cd.desktop", "api", "apps", nil, nil }), true},
 		{"valid with task and confirmation", marshal(func(o *Open) { withTask(o); o.Confirm = confirmProof() }), true},
 		{"valid window MinWindow", marshal(func(o *Open) { o.Window = MinWindow }), true},
 		{"valid window MaxWindow", marshal(func(o *Open) { o.Window = MaxWindow }), true},
@@ -210,7 +210,7 @@ func openCases(t testing.TB) []openCase {
 		{"action", marshal(func(o *Open) { o.Action = "Shell" }), false},
 		{"window below MinWindow", marshal(func(o *Open) { o.Window = MinWindow - 1 }), false},
 		{"window above MaxWindow", marshal(func(o *Open) { o.Window = MaxWindow + 1 }), false},
-		{"core app with e2e", marshal(func(o *Open) { o.App = "ngc.desktop" }), false},
+		{"core app with e2e", marshal(func(o *Open) { o.App = "cd.desktop" }), false},
 		{"app without e2e", marshal(func(o *Open) { o.E2E = nil }), false},
 		{"e2e of 47 bytes", marshal(func(o *Open) { o.E2E = o.E2E[:HandshakeSize-1] }), false},
 		{"e2e of 49 bytes", marshal(func(o *Open) { o.E2E = append(o.E2E, 7) }), false},

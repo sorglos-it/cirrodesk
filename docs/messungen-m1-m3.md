@@ -1,5 +1,7 @@
 # Die drei fehlenden Messungen: M1, M2, M3
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Auf `docs/thomas-entscheidet.md` stehen drei Messungen, die fehlen. Ohne sie
 bleibt Frage 20 offen, könnte Frage 21 noch kippen, und in Frage 23 fehlt eine
 Zahl. Hier sind sie gemessen.

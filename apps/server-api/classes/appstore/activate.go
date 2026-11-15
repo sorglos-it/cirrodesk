@@ -12,17 +12,17 @@ import (
 	"os"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/login"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/login"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Sender is the one way out of this package to a controller. It is written
@@ -139,7 +139,7 @@ type ActivateRequest struct {
 	Carried
 	Params *core.ActivateParams
 	// File is the package of an uploaded app (core.LocalStore), as the admin
-	// sent it to ngc.store/upload; a store app has none, and its package is
+	// sent it to cd.store/upload; a store app has none, and its package is
 	// downloaded. It is an io.ReaderAt and not an io.Reader because the
 	// package is read more than once -- to see what is in it, and to send it.
 	// This package keeps no upload of its own, so the caller holds the file.
@@ -160,7 +160,7 @@ type UninstallRequest struct {
 }
 
 // Activate installs and starts an app on a controller
-// (ngc.store/controller/activate).
+// (cd.store/controller/activate).
 //
 // The order is the whole of it. Everything that can be refused is refused
 // before a byte reaches the controller, and no row is written to the database
@@ -356,7 +356,7 @@ func (d *onDisk) close() {
 // the grants, nor the UI hash.
 func (st *Stores) fetchPackage(ctx context.Context, rq ActivateRequest) (*onDisk, wire.Code, error) {
 	p := rq.Params
-	f, err := os.CreateTemp(st.Spool, "ngc-pkg-")
+	f, err := os.CreateTemp(st.Spool, "cd-pkg-")
 	if err != nil {
 		return nil, wire.CodeInternal, err
 	}

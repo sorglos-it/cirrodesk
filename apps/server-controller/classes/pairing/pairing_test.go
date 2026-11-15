@@ -17,10 +17,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // The values of the test installation: the API's Noise key and TLS identity,
@@ -195,7 +195,7 @@ func TestDoRefusesBadInput(t *testing.T) {
 		"no code":          {func(in *Input) { in.Code = "" }, tunnel.ErrPairCode},
 		"a join code":      {func(in *Input) { in.Code = tunnel.JoinCode(code).String() }, tunnel.ErrPairCode},
 		"code cut short":   {func(in *Input) { in.Code = code.String()[:len(code.String())-4] }, tunnel.ErrPairCode},
-		"something to say": {func(in *Input) { in.Code = "ngc-pair:" + strings.Repeat("a", tunnel.MaxPairCode) }, tunnel.ErrPairCode},
+		"something to say": {func(in *Input) { in.Code = "cd-pair:" + strings.Repeat("a", tunnel.MaxPairCode) }, tunnel.ErrPairCode},
 	} {
 		in := input(code)
 		c.change(&in)

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# proxmox-sechs - the six Debian VMs of a DISTRIBUTED NGC installation, on a
+# proxmox-sechs - the six Debian VMs of a DISTRIBUTED CirroDesk installation, on a
 # Proxmox host, as commands anyone can read before they run them.
 #
-# WHY SIX AND NOT ONE. tools/erstlauf-maschine.sh installs NGC with ngc-all.sh:
+# WHY SIX AND NOT ONE. tools/erstlauf-maschine.sh installs CirroDesk with cd-all.sh:
 # everything on one machine, SQLite, the store on the same host. That run can
 # never reach four of the questions the contracts make promises about, and two
 # findings of the week of 19.10.2026 hid behind exactly that:
@@ -24,7 +24,7 @@
 #               older catalog.
 #
 # WHAT IS MEASURED AND WHAT IS A VALUE TO CHECK. Everything in VALUES below was
-# read off the Proxmox host and off the running NGC VM on 23.10.2026; the line
+# read off the Proxmox host and off the running CirroDesk VM on 23.10.2026; the line
 # over each one says where it came from. Nothing here was invented. Read the
 # block, change what is yours, then run the script.
 #
@@ -57,40 +57,40 @@ probe=$( (exit 7) >/dev/null 2>&1 || echo "$?")
 
 # Measured: "hostname" on 10.2.3.2 answers "pve". The ssh entry is called
 # pve-2/proxmox, the NODE is called pve - and qm wants the node's name.
-NODE=${NGC_PVE_NODE:-pve}
+NODE=${CD_PVE_NODE:-pve}
 
 # Measured: "pvesm status" lists hdd_20TB_1, hdd_20TB_2, local, local-lvm,
-# ssd_1TB, ssd_2TB. The disk of the existing NGC VM (208) lies on ssd_2TB,
+# ssd_1TB, ssd_2TB. The disk of the existing CirroDesk VM (208) lies on ssd_2TB,
 # which had 1.03 TiB free - so the six go to the same place.
-STORAGE=${NGC_PVE_STORAGE:-ssd_2TB}
+STORAGE=${CD_PVE_STORAGE:-ssd_2TB}
 
 # Measured: "qm config 208" has net0 on bridge vmbr0 with firewall=1, and
 # "ip -br link show type bridge" lists vmbr0 as the only bridge that is UP with
 # a carrier. A bridge called "intern" exists but has NO-CARRIER.
-BRIDGE=${NGC_PVE_BRIDGE:-vmbr0}
-FIREWALL=${NGC_PVE_FIREWALL:-1}
+BRIDGE=${CD_PVE_BRIDGE:-vmbr0}
+FIREWALL=${CD_PVE_FIREWALL:-1}
 
 # Measured: /etc/pve/.vmlist holds 100-116 and 200-208, so 300 and up is free -
 # and that is the range Thomas named.
-VORLAGE_ID=${NGC_PVE_TEMPLATE_ID:-300}
+VORLAGE_ID=${CD_PVE_TEMPLATE_ID:-300}
 
 # Measured: vmbr0 carries 10.2.3.2/8 and the default route goes via 10.0.0.1.
 # The /8 is unusual and it is what this network really is - a /24 here would
 # cut the VMs off from their gateway.
-CIDR=${NGC_PVE_CIDR:-8}
-GATEWAY=${NGC_PVE_GATEWAY:-10.0.0.1}
+CIDR=${CD_PVE_CIDR:-8}
+GATEWAY=${CD_PVE_GATEWAY:-10.0.0.1}
 
 # Measured: /etc/resolv.conf on the host names 10.2.3.102 (the adguard
 # container), then 10.2.3.204 and 10.0.0.1, search domain mein.lan.
-DNS=${NGC_PVE_DNS:-10.2.3.102}
-SEARCH=${NGC_PVE_SEARCH:-mein.lan}
+DNS=${CD_PVE_DNS:-10.2.3.102}
+SEARCH=${CD_PVE_SEARCH:-mein.lan}
 
 # The name of the installation. The interface answers under its NAME: the
 # certificate and the passkeys hang on it, a browser warns over an IP and
 # passkeys do not work over one at all. docs/proxmox-sechs.md says what has to
 # resolve where.
-ZONE=${NGC_ZONE:-ngc.mein.lan}
-WEBNAME=${NGC_WEBNAME:-$ZONE}
+ZONE=${CD_ZONE:-ngc.mein.lan}
+WEBNAME=${CD_WEBNAME:-$ZONE}
 
 # vmid | node name (wire.ValidName) | DNS name | IP | MiB | cores | disk GB |
 #   extra disk GB | roles
@@ -116,30 +116,30 @@ MASCHINEN=(
 	"306|store|store.$ZONE|10.2.3.215|1024|1|16|0|-"
 )
 
-# The store VM carries NO NGC and no controller. That is the whole point of it
+# The store VM carries NO CirroDesk and no controller. That is the whole point of it
 # (see the head of this file), and "-" in the roles column says so.
 
 # Measured: cloud.debian.org serves trixie as a genericcloud qcow2, and the
 # SHA512SUMS next to it confirmed the downloaded file on 23.10.2026.
-ABBILD_URL=${NGC_IMAGE_URL:-https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2}
-ABBILD_DIR=${NGC_IMAGE_DIR:-/var/lib/vz/template/qcow}
+ABBILD_URL=${CD_IMAGE_URL:-https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2}
+ABBILD_DIR=${CD_IMAGE_DIR:-/var/lib/vz/template/qcow}
 ABBILD=$ABBILD_DIR/$(basename -- "$ABBILD_URL")
 
 # The account cloud-init makes, and the keys that may sign in as it. BOTH keys
 # go in: the Proxmox host's own, because the setup runs from there, and the one
-# Thomas's PC already uses for the existing NGC VM, so he can reach the six
+# Thomas's PC already uses for the existing CirroDesk VM, so he can reach the six
 # without making a new key. Measured: /root/.ssh/id_rsa.pub exists on the host.
-CIUSER=${NGC_CIUSER:-root}
-PVE_KEY=${NGC_PVE_KEY:-/root/.ssh/id_rsa.pub}
-# The PUBLIC key of ~/Documents/ssh/keys/id_ed25519_ngc on Thomas's PC, read
+CIUSER=${CD_CIUSER:-root}
+PVE_KEY=${CD_PVE_KEY:-/root/.ssh/id_rsa.pub}
+# The PUBLIC key of ~/Documents/ssh/keys/id_ed25519_cd on Thomas's PC, read
 # there on 23.10.2026. A public key is not a secret; the private one never
 # leaves his machine.
-PC_KEY=${NGC_PC_KEY:-"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIXQkob6Q3SI8B9cabPvn+PZInCKJN+yRis+JFHheG5J User@PC01_ngc"}
+PC_KEY=${CD_PC_KEY:-"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIXQkob6Q3SI8B9cabPvn+PZInCKJN+yRis+JFHheG5J User@PC01_cd"}
 
 # Measured: "qm config 208" uses cpu x86-64-v2-AES. The AES part is not
 # decoration here - MariaDB with encryption at rest and the TLS of five
 # machines run on it.
-CPUTYPE=${NGC_PVE_CPU:-x86-64-v2-AES}
+CPUTYPE=${CD_PVE_CPU:-x86-64-v2-AES}
 
 # ============================================================
 
@@ -307,7 +307,7 @@ anlegen() {
 			echo "proxmox-sechs: VMID $id is already there, leaving it alone"
 			continue
 		fi
-		lauf qm clone "$VORLAGE_ID" "$id" --name "ngc-$name" --full 1 --storage "$STORAGE"
+		lauf qm clone "$VORLAGE_ID" "$id" --name "cd-$name" --full 1 --storage "$STORAGE"
 		lauf qm set "$id" --memory "$mem" --cores "$cores" --onboot 1 \
 			--ipconfig0 "ip=$ip/$CIDR,gw=$GATEWAY"
 		lauf qm disk resize "$id" scsi0 "${disk}G"
@@ -316,7 +316,7 @@ anlegen() {
 			# MOUNTED root filesystem: it is made with "mkfs.ext4 -O encrypt"
 			# (mkfs.ext4 does NOT set that feature by itself - measured with
 			# e2fsprogs 1.47.2, the version Debian 13 ships) and mounted at
-			# /var/lib/ngc/apps. docs/proxmox-sechs.md has the whole reason.
+			# /var/lib/cd/apps. docs/proxmox-sechs.md has the whole reason.
 			lauf qm set "$id" --scsi1 "$STORAGE:${extra},iothread=1"
 		fi
 		lauf qm start "$id"
@@ -340,7 +340,7 @@ namen() {
 		dns=$(feld "$e" 3)
 		printf '%s\n' "$block" |
 			ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 "$CIUSER@$ip" \
-				"sed -i '/^# ngc-sechs/,\$d' /etc/hosts && printf '# ngc-sechs\n' >>/etc/hosts && cat >>/etc/hosts && hostnamectl set-hostname $dns" ||
+				"sed -i '/^# cd-sechs/,\$d' /etc/hosts && printf '# cd-sechs\n' >>/etc/hosts && cat >>/etc/hosts && hostnamectl set-hostname $dns" ||
 			fehler "could not write the hosts block on $ip"
 		printf 'namen: %s has the block and is called %s\n' "$ip" "$dns"
 	done

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
 )
 
 // seeds are the rows FuzzLockRow starts from: rows the counting writes, rows

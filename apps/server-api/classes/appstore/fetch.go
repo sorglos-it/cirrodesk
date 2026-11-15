@@ -1,4 +1,4 @@
-// Package appstore serves ngc.store: the stores of the trust list and their
+// Package appstore serves cd.store: the stores of the trust list and their
 // catalogs, uploaded apps, the UIs the shell runs, the licences of paid apps
 // and the activation of an app on a controller.
 //
@@ -38,14 +38,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Names of the files a store serves. The contracts leave this to the API; a
@@ -57,7 +57,7 @@ const (
 
 // Rows this package keeps besides the catalogs themselves.
 const (
-	// SettingStore is the prefix of the row that holds what ngc.store/sources
+	// SettingStore is the prefix of the row that holds what cd.store/sources
 	// shows about one store: the time of its last success and the reason its
 	// last try failed. ID: SettingStore + the store's ID.
 	SettingStore = "store."
@@ -80,7 +80,7 @@ const maxEnvelope = int64(sign.MaxPayload/3*4 + 1<<10)
 // grammar is.
 const maxDownloadURL = 512
 
-// ErrStore reports an answer of a store NGC does not take: an address outside
+// ErrStore reports an answer of a store CirroDesk does not take: an address outside
 // the grammar, an answer too large, a status other than 200, a download that
 // does not match its size or its checksum. What a signed document is refused
 // for keeps the error of the contract instead (sign.ErrWrongKey,
@@ -95,7 +95,7 @@ type Stores struct {
 	// for a week knocked 168 times without one line a person finds without
 	// looking. Only a CHANGE is said, so a dead store is one line and not
 	// 168. Guarded by saidMu.
-	// manual is when ngc.store/refresh last fetched (RefreshNow); guarded by
+	// manual is when cd.store/refresh last fetched (RefreshNow); guarded by
 	// manualMu, which a second press waits on rather than fetching beside it.
 	manualMu sync.Mutex
 	manual   time.Time
@@ -134,9 +134,9 @@ type Stores struct {
 }
 
 // New returns Stores with a client that follows no redirect and waits at most
-// a minute: a store is a plain web server, and NGC never follows it elsewhere.
+// a minute: a store is a plain web server, and CirroDesk never follows it elsewhere.
 // Proxy is nil on purpose and not http.ProxyFromEnvironment: an environment
-// variable must not be able to put a machine between NGC and a store.
+// variable must not be able to put a machine between CirroDesk and a store.
 func New(s *state.State) *Stores {
 	st := &Stores{S: s, Client: &http.Client{
 		Timeout: 60 * time.Second,
@@ -193,7 +193,7 @@ func (st *Stores) Refresh(ctx context.Context) error {
 	for _, s := range v.List.Stores {
 		err := st.refreshOne(ctx, s)
 		st.journal(s.ID, err)
-		// The reason is shown to admins in ngc.store/sources, in German, and
+		// The reason is shown to admins in cd.store/sources, in German, and
 		// writing it down must not swallow the next store either.
 		_ = st.note(ctx, s.ID, err)
 	}
@@ -245,7 +245,7 @@ func (st *Stores) journal(id string, err error) {
 //
 // The right it costs is named on purpose: taking a store out of the trust
 // list and putting it back is a change of the trust list
-// (ngc.users/api/trust, admin, critical). Whoever may do that may also give
+// (cd.users/api/trust, admin, critical). Whoever may do that may also give
 // the store another key or another address, so the bar is not lowered for
 // anybody who could not already decide what this store is.
 func (st *Stores) forget(ctx context.Context, stores []trust.Store) error {
@@ -331,7 +331,7 @@ func (st *Stores) lastSeq(ctx context.Context, kind, id string) (uint64, error) 
 // Release fetches the release file of the global store and checks it against
 // the release key of the configuration -- never against a store key. The two
 // keys are different on purpose: a store that is taken over may offer apps,
-// but it must not be able to offer an NGC.
+// but it must not be able to offer a CirroDesk.
 func (st *Stores) Release(ctx context.Context) (*store.Release, sign.Envelope, error) {
 	base, err := st.globalURL(ctx)
 	if err != nil {
@@ -396,7 +396,7 @@ func (st *Stores) globalURL(ctx context.Context) (string, error) {
 // (store.VerifyCatalog, store.VerifyRelease). That grammar is not exported, so
 // what is checked again here is the scheme, the length and the host by the
 // grammar of trust -- enough that a caller which composed an address itself
-// cannot send NGC anywhere else.
+// cannot send CirroDesk anywhere else.
 func (st *Stores) Download(ctx context.Context, url string, size int64, sum []byte, w io.Writer) error {
 	if size <= 0 || size > store.MaxPackage || len(sum) != sha256.Size || !downloadURL(url) {
 		return ErrStore
@@ -428,7 +428,7 @@ func (st *Stores) Download(ctx context.Context, url string, size int64, sum []by
 	return nil
 }
 
-// downloadURL reports whether u is an address NGC fetches a package from: see
+// downloadURL reports whether u is an address CirroDesk fetches a package from: see
 // Download for what it checks and what checked it before.
 func downloadURL(u string) bool {
 	// A fragment says nothing to a server and would hide the rest of the
@@ -472,7 +472,7 @@ func PackageURL(base, u string) (string, bool) {
 
 // note writes down how one store fared: the time of a success, or the reason a
 // try failed, in German and out of a closed list (reasons). The row is what
-// ngc.store/sources reads; a change of what NGC holds about a store goes into
+// cd.store/sources reads; a change of what CirroDesk holds about a store goes into
 // the log as well (core.LogStore).
 func (st *Stores) note(ctx context.Context, id string, cause error) error {
 	s := sourceState{}
@@ -510,7 +510,7 @@ func (st *Stores) note(ctx context.Context, id string, cause error) error {
 	return nil
 }
 
-// sourceState is the row behind SettingStore: what NGC itself wrote about one
+// sourceState is the row behind SettingStore: what CirroDesk itself wrote about one
 // store, never a word of the store's own.
 type sourceState struct {
 	Checked int64  `json:"checked,omitzero"`
@@ -538,12 +538,12 @@ func (st *Stores) FetchReleaseFile(ctx context.Context, f store.File, w io.Write
 	return st.Download(ctx, url, f.Size, f.SHA256, w)
 }
 
-// RefreshEvery is how often ngc.store/refresh may really fetch: the contract
+// RefreshEvery is how often cd.store/refresh may really fetch: the contract
 // allows one fetch a minute, and a press within that minute gets the last
 // state without knocking on every store again.
 var RefreshEvery = time.Minute
 
-// RefreshNow is ngc.store/refresh (A25): a fresh installation had no store for
+// RefreshNow is cd.store/refresh (A25): a fresh installation had no store for
 // an hour, because the first round runs a minute after the start and the next
 // an hour later. A failed store is not an error of the call -- its row says
 // what went wrong, and the shell shows the rows.

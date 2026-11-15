@@ -1,13 +1,13 @@
-// Package dbcli is ngc-db: backup and restore of the local MariaDB node.
+// Package dbcli is cd-db: backup and restore of the local MariaDB node.
 //
 // It drives mariabackup and nothing else. A physical copy and no dump,
 // because a dump played back may run code (register.backup says the same).
 // The copy keeps the tables encrypted: mariabackup reads the key plugin from
-// the server's own configuration, so the keys under /etc/ngc/db-keys must be
+// the server's own configuration, so the keys under /etc/cd/db-keys must be
 // kept apart from the copy, or it can never be opened again.
 //
 // SQLite installations are not this program's: they are backed up with
-// "ngc-api backup", since their file lies on the API's machine.
+// "cd-api backup", since their file lies on the API's machine.
 package dbcli
 
 import (
@@ -33,15 +33,15 @@ var run = func(ctx context.Context, stdout, stderr io.Writer, args ...string) er
 }
 
 const usage = `Aufruf:
-  ngc-db backup <Ordner>    sichert den MariaDB-Knoten dieses Rechners in einen neuen Ordner
-  ngc-db restore <Ordner>   spielt eine Sicherung zurück (MariaDB gestoppt, Datenordner leer)
-  ngc-db version
+  cd-db backup <Ordner>    sichert den MariaDB-Knoten dieses Rechners in einen neuen Ordner
+  cd-db restore <Ordner>   spielt eine Sicherung zurück (MariaDB gestoppt, Datenordner leer)
+  cd-db version
 `
 
 // Main is the whole program; it answers the exit code.
 func Main(version string, args []string, stdout, stderr io.Writer) int {
 	if len(args) == 1 && args[0] == "version" {
-		fmt.Fprintf(stdout, "ngc-db %s\n", version)
+		fmt.Fprintf(stdout, "cd-db %s\n", version)
 		return 0
 	}
 	if len(args) != 2 || (args[0] != "backup" && args[0] != "restore") {
@@ -50,7 +50,7 @@ func Main(version string, args []string, stdout, stderr io.Writer) int {
 	}
 	dir, err := checkDir(args[1])
 	if err != nil {
-		fmt.Fprintf(stderr, "ngc-db: %v\n", err)
+		fmt.Fprintf(stderr, "cd-db: %v\n", err)
 		return 2
 	}
 	ctx := context.Background()
@@ -60,7 +60,7 @@ func Main(version string, args []string, stdout, stderr io.Writer) int {
 		err = Restore(ctx, dir, stdout, stderr)
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "ngc-db: %v\n", err)
+		fmt.Fprintf(stderr, "cd-db: %v\n", err)
 		return 1
 	}
 	return 0

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // TestRefreshVerifiesAndKeeps is the open way every attack below has to walk:
@@ -178,7 +178,7 @@ func TestRefreshKeepsTheLastGoodCatalog(t *testing.T) {
 	if got := fx.keptSeq(t, v.Store); got != v.CatalogLastSeq {
 		t.Fatalf("kept Seq: got %d, want %d", got, v.CatalogLastSeq)
 	}
-	// The reason is on record for ngc.store/sources, in German.
+	// The reason is on record for cd.store/sources, in German.
 	src, err := fx.St.Sources(ctx)
 	if err != nil {
 		t.Fatalf("Sources: %v", err)
@@ -272,7 +272,7 @@ func TestRefuseAnAddressOutsideTheGrammar(t *testing.T) {
 		"https://127.0.0.1:0",                                        // port 0
 		"file:///etc/passwd",                                         // another scheme
 		"https://127.0.0.1:65536",                                    // no port
-		"https://" + strings.ToUpper("Store.Ngc.Example"),            // upper case
+		"https://" + strings.ToUpper("Store.Cd.Example"),             // upper case
 	} {
 		s := good
 		s.URL = bad
@@ -348,7 +348,7 @@ func TestRelease(t *testing.T) {
 }
 
 // TestRefuseAnOlderRelease is the rollback of the other document: a release
-// older than the one on record must not put an older NGC back in reach.
+// older than the one on record must not put an older CirroDesk back in reach.
 func TestRefuseAnOlderRelease(t *testing.T) {
 	fx, v := newFixture(t)
 	if _, _, err := fx.St.Release(ctx); err != nil {
@@ -369,8 +369,8 @@ func TestDownloadChecksSizeAndChecksum(t *testing.T) {
 	fx, _ := newFixture(t)
 	body := []byte("ein Paket")
 	sum := sha256.Sum256(body)
-	fx.setFile("app.ngc", body)
-	url := fx.HTTP.URL + "/app.ngc"
+	fx.setFile("app.cd", body)
+	url := fx.HTTP.URL + "/app.cd"
 
 	var w bytes.Buffer
 	if err := fx.St.Download(ctx, url, int64(len(body)), sum[:], &w); err != nil {

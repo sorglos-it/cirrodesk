@@ -1,4 +1,4 @@
-# Stand: NGC (NextGenCloud)
+# Stand: CirroDesk
 
 **Zuletzt aktualisiert:** 10.10.2026
 
@@ -23,8 +23,8 @@ offenen Aufgaben der vier Teile weiterbauen und die fünf Pull Requests zusammen
 | `recovery` | `3b5b1e8` | Aufgaben 1–9. **Abnahmekriterium von Paket 0 erreicht:** PolicyOR aus sieben Zweigen auf swtpm, 30 Fälle grün, dreimal |
 | `release-packer` | `61e21f0` | Packer gebaut und geprüft, **noch nicht zusammengeführt** |
 
-Im ulh-Repo (öffentlich, **Thomas schiebt dort, nie ein Agent**): `ngc-web-kopfzeilen` (`75c63f4`,
-der vhost kommt aus dem Release) und `ngc-db` (`33dce46`, `backup`/`restore` ohne den Augenblick,
+Im ulh-Repo (öffentlich, **Thomas schiebt dort, nie ein Agent**): `cd-web-kopfzeilen` (`75c63f4`,
+der vhost kommt aus dem Release) und `cd-db` (`33dce46`, `backup`/`restore` ohne den Augenblick,
 in dem die Daten weg sind). Beide warten.
 
 Offene Pull Requests nach `main`: **#26 web, #27 api, #28 controller, #29 db, #30 recovery**.
@@ -37,7 +37,7 @@ nach, ob die Aufgabe noch offen ist:
 
 | Strang | Aufgabe | Zweig |
 |---|---|---|
-| api | 16 — `ngc.users` | `api` |
+| api | 16 — `cd.users` | `api` |
 | api | 19 — Stores und Kataloge | `api-t19` |
 | controller | 17 — Deaktivieren, Deinstallieren, Daten löschen | `controller` |
 | recovery | 10 — die Negativfälle (ein Stick allein, Replay) | `recovery` |
@@ -60,7 +60,7 @@ nach, ob die Aufgabe noch offen ist:
 ## Fallen dieser Umgebung (am 10.10.2026 gemessen, alle bezahlt)
 
 Vollständig mit Messungen: `Z:\GitHub\claude-md\messen.md` (gilt für jedes Projekt) und
-`docs/arbeitsweise.md` (NGC-eigene Lehren). Die sieben, die am meisten gekostet haben:
+`docs/arbeitsweise.md` (CirroDesk-eigene Lehren). Die sieben, die am meisten gekostet haben:
 
 - **Arbeitsbäume werden während der Arbeit hohl.** Mehrmals gemessen: ein Baum stand nach einer
   Wiederherstellung bei 0 fehlenden Dateien und kurz darauf wieder bei **629**; parallel 145, 123,
@@ -147,7 +147,7 @@ Vollständig mit Messungen: `Z:\GitHub\claude-md\messen.md` (gilt für jedes Pro
 - **`git` stirbt in der Bash mit „Out of memory", während 98 GB frei sind.** Gemessen am
   10.10.2026 bei vielen gleichzeitigen Strängen: `git commit` brach mit „malloc failed (tried to
   allocate 1048576 bytes)" ab, `git push` mit „calloc failed", und derselbe Befehl lief
-  **unverändert** über PowerShell (`git -C Z:\GitHub\nextgencloud push`) sauber durch. Es ist nicht
+  **unverändert** über PowerShell (`git -C Z:\GitHub\cirrodesk push`) sauber durch. Es ist nicht
   der Arbeitsspeicher, sondern die Fork-Schicht von Git-für-Windows (dieselbe Messung zeigte
   `post-commit: fork: Resource temporarily unavailable`). **Also: bricht git in der Bash mit
   „Out of memory" ab, erst den Arbeitsspeicher nachsehen, dann denselben Befehl über PowerShell
@@ -191,14 +191,14 @@ einzelne die Installation kaputt**. Gemessen, nicht geschätzt:
    assets-Block.
 2. **Der Release-Packer** (Zweig `release-packer`, `61e21f0`) — er nimmt diese
    Vorlage namentlich auf (`tools/release/extra-web.txt:30`), sie landet beim
-   Nutzer unter `/var/www/ngc/templates/apache-vhost.conf`.
+   Nutzer unter `/var/www/cd/templates/apache-vhost.conf`.
 3. **Ein gebautes und unterschriebenes Release**, das dieses Stück enthält.
-4. **Der ulh-Zweig `ngc-web-kopfzeilen`** (`75c63f4`) — `ngc-web.sh` **liest**
+4. **Der ulh-Zweig `cd-web-kopfzeilen`** (`75c63f4`) — `cd-web.sh` **liest**
    die Vorlage aus dem Release, statt sich einen zweiten virtuellen Host zu
    schreiben.
 
 **Warum die Reihenfolge Pflicht ist:** ohne 1-3 findet Schritt 4 die Datei
-nicht. Das Skript bricht dann ausdrücklich ab („Update NGC to a release that
+nicht. Das Skript bricht dann ausdrücklich ab („Update CirroDesk to a release that
 carries the file"), ändert nichts — **und damit kann niemand mehr einrichten.**
 Dieser ulh-Zweig allein ist also **schlechter** als der Stand davor
 (`ad5ad0f`), obwohl er ein Sicherheitsloch schließt.
@@ -216,7 +216,7 @@ sonst stehen dort zwei `Cross-Origin-Resource-Policy`, und die Wand wirkt nicht.
 ### Nachtrag 10.10.2026: ein Kommentar des Packers ist überholt — vor dem Release berichtigen
 
 Der Packer nimmt `templates/apache-vhost.conf` mit, und der Kommentar daneben
-(`tools/release/extra-web.txt`) sagt: *„ngc-web.sh does NOT read it — it writes its own virtual
+(`tools/release/extra-web.txt`) sagt: *„cd-web.sh does NOT read it — it writes its own virtual
 host, lines 978-1028 — and the task that makes it read this one cannot start before the file is on
 the server."*
 
@@ -224,13 +224,13 @@ the server."*
 
 | Zweig | Treffer auf `ensure_vhost_template` / `templates/apache-vhost.conf` |
 |---|---|
-| `ngc-web` (`ad5ad0f`, der alte Stand) | **0** |
-| `ngc-web-kopfzeilen` (`75c63f4`, der neue) | **12** |
+| `cd-web` (`ad5ad0f`, der alte Stand) | **0** |
+| `cd-web-kopfzeilen` (`75c63f4`, der neue) | **12** |
 
 Das Skript **liest** die Vorlage jetzt, bricht sogar ab, wenn sie fehlt. Der Satz „die Aufgabe, die
 es lesen lässt, kann nicht beginnen" beschreibt eine Aufgabe, **die inzwischen erledigt ist**.
 
-**Also, in dieser Reihenfolge:** wenn `ngc-web-kopfzeilen` zusammengeführt wird, im selben Zug den
+**Also, in dieser Reihenfolge:** wenn `cd-web-kopfzeilen` zusammengeführt wird, im selben Zug den
 Kommentar in `extra-web.txt` berichtigen. Er ist kein Beiwerk: er ist der Grund, warum die Datei
 überhaupt auf der Liste steht, und der Nächste liest ihn als Begründung.
 
@@ -248,8 +248,8 @@ weil `jq` auf diesem Rechner fehlt.
 - **Eine Anlage kann keinen zweiten Benutzer bekommen — aber es fehlt nur die Oberfläche, nicht
   der Vertrag (gemessen am 23.10.2026).** Thomas: „ich kann dort keine user anlegen die funktion
   gibt es nicht." Stimmt — kein Knopf, kein Formular, kein Befehl, auf keiner Ebene
-  (`ngc-store` kann es nicht, `apps/cli-recovery/` gibt es nicht, der Recovery-Modus zielt auf
-  einen Not-Admin und nicht auf einen Mitbewohner). **Aber:** `ngc.users/api/trust` nimmt jede
+  (`cd-store` kann es nicht, `apps/cli-recovery/` gibt es nicht, der Recovery-Modus zielt auf
+  einen Not-Admin und nicht auf einen Mitbewohner). **Aber:** `cd.users/api/trust` nimmt jede
   Fassung an, und `trust.Advance` erlaubt einem Admin als Unterzeichner jede Änderung, also auch
   einen neuen Benutzer. Die Schwierigkeit ist, dass ein Benutzer einen Schlüssel braucht und der
   bei einem Passwortkonto das Passwort selbst ist, das den Browser nie verlassen darf.
@@ -259,9 +259,9 @@ weil `jq` auf diesem Rechner fehlt.
   Formular benannt), Einladungscode als Ziel. **Nicht gebaut, nichts entschieden** — der
   Koordinator bestätigt zuerst, dass der Weg über eine Shell-gebaute Fassung der gewollte ist.
 - **ES GIBT KEINEN RELEASE-PACKER — gemessen am 01.10.2026, und das ist der eigentliche Grund,
-  warum NGC noch nicht installierbar ist.** Kein `tar -c`, kein Workflow, kein `tools/release*`,
-  weder auf `main` noch auf `web`; `shared/testdata/release/ngc-web-all.tar` sind **18 Byte Text**.
-  `verify_release` in `ngc-web.sh` prüft das Archiv als **undurchsichtigen Block** (Signatur,
+  warum CirroDesk noch nicht installierbar ist.** Kein `tar -c`, kein Workflow, kein `tools/release*`,
+  weder auf `main` noch auf `web`; `shared/testdata/release/cd-web-all.tar` sind **18 Byte Text**.
+  `verify_release` in `cd-web.sh` prüft das Archiv als **undurchsichtigen Block** (Signatur,
   SHA-256, Größe) und sagt kein Wort über den Inhalt; `unpack_release` verlangt danach **nur**
   `public/index.php`. Die Vorlage `apps/web/templates/apache-vhost.conf` *beansprucht* in ihrem
   eigenen Kommentar, im Release zu liegen — das ist Absicht, nicht gebaut.
@@ -284,10 +284,10 @@ weil `jq` auf diesem Rechner fehlt.
     nicht die Nummer.**
 
 - **Release-Stick:** Mit welchem Werkzeug der Hardware-Stick das Release signiert, wird vor dem
-  ersten Release entschieden. `ngc-store` signiert nur Test-Releases.
+  ersten Release entschieden. `cd-store` signiert nur Test-Releases.
   Stand 01.10.2026: PIV auf Firmware 5.4.3 kann kein Ed25519, und der Vertrag verlangt reines
   Ed25519 (`shared/sign/sign.go` prüft `len(sig) != ed25519.SignatureSize`). Unterschrieben wird
-  `"ngc/" + purpose + NUL + payload`, gemessen **193 Byte** im Beispiel. Eine Probe, ob der
+  `"cd/" + purpose + NUL + payload`, gemessen **193 Byte** im Beispiel. Eine Probe, ob der
   OpenPGP-Teil des Sticks diese Bytes **direkt** unterschreibt, liegt bereit; der normale
   `gpg`-Weg unterschreibt einen Hash **plus OpenPGP-Anhang** und verifiziert daher nie.
 - **Für den Sicherheitsdurchgang (Plan 7) vorgemerkt:** eine feste Bindung der Oberfläche einer
@@ -310,13 +310,13 @@ weil `jq` auf diesem Rechner fehlt.
     ohne Endung und einer, die es nicht gibt; die Mock-API liest die Werte aus der Vorlage und
     prüft dabei, dass der Block unter dem DocumentRoot liegt – ein Block woanders bricht den Lauf.
   - **Offene Reste davon, drei:**
-    1. **`scripts/ngc-web.sh` im ulh-Repo (Aufgabe 26) nachziehen.** Es schreibt einen eigenen
+    1. **`scripts/cd-web.sh` im ulh-Repo (Aufgabe 26) nachziehen.** Es schreibt einen eigenen
        virtuellen Host unter demselben Namen und ist eine Aufgabe älter. Vier Unterschiede: *für*
        die Vorlage, dass das Skript für `assets/` **keine** Kopfzeile außer HSTS setzt (das Loch)
        und dass es `/assets/` aus seiner Rewrite-Regel nimmt, sodass eine fehlende Datei dort von
        Apache selbst beantwortet wird statt von `index.php`. **Gegen** die Vorlage, dass das Skript
        die Zertifikatserneuerung mit mod_md löst – ein bewegliches Teil weniger als certbot in der
-       Vorlage – und dass es `ngc-web.conf` bei jedem `install`/`configure` **überschreibt**: ein
+       Vorlage – und dass es `cd-web.conf` bei jedem `install`/`configure` **überschreibt**: ein
        von Hand gehärteter Server verliert den Asset-Block ohne Warnung, bis das Skript ihn selbst
        mitbringt.
     2. **Kein Apache im Repo.** Fünf `curl`-Befehle in `apps/web/README.md` („What no test here can
@@ -387,8 +387,8 @@ Alle weiteren Entscheidungen stehen im Entwurf, Kapitel 6.
 - Fixpläne, Berichte, Prüfungen, Protokoll: `.superpowers/sdd/2026-09-19-ngc-plan-0-vertraege-grundgeruest/`
   (nicht im Repo)
 - Verträge: [`shared/README.md`](../shared/README.md), [`shared/ulh.md`](../shared/ulh.md)
-- Prototyp: [`docs/prototype.html`](prototype.html), Original unter `W:\ngc\index.html`
-- Repo: <https://github.com/sorglos-it/nextgencloud> (privat)
+- Prototyp: [`docs/prototype.html`](prototype.html), Original unter `W:\cd\index.html`
+- Repo: <https://github.com/sorglos-it/cirrodesk> (privat)
 - Facebook-Post: zurückgestellt, solange das Repo privat ist; Vermerk in
   `Z:\GitHub\facebook\README.md`, Abschnitt „Bestand“
 

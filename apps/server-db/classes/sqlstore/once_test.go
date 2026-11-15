@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
 )
 
 // TestLockTakeAgainWithTheSameTime is the trap of the UPDATE-then-INSERT
@@ -489,27 +489,27 @@ func FuzzOnceCreate(f *testing.F) {
 	})
 }
 
-// onceLosesItsRow takes away the row an UPDATE on ngc_once has just touched,
+// onceLosesItsRow takes away the row an UPDATE on cd_once has just touched,
 // so that everything the same transaction wants to read of it afterwards
 // finds nothing. It is SQL of the test's own, planted on a database of its
 // own, the same way countChangedRows in user_test.go plants the other way of
 // counting: no driver has to be rebuilt to put a store in front of a failure
 // it cannot otherwise be put in front of.
-const onceLosesItsRow = `CREATE TRIGGER ngc_once_loses_its_row AFTER UPDATE ON ngc_once
-FOR EACH ROW BEGIN DELETE FROM ngc_once WHERE kind = NEW.kind AND token = NEW.token; END`
+const onceLosesItsRow = `CREATE TRIGGER cd_once_loses_its_row AFTER UPDATE ON cd_once
+FOR EACH ROW BEGIN DELETE FROM cd_once WHERE kind = NEW.kind AND token = NEW.token; END`
 
-// onceRow is how many rows of ngc_once carry that value and what stands in
+// onceRow is how many rows of cd_once carry that value and what stands in
 // their used column, asked of the database. used is -1 where there is no row,
 // so a missing row and an unused one can never be read for one another.
 func onceRow(t *testing.T, db *sql.DB, value []byte) (rows int, used int64) {
 	t.Helper()
 	used = -1
-	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM ngc_once WHERE kind = ? AND token = ?",
+	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM cd_once WHERE kind = ? AND token = ?",
 		[]byte(dbapi.OnceTask), value).Scan(&rows); err != nil {
 		t.Fatal(err)
 	}
 	if rows == 1 {
-		if err := db.QueryRowContext(ctx, "SELECT used FROM ngc_once WHERE kind = ? AND token = ?",
+		if err := db.QueryRowContext(ctx, "SELECT used FROM cd_once WHERE kind = ? AND token = ?",
 			[]byte(dbapi.OnceTask), value).Scan(&used); err != nil {
 			t.Fatal(err)
 		}
@@ -570,7 +570,7 @@ func TestAFailedWriteTakesBackWhatItWrote(t *testing.T) {
 	if _, err := db.ExecContext(ctx, onceLosesItsRow); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, "UPDATE ngc_once SET used = ? WHERE kind = ? AND token = ?",
+	if _, err := db.ExecContext(ctx, "UPDATE cd_once SET used = ? WHERE kind = ? AND token = ?",
 		int64(1), []byte(dbapi.OnceTask), fixture); err != nil {
 		t.Fatal(err)
 	}

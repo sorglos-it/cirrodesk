@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestEveryReasonSurvivesAsADetail is the cross-check of the two bounds. The
@@ -57,8 +57,8 @@ func TestAChannelThatRanSaysNothing(t *testing.T) {
 // only the event to be missing.
 func TestASentenceOutsideTheListIsDroppedAndTheEntryStays(t *testing.T) {
 	for _, bad := range []reason.Reason{
-		"Fehler: /var/lib/ngc/apps/org.sorglos.terminal: permission denied",
-		"ok\nKanal ngc.store activate ngc-2 ok",
+		"Fehler: /var/lib/cd/apps/org.sorglos.terminal: permission denied",
+		"ok\nKanal cd.store activate cd-2 ok",
 		reason.Reason("Passwort: hunter2"),
 	} {
 		lg := newLog()

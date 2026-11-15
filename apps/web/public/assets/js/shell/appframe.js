@@ -37,7 +37,7 @@ const FRAME_PAGE = "/frame.html";
 
 // Where the library an app talks to the shell with lies. The shell reads it
 // and writes it into the app's document; it is never fetched by the app.
-const NGC_JS = "/assets/ngc.js";
+const CD_JS = "/assets/cd.js";
 
 // The most a ui-tar may weigh on the wire: every file it may hold, plus a
 // header block for every entry (Go: store.MaxUITotal, store.MaxEntries).
@@ -67,8 +67,8 @@ const CLOSE_OK = "ok";
 // What the person is told. Four sentences, because four things can go wrong
 // that they can tell apart; which rule inside a proof broke is not one of
 // them, and naming it would only describe the inside of the server.
-const NOT_GENUINE = "Die Oberfläche dieser App ist nicht echt. NGC führt sie nicht aus.";
-const NO_ENTRY = "Die Startseite dieser App fehlt. NGC führt sie nicht aus.";
+const NOT_GENUINE = "Die Oberfläche dieser App ist nicht echt. CirroDesk führt sie nicht aus.";
+const NO_ENTRY = "Die Startseite dieser App fehlt. CirroDesk führt sie nicht aus.";
 const NEEDS_CLASSIC = "Diese App braucht klassische Skripte.";
 const NOT_LOADED = "Die Oberfläche dieser App konnte nicht geladen werden.";
 
@@ -173,13 +173,13 @@ export class UICache {
 // The library, read once. It is the shell's own file, so it is fetched from
 // the shell's origin like every other script of the page; the app's frame
 // never fetches anything.
-let ngcSource = null;
-async function ngcLibrary() {
-  if (ngcSource !== null) return ngcSource;
-  const res = await fetch(NGC_JS, { cache: "no-store" });
-  if (!res.ok) throw new Error("appframe: ngc.js");
-  ngcSource = await res.text();
-  return ngcSource;
+let cdSource = null;
+async function cdLibrary() {
+  if (cdSource !== null) return cdSource;
+  const res = await fetch(CD_JS, { cache: "no-store" });
+  if (!res.ok) throw new Error("appframe: cd.js");
+  cdSource = await res.text();
+  return cdSource;
 }
 
 // openAppUI fills win with the app's user interface, or with the reason it
@@ -216,7 +216,7 @@ export async function openAppUI(win, { app, link, trust, cache, notice } = {}) {
 
   let files, library;
   try {
-    [files, library] = await Promise.all([verifiedUI(app, link, trust, cache), ngcLibrary()]);
+    [files, library] = await Promise.all([verifiedUI(app, link, trust, cache), cdLibrary()]);
   } catch (e) {
     if (!gone) refuse(win, e);
     return;
@@ -227,7 +227,7 @@ export async function openAppUI(win, { app, link, trust, cache, notice } = {}) {
   // may send one - that is decided by the window the message came from, in
   // onMessage below, and by nothing else. The app can read this word out of
   // its own document, which is why it may never be the thing that decides.
-  // crypto.randomUUID is in every browser NGC asks for.
+  // crypto.randomUUID is in every browser CirroDesk asks for.
   const token = crypto.randomUUID();
   let html;
   try {
@@ -257,7 +257,7 @@ export async function openAppUI(win, { app, link, trust, cache, notice } = {}) {
   // may name; the window it goes to is this frame's, and that window only ever
   // held the document the shell put there.
   const toFrame = (msg) => {
-    if (frame.contentWindow) frame.contentWindow.postMessage({ ngc: 1, ...msg }, "*");
+    if (frame.contentWindow) frame.contentWindow.postMessage({ cd: 1, ...msg }, "*");
   };
 
   // hangUp ends one channel for a reason of the shell's and tells the app, so
@@ -453,18 +453,18 @@ const whyOpenFailed = (e) => {
     // to.
     if (e.source !== frame.contentWindow) return;
     const m = e.data;
-    if (!m || m.ngc !== 1) return;
+    if (!m || m.cd !== 1) return;
     if (m.op === "ready") {
       // The frame says its bootstrap stands. It gets the document once: a
       // second one would be an app swapped under a window the person is
       // already using.
       if (handed) return;
       handed = true;
-      frame.contentWindow.postMessage({ ngc: 1, op: "doc", html }, "*");
+      frame.contentWindow.postMessage({ cd: 1, op: "doc", html }, "*");
       return;
     }
     if (m.token !== token || typeof m.id !== "number") return;
-    // The number has to be one the app could have drawn. ngc.js counts from 1
+    // The number has to be one the app could have drawn. cd.js counts from 1
     // upwards, and a number that is not a whole one would make two different
     // messages name the same channel in a Map that tells 1 from "1".
     if (!Number.isSafeInteger(m.id) || m.id < 1) return;
@@ -476,7 +476,7 @@ const whyOpenFailed = (e) => {
     else if (m.op === "save") doSave(m);
   };
 
-  // ngc.save: the shell saves what the app hands over, after its own checks
+  // cd.save: the shell saves what the app hands over, after its own checks
   // (save.js). The answer is the "result" every call gets.
   const doSave = (m) => {
     const error = saveError(m);
@@ -561,7 +561,7 @@ onThemeChange((t) => {
     // to one window - this frame's - and that window only ever holds the
     // document the shell put there.
     if (f.contentWindow) {
-      f.contentWindow.postMessage({ ngc: 1, op: "theme", theme: t, accent: a, colors }, "*");
+      f.contentWindow.postMessage({ cd: 1, op: "theme", theme: t, accent: a, colors }, "*");
     }
   }
 });
@@ -574,7 +574,7 @@ onThemeChange((t) => {
 // to choose, but only from what its own manifest declared.
 async function doCall(frame, app, link, m) {
   const answer = (extra) => {
-    if (frame.contentWindow) frame.contentWindow.postMessage({ ngc: 1, id: m.id, op: "result", ...extra }, "*");
+    if (frame.contentWindow) frame.contentWindow.postMessage({ cd: 1, id: m.id, op: "result", ...extra }, "*");
   };
   let params;
   try {
@@ -873,13 +873,13 @@ function buildDocument(app, files, token, library) {
     + "base-uri 'none'");
   head.prepend(csp);
 
-  // ngc.js as the first script of the page, so the app's own scripts find it
+  // cd.js as the first script of the page, so the app's own scripts find it
   // however they are ordered.
   const lib = doc.createElement("script");
   lib.setAttribute("src", dataURL("text/javascript", new TextEncoder().encode(library)));
   lib.dataset.token = token;
   // The shell's language, so an app speaks the one the person chose and not
-  // whatever its own page or the browser says (ngc.lang).
+  // whatever its own page or the browser says (cd.lang).
   lib.dataset.lang = language();
   doc.documentElement.setAttribute("lang", language());
   csp.after(lib);
@@ -908,7 +908,7 @@ function buildDocument(app, files, token, library) {
   // document that arrived in the shell's colours never flashes the app's own.
   // frame-boot.js keeps this same element current when the look changes.
   const paint = doc.createElement("style");
-  paint.dataset.ngc = PAINT_MARK;
+  paint.dataset.cd = PAINT_MARK;
   paint.textContent = paletteCSS(palette());
   head.append(paint);
 
@@ -1027,7 +1027,7 @@ const APP_COLORS = [
 const COLOR = /^#[0-9a-f]{6}$/;
 
 // What is reported as the accent when the shell's own does not fit the
-// pattern. It is the one NGC ships with.
+// pattern. It is the one CirroDesk ships with.
 const FALLBACK_ACCENT = "#2f7de1";
 
 // The mark on the one stylesheet the shell owns inside an app's document.
@@ -1039,10 +1039,10 @@ const PAINT_MARK = "palette";
 // WHY IT IS HERE AND NOT IN frame-boot.js, measured on 30.10.2026 in Chromium:
 // the bootstrap hangs its listener on the frame's window BEFORE it writes the
 // document, and document.open() takes that listener off. The probe showed the
-// message arriving all the same - ngc.js, which is part of the written
+// message arriving all the same - cd.js, which is part of the written
 // document, saw the new design and reported it to the app - while the
 // stylesheet still held the old colours. So the listener has to be part of the
-// written document too, like ngc.js and for the same reason.
+// written document too, like cd.js and for the same reason.
 //
 // IT IS THE SHELL'S OWN TEXT, fixed in this file: nothing from outside is in
 // it, and nothing is built into it but PAINT_MARK. It goes in as an address
@@ -1061,7 +1061,7 @@ const PAINT_JS = `(function () {
   window.addEventListener("message", function (e) {
     if (e.source !== parent) return;
     var m = e.data;
-    if (!m || m.ngc !== 1 || m.op !== "theme") return;
+    if (!m || m.cd !== 1 || m.op !== "theme") return;
     var colors = m.colors;
     if (!colors || typeof colors !== "object") return;
     var names = Object.keys(colors);
@@ -1072,11 +1072,11 @@ const PAINT_JS = `(function () {
       if (!NAME.test(name) || typeof value !== "string" || !HEX.test(value)) continue;
       text += name + ":" + value + " !important;";
     }
-    var style = document.querySelector('style[data-ngc="' + MARK + '"]');
+    var style = document.querySelector('style[data-cd="' + MARK + '"]');
     if (style === null) {
       if (!document.head) return;
       style = document.createElement("style");
-      style.setAttribute("data-ngc", MARK);
+      style.setAttribute("data-cd", MARK);
       document.head.appendChild(style);
     }
     style.textContent = text === "" ? "" : ":root{" + text + "}";
@@ -1122,7 +1122,7 @@ function paletteCSS(colors) {
 }
 
 // accent is the one colour the library reports to an app by itself
-// (assets/ngc.js). It goes through the same check as the rest.
+// (assets/cd.js). It goes through the same check as the rest.
 function accent() {
   return palette().get("--accent") ?? FALLBACK_ACCENT;
 }

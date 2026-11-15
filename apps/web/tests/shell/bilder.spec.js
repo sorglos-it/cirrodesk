@@ -7,17 +7,17 @@ import { serveApps } from "../fixtures/apps.js";
 //
 // IT IS NOT PART OF THE SUITE. It asserts almost nothing - it takes pictures -
 // and a run that only takes pictures and passes says nothing about the shell.
-// So it stands still unless NGC_BILDER names a folder, and the same file run
+// So it stands still unless CD_BILDER names a folder, and the same file run
 // on another checkout of the same tests gives the pictures to compare with.
 //
-//   NGC_BILDER=<folder> NGC_WEB_TEST_PORT=<port> npx playwright test \
+//   CD_BILDER=<folder> CD_WEB_TEST_PORT=<port> npx playwright test \
 //     shell/bilder.spec.js --project=chromium
 //
 // The folder is made here rather than by the caller, because a screenshot into
 // a folder that is not there fails the case and looks like a finding.
-const into = process.env.NGC_BILDER || "";
+const into = process.env.CD_BILDER || "";
 
-test.skip(into === "", "NGC_BILDER names no folder: nothing to take pictures into");
+test.skip(into === "", "CD_BILDER names no folder: nothing to take pictures into");
 
 // One name per picture, so the two runs produce files that line up by name.
 async function shot(page, name) {
@@ -25,7 +25,7 @@ async function shot(page, name) {
   await page.screenshot({ path: `${into}/${name}.png` });
 }
 
-// The two shapes NGC has to work in, and the second one is the decision of
+// The two shapes CirroDesk has to work in, and the second one is the decision of
 // point 1: a phone held upright, the narrowest thing this has to survive.
 const WIDE = { width: 1280, height: 800 };
 const PHONE = { width: 375, height: 700 };
@@ -124,7 +124,7 @@ test("a message over the window it belongs to", async ({ page }) => {
   await page.waitForTimeout(350);
   // Point 4. Sent the way an app's own message arrives, through the notify
   // body of the control channel, with the app it belongs to named in it.
-  await page.evaluate(() => window.__ngcSendNotice(
+  await page.evaluate(() => window.__cdSendNotice(
     "error", "Das hat der Rechner nicht angenommen. Bitte es noch einmal versuchen.",
     "org.sorglos.calculator"));
   await page.waitForTimeout(150);

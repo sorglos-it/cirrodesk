@@ -33,7 +33,7 @@ export async function newSessionKeys() {
   // key IS the 32 bytes the certificate carries, while the JWK route takes
   // the same bytes through a base64url string and back (b64decode(jwk.x)).
   // One step fewer, one place fewer where a spelling can go wrong - and the
-  // engines that NGC asks for all export a public key as raw, which is the
+  // engines that CirroDesk asks for all export a public key as raw, which is the
   // line net/testlink.js has been using since task 17.
   const publicRaw = new Uint8Array(await crypto.subtle.exportKey("raw", signPair.publicKey));
   const dh = await noise.newKeypair();
@@ -77,7 +77,7 @@ export async function proveWithPassword(payload, passwordText, kdf, purpose) {
 }
 
 // proveWithPasskey asks the authenticator for an assertion over the challenge
-// of this purpose and payload. NGC always asks for user verification: a PIN or
+// of this purpose and payload. CirroDesk always asks for user verification: a PIN or
 // biometrics, never a tap alone.
 //
 // passkeys is challenge.passkeys, checked by session.parseLoginChallenge: each

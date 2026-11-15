@@ -1,5 +1,5 @@
 #!/bin/sh
-# Accepts a host as NGC's ulh scripts may write it into answer files and
+# Accepts a host as CirroDesk's ulh scripts may write it into answer files and
 # configurations: a DNS name in lower case or an IPv4 address, the subset of
 # trust.ValidHost without IPv6. Prints nothing; exit 0 accepted, 1 refused,
 # 2 wrong call.

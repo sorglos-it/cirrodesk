@@ -65,7 +65,7 @@ func skipCtx(method string) int {
 // guard asks about is declared in this module, and reading the standard
 // library from source as well was measured at 7.9 s against 5 ms for none of
 // it.
-const modulePath = "github.com/sorglos-it/nextgencloud/"
+const modulePath = "github.com/sorglos-it/cirrodesk/"
 
 // find is one place the guard refuses. sql tells the two halves apart: the
 // statement, or the values that go with it. atomic is the third question,
@@ -1438,7 +1438,7 @@ func hasOnceUse(p *pkgSource) bool {
 // review, each a shape the round before had not thought of. So this test is
 // not what holds the property. TestTheCheckAloneRefusesATakenName and
 // TestOnlyOneWriterGetsAName hold it, by asking UserPut itself on a database
-// whose ngc_user_name has been dropped; both shapes above are red there at
+// whose cd_user_name has been dropped; both shapes above are red there at
 // once. This one stays because it is cheap and because it catches the plain
 // relapses in the source, before anything has to run: the check deleted, the
 // refusal deleted, the question moved to the pool, the question deferred -
@@ -1731,7 +1731,7 @@ var atTheDatabase = map[string]string{
 	"classes/sqlstore":   "the guard of this file",
 	"classes/migrate":    "checkStatement, fill and the tests beside them: it runs the statements of the migrations, and they are measured there",
 	"classes/mariadb":    "it opens the Galera cluster over TLS and hands the connection to sqlstore; it runs no statement of its own, so the guard of this file covers every statement that reaches those nodes",
-	"classes/migraterun": "the runner of ngc-api migrate: it picks the driver, opens the database and hands the connection to migrate, which has a guard here; the only call it makes itself is PingContext, and that carries no SQL",
+	"classes/migraterun": "the runner of cd-api migrate: it picks the driver, opens the database and hands the connection to migrate, which has a guard here; the only call it makes itself is PingContext, and that carries no SQL",
 	"classes/sqlite":     "it opens the encrypted file and sets its PRAGMAs on the driver's own connection, and since task 7 Open also applies the migrations and wraps the result as a store; of its own it runs only the two statements of Backup in backup.go, and neither carries a value of anyone's: one transaction taken for its lock alone (BEGIN IMMEDIATE, through _txlock in the DSN - not a PRAGMA) and one constant PRAGMA (wal_checkpoint) - every statement carrying data comes from migrate and sqlstore, and each of those two has a guard here",
 }
 

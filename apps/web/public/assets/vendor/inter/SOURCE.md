@@ -2,7 +2,7 @@
 
 Quelle: **Inter 4.1**, SIL Open Font License 1.1, <https://github.com/rsms/inter>.
 Von Hand kopiert am 04.11.2026 aus der veröffentlichten Fassung `Inter-4.1.zip` der
-Releases des Projekts. NGC installiert nichts mit npm: die Datei liegt im Repo und wird
+Releases des Projekts. CirroDesk installiert nichts mit npm: die Datei liegt im Repo und wird
 von uns gepflegt. Geändert wurde nichts – die Datei steht Byte für Byte so da, wie sie
 veröffentlicht wurde.
 

@@ -1,5 +1,5 @@
 // Package url: hosts and addresses have one grammar and exactly one
-// spelling, because NGC compares them as text (the trust list against codes,
+// spelling, because CirroDesk compares them as text (the trust list against codes,
 // configurations against the trust list) and they end up in configuration
 // files of other programs, where a space, a quote or a line feed would be a
 // second line and not a bad address (Go: trust.ValidHost and its four address

@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // RetryBusy is what a caller is told to wait when the database was busy,
@@ -110,7 +110,7 @@ func FailCoded(w http.ResponseWriter, code wire.Code, err error) wire.Code {
 //     outside: Busy() and Unreachable() grow and never shrink, Report() puts
 //     them in the log out of the housekeeping round once a minute and is
 //     silent while neither has grown. Before this there was NO number for "too
-//     full" anywhere in ngc-api -- only lines, and a line is gone once
+//     full" anywhere in cd-api -- only lines, and a line is gone once
 //     somebody rotates the file.
 //   - The LINE stays, because the first of a kind is the news, and it carries
 //     "since" -- how many answers of that kind came in the window that just

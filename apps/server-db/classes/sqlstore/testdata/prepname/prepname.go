@@ -23,12 +23,12 @@ func (conn) QueryRowContext(ctx any, stmt string, args ...any) *row { return nil
 func (conn) PrepareWrite(ctx any) (conn, error) { return conn{}, nil }
 
 const (
-	blobSelect = "SELECT seq, data FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobUpdate = "UPDATE ngc_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
-	blobInsert = "INSERT INTO ngc_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
-	blobFrom   = "SELECT id, seq FROM ngc_blob WHERE kind = ? AND seq >= ?"
-	blobDelete = "DELETE FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobCount  = "SELECT count(*) FROM ngc_blob WHERE kind = ?"
+	blobSelect = "SELECT seq, data FROM cd_blob WHERE kind = ? AND id = ?"
+	blobUpdate = "UPDATE cd_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
+	blobInsert = "INSERT INTO cd_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
+	blobFrom   = "SELECT id, seq FROM cd_blob WHERE kind = ? AND seq >= ?"
+	blobDelete = "DELETE FROM cd_blob WHERE kind = ? AND id = ?"
+	blobCount  = "SELECT count(*) FROM cd_blob WHERE kind = ?"
 )
 
 type store struct {
@@ -82,6 +82,6 @@ func (s *store) Wipe(ctx any, kind string) error {
 	if err != nil {
 		return err
 	}
-	_, err = h.ExecContext(ctx, "DELETE FROM ngc_blob WHERE kind = '"+kind+"'")
+	_, err = h.ExecContext(ctx, "DELETE FROM cd_blob WHERE kind = '"+kind+"'")
 	return err
 }

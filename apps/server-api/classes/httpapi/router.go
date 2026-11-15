@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbwait"
 
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Routes are the handlers of the paths before the WebSocket.

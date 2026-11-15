@@ -1,7 +1,7 @@
 package migrate
 
 // config/migrate.json.example is what the controller with role db writes to
-// /run/ngc/ with mode 0600 before an update, hands to ngc-api migrate and
+// /run/cd/ with mode 0600 before an update, hands to cd-api migrate and
 // deletes afterwards. The file is documentation, and documentation that
 // nothing reads goes stale: this case reads it.
 
@@ -10,8 +10,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
 )
 
 // TestTheExampleIsTheMigrateBlockOfAControllerWithRoleDB holds the one

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // Podman runs the containers of the apps with podman.
@@ -217,7 +217,7 @@ func createArgs(c Container) ([]string, error) {
 		return nil, err
 	}
 	// The program that holds the container open is mounted into it, so where it
-	// comes from decides what the container can read. Only what NGC installed
+	// comes from decides what the container can read. Only what CirroDesk installed
 	// may be mounted: without this, any readable file of this server could be
 	// handed to an app.
 	if err := validPath(c.Hold); err != nil {
@@ -302,16 +302,16 @@ func createArgs(c Container) ([]string, error) {
 		// device node written there would be a door to the disks of the host.
 		// Both cost nothing, because no app of a store needs either.
 		"--volume", c.DataDir+":/data:rw,nosuid,nodev",
-		// ngc-controller itself keeps the container alive, started with the
+		// cd-controller itself keeps the container alive, started with the
 		// subcommand hold. An app image brings nothing of its own for this.
 		// The same two here, although this one is ours and read-only: a mount
 		// option is not a judgement about who wrote the file, and if a program
 		// of this server ever carried the set-user-id bit, this is where the
 		// container would be the one to find out.
-		"--volume", c.Hold+":/ngc/ngc-hold:ro,nosuid,nodev",
+		"--volume", c.Hold+":/cd/cd-hold:ro,nosuid,nodev",
 		// 0 in the container is the app's own user outside it: podman runs
 		// rootless, so the user namespace maps it to exactly that user.
-		"--user", "0:0", c.Image, "/ngc/ngc-hold", "hold")
+		"--user", "0:0", c.Image, "/cd/cd-hold", "hold")
 	return args, nil
 }
 

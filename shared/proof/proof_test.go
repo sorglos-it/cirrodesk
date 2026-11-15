@@ -15,14 +15,14 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
 
-var testRP = RP{ID: "ngc.example.org", Origins: []string{"https://ngc.example.org"}}
+var testRP = RP{ID: "cd.example.org", Origins: []string{"https://cd.example.org"}}
 
 // authenticator is a software passkey for tests.
 type authenticator struct {

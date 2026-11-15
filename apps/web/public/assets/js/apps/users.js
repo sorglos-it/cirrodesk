@@ -1,10 +1,10 @@
 // "Benutzer und Rechte": who may do what, and which servers belong to this
-// installation. It ships with NGC, so the web interface builds its face
-// itself - core.AppParams refuses a core app ("ngc.") for ngc.desktop/ui and
-// for ngc.desktop/ui-proof alike, so this window can never be a ui-tar out of
+// installation. It ships with CirroDesk, so the web interface builds its face
+// itself - core.AppParams refuses a core app ("cd.") for cd.desktop/ui and
+// for cd.desktop/ui-proof alike, so this window can never be a ui-tar out of
 // the sandboxed frame.
 //
-// THIS IS THE MOST DANGEROUS WINDOW NGC HAS, and it is built for that:
+// THIS IS THE MOST DANGEROUS WINDOW CirroDesk HAS, and it is built for that:
 //
 //   - Nothing that changes anything happens on one click. Every change is
 //     asked for first, and the question SAYS WHAT HAPPENS - which role, which
@@ -25,15 +25,15 @@
 // WHAT core.critical DOES AND DOES NOT DECIDE HERE, measured and named
 // because it surprised the round that built this: core.critical answers TRUE
 // only for actions of the app store (upload, delete-data, activate with
-// grants, uninstall without keepData). For EVERY action of ngc.users it
+// grants, uninstall without keepData). For EVERY action of cd.users it
 // answers false. trust.needsConfirm then asks for a second proof only where a
 // role stands at level HARDCORE (level root reads op.critical || op.root, and
-// no action of ngc.users is either) or names the action in its black list. A
+// no action of cd.users is either) or names the action in its black list. A
 // surface that asked those two and nothing else would hand out admin rights
 // on one click without a word. So the question below is this app's own rule
 // and does not wait for the contract's: it is asked before every change, and
 // the two contract answers only make it heavier. users.spec.js pins the measurement, so the
-// day a row of ngc.users becomes critical, that case goes red and this
+// day a row of cd.users becomes critical, that case goes red and this
 // paragraph is read again.
 //
 // WHO SIGNS A NEW VERSION, and why it is not the session (Fixrunde 2, W1).
@@ -45,7 +45,7 @@
 // shell/confirm.js (askSignature, purpose trustlist/v1), which is also the
 // safer side: whoever changes the root of trust is asked for it.
 //
-// WHAT IS NOT HERE, named rather than faked: ngc.users has no root task, so
+// WHAT IS NOT HERE, named rather than faked: cd.users has no root task, so
 // the second confirmation over the bytes of a task (purpose confirm/v1) has
 // nothing here to cover - confirm.js has it for the app store. Where there is
 // no session and no verified list, the surface says the change cannot be made
@@ -86,7 +86,7 @@ const NO_FINGERPRINT = "Der Fingerabdruck wird noch berechnet. Bitte noch einmal
 // The version IS stored; only this browser did not get there. Writing a
 // second version from here would be the fork, so nothing more is written and
 // the sentence says the one thing that fixes it.
-const BEHIND = "Der Server ist eingetragen. Bitte die Seite neu laden, damit NGC hier auf dem "
+const BEHIND = "Der Server ist eingetragen. Bitte die Seite neu laden, damit CirroDesk hier auf dem "
   + "neuen Stand ist.";
 
 // Cancelled is what the person answered when the question for their key was
@@ -133,7 +133,7 @@ const TABS = [
 //
 // The shortcut the desktop's link carries takes the same thing as
 // (app, service, name, paramBytes, opts) - which is what apps/store.js hands
-// it, so this hands it the same. ngc.users/api/trust is the one action of
+// it, so this hands it the same. cd.users/api/trust is the one action of
 // this app whose flow is "in", and its body travels as opts.stream.
 async function ask(link, action, params, opts) {
   const body = params === null || params === undefined ? null : core.encodeParams(action, params);
@@ -180,7 +180,7 @@ export async function passkeyKey(cred) {
 // joinable reports whether a waiting API server may be offered for joining at
 // all: a name that is a name and an address that is a tunnel address.
 //
-// core.parseResult already refuses a whole ngc.users/pending-api answer that
+// core.parseResult already refuses a whole cd.users/pending-api answer that
 // carries an address the grammar does not know (checkPendingAPI runs the same
 // trust.ValidTunnelURL), so through the API this can only ever agree with it.
 // It stands because the answer of this function decides whether a button is
@@ -247,7 +247,7 @@ export async function buildNextVersion(version, change, { now, signer }) {
 // encodeSigned writes one trust.Signed as Go writes it: the payload as
 // base64url, the proof beside it, and authData/clientData left out where they
 // are empty (Go: proof.Proof, both with omitempty). These are the bytes
-// ngc.users/api/trust takes.
+// cd.users/api/trust takes.
 function encodeSigned(payload, proof) {
   const o = {
     payload: b64encode(payload),
@@ -282,7 +282,7 @@ function nodeID(name, l) {
 //
 // A CONTROLLER THAT NAMES NOBODY CAN DO NOTHING, and until this screen there
 // was no way to name anybody. Measured on 19.10.2026 at a full installation
-// out of a published release: the node "ngc-2" was paired and taken in, the
+// out of a published release: the node "cd-2" was paired and taken in, the
 // app store offered it, and "Aktivieren" answered "Das hat der Rechner nicht
 // angenommen." with no sentence of the server behind it - the refusal happens
 // in the rights check, which writes no log line on either side. Setting up an
@@ -457,7 +457,7 @@ class Users {
     // rights there are to hand out at all. A missing list is no error: the
     // rights that a role already holds are shown as they stand.
     //
-    // This list is ngc.desktop/apps, which only shows an app the viewer holds
+    // This list is cd.desktop/apps, which only shows an app the viewer holds
     // <app>/use for -- and it is a complete list here all the same, because
     // only an admin reaches this app (core.Action.Admin) and an admin holds
     // the right of every installed app without a row (rights.Of, adminApps on
@@ -472,7 +472,7 @@ class Users {
     // because an app came or went must not build itself from the list that was
     // there when this window opened.
     this.appsNow = () => (Array.isArray(this.ctx?.apps) ? this.ctx.apps : this.apps);
-    this.users = null; // ngc.users/list, once, shared by the log and the question
+    this.users = null; // cd.users/list, once, shared by the log and the question
     this.log = [];
     this.loaded = new Set();
     this.dead = false;
@@ -492,14 +492,14 @@ class Users {
     for (const [id, label] of TABS) {
       const b = button("tab", label, null);
       b.setAttribute("role", "tab");
-      b.id = "ngc-users-tab-" + id;
-      b.setAttribute("aria-controls", "ngc-users-panel-" + id);
+      b.id = "cd-users-tab-" + id;
+      b.setAttribute("aria-controls", "cd-users-panel-" + id);
       b.addEventListener("click", () => this.show(id));
       this.tabs.append(b);
       this.btn.set(id, b);
 
       const p = el("div", "panel " + id);
-      p.id = "ngc-users-panel-" + id;
+      p.id = "cd-users-panel-" + id;
       p.setAttribute("role", "tabpanel");
       p.setAttribute("aria-labelledby", b.id);
       p.hidden = true;
@@ -603,7 +603,7 @@ class Users {
   // reason, as the desktop's own notice strip.
   //
   // The class is "note" and not "msg": shell.css already owns ".msg" for the
-  // box that carries "NGC konnte nicht geladen werden", 32 rem wide and 20 vh
+  // box that carries "CirroDesk konnte nicht geladen werden", 32 rem wide and 20 vh
   // down the page. Measured on the first screenshot of this surface - four
   // empty boxes the size of a card, one under every heading.
   static say(box, txt) {
@@ -692,7 +692,7 @@ class Users {
       run: async () => {
         const cred = await navigator.credentials.create({
           publicKey: {
-            rp: { id: rp.id, name: "NGC" },
+            rp: { id: rp.id, name: "CirroDesk" },
             user: { id: b64decode(me.id), name: me.name, displayName: me.name },
             challenge: crypto.getRandomValues(new Uint8Array(32)),
             pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
@@ -722,10 +722,10 @@ class Users {
   //
   // THE WHOLE POINT OF THIS FORM, and why it is here and not on the API: a
   // user of this installation does not live in a database row. The row in
-  // ngc_user is written at the FIRST LOGIN out of the signed list
+  // cd_user is written at the FIRST LOGIN out of the signed list
   // (Go: login/finish.go) and carries no key at all. Who exists, what they
   // are called and which roles they hold comes out of the trust list and out
-  // of nothing else (coreapp/users.go, ngc.users/list says so itself). So
+  // of nothing else (coreapp/users.go, cd.users/list says so itself). So
   // creating a user IS writing the next version of the trust list, signed by
   // a person, and there is no shorter way that is not a lie.
   //
@@ -924,7 +924,7 @@ class Users {
     }
     if (this.dead) return;
     // The rights that may be handed out: what a role already holds, and for
-    // every app of this desktop that is not one of NGC's own, "use" and each
+    // every app of this desktop that is not one of CirroDesk's own, "use" and each
     // of its actions. core.validRight is asked for each of them, so nothing
     // stands on screen that the contract would refuse on the way out.
     const known = new Set();
@@ -1030,7 +1030,7 @@ class Users {
         // The panel is built again from here, and that is not the same as the
         // rights question above, which only moves boxes that are already on
         // screen: a new role is a whole box that is not there yet, and
-        // ngc.users/rights is the only thing that knows it now exists.
+        // cd.users/rights is the only thing that knows it now exists.
         this.ctx?.changed?.tell(RIGHTS);
         this.rebuild("rights");
         // AND THE USERS PANEL, which has no idea a role was created and
@@ -1039,7 +1039,7 @@ class Users {
         // the admin who just made it cannot give it to anybody until the
         // page is reloaded - the exact complaint of 19.-21.10.2026, one
         // panel further along. It is a local rebuild and not a tell(USERS):
-        // what moved is the trust list, not ngc.users/list, so no other ear
+        // what moved is the trust list, not cd.users/list, so no other ear
         // in the shell has anything to do.
         this.rebuild("users");
       },
@@ -1285,7 +1285,7 @@ class Users {
   // servers had got new addresses: Apache went on proxying to the old ones,
   // answered the client 500 on a share of the requests (the certificate of the
   // machine now at that address does not match it, AH00898), and nothing in
-  // NextGenCloud could put it right. The server itself repairs its own
+  // CirroDesk could put it right. The server itself repairs its own
   // certificate at the next start; the signed list cannot repair itself.
   //
   // The key is NOT touched by an address change, and that is what makes it a
@@ -1387,7 +1387,7 @@ class Users {
         // installation, Apache answers the client 500 in exactly that case
         // (AH00898, "Error during SSL Handshake with remote server").
         el("p", null, "Wichtig: Sagen Sie dem Server auch selbst seine neue Adresse "
-          + "(auf dem Server mit ulh, Eintrag ngc-api) und starten Sie ihn neu. Sonst "
+          + "(auf dem Server mit ulh, Eintrag cd-api) und starten Sie ihn neu. Sonst "
           + "weist der Webserver ihn ab, weil sein Zertifikat noch die alte Adresse nennt."),
       ],
       go: "Adresse ändern",
@@ -1563,7 +1563,7 @@ class Users {
   }
 
   // A join code is pasted into the script of a FURTHER API server
-  // (ngc-api.sh, answer join_code), and it names the same three things a
+  // (cd-api.sh, answer join_code), and it names the same three things a
   // pairing code does. So it is shown under the same one rule, and the
   // apps/web contract names the two together: "Kopplungs- und Beitrittscodes
   // (Kern-Aktionen pair-code und join-code) zeigst du erst, wenn ... stimmt"
@@ -1762,7 +1762,7 @@ class Users {
   // what it was sent, this browser follows the chain over GET /api/v1/trust -
   // so the next server taken in would be built on the SAME prev and get the
   // SAME number: two versions at one seq, a fork of the root everything else
-  // hangs from. ngc.users/api/trust answers with the number of the version
+  // hangs from. cd.users/api/trust answers with the number of the version
   // that now stands (core: TrustResult), and that number is what this asks
   // trust.refresh for. Where the browser did not get there, nothing more is
   // written and the sentence says the one thing that fixes it.
@@ -1889,7 +1889,7 @@ class Users {
   // The inert is not decoration beside the Tab trap. aria-modal="true" tells a
   // screen reader that nothing outside this question exists; the trap only
   // keeps the Tab key inside, and a reader's own cursor walks past it. Every
-  // browser NGC asks for has inert (Chrome 102, Safari 15.5, Firefox 112 -
+  // browser CirroDesk asks for has inert (Chrome 102, Safari 15.5, Firefox 112 -
   // shell/main.js turns away everything older than Chrome 137, Firefox 130 and
   // Safari 17.4), so the promise the attribute makes is one that holds.
   ask({ title, body, go, from, run, failed, msg }) {
@@ -1899,7 +1899,7 @@ class Users {
     box.setAttribute("role", "dialog");
     box.setAttribute("aria-modal", "true");
     const h = el("h2", null, title);
-    h.id = "ngc-users-ask-title";
+    h.id = "cd-users-ask-title";
     box.setAttribute("aria-labelledby", h.id);
     box.append(h, ...body);
     const btns = el("div", "btns");
@@ -2008,7 +2008,7 @@ function reason(e, refused = BAD_LIST) {
 }
 
 // chars puts an address on screen character by character, each in its own
-// element. It is the one place in NGC where that is worth the nodes: an
+// element. It is the one place in CirroDesk where that is worth the nodes: an
 // admin is about to let this host into the installation, and a host that
 // merely LOOKS like the right one is what this makes visible.
 function chars(s) {

@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/core"
 )
 
 // Kinds of documents.
@@ -38,8 +38,8 @@ const (
 	SettingInstallation = "installation" // installation ID
 	SettingInstallKey   = "installKey"   // X25519 private key of the installation, encrypted by the API
 	// SettingUpdate is the prefix of a target's update policy, e.g.
-	// "update.ngc-api": core.UpdateSetting as JSON (mode and window). It
-	// holds no state: the API computes the rows of ngc.store/updates
+	// "update.cd-api": core.UpdateSetting as JSON (mode and window). It
+	// holds no state: the API computes the rows of cd.store/updates
 	// (core.UpdateInfo, one per target and node) from releases, catalogs and
 	// the controllers' reports.
 	SettingUpdate = "update."

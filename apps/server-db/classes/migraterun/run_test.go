@@ -17,10 +17,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migraterun"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migraterun"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 var ctx = context.Background()
@@ -80,7 +80,7 @@ func TestPreviousVersionKeepsWorking(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, "DELETE FROM ngc_schema WHERE version > ?", int64(0)); err != nil {
+	if _, err := db.ExecContext(ctx, "DELETE FROM cd_schema WHERE version > ?", int64(0)); err != nil {
 		t.Fatal(err)
 	}
 	db.Close()
@@ -139,7 +139,7 @@ func TestAnUnknownDriverIsNamed(t *testing.T) {
 
 // TestNeededTakesABrokenSchemaForAMissingOne writes down what Needed really
 // covers, because its comment used to claim more: a database that ANSWERS but
-// whose ngc_schema is broken comes back as "yes, migrate" and not as an
+// whose cd_schema is broken comes back as "yes, migrate" and not as an
 // error. The ping cannot see it - the database answers.
 //
 // The second half is why that is survivable, and it is the half worth having
@@ -156,7 +156,7 @@ func TestNeededTakesABrokenSchemaForAMissingOne(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, stmt := range []string{"DROP TABLE ngc_schema", "CREATE TABLE ngc_schema (junk INTEGER)"} {
+	for _, stmt := range []string{"DROP TABLE cd_schema", "CREATE TABLE cd_schema (junk INTEGER)"} {
 		if _, err := db.ExecContext(ctx, stmt); err != nil {
 			t.Fatal(err)
 		}
@@ -165,11 +165,11 @@ func TestNeededTakesABrokenSchemaForAMissingOne(t *testing.T) {
 
 	need, err := migraterun.Needed(ctx, cfg)
 	if err != nil || !need {
-		t.Errorf("a broken ngc_schema is taken for a missing one: need = %v, err = %v", need, err)
+		t.Errorf("a broken cd_schema is taken for a missing one: need = %v, err = %v", need, err)
 	}
 	n, err := migraterun.Run(ctx, cfg, "ctl-1", 1790000300)
 	if err == nil {
-		t.Fatalf("the migrations ran on a broken ngc_schema and played %d in", n)
+		t.Fatalf("the migrations ran on a broken cd_schema and played %d in", n)
 	}
 	if n != 0 {
 		t.Errorf("the run played %d migrations in before it gave up", n)

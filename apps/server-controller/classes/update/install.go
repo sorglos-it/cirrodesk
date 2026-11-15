@@ -43,15 +43,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/install"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/install"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 var (
@@ -81,7 +81,7 @@ var (
 // (TestInstallDefaultAliveIsThirtySeconds).
 const aliveDefault = 30 * time.Second
 
-// Services starts and watches the systemd units of the NGC parts. It is an
+// Services starts and watches the systemd units of the CirroDesk parts. It is an
 // interface because none of it can run where this is written: systemctl needs
 // root and a running systemd. Systemd is the one of operation.
 type Services interface {
@@ -129,7 +129,7 @@ func (s Systemd) Running(ctx context.Context, unit string) (bool, error) {
 // thing of an install that may be broken, so nothing of what it says is
 // believed beyond its first line.
 //
-// NOT measured: running a freshly installed ngc program needs that program,
+// NOT measured: running a freshly installed cd program needs that program,
 // which this machine does not have. The cases drive Deps.Health directly.
 func VersionOf(ctx context.Context, file string) (string, error) {
 	out, err := exec.CommandContext(ctx, file, "-version").Output()
@@ -178,13 +178,13 @@ type AppInstaller interface {
 	Update(ctx context.Context, in install.AppUpdate) error
 }
 
-// knownParts is every NGC part this file has a branch for. A part added to the
+// knownParts is every CirroDesk part this file has a branch for. A part added to the
 // contract without a branch here is caught by a case
-// (TestInstallHandlesEveryNGCPart), not by a server.
+// (TestInstallHandlesEveryCDPart), not by a server.
 var knownParts = []string{trust.AutoWeb, trust.AutoAPI, trust.AutoController}
 
-// unitOf is the systemd unit of an NGC part, and false for a part that has
-// none: ngc-web is files under a document root, which Apache serves and which
+// unitOf is the systemd unit of a CirroDesk part, and false for a part that has
+// none: cd-web is files under a document root, which Apache serves and which
 // no unit owns.
 func unitOf(target string) (string, bool) {
 	switch target {
@@ -214,7 +214,7 @@ func unitOf(target string) (string, bool) {
 //	6 an app: the key of its OWN store against the one that signed the staged
 //	  file, and the needs of the new version among the grants of the
 //	  activation
-//	6b an NGC part, in place of 6 - the two are the two branches of one
+//	6b a CirroDesk part, in place of 6 - the two are the two branches of one
 //	  fork: the roles of THIS server have to run that part (runs), so that
 //	  nobody can tell an API server to become a web server
 //	-- only now is anything on this machine changed -------------------------
@@ -364,7 +364,7 @@ func (m *Manager) install(ctx context.Context, d access.Decision, p *core.Instal
 	return emptyResult, m.installApp(ctx, st)
 }
 
-// runs reports whether an NGC part belongs on THIS server, out of the roles
+// runs reports whether a CirroDesk part belongs on THIS server, out of the roles
 // this server carries (Deps.Roles, config.Controller.Roles).
 //
 // tunnel.Components is the mapping, and it is the one the API's rollout picks
@@ -382,7 +382,7 @@ func (m *Manager) install(ctx context.Context, d access.Decision, p *core.Instal
 // (installApp -> Apps.Update).
 //
 // NOT covered, and named rather than claimed: the role of a server with
-// RoleDB. The API lays the ngc-api FILE ready on such a node so that it can
+// RoleDB. The API lays the cd-api FILE ready on such a node so that it can
 // play the migrations in, and laying ready is Stage - this wall sits at the
 // install and does not touch that.
 func (m *Manager) runs(part string) bool {
@@ -390,11 +390,11 @@ func (m *Manager) runs(part string) bool {
 }
 
 // installedVersion is the version of the target running on this server: out of
-// the parts this controller wrote down (state.Store.Components) for an NGC
+// the parts this controller wrote down (state.Store.Components) for a CirroDesk
 // part, out of the row of the app otherwise. An empty answer means nothing of
 // it is installed, and store.Newer takes every version as newer than "".
 func (m *Manager) installedVersion(ctx context.Context, target string) (string, error) {
-	if ngcPart(target) {
+	if cdPart(target) {
 		parts, err := m.components(ctx)
 		if err != nil {
 			return "", err
@@ -431,7 +431,7 @@ func (m *Manager) installedVersion(ctx context.Context, target string) (string, 
 }
 
 // webVersion is the version the tree under WebRoot names in its VERSION file,
-// which ngc-store packs under ui/ and unpack strips to WebRoot/VERSION. A file
+// which cd-store packs under ui/ and unpack strips to WebRoot/VERSION. A file
 // that is missing, too long or no version is "" - unknown, and then a human
 // decides.
 func (m *Manager) webVersion() string {
@@ -454,7 +454,7 @@ func (m *Manager) webVersion() string {
 	return v
 }
 
-// components are the installed NGC parts, with nothing written yet answered as
+// components are the installed CirroDesk parts, with nothing written yet answered as
 // an empty list rather than as an error.
 func (m *Manager) components(ctx context.Context) (map[string]string, error) {
 	parts, err := m.d.State.Components(ctx)
@@ -537,7 +537,7 @@ func (m *Manager) mark(ctx context.Context, st state.Staged, s string) error {
 	return m.d.State.PutStaged(ctx, st)
 }
 
-// partFile is where an NGC part runs from.
+// partFile is where a CirroDesk part runs from.
 func (m *Manager) partFile(target string) string { return m.d.BinDir + "/" + target }
 
 // alive is how long the service has to stay up after the restart.
@@ -548,7 +548,7 @@ func (m *Manager) alive() time.Duration {
 	return aliveDefault
 }
 
-// installPart puts an NGC part in place and makes sure it came up.
+// installPart puts a CirroDesk part in place and makes sure it came up.
 //
 // The three steps that touch the disk are in this order on purpose:
 //
@@ -572,7 +572,7 @@ func (m *Manager) installPart(ctx context.Context, target string, st state.Stage
 	if !ok {
 		// A part of knownParts without a branch here. It cannot be reached
 		// from outside - the contract knows three parts and all three have
-		// one - and a case holds that (TestInstallHandlesEveryNGCPart).
+		// one - and a case holds that (TestInstallHandlesEveryCDPart).
 		return ErrInternal
 	}
 	file := m.partFile(target)
@@ -911,11 +911,11 @@ func (m *Manager) rollbackWeb(ctx context.Context) error {
 // sizes - store.WalkUI is that check, and nothing here repeats it.
 //
 // BLOCKED, and the report of task 20 says it too: NOTHING in shared/ says what
-// a release file of ngc-web is. config.WebRoot is named in no other file of
+// a release file of cd-web is. config.WebRoot is named in no other file of
 // this repo, and the only safe unpack the contract offers for a surface is
 // store.WalkUI, whose names have to be rooted at "ui/" (store.uiName). So this
-// build takes an ngc-web release file to be such a tar and strips that one
-// prefix. If the release of ngc-web is to be a plain tar instead, shared/
+// build takes a cd-web release file to be such a tar and strips that one
+// prefix. If the release of cd-web is to be a plain tar instead, shared/
 // needs the function that unpacks one safely - this package must not grow a
 // second unpacker of its own (CLAUDE.md).
 func (m *Manager) unpack(file, dir string) error {
