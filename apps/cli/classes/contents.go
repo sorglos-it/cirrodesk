@@ -99,8 +99,11 @@ var ErrContents = errors.New("ngc-store: the release file holds the wrong conten
 var partContents = map[string]struct {
 	need   []string
 	closed bool
+	ui     bool // the tar must pass store.WalkUI as a whole
 }{
-	store.ReleaseWeb:        {need: []string{"public/index.php", "templates/apache-vhost.conf"}},
+	// S7 (decided 15.11.2026): the web archive is a UI tar, everything under
+	// ui/, the form the controller unpacks and store.WalkUI reads.
+	store.ReleaseWeb:        {need: []string{"ui/public/index.php", "ui/templates/apache-vhost.conf"}, ui: true},
 	store.ReleaseAPI:        {need: []string{"ngc-api", "ngc-store"}, closed: true},
 	store.ReleaseController: {need: []string{"ngc-controller"}, closed: true},
 }
@@ -146,6 +149,17 @@ func CheckContents(path, part string) error {
 		if len(extra) > 0 {
 			return fmt.Errorf("%w: %s holds %s besides %s — this archive holds those files and nothing else, no directories",
 				ErrContents, filepathBase(path), strings.Join(extra, ", "), strings.Join(want.need, ", "))
+		}
+	}
+	if want.ui {
+		f, err := os.Open(path)
+		if err != nil {
+			return fmt.Errorf("%w: %s is unreadable", ErrContents, filepathBase(path))
+		}
+		defer f.Close()
+		if err := store.WalkUI(f, func(store.PackFile, io.Reader) error { return nil }); err != nil {
+			return fmt.Errorf("%w: %s is no UI tar (store.WalkUI refuses it; pack it with ngc-store web)",
+				ErrContents, filepathBase(path))
 		}
 	}
 	return nil

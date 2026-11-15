@@ -42,6 +42,25 @@ func tarOf(t testing.TB, path string, names ...string) {
 	}
 }
 
+// uiTarOf writes a UI tar (store.UIWriter) at path, every name a file whose
+// content is its name: the form a web release file has since S7.
+func uiTarOf(t testing.TB, path string, names ...string) {
+	t.Helper()
+	var buf bytes.Buffer
+	w := store.NewUIWriter(&buf)
+	for _, n := range names {
+		if err := w.File(n, int64(len(n)), strings.NewReader(n)); err != nil {
+			t.Fatalf("%s: %v", n, err)
+		}
+	}
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // TestContentsNamesWhatIsMissing is the assertion of P3: a release archive
 // that does not hold what the installation script takes out of it is
 // refused here, with the missing name in the sentence. Before this, every
@@ -55,13 +74,18 @@ func TestContentsNamesWhatIsMissing(t *testing.T) {
 		part  string
 		files []string
 		want  string // substring of the reason; empty means it must hold
+		ui    bool   // written with store.UIWriter instead of archive/tar
 	}{
-		{name: "web complete", part: store.ReleaseWeb,
-			files: []string{"public/", "public/index.php", "templates/apache-vhost.conf", "assets/app.js"}},
-		{name: "web without the vhost template", part: store.ReleaseWeb,
-			files: []string{"public/index.php"}, want: "templates/apache-vhost.conf"},
-		{name: "web without index.php", part: store.ReleaseWeb,
-			files: []string{"templates/apache-vhost.conf"}, want: "public/index.php"},
+		{name: "web complete", part: store.ReleaseWeb, ui: true,
+			files: []string{"ui/public/index.php", "ui/templates/apache-vhost.conf", "ui/assets/app.js"}},
+		{name: "web without the vhost template", part: store.ReleaseWeb, ui: true,
+			files: []string{"ui/public/index.php"}, want: "ui/templates/apache-vhost.conf"},
+		{name: "web without index.php", part: store.ReleaseWeb, ui: true,
+			files: []string{"ui/templates/apache-vhost.conf"}, want: "ui/public/index.php"},
+		{name: "web in the old form, names in the root", part: store.ReleaseWeb,
+			files: []string{"public/index.php", "templates/apache-vhost.conf"}, want: "ui/public/index.php"},
+		{name: "web under ui/ but packed by archive/tar", part: store.ReleaseWeb,
+			files: []string{"ui/", "ui/public/index.php", "ui/templates/apache-vhost.conf"}, want: "store.WalkUI"},
 		{name: "api complete", part: store.ReleaseAPI, files: []string{"ngc-api", "ngc-store"}},
 		{name: "api without ngc-store", part: store.ReleaseAPI,
 			files: []string{"ngc-api"}, want: "ngc-store"},
@@ -77,7 +101,11 @@ func TestContentsNamesWhatIsMissing(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
 			p := filepath.Join(t.TempDir(), "x.tar")
-			tarOf(t, p, c.files...)
+			if c.ui {
+				uiTarOf(t, p, c.files...)
+			} else {
+				tarOf(t, p, c.files...)
+			}
 			err := CheckContents(p, c.part)
 			if c.want == "" {
 				if err != nil {
@@ -168,7 +196,7 @@ func TestContentsOfADirectoryJudgesEveryFileOrSaysSo(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	tarOf(t, filepath.Join(dir, "ngc-web-all.tar"), "public/index.php", "templates/apache-vhost.conf")
+	uiTarOf(t, filepath.Join(dir, "ngc-web-all.tar"), "ui/public/index.php", "ui/templates/apache-vhost.conf")
 	tarOf(t, filepath.Join(dir, "ngc-controller-amd64.tar"), "ngc-controller")
 	seen, err = CheckDirContents(dir)
 	if err != nil {
