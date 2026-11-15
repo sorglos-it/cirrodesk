@@ -169,7 +169,7 @@
     return;
   }
 
-  const lang = pickLang([document.documentElement.lang, ...(navigator.languages || []), navigator.language]);
+  const lang = pickLang([window.ngc && ngc.lang, document.documentElement.lang]);
   const T = TEXTS[lang];
   document.documentElement.lang = lang;
   document.title = T.title;
