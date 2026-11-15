@@ -228,11 +228,12 @@ test("a mask with no language file at all still says something", async ({ shell 
   await skipWithoutLogin(shell);
   await shell.route("**/assets/lang/*.json", (route) => route.abort());
   await shell.reload();
-  await expect(shell.getByLabel("Benutzername")).toBeVisible();
+  // The mask's own words fall to the same floor, English (S12).
+  await expect(shell.getByLabel("User name", { exact: true })).toBeVisible();
 
-  await shell.getByLabel("Benutzername").fill(USER_NAME);
-  await shell.getByLabel("Passwort").fill("nicht-das-passwort");
-  await shell.getByRole("button", { name: "Anmelden", exact: true }).click();
+  await shell.getByLabel("User name", { exact: true }).fill(USER_NAME);
+  await shell.getByLabel("Password", { exact: true }).fill("nicht-das-passwort");
+  await shell.getByRole("button", { name: "Sign in", exact: true }).click();
   await attemptOver(shell);
 
   const said = shell.getByRole("alert");

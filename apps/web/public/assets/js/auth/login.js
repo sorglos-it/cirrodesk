@@ -271,20 +271,20 @@ export function loginView(root, { config, onSession, openTrust, passwordKeys = t
   // form that never submits itself, because a shell that navigates away from
   // itself is gone.
   box.setAttribute("novalidate", "novalidate");
-  const head = el("h1", "loginhead", "Bei NGC anmelden");
+  const head = el("h1", "loginhead", t("login.head"));
   head.id = "loginhead";
   box.setAttribute("aria-labelledby", head.id);
   box.append(head);
 
-  const name = field("Benutzername", "text");
+  const name = field(t("login.name"), "text");
   name.input.autocomplete = "username";
-  const pw = field("Passwort", "password");
+  const pw = field(t("login.password"), "password");
   pw.input.autocomplete = "current-password";
   box.append(name.box, pw.box);
 
   // The second factor is not on the page until the API asks for it: a field
   // nobody has to fill in is a field somebody tries to fill in.
-  const totp = field("Code aus der Authenticator-App", "text");
+  const totp = field(t("login.totp"), "text");
   totp.input.autocomplete = "one-time-code";
   totp.input.inputMode = "numeric";
   totp.input.maxLength = session.TOTP_DIGITS;
@@ -300,7 +300,7 @@ export function loginView(root, { config, onSession, openTrust, passwordKeys = t
   }
 
   const row = el("div", "loginrow");
-  const go = button("b on", "Anmelden", null);
+  const go = button("b on", t("login.submit"), null);
   go.type = "submit";
   go.disabled = !passwordKeys;
   row.append(go);
@@ -311,7 +311,7 @@ export function loginView(root, { config, onSession, openTrust, passwordKeys = t
   // out of the challenge (keys.proveWithPasskey), which is the one the API
   // and the trust list agree on.
   const hasParty = typeof config?.rp?.id === "string" && config.rp.id !== "";
-  const withPasskey = hasParty && passkeys ? button("b", "Mit Passkey anmelden", null) : null;
+  const withPasskey = hasParty && passkeys ? button("b", t("login.passkey"), null) : null;
   if (withPasskey !== null) row.append(withPasskey);
   box.append(row);
 

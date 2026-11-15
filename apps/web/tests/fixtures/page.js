@@ -51,11 +51,12 @@ export { expect };
 // below; tests/shell/world.spec.js is the one case that does.
 export async function signIn(page, { standIn = true } = {}) {
   if (standIn) await standInOn(page);
-  await page.getByLabel("Benutzername").fill(USER_NAME);
-  await page.getByLabel("Passwort").fill(PASSWORD);
-  // exact, because "Mit Passkey anmelden" also contains the word: playwright
-  // matches an accessible name as a case-insensitive substring.
-  await page.getByRole("button", { name: "Anmelden", exact: true }).click();
+  // By what the fields ARE, not by what they are called: the mask speaks the
+  // browser's language (S12), and a case in en-US signs in like one in de-DE.
+  const mask = page.locator("form.loginbox");
+  await mask.locator('input[autocomplete="username"]').fill(USER_NAME);
+  await mask.locator('input[type="password"]').fill(PASSWORD);
+  await mask.locator('button[type="submit"]').click();
 }
 
 // standInOn hands this page shell/fake-link.js instead of the real session.
