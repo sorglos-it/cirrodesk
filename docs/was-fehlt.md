@@ -23,10 +23,10 @@ Die Tabellen unten sind der Stand vom 30.10. Seitdem, alles in `main` oder als P
 | A8a | PR 208 |
 | A9 | PR 200 |
 | A11 | war mit #155 gebaut |
-| A13 | `OncePeek` PR 206; Aufruf im Beitritt baut die API |
+| A13 | `OncePeek` PR 206, Aufruf im Beitritt PR 221 |
 | A14 | PR 201 |
 | A19a | mit den Riegeln in Go erledigt |
-| A24 | entschieden (nur der Kanal); README-Stelle offen |
+| A24 | entschieden (nur der Kanal); README stimmte schon, die API baut um |
 | A25 | `ngc.store/refresh`, Zweig `shared-store-refresh` |
 | E32 | PR 218 |
 | U2 | PR 217 |
