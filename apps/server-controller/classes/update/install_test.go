@@ -1497,3 +1497,30 @@ func runsIt(part string) []string {
 	}
 	return nil
 }
+
+// A part ulh put in place has no version written down here: only an install
+// through this controller writes one. The program in place answers for it, so
+// an unattended round goes through on such a node (S8) - and the same answer
+// keeps it from putting an older program over a newer one.
+func TestInstallWithoutAWrittenVersionAsksTheProgram(t *testing.T) {
+	f := apiFixture(t)
+	f.st.parts = map[string]string{} // what every node of the plant holds
+	if _, err := f.run(); err != nil {
+		t.Fatalf("an unattended install over a running older program: %v, want it installed", err)
+	}
+	if f.whichProgram() != "new" {
+		t.Errorf("the program is %s, want the new one", f.whichProgram())
+	}
+
+	// The program in place is NEWER than the staged file: refused, untouched.
+	g := apiFixture(t)
+	g.st.parts = map[string]string{}
+	mustWrite(t, g.bin+"/"+trust.AutoAPI, newProgram)
+	g.health[g.bin+"/"+trust.AutoAPI] = "9.9.9"
+	if _, err := g.run(); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("over a newer program: %v, want ErrForbidden", err)
+	}
+	if g.whichProgram() != "new" {
+		t.Errorf("the program is %s, want the one in place untouched", g.whichProgram())
+	}
+}

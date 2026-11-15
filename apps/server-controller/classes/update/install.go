@@ -398,7 +398,21 @@ func (m *Manager) installedVersion(ctx context.Context, target string) (string, 
 		if err != nil {
 			return "", err
 		}
-		return parts[target], nil
+		if v := parts[target]; v != "" || target == trust.AutoWeb {
+			return v, nil
+		}
+		// Nothing written down yet, and that is every part ulh put in place:
+		// only a successful install here writes the list. The program that
+		// runs knows its version, so it is asked - otherwise "" would make an
+		// unattended round refuse every node (S8) or, read as "older", let it
+		// put an older program over a newer one. A program that is not there
+		// or does not answer leaves "" and the first-install rule decides.
+		// shortcut: ngc-web is a tree with no program to ask, so it keeps ""
+		// until it was installed here once.
+		if v, err := m.d.Health(ctx, m.partFile(target)); err == nil {
+			return v, nil
+		}
+		return "", nil
 	}
 	a, err := m.d.State.App(ctx, target)
 	switch {
