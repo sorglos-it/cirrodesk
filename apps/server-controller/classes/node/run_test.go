@@ -518,9 +518,14 @@ func TestTheOwnerOfTheMigrationLockNamesThisController(t *testing.T) {
 // The command without a command is built now: it reads the configuration
 // first, so a server that was never set up reads the line that tells it so and
 // not a stack trace.
+//
+// The file is one in the case's own folder that is not there: with the default
+// path this case read /etc/ngc/controller.json, and on a server that was set
+// up it started the real controller and hung for ten minutes (U2, R7).
 func TestMainWithoutACommandRunsTheController(t *testing.T) {
 	var out, errOut strings.Builder
-	if code := Main("1.2.3", nil, noInput(), &out, &errOut); code != 1 {
+	missing := filepath.Join(t.TempDir(), "controller.json")
+	if code := Main("1.2.3", []string{"-config", missing}, noInput(), &out, &errOut); code != 1 {
 		t.Fatalf("Main(nil) = %d, want 1", code)
 	}
 	if !strings.Contains(errOut.String(), msgNoConfig) {
