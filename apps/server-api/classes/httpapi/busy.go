@@ -121,10 +121,11 @@ func FailCoded(w http.ResponseWriter, code wire.Code, err error) wire.Code {
 // has a third line of its own (A3, B7). Before it, every login/start of such an
 // installation said "the database could not be reached" about a database that
 // answers perfectly well: 12288 of these lines in 3.9 s against a reachable
-// file. Both callers, login/start and login/finish, read the list before any
-// name, so the third line cannot fall differently for two names. What the
-// CALLER is answered stays E_UNREACHABLE: the contract's table has no other
-// code for these paths, and a new one is a change of shared/, not of this file.
+// file. Since E_NOT_SET_UP (PR 220) login/start and login/finish answer that
+// code themselves and no longer come here with the error, so no caller reaches
+// this line today. It stays as the brake for the next caller that hands
+// E_UNREACHABLE with it: without it that caller would blame the database again,
+// one unbraked line per unauthenticated request.
 const warnEvery = 60 // seconds between two lines of one kind
 
 // counter is one kind of rejection: how many there were, how many have been
