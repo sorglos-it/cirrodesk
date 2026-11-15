@@ -1,0 +1,15 @@
+# Image of org.sorglos.files. Built on a build machine, never on the target
+# server; the context is the directory ngc-files was built into. The commands
+# are in CLAUDE.md beside this file.
+#
+# The base and its digest are the terminal app's (apps/server-controller/
+# templates/terminal/Containerfile), measured there with tools/pin-base.sh;
+# raise both together, with that tool.
+FROM docker.io/library/debian:13-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
+
+RUN mkdir -p /usr/lib/ngc /data
+COPY ngc-files /usr/lib/ngc/ngc-files
+
+# The manifest names the program per call ("serve"); hold keeps the container
+# up between calls.
+CMD ["/usr/lib/ngc/ngc-files", "hold"]
