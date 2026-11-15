@@ -1038,6 +1038,10 @@ export async function startMockAPI({ world, port, phpPort }) {
       sendError(res, wire.CODES.INTERNAL);
       return;
     }
+    if (kind === "notsetup") {
+      sendError(res, wire.CODES.NOT_SET_UP);
+      return;
+    }
     if (kind === "busy") res.setHeader("Retry-After", String(RETRY_BUSY));
     sendError(res, wire.CODES.UNREACHABLE);
   }
@@ -1257,7 +1261,7 @@ export async function startMockAPI({ world, port, phpPort }) {
         // not of a caller, which is exactly why point 52 could answer it for
         // every name alike.
         const fault = url.searchParams.get("fault");
-        if (fault !== null) faultNext = fault === "busy" || fault === "away" ? fault : "";
+        if (fault !== null) faultNext = ["busy", "away", "notsetup"].includes(fault) ? fault : "";
         // Which step of the NEXT login answers wrongly. It needs no session
         // for the same reason the lock does not: there is none before a login.
         // Anything that is not one of the three clears it, so `break=` with

@@ -263,7 +263,7 @@ export async function login({ name, password, totp, wantPasskey, openTrust }) {
 // "Anmeldung fehlgeschlagen." - the same lie as above, one route further on.
 // It is the ENGINE's half of that question; hasParty below is the
 // installation's, and a route needs both.
-export function loginView(root, { config, onSession, openTrust, passwordKeys = true, passkeys = true } = {}) {
+export function loginView(root, { config, onSession, onNotSetUp, openTrust, passwordKeys = true, passkeys = true } = {}) {
   clear(root);
 
   const box = el("form", "loginbox");
@@ -461,6 +461,14 @@ export function loginView(root, { config, onSession, openTrust, passwordKeys = t
       held = "";
       if (e?.code === wire.CODES.LOCKED) {
         lock(e.retryAfter);
+        return;
+      }
+      // A3: an installation nobody has set up. It says nothing about any
+      // name (the API answers it before reading one), so it is no hint for
+      // guessing accounts - and the one useful thing to do is the setup.
+      if (e?.code === wire.CODES.NOT_SET_UP && typeof onNotSetUp === "function") {
+        gone = true;
+        onNotSetUp();
         return;
       }
       // Everything else gets the same sentence, whatever it was: a wrong
