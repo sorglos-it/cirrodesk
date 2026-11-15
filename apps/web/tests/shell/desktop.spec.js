@@ -65,10 +65,10 @@ test("a window opens, moves, maximizes and closes", async ({ shell }) => {
 test("nothing chosen means the machine decides", async ({ shell }) => {
   await expect(shell.locator("html")).not.toHaveAttribute("data-theme", /.*/);
   // And it is really light that is drawn, not just an attribute that is gone:
-  // --page-bg of the light block is #e7ecf4.
+  // --page-bg of the light block is #eeeeee.
   expect(await shell.evaluate(() =>
     getComputedStyle(document.documentElement).getPropertyValue("--page-bg").trim()))
-    .toBe("#e7ecf4");
+    .toBe("#eeeeee");
   // The start menu marks that choice, and only that one.
   await shell.getByRole("button", { name: "Start" }).click();
   await expect(shell.locator("#smlook .row button[data-theme].on")).toHaveCount(1);
@@ -102,16 +102,16 @@ test("the choice can be handed back to the machine", async ({ shell }) => {
 test("the shell follows the machine changing its mind, without being reloaded", async ({ shell }) => {
   // The decision book forbids "please reload". Nothing is pressed here and
   // nothing is reloaded: the machine is turned to dark and the page has to be
-  // dark afterwards. --page-bg of the dark block is #0d1017.
+  // dark afterwards. --page-bg of the dark block is #1e1e1e.
   await expect(shell.locator("html")).not.toHaveAttribute("data-theme", /.*/);
   await shell.emulateMedia({ colorScheme: "dark" });
   expect(await shell.evaluate(() =>
     getComputedStyle(document.documentElement).getPropertyValue("--page-bg").trim()))
-    .toBe("#0d1017");
+    .toBe("#1e1e1e");
   await shell.emulateMedia({ colorScheme: "light" });
   expect(await shell.evaluate(() =>
     getComputedStyle(document.documentElement).getPropertyValue("--page-bg").trim()))
-    .toBe("#e7ecf4");
+    .toBe("#eeeeee");
 });
 
 // docs/gestaltung.md point 5: the spacing and the font size are the person's
