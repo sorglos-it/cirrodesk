@@ -519,11 +519,16 @@ button.b.on{border-color:var(--accent);background:var(--accent);color:#fff}
 
 /* App-Store */
 .store{display:flex;flex-direction:column;height:100%}
-.tabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--win-border);flex-wrap:wrap}
-.tab{padding:calc(var(--pad) * .7) 14px;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;
-     background:none;color:var(--win-fg);font:inherit;cursor:pointer;opacity:.7;margin-bottom:-1px}
-.tab:hover{opacity:1;background:rgba(127,160,220,.14)}
-.tab.on{opacity:1;background:var(--field-bg);border-color:var(--win-border)}
+/* Tabs as the segmented control of WhiteSur and macOS: one rounded track,
+   centred under the title bar, the chosen segment raised inside it. Both apps
+   with tabs (store, users) draw them from this one rule. */
+.tabs{display:flex;flex-wrap:wrap;align-self:center;gap:2px;margin:10px auto 8px;padding:2px;
+      border-radius:8px;background:var(--field-bg);border:1px solid var(--win-border)}
+.tab{padding:calc(var(--pad) * .45) 14px;border:0;border-radius:6px;background:none;
+     color:var(--win-fg);font:inherit;font-size:var(--fs-chrome);cursor:pointer;opacity:.75}
+.tab:hover{opacity:1}
+.tab.on{opacity:1;background:var(--win-bg);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .storepanel{flex:1;overflow:auto;padding:calc(var(--pad) * 1.4) 16px}
 .storepanel:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .store .h{margin:0 0 4px;font-size:var(--fs-headline)}
@@ -642,14 +647,6 @@ button.b.on{border-color:var(--accent);background:var(--accent);color:#fff}
    and the question that stands in front of it covers its window. */
 .usersapp{display:flex;flex-direction:column;height:100%;position:relative;
           color:var(--win-fg);background:var(--win-bg)}
-.usersapp .tabs{display:flex;gap:2px;padding:8px 8px 0;border-bottom:1px solid var(--win-border);
-                flex-wrap:wrap}
-.usersapp .tab{border:1px solid transparent;border-bottom:0;background:none;color:inherit;
-               font:inherit;padding:7px 14px;border-radius:8px 8px 0 0;cursor:pointer;
-               opacity:.75}
-.usersapp .tab:hover{background:rgba(127,127,127,.15);opacity:1}
-.usersapp .tab.on{background:var(--field-bg);border-color:var(--win-border);opacity:1;
-                  font-weight:600;margin-bottom:-1px}
 .usersapp .panels{flex:1;overflow:auto;padding:calc(var(--pad) * 1.4) 16px calc(var(--pad) * 2)}
 .usersapp h3{margin:0 0 10px;font-size:var(--fs-headline)}
 .usersapp h4{margin:0 0 6px;font-size:var(--fs-chrome);text-transform:none}
@@ -822,7 +819,7 @@ button.b.on{border-color:var(--accent);background:var(--accent);color:#fff}
    what may be old, not one row in it. Small and quiet - it is a fact about the
    screen, not a message, and a message that shouts every time a window opens is
    a message people stop reading. */
-.stand{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:var(--fs-callout);color:var(--muted)}
+.stand{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 16px 4px;font-size:var(--fs-callout);color:var(--muted)}
 .stand .standtxt{flex:0 1 auto}
 .stand .standgo{padding:3px 9px;font-size:var(--fs-callout);border-radius:7px;
   border:1px solid var(--win-border);background:none;color:inherit;cursor:pointer}
