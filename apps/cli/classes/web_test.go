@@ -31,7 +31,7 @@ func TestPackWebPassesWalkUI(t *testing.T) {
 		t.Fatalf("store.WalkUI refuses what ngc-store web wrote: %v", err)
 	}
 	for _, n := range names {
-		if strings.Contains(n, "tests/") || strings.HasSuffix(n, "testlink.js") {
+		if strings.Contains(n, "tests/") || strings.HasSuffix(n, "testlink.js") || n == "ui/package.json" {
 			t.Errorf("%s is in the release", n)
 		}
 	}

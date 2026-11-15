@@ -12,8 +12,10 @@ import (
 )
 
 // webSkip are the paths of apps/web that never go into a release: the tests
-// and the test link, the same two tools/pack-release.sh excludes.
-var webSkip = []string{"tests", "public/assets/js/net/testlink.js"}
+// and the test link, the same two tools/pack-release.sh excludes, and
+// package.json, which only makes Node read the test mock as ESM; Apache and the
+// shell never read it.
+var webSkip = []string{"tests", "public/assets/js/net/testlink.js", "package.json"}
 
 // PackWeb writes the tree of apps/web in dir as a release file of ngc-web: a
 // UI tar (store.UIWriter), every file under ui/, in sorted order, no
