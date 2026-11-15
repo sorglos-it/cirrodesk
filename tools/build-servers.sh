@@ -56,6 +56,7 @@ parts=(
 	"server-api|ngc-api"
 	"cli|ngc-store"
 	"server-controller|ngc-controller"
+	"server-db|ngc-db"
 )
 
 built=0
