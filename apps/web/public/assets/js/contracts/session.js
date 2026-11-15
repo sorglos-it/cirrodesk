@@ -513,7 +513,7 @@ export function httpStatus(code) {
     case "E_NOTFOUND": return 404;
     case "E_TOOLARGE": return 413;
     case "E_LOCKED": return 429;
-    case "E_UNREACHABLE": return 503;
+    case "E_UNREACHABLE": case "E_NOT_SET_UP": return 503;
   }
   return 500;
 }

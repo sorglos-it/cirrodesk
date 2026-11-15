@@ -59,10 +59,11 @@ test("every error code carries its German message", async ({ shell }) => {
     E_TOOLARGE: "Zu viele Daten.",
     E_LOGIN: "Anmeldung fehlgeschlagen.",
     E_LOCKED: "Zu viele Fehlversuche. Bitte später erneut versuchen.",
+    E_NOT_SET_UP: "NGC ist noch nicht eingerichtet.",
   });
 });
 
-// The 14 codes are the whole list, and a table of them is an object whoever
+// The 15 codes are the whole list, and a table of them is an object whoever
 // runs on the page can also reach through Object.prototype. Measured against
 // shared/wire: Go's map answers "" for toString, constructor, hasOwnProperty,
 // __proto__ and valueOf, and ParseClose refuses a CLOSE that names one of
@@ -867,7 +868,7 @@ test("the code table carries only its own names and cannot be written over", asy
   expect(got.exit).toBe("E_EXIT");
   expect(got.names).toEqual([
     "FORBIDDEN", "UNREACHABLE", "EXIT", "TIMEOUT", "LIMIT", "PROTOCOL", "CONFIRM", "LICENSE",
-    "NOTFOUND", "VERIFY", "INTERNAL", "TOOLARGE", "LOGIN", "LOCKED",
+    "NOTFOUND", "VERIFY", "INTERNAL", "TOOLARGE", "LOGIN", "LOCKED", "NOT_SET_UP",
   ]);
 });
 
@@ -913,4 +914,14 @@ test("no error repeats what it was given", async ({ shell }) => {
   expect(got.out.filter(([, message]) => message === null).map(([name]) => name)).toEqual([]);
   expect(got.out.filter(([, message]) => message.includes(got.marker)).map(([name]) => name)).toEqual([]);
   expect(got.out.length).toBe(19);
+});
+
+// shared/session HTTPStatus: E_NOT_SET_UP shares 503 with E_UNREACHABLE, and
+// the login mask tells them apart by the code alone.
+test("E_NOT_SET_UP answers 503 before the WebSocket", async ({ shell }) => {
+  const got = await shell.evaluate(async () => {
+    const s = await import("/assets/js/contracts/session.js");
+    return [s.httpStatus("E_NOT_SET_UP"), s.httpStatus("E_UNREACHABLE")];
+  });
+  expect(got).toEqual([503, 503]);
 });
