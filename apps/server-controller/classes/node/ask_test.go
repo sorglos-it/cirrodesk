@@ -395,6 +395,8 @@ func TestPairInAnotherProcess(t *testing.T) {
 			t.Fatal("an argument of this process is a pairing code")
 		}
 	}
+	// This process measures the command line, not the store.
+	stubCreateState(t, nil)
 	if code := pair(os.Getenv(childConfig), os.Getenv(childAnchor), nil,
 		os.Stdin, os.Stdout, os.Stderr); code != 0 {
 		t.Fatalf("pair = %d", code)

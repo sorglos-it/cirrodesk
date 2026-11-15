@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/signal"
 	"slices"
@@ -285,6 +286,14 @@ func pair(cfgPath, anchorPath string, args []string, stdin io.Reader, stdout, st
 	}
 	if err := config.SaveAnchor(anchorPath, res.Anchor); err != nil {
 		fmt.Fprintln(stderr, msgNoAnchor)
+		return 1
+	}
+	// The store is born here and nowhere else (A2): the service refuses to
+	// start without it, so a file that is gone later is a lost one. A store
+	// that is already there is opened and left as it is.
+	if err := createState(cfg); err != nil {
+		slog.Error("the local store of this controller could not be created", "err", err)
+		fmt.Fprintln(stderr, msgNoState)
 		return 1
 	}
 	// The two lines the admin compares go to stdout, the one thing left to do

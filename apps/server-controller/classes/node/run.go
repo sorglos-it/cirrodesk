@@ -38,8 +38,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"math"
+	"os"
+	"path/filepath"
 	"slices"
 	"sync"
 	"time"
@@ -128,6 +131,31 @@ const msgNoState = "Die lokale Datenbank dieses Servers lässt sich nicht öffne
 // the same database (E32): two of them would hold the same Noise key, open two
 // tunnels as one node and both drive the containers of the apps.
 const msgRunning = "Auf diesem Server läuft schon ein ngc-controller. Ein zweiter startet nicht."
+
+// msgNoDB is the answer to a database that is gone while its directory is
+// there (A2): pair creates the store, so on a paired server a missing file is a
+// lost one, and a controller that made a new one would report no apps at all.
+const msgNoDB = "Die lokale Datenbank dieses Servers fehlt. Der Controller startet nicht; ohne sie wüsste er von keiner App. Bitte die Sicherung zurückspielen oder den Server mit ulh neu koppeln."
+
+// lostDB says the file of the store is not there although its directory is.
+// A missing directory is a server set up wrong and stays msgNoState.
+func lostDB(db string) bool {
+	if _, err := os.Stat(db); !errors.Is(err, fs.ErrNotExist) {
+		return false
+	}
+	_, err := os.Stat(filepath.Dir(db))
+	return err == nil
+}
+
+// createState is how pair makes the empty store, a variable so that the cases
+// of pair can run where no store can be opened (windows).
+var createState = func(cfg *config.Controller) error {
+	st, err := openState(cfg)
+	if err != nil {
+		return err
+	}
+	return st.Close()
+}
 
 // errRunning says another process holds the lock of this controller's database.
 var errRunning = errors.New("node: another ngc-controller runs on this database")
@@ -551,6 +579,10 @@ func runWith(version, cfgPath string, open opener, stdout, stderr io.Writer) int
 		return 1
 	}
 	defer unlock()
+	if lostDB(cfg.DB) {
+		fmt.Fprintln(stderr, msgNoDB)
+		return 1
+	}
 	st, err := open(cfg)
 	if err != nil {
 		// The cause is not named to the admin: on this way it would name the
