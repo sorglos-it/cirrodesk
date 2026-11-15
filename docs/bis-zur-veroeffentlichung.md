@@ -1,5 +1,7 @@
 # Bis zur Veröffentlichung — was fehlt, bis ein Fremder NGC benutzt
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Geschrieben am 18.10.2026.** Diese Datei ändert nichts: kein Code, kein `shared/`,
 und `docs/vertraege-v1.2.md`, `docs/STAND.md`, `docs/vertraege-v1-3-vorschlag.md`
 bleiben unberührt. Sie gehören dem Koordinator.

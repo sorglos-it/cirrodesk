@@ -1,5 +1,7 @@
 # Sicherung und der Weg zurück
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Gemessen am 24.10.2026 an der verteilten Anlage `ngc.mein.lan` (10.2.3.210–.215) und am
 selben Tag auf einer eigenen Wegwerf-Maschine (VM 310, `10.2.3.220`, aus der Proxmox-Vorlage
 300 geklont), Stand `17b9895` (origin/main). Messregeln: `Z:\GitHub\claude-md\messen.md`.

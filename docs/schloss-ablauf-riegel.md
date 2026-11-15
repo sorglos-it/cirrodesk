@@ -1,5 +1,7 @@
 # Der Ablauf der zwei Schlösser: gemessen und ein Riegel dazu
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 ## Das Ergebnis zuerst
 
 **In keiner gemessenen Lage bekamen zwei Halter das Schloss.** Es hält — auf SQLite und auf

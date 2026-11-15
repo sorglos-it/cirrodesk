@@ -1,5 +1,7 @@
 # Vertragsfassung V1.3 — Entscheidungsvorlage
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 **Stand 15.10.2026.** Jeder Punkt ist gegen den eingefrorenen Code nachgemessen und so
 umgeschrieben, dass er mit JA oder NEIN zu beantworten ist.
 

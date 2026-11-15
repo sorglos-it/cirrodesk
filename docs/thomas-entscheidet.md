@@ -1,5 +1,7 @@
 # Thomas entscheidet — entschieden
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Thomas hat das Blatt am 24.10.2026 zurückgegeben, wörtlich:
 „keine ahnung entscheide selbständig nach den grundsätzen stabilität vor sicherheit vor performance".
 

@@ -1,5 +1,7 @@
 # Warum ein gescheiterter Anmeldeversuch nichts verrät – und wie der Prüfsatz es trotzdem erfährt
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Gemessen am 03.11.2026 im Arbeitsbaum `D:\claude\working\ngc-login-fehlerklassen`
 (lokale Platte C:/D:, nicht das Netzlaufwerk), Zweig `web-login-fehlerklassen`,
 Grundstand `origin/main` = `0471b02d`. Fehlende Dateien im Baum: 0
