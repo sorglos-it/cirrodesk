@@ -248,9 +248,14 @@ test("a mask with no language file at all still says something", async ({ shell 
 // for key AND value for value, so neither half can drift alone.
 test("the built-in sentences are the English file, word for word", async ({ shell }) => {
   const got = await shell.evaluate(async () => {
-    const { BUILT_IN, FALLBACK } = await import("/assets/js/shell/lang.js");
-    const res = await fetch("/assets/lang/" + FALLBACK + ".json", { cache: "no-store" });
-    return { file: await res.json(), builtIn: { ...BUILT_IN } };
+    const { BUILT_IN, FALLBACK, PARTS } = await import("/assets/js/shell/lang.js");
+    // Every part of the English files together (lang.js PARTS).
+    const file = {};
+    for (const part of PARTS) {
+      const res = await fetch("/assets/lang/" + FALLBACK + (part ? "-" + part : "") + ".json", { cache: "no-store" });
+      Object.assign(file, await res.json());
+    }
+    return { file, builtIn: { ...BUILT_IN } };
   });
   expect(Object.keys(got.file).length, "there are sentences at all").toBeGreaterThan(10);
   expect(got.builtIn).toEqual(got.file);
