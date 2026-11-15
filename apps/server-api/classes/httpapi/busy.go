@@ -1,12 +1,14 @@
 package httpapi
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"sync/atomic"
 	"time"
 
 	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbwait"
+	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
 	"github.com/sorglos-it/nextgencloud/shared/wire"
 )
 
@@ -76,6 +78,12 @@ func FailCoded(w http.ResponseWriter, code wire.Code, err error) wire.Code {
 		FailRetry(w, code, RetryBusy)
 		return code
 	}
+	if errors.Is(err, state.ErrNoTrust) {
+		unset.hit("the installation is not set up yet, nobody can log in before the first setup",
+			"not-set-up")
+		Fail(w, code)
+		return code
+	}
 	away.hit("the database could not be reached", "db-unreachable")
 	Fail(w, code)
 	return code
@@ -109,13 +117,14 @@ func FailCoded(w http.ResponseWriter, code wire.Code, err error) wire.Code {
 //     ended. So nothing is lost by the brake: 480 rejections in a second are
 //     one line saying 480, where they were 480 lines saying nothing each.
 //
-// NOT changed, and it is a finding of the same measurement rather than a thing
-// to build here: state.ErrNoTrust -- an installation that is MIGRATED but not
-// yet set up -- reaches the second line, so every login/start of such an
-// installation says "the database could not be reached" about a database that
-// answers perfectly well. Measured: 12288 of these lines in 3.9 s against a
-// reachable file. The word for it would be a third reason, and which of the
-// two callers may give it is a decision this function cannot make alone.
+// state.ErrNoTrust -- an installation that is MIGRATED but not yet set up --
+// has a third line of its own (A3, B7). Before it, every login/start of such an
+// installation said "the database could not be reached" about a database that
+// answers perfectly well: 12288 of these lines in 3.9 s against a reachable
+// file. Both callers, login/start and login/finish, read the list before any
+// name, so the third line cannot fall differently for two names. What the
+// CALLER is answered stays E_UNREACHABLE: the contract's table has no other
+// code for these paths, and a new one is a change of shared/, not of this file.
 const warnEvery = 60 // seconds between two lines of one kind
 
 // counter is one kind of rejection: how many there were, how many have been
@@ -127,8 +136,9 @@ type counter struct {
 }
 
 var (
-	busy counter // the database was there and would not come free
-	away counter // the database could not be reached
+	busy  counter // the database was there and would not come free
+	away  counter // the database could not be reached
+	unset counter // there is no trust list yet: the setup has not run
 )
 
 // Busy is how many callers have been told to come back because the database
@@ -199,7 +209,7 @@ func Report() {
 // numbers back could make an overload invisible, which is the whole thing the
 // counters are against.
 func ResetCountsForTest() {
-	for _, c := range []*counter{&busy, &away} {
+	for _, c := range []*counter{&busy, &away, &unset} {
 		c.seen.Store(0)
 		c.said.Store(0)
 		c.last.Store(0)
