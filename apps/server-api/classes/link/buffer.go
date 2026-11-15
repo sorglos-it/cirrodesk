@@ -3,6 +3,7 @@ package link
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
 	"github.com/sorglos-it/nextgencloud/shared/wire"
 )
@@ -124,4 +125,32 @@ func (c *Channel) Queued() int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return len(c.queue)
+}
+
+// Abort hands whoever serves channel num one last frame, a CLOSE with cl, and
+// then tells them nothing more will come. It is for the reader that has just
+// answered a contract break with FailChannel (A24): the channel ends, and so
+// does its other half towards the browser, while every other channel of the
+// link goes on. The frame goes in past MaxQueuedFrames on purpose, because a
+// full queue is one of the breaks that lead here. A number that is not in the
+// table is left alone.
+func (t *Table) Abort(num uint32, cl wire.Close) {
+	payload, err := json.Marshal(cl)
+	if err != nil {
+		return
+	}
+	t.mu.Lock()
+	c, ok := t.ch[num]
+	t.mu.Unlock()
+	if !ok {
+		return
+	}
+	c.mu.Lock()
+	c.queue = append(c.queue, wire.Frame{Type: wire.TypeClose, Channel: num, Payload: payload})
+	c.gone = true
+	c.mu.Unlock()
+	select {
+	case c.woke <- struct{}{}:
+	default:
+	}
 }

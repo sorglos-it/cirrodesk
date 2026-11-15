@@ -222,23 +222,113 @@ func TestTunnelEndsOnBye(t *testing.T) {
 	wantEnded(t, c)
 }
 
-// TestTunnelEndsOnAFrameForAChannelNobodyOpened holds the use of the table: the
-// API picks the numbers on a tunnel, so a number it never picked is no channel.
-//
-// The open way stands in the case below it, and that is what keeps this one
-// honest: a DATA frame on a number the API DID open does not end the tunnel
-// and lands in that channel's queue. Without that pair, a tunnel that ended on
-// every DATA frame would pass here -- measured on a mutant that dropped the
-// table check and stayed alive while the hook was the only reason it died.
-func TestTunnelEndsOnAFrameForAChannelNobodyOpened(t *testing.T) {
-	_, fx := newServer(t)
+// TestAFrameForAChannelNobodyOpenedClosesOnlyThatNumber holds the use of the
+// table: the API picks the numbers on a tunnel, so a number it never picked is
+// no channel. Since A24 that is answered with CLOSE E_PROTOCOL on that number
+// and not by ending the tunnel; wantChannelWorks is the control that the
+// tunnel really still carries channels.
+func TestAFrameForAChannelNobodyOpenedClosesOnlyThatNumber(t *testing.T) {
+	srv, fx := newServer(t)
 	c := dialTunnel(t, fx, fx.ControllerKeys)
 	c.writeControl(t, wire.CtlHello, controllerHello(fx))
 	c.readHello(t)
+	tn := waitForTunnel(t, srv, fx.ControllerNode)
 	if err := c.writeFrame(wire.Frame{Type: wire.TypeData, Channel: 7, Payload: []byte("x")}); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	wantEnded(t, c)
+	wantClose(t, c, 7)
+	// A24: the tunnel stands, and a channel the API opens afterwards works.
+	wantChannelWorks(t, c, tn)
+}
+
+// TestAContractBreakOnOneChannelLeavesTheOthersAlone is A24, Punkt 77: on
+// 24.10.2026 one broken channel took a running terminal of another app down
+// with the whole tunnel. A frame the controller may not send on one channel closes that
+// channel on both sides -- the controller gets CLOSE E_PROTOCOL, whoever
+// relays it to the browser gets the same CLOSE -- and a second channel goes on.
+func TestAContractBreakOnOneChannelLeavesTheOthersAlone(t *testing.T) {
+	srv, fx := newServer(t)
+	c := dialTunnel(t, fx, fx.ControllerKeys)
+	c.writeControl(t, wire.CtlHello, controllerHello(fx))
+	c.readHello(t)
+	tn := waitForTunnel(t, srv, fx.ControllerNode)
+	other, err := tn.Open(wire.DefaultWindow)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	if err := tn.Grant(ctx, other, wire.MinWindow); err != nil {
+		t.Fatalf("grant: %v", err)
+	}
+	bad, err := tn.Open(wire.DefaultWindow)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	// An OPEN from the controller on a number the API opened: a frame the
+	// controller may never send on a channel, so a break of the contract.
+	if err := c.writeFrame(wire.Frame{Type: wire.TypeOpen, Channel: bad.Num, Payload: []byte("{}")}); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	wantClose(t, c, bad.Num)
+	rctx, cancel := context.WithTimeout(ctx, readWait)
+	defer cancel()
+	f, got := tn.Next(rctx, bad)
+	if !got || f.Type != wire.TypeClose {
+		t.Fatalf("the relay of the broken channel heard %+v %v, want its CLOSE", f, got)
+	}
+	cl, err := wire.ParseClose(f.Payload)
+	if err != nil || cl.Code != wire.CodeProtocol {
+		t.Fatalf("close %+v %v", cl, err)
+	}
+	if _, more := tn.Next(rctx, bad); more {
+		t.Fatal("the broken channel still hands out frames")
+	}
+	if err := c.writeFrame(wire.Frame{Type: wire.TypeData, Channel: other.Num, Payload: []byte("y")}); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	f, got = tn.Next(rctx, other)
+	if !got || f.Type != wire.TypeData || string(f.Payload) != "y" {
+		t.Fatalf("the other channel: %+v %v", f, got)
+	}
+}
+
+// wantClose reads frames until a CLOSE E_PROTOCOL for num arrives.
+func wantClose(t *testing.T, c *conn, num uint32) {
+	t.Helper()
+	for {
+		f, err := c.readErr()
+		if err != nil {
+			t.Fatalf("the tunnel ended instead of closing channel %d: %v", num, err)
+		}
+		if f.Type != wire.TypeClose || f.Channel != num {
+			continue
+		}
+		cl, err := wire.ParseClose(f.Payload)
+		if err != nil || cl.Code != wire.CodeProtocol {
+			t.Fatalf("close of %d: %+v %v", num, cl, err)
+		}
+		return
+	}
+}
+
+// wantChannelWorks opens a channel and sees a DATA frame of the controller
+// arrive on it.
+func wantChannelWorks(t *testing.T, c *conn, tn *Tunnel) {
+	t.Helper()
+	ch, err := tn.Open(wire.DefaultWindow)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	if err := tn.Grant(ctx, ch, wire.MinWindow); err != nil {
+		t.Fatalf("grant: %v", err)
+	}
+	if err := c.writeFrame(wire.Frame{Type: wire.TypeData, Channel: ch.Num, Payload: []byte("z")}); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	rctx, cancel := context.WithTimeout(ctx, readWait)
+	defer cancel()
+	if f, got := tn.Next(rctx, ch); !got || string(f.Payload) != "z" {
+		t.Fatalf("%+v %v", f, got)
+	}
 }
 
 // TestAFrameOfAnOpenedChannelWaitsInItsQueue is the open way of the case
