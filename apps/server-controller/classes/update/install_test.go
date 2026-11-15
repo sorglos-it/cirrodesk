@@ -1497,3 +1497,32 @@ func runsIt(part string) []string {
 	}
 	return nil
 }
+
+// S7, decided (1): the package of ngc-web carries its files under ui/, and the
+// contract stays as it is. A package in the old shape - the files at the root
+// of the tar, as the scripts built it until then - is refused as a whole, and
+// the stand that runs is not touched.
+func TestInstallWebRefusesAPackageWithoutUI(t *testing.T) {
+	f := webFixture(t)
+	var buf bytes.Buffer
+	body := "<p>neu</p>"
+	buf.Write(uiBlock(t, '0', "index.html", int64(len(body))))
+	buf.WriteString(body)
+	buf.Write(make([]byte, 512-len(body)))
+	buf.Write(make([]byte, 1024))
+	mustWrite(t, f.stage+"/"+trust.AutoWeb, buf.Bytes())
+	st := f.st.staged[trust.AutoWeb]
+	st.SHA256 = sha(buf.Bytes())
+	st.Size = int64(buf.Len())
+	f.st.staged[trust.AutoWeb] = st
+	f.sha = st.SHA256
+	if _, err := f.run(); !errors.Is(err, ErrVerify) {
+		t.Fatalf("%v, want ErrVerify for a tar without ui/", err)
+	}
+	if b, err := os.ReadFile(f.web + "/index.html"); err != nil || string(b) != "<p>alt</p>" {
+		t.Errorf("the document root changed: %q %v", b, err)
+	}
+	if f.st.parts[trust.AutoWeb] != oldVersion {
+		t.Errorf("remembered %q, want the old %q", f.st.parts[trust.AutoWeb], oldVersion)
+	}
+}
