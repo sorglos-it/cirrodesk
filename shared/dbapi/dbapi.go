@@ -138,6 +138,11 @@ type Local interface {
 	// OnceUse marks a value as used and returns its data. It gives
 	// ErrNotFound if it is unknown or expired and ErrUsed on a second use.
 	OnceUse(ctx context.Context, kind string, value []byte, now int64) (string, error)
+	// OncePeek returns the data of a value without using it, with the same
+	// errors as OnceUse. A caller that must check a MAC over the data first
+	// peeks, checks, and only then uses: a wrong guess must not burn a valid
+	// join code. The OnceUse after it still decides alone who gets the value.
+	OncePeek(ctx context.Context, kind string, value []byte, now int64) (string, error)
 	// OncePurge removes values that expired before now. Where several APIs
 	// share one database they pass now minus session.MaxSkew: an API whose
 	// clock runs behind still accepts a task or nonce until its own now

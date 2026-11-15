@@ -146,12 +146,26 @@ func testOnce(t *testing.T, s dbapi.Store) {
 	if err := s.OnceCreate(ctx, dbapi.OnceTask, nonce, "", 1790000100); err != nil {
 		t.Errorf("same value, other kind: %v", err)
 	}
+	for i := 0; i < 2; i++ {
+		if data, err := s.OncePeek(ctx, dbapi.OnceNonce, nonce, 1790000000); err != nil || data != "user-1" {
+			t.Fatalf("peek %d: %q, %v", i, data, err)
+		}
+	}
 	data, err := s.OnceUse(ctx, dbapi.OnceNonce, nonce, 1790000000)
 	if err != nil || data != "user-1" {
-		t.Fatalf("use: %q, %v", data, err)
+		t.Fatalf("use after peek: %q, %v", data, err)
+	}
+	if _, err := s.OncePeek(ctx, dbapi.OnceNonce, nonce, 1790000000); !errors.Is(err, dbapi.ErrUsed) {
+		t.Errorf("peek after use: %v", err)
 	}
 	if _, err := s.OnceUse(ctx, dbapi.OnceNonce, nonce, 1790000000); !errors.Is(err, dbapi.ErrUsed) {
 		t.Errorf("second use: %v", err)
+	}
+	if _, err := s.OncePeek(ctx, dbapi.OnceTask, nonce, 1790000100); !errors.Is(err, dbapi.ErrNotFound) {
+		t.Errorf("peek expired: %v", err)
+	}
+	if _, err := s.OncePeek(ctx, dbapi.OnceNonce, []byte("other"), 1790000000); !errors.Is(err, dbapi.ErrNotFound) {
+		t.Errorf("peek unknown: %v", err)
 	}
 	if _, err := s.OnceUse(ctx, dbapi.OnceTask, nonce, 1790000100); !errors.Is(err, dbapi.ErrNotFound) {
 		t.Errorf("expired: %v", err)
