@@ -127,6 +127,10 @@ test("the three buttons of a window are tab stops, and the app is the next one",
   await shell.getByRole("button", { name: "Start" }).click();
   await shell.getByRole("menuitem", { name: "Rechner", exact: true }).click();
   const win = shell.locator(".win");
+  // The frame takes the focus once its interface has arrived (appframe.js).
+  // Wait for that first: otherwise it lands in the middle of the walk below
+  // and takes a title-bar button's focus away - seen on CI (run 43722247772).
+  await expect(win.locator(".appframe")).toBeFocused();
   for (const name of ["Minimieren", "Maximieren", "Schließen"]) {
     await win.getByRole("button", { name, exact: true }).focus();
     expect(await active(shell)).toBe(name);

@@ -14,7 +14,7 @@ import { UICache, openAppUI } from "./appframe.js";
 import { iconName, fillGlyph } from "./icon.js";
 import { APPS, Changed, RIGHTS } from "./changed.js";
 import {
-  ACCENTS, DENSITIES, WALLPAPERS, applyAccent, applyDensity, applyTheme, applyWallpaper,
+  ACCENTS, DENSITIES, GLASSES, WALLPAPERS, applyAccent, applyDensity, applyGlass, currentGlass, applyTheme, applyWallpaper,
   currentChoice, currentDensity, toggleTheme,
 } from "./theme.js";
 
@@ -428,7 +428,19 @@ class Desktop {
     }
     this.densRow = dens;
 
-    box.append(head, themes, dens, colors, papers);
+    const glass = el("div", "row");
+    for (const g of GLASSES) {
+      const b = button("b", g.name, null);
+      b.dataset.glass = g.id;
+      b.addEventListener("click", () => {
+        applyGlass(g.id);
+        this.markLook();
+      });
+      glass.append(b);
+    }
+    this.glassRow = glass;
+
+    box.append(head, themes, dens, glass, colors, papers);
     return box;
   }
 
@@ -443,6 +455,8 @@ class Desktop {
     for (const b of this.themeRow.children) b.classList.toggle("on", b.dataset.theme === t);
     const d = currentDensity();
     for (const b of this.densRow.children) b.classList.toggle("on", b.dataset.density === d);
+    const g = currentGlass();
+    for (const b of this.glassRow.children) b.classList.toggle("on", b.dataset.glass === g);
     const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
     for (const b of this.colorRow.children) b.classList.toggle("on", b.dataset.accent === accent);
     const bg = this.wallpaper.style.background;

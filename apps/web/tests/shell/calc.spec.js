@@ -284,3 +284,14 @@ test("every key of the calculator is a tab stop, in the order it is drawn", asyn
   }
   expect(stops).toEqual(order);
 });
+
+test("the app is told the shell's language", async ({ shell }) => {
+  // The fixture's browser asks for no language the shell has a table for
+  // first, so whatever lang.js chose is what the frame must carry - read from
+  // the shell, not written down here.
+  const c = await calc(shell);
+  const want = await shell.evaluate(async () => (await import("/assets/js/shell/lang.js")).language());
+  expect(["de", "en", "fr", "it", "es"]).toContain(want);
+  await expect(c.frame.locator("html")).toHaveAttribute("lang", want);
+  expect(await c.frame.locator("html").evaluate(() => window.ngc.lang)).toBe(want);
+});

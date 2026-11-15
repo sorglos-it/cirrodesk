@@ -57,8 +57,8 @@ import * as tunnel from "../contracts/tunnel.js";
 import * as proof from "../contracts/proof.js";
 import { askSignature } from "../shell/confirm.js";
 import { PURPOSE_TRUST_LIST, keyIDAsync } from "../contracts/sign.js";
-import { b64encode } from "../contracts/b64.js";
-import { validTunnelURL } from "../contracts/url.js";
+import { b64decode, b64encode } from "../contracts/b64.js";
+import { validOrigin, validTunnelURL } from "../contracts/url.js";
 import { coreApp, validAppID, validLoginName, validName } from "../contracts/text.js";
 import { APPS, NODES, RIGHTS, USERS } from "../shell/changed.js";
 import { freshness } from "../shell/stale.js";
@@ -147,6 +147,35 @@ async function ask(link, action, params, opts) {
 const oneChunk = (bytes) => new Blob([bytes]).stream();
 
 // ------------------------------------------------------------- a new version
+
+// The COSE numbers WebAuthn names its algorithms by (RFC 9053), for the two
+// this shell asks the authenticator for.
+const COSE_ALG = new Map([[-7, proof.ALG_ES256], [-257, proof.ALG_RS256]]);
+
+// passkeyRP answers the rp a version with a passkey has to carry: the one in
+// force, if this page is one of its origins, or - where none is set yet - this
+// page's own host and origin. null when this page cannot make a passkey the
+// list would accept.
+export function passkeyRP(rp, loc) {
+  if (rp.id !== "") {
+    return rp.origins.includes(loc.origin) ? { id: rp.id, origins: [...rp.origins] } : null;
+  }
+  return proof.validRPID(loc.hostname) && validOrigin(loc.origin)
+    ? { id: loc.hostname, origins: [loc.origin] } : null;
+}
+
+// passkeyKey turns a fresh credential into the key of the trust list. pub is
+// the SubjectPublicKeyInfo the browser hands out, which is what Go parses.
+export async function passkeyKey(cred) {
+  const alg = COSE_ALG.get(cred.response.getPublicKeyAlgorithm());
+  const spki = cred.response.getPublicKey();
+  if (alg === undefined || spki === null) throw new Error("users: authenticator gave no usable key");
+  const pub = new Uint8Array(spki);
+  const key = { id: await keyIDAsync(pub), kind: proof.KIND_PASSKEY, alg, pub,
+    credId: new Uint8Array(cred.rawId) };
+  if (!(await proof.validateUserKey(key))) throw new Error("users: authenticator gave no usable key");
+  return key;
+}
 
 // joinable reports whether a waiting API server may be offered for joining at
 // all: a name that is a name and an address that is a tunnel address.
@@ -610,7 +639,83 @@ class Users {
       );
       tbl.body.append(r);
     }
-    p.append(this.userForm(msg));
+    p.append(this.passkeyForm(msg), this.userForm(msg));
+  }
+
+  // ---- einen Passkey für sich selbst eintragen ------------------------------
+  //
+  // Only for the person at this browser: the authenticator that makes the key
+  // is the one plugged into THIS device, so a passkey for somebody else would
+  // be a key nobody holds. The new key goes into the trust list like every
+  // other change - a new version, signed by this person.
+  passkeyForm(msg) {
+    const box = el("fieldset", "passkey");
+    box.append(el("legend", null, "Passkey"));
+    const stop = this.cannotChange("Es kann gerade kein Passkey eingetragen werden.");
+    if (stop !== "") {
+      box.append(el("p", "muted", stop));
+      return box;
+    }
+    if (typeof navigator.credentials?.create !== "function" || typeof PublicKeyCredential !== "function") {
+      box.append(el("p", "muted", "Dieser Browser kann keine Passkeys anlegen."));
+      return box;
+    }
+    const go = button("go", "Passkey hinzufügen", "Passkey für mich hinzufügen");
+    go.addEventListener("click", () => this.askPasskey(go, msg));
+    box.append(el("p", "hint", "Ein Passkey auf diesem Gerät oder einem Stick, mit dem Sie sich "
+      + "künftig ohne Passwort anmelden."), go);
+    return box;
+  }
+
+  askPasskey(from, msg) {
+    const cur = this.trust.current();
+    const me = cur.list.users.find((u) => u.id === this.session?.user);
+    if (me === undefined) {
+      text(msg, "Ihr Benutzer steht nicht in der Vertrauensliste.");
+      return;
+    }
+    if (me.keys.length >= trust.MAX_KEYS_PER_USER) {
+      text(msg, "Sie haben schon " + trust.MAX_KEYS_PER_USER + " Schlüssel. Mehr trägt die Liste nicht.");
+      return;
+    }
+    const rp = passkeyRP(cur.list.rp, location);
+    if (rp === null) {
+      text(msg, "Diese Adresse passt nicht zu den Passkeys dieser Anlage.");
+      return;
+    }
+    this.ask({
+      title: "Passkey hinzufügen",
+      body: [el("p", null, "Ihr Browser fragt gleich nach dem Passkey. Danach wird er in die "
+        + "Vertrauensliste eingetragen; dafür bestätigen Sie noch einmal.")],
+      go: "Weiter",
+      from,
+      run: async () => {
+        const cred = await navigator.credentials.create({
+          publicKey: {
+            rp: { id: rp.id, name: "NGC" },
+            user: { id: b64decode(me.id), name: me.name, displayName: me.name },
+            challenge: crypto.getRandomValues(new Uint8Array(32)),
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+            authenticatorSelection: { userVerification: "required", residentKey: "preferred" },
+            excludeCredentials: me.keys.filter((k) => k.kind === proof.KIND_PASSKEY)
+              .map((k) => ({ type: "public-key", id: k.credId })),
+            attestation: "none",
+            signal: this.abort.signal,
+          },
+        });
+        if (cred === null) throw new Cancelled();
+        const key = await passkeyKey(cred);
+        await this.joinNode((next) => {
+          next.rp = rp;
+          next.users.find((u) => u.id === me.id).keys.push(key);
+        });
+        this.keepUsers = "Der Passkey ist eingetragen.";
+        this.ctx?.changed?.tell(USERS);
+        this.rebuild("users");
+      },
+      failed: "Der Passkey konnte nicht eingetragen werden.",
+      msg,
+    });
   }
 
   // ---- einen zweiten Benutzer anlegen -------------------------------------

@@ -45,7 +45,7 @@
      Six places for one colour is its own step, with all six in one commit. */
   --accent: #2f7de1;
   --accent-2: #16d1c3;
-  --win-bg: #1f1f23;
+  --win-bg: #2a2a2a;
   --win-fg: #f5f5f7;
   /* Hex and not rgba, and the reason is measured: appframe.js passes a mark
      into an app only when it matches /^#[0-9a-f]{6}$/ (COLOR, appframe.js:1003).
@@ -54,14 +54,14 @@
      cases in tests/shell/appframe.spec.js are for, and they had never run.
      The values are the ones both app.css already ship, identical in
      calculator and terminal, from the app-farben round. */
-  --win-border: #38414f;
+  --win-border: #3d3d3d;
   /* ONE title colour, because the SHADOW says which window is in front -
      LordOS does it that way, and this file carried a second colour only
      until the shadow arrived. It has arrived (--shadow and --shadow-back
      below), so the stand-in goes: a window in front now differs by lying
      24 px off the page instead of by about ten units of grey, which is the
      difference a tired eye misses. */
-  --title-bg: #2b2b30;
+  --title-bg: #333333;
   --bar-bg: rgba(24,24,30,.42);
   --bar-fg: #f5f5f7;
   --menu-bg: rgba(36,36,42,.72);
@@ -74,9 +74,9 @@
   --shadow: 0 24px 56px rgba(0,0,0,.55);
   --shadow-back: 0 10px 28px rgba(0,0,0,.32);
   --radius: 12px;
-  --field-bg: #2a2a2f;
+  --field-bg: #383838;
   --muted: #97a3b6;
-  --page-bg: #0d1017;
+  --page-bg: #1e1e1e;
   /* The smallest a window may be. It stands here because this is where a
      window is drawn; window.js reads these two and lays out by them, so the
      size that is drawn and the size that is reckoned with are one number. */
@@ -132,14 +132,14 @@
   --alarm-veil: rgba(6,9,16,.86);
 }
 html[data-theme="light"]{
-  --win-bg:#ffffff; --win-fg:#1d1d1f; --win-border:#c9d3e0;
-  --title-bg:#ececef;
+  --win-bg:#ffffff; --win-fg:#1d1d1f; --win-border:#d6d6d6;
+  --title-bg:#f0f0f0;
   --bar-bg: rgba(250,250,252,.55); --bar-fg:#1d1d1f;
   --menu-bg: rgba(246,246,248,.78);
   --shadow: 0 24px 56px rgba(30,45,70,.22);
   --shadow-back: 0 10px 28px rgba(30,45,70,.13);
   --field-bg:#ffffff; --muted:#5b6a80;
-  --page-bg:#e7ecf4;
+  --page-bg:#eeeeee;
   --alarm:#b3261e; --alarm-veil: rgba(22,32,46,.62);
 }
 /* The default while nobody has chosen a design. It bites only where the
@@ -148,14 +148,14 @@ html[data-theme="light"]{
    here. A chosen theme always writes the attribute and wins. */
 @media (prefers-color-scheme: light){
   html:not([data-theme]){
-    --win-bg:#ffffff; --win-fg:#1d1d1f; --win-border:#c9d3e0;
-    --title-bg:#ececef;
+    --win-bg:#ffffff; --win-fg:#1d1d1f; --win-border:#d6d6d6;
+    --title-bg:#f0f0f0;
     --bar-bg: rgba(250,250,252,.55); --bar-fg:#1d1d1f;
     --menu-bg: rgba(246,246,248,.78);
     --shadow: 0 24px 56px rgba(30,45,70,.22);
     --shadow-back: 0 10px 28px rgba(30,45,70,.13);
     --field-bg:#ffffff; --muted:#5b6a80;
-    --page-bg:#e7ecf4;
+    --page-bg:#eeeeee;
     --alarm:#b3261e; --alarm-veil: rgba(22,32,46,.62);
   }
 }
@@ -166,6 +166,15 @@ html[data-theme="light"]{
    engeres Fenster ist ein Fenster, das man nicht mehr schließen kann. */
 html[data-density="eng"]{--fs:12.5px;--pad:7px}
 html[data-density="luftig"]{--fs:15.5px;--pad:13px}
+/* Glass, per person (theme.js GLASSES). "aus" makes band, dock and menus
+   solid - also the answer for a slow machine, since a blur is paid on every
+   frame; "stark" lets the wallpaper through like WhiteSur's translucent panels. */
+html[data-glass="aus"]{--blur:0px;--bar-bg:var(--title-bg);--menu-bg:var(--win-bg)}
+html[data-glass="stark"]{--blur:40px;--bar-bg:rgba(30,30,30,.22);--menu-bg:rgba(40,40,40,.45)}
+html[data-glass="stark"][data-theme="light"]{--bar-bg:rgba(255,255,255,.28);--menu-bg:rgba(250,250,250,.5)}
+@media (prefers-color-scheme: light){
+  html[data-glass="stark"]:not([data-theme]){--bar-bg:rgba(255,255,255,.28);--menu-bg:rgba(250,250,250,.5)}
+}
 
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -466,8 +475,15 @@ body{font:var(--fs)/1.45 "Inter","Segoe UI",system-ui,Roboto,sans-serif;overflow
 .wbtns{position:absolute;left:0;top:0;display:flex;height:100%}
 .wbtn{width:40px;height:100%;border:0;background:none;color:inherit;cursor:pointer;font-size:14px;
       line-height:1;opacity:.8}
-.wbtn:hover{background:rgba(127,127,127,.25);opacity:1}
-.wbtn.close:hover{background:#e13e3e;color:#fff}
+/* WhiteSur's three lights: a 14 px disc in the 40 px finger area, the sign
+   inside shows only while the pointer is over the group (or a key is on one). */
+.wbtn,.wbtn:hover{opacity:1;font-size:9px;font-weight:700;color:transparent;
+      background:radial-gradient(circle,var(--light) 6.5px,rgba(0,0,0,.18) 7px,transparent 7.5px)}
+.wbtn.close{--light:#fd5f57}
+.wbtn.mini{--light:#febc2e}
+.wbtn.maxi{--light:#28c840}
+.win:not(.focus) .wbtns:not(:hover) .wbtn{--light:#8e8e9380}
+.wbtns:hover .wbtn,.wbtn:focus-visible{color:rgba(0,0,0,.6)}
 .body{flex:1;overflow:auto;position:relative;background:var(--win-bg)}
 .rs{position:absolute;z-index:5}
 .rs.e{right:0;top:0;width:6px;height:100%;cursor:ew-resize}
