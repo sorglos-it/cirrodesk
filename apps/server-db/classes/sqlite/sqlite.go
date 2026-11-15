@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -174,7 +175,7 @@ func OpenDBWith(cfg config.DB, opt Options) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db := sql.OpenDB(connector{inner: inner, hexkey: hexkey, busy: busy})
+	db := sql.OpenDB(connector{inner: inner, hexkey: hexkey, busy: busy, path: cfg.Path})
 	db.SetMaxOpenConns(writeConns)
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxIdleTime(idleTimeout)
@@ -232,6 +233,8 @@ type connector struct {
 	// milliseconds. It is set once, when the pool is opened, and read by
 	// every connection the pool makes afterwards.
 	busy int64
+	// path is the database file; see ownOnly.
+	path string
 }
 
 // Driver implements database/sql/driver.Connector.
@@ -239,6 +242,9 @@ func (c connector) Driver() driver.Driver { return c.inner.Driver() }
 
 // Connect implements database/sql/driver.Connector.
 func (c connector) Connect(ctx context.Context) (driver.Conn, error) {
+	if err := ownOnly(c.path); err != nil {
+		return nil, err
+	}
 	conn, err := c.inner.Connect(sqlite3.WithMaxMemory(ctx, maxMemory))
 	if err != nil {
 		return nil, err
@@ -329,4 +335,34 @@ func validPath(path string) bool {
 		}
 	}
 	return true
+}
+
+// ownOnly makes the file and its -wal and -shm exist with mode 0600 before
+// SQLite opens them. The VFS creates every file with 0666 minus the umask, so
+// with the usual umask 0022 the database came out 0644, readable by every
+// user of the machine (measured: docs/feldzug-echter-server.md, "Zwei
+// Befunde"). SQLite deletes the -wal when its last connection closes and
+// recreates it at the next write; every write runs on a connection that came
+// through Connect, so doing this there covers the recreated file too.
+// An existing file open to others is chmodded, never truncated.
+func ownOnly(path string) error {
+	for _, p := range []string{path, path + "-wal", path + "-shm"} {
+		f, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE, 0o600)
+		if err != nil {
+			return fmt.Errorf("sqlite: %w", err)
+		}
+		// Only a file that is open to others is changed, so a correct file of
+		// another owner does not make the open fail.
+		st, err := f.Stat()
+		if err == nil && st.Mode().Perm()&0o077 != 0 {
+			err = f.Chmod(0o600)
+		}
+		if cerr := f.Close(); err == nil {
+			err = cerr
+		}
+		if err != nil {
+			return fmt.Errorf("sqlite: %w", err)
+		}
+	}
+	return nil
 }
