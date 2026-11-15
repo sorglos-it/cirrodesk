@@ -49,7 +49,11 @@ func uiTarOf(t testing.TB, path string, names ...string) {
 	var buf bytes.Buffer
 	w := store.NewUIWriter(&buf)
 	for _, n := range names {
-		if err := w.File(n, int64(len(n)), strings.NewReader(n)); err != nil {
+		body := n
+		if n == "ui/VERSION" {
+			body = "1.1.0\n"
+		}
+		if err := w.File(n, int64(len(body)), strings.NewReader(body)); err != nil {
 			t.Fatalf("%s: %v", n, err)
 		}
 	}
@@ -77,7 +81,7 @@ func TestContentsNamesWhatIsMissing(t *testing.T) {
 		ui    bool   // written with store.UIWriter instead of archive/tar
 	}{
 		{name: "web complete", part: store.ReleaseWeb, ui: true,
-			files: []string{"ui/public/index.php", "ui/templates/apache-vhost.conf", "ui/assets/app.js"}},
+			files: []string{"ui/VERSION", "ui/public/index.php", "ui/templates/apache-vhost.conf", "ui/assets/app.js"}},
 		{name: "web without the vhost template", part: store.ReleaseWeb, ui: true,
 			files: []string{"ui/public/index.php"}, want: "ui/templates/apache-vhost.conf"},
 		{name: "web without index.php", part: store.ReleaseWeb, ui: true,
@@ -85,7 +89,9 @@ func TestContentsNamesWhatIsMissing(t *testing.T) {
 		{name: "web in the old form, names in the root", part: store.ReleaseWeb,
 			files: []string{"public/index.php", "templates/apache-vhost.conf"}, want: "ui/public/index.php"},
 		{name: "web under ui/ but packed by archive/tar", part: store.ReleaseWeb,
-			files: []string{"ui/", "ui/public/index.php", "ui/templates/apache-vhost.conf"}, want: "store.WalkUI"},
+			files: []string{"ui/", "ui/VERSION", "ui/public/index.php", "ui/templates/apache-vhost.conf"}, want: "store.WalkUI"},
+		{name: "web without ui/VERSION", part: store.ReleaseWeb, ui: true,
+			files: []string{"ui/public/index.php", "ui/templates/apache-vhost.conf"}, want: "ui/VERSION"},
 		{name: "api complete", part: store.ReleaseAPI, files: []string{"ngc-api", "ngc-store"}},
 		{name: "api without ngc-store", part: store.ReleaseAPI,
 			files: []string{"ngc-api"}, want: "ngc-store"},
@@ -196,7 +202,7 @@ func TestContentsOfADirectoryJudgesEveryFileOrSaysSo(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	uiTarOf(t, filepath.Join(dir, "ngc-web-all.tar"), "ui/public/index.php", "ui/templates/apache-vhost.conf")
+	uiTarOf(t, filepath.Join(dir, "ngc-web-all.tar"), "ui/VERSION", "ui/public/index.php", "ui/templates/apache-vhost.conf")
 	tarOf(t, filepath.Join(dir, "ngc-controller-amd64.tar"), "ngc-controller")
 	seen, err = CheckDirContents(dir)
 	if err != nil {

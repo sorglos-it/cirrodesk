@@ -41,6 +41,13 @@ func TestPackWebPassesWalkUI(t *testing.T) {
 	if err := CheckContents(out, store.ReleaseWeb); err != nil {
 		t.Errorf("CheckContents: %v", err)
 	}
+	want, err := os.ReadFile(filepath.Join("..", "..", "web", "VERSION"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v, err := WebVersion(out); err != nil || v+"\n" != string(want) {
+		t.Errorf("ui/VERSION %q (%v), want apps/web/VERSION %q", v, err, want)
+	}
 }
 
 func TestPackWebRefusesALink(t *testing.T) {
