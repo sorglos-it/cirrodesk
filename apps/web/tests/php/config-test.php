@@ -294,7 +294,7 @@ check('config', 'rp of the test files', true,
 // derived a second time, independently, in tests/contracts/anchor.spec.js -
 // this check only holds that Config::load hands it through unchanged.
 check('config', 'anchor of the test files', true,
-    $c->anchor === ['seq' => 1, 'hash' => 'J3qr4-1LBiBkYpH6_a_Z1xWiTfVkmDfSEfg_yfahMUQ']);
+    $c->anchor === ['seq' => 1, 'hash' => 'pRy62CiEG12gvugmTUoTiCgidCSPo4u-4wInAHkFtGc']);
 
 @unlink($tmp . '/web.json');
 @unlink($tmp . '/anchor.json');
