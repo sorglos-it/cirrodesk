@@ -283,8 +283,8 @@ Bis zum WebSocket spricht die Shell HTTPS mit JSON (`Content-Type: application/j
 |---|---|---|---|---|
 | `/api/v1/setup` | GET | – | 200 `session.SetupOffer` | 404 `E_NOTFOUND`, sobald es einen Admin gibt |
 | `/api/v1/setup` | POST | `session.Setup` | 204 | 403 `E_VERIFY`, 404 `E_NOTFOUND`, 429 `E_LOCKED` |
-| `/api/v1/login/start` | POST | `session.LoginStart` | 200 `session.LoginChallenge`, auch für unbekannte Namen | 429 `E_LOCKED` |
-| `/api/v1/login/finish` | POST | `session.LoginFinish` | 200 `session.LoginResult` und das Cookie | 401 `E_LOGIN`, 429 `E_LOCKED` |
+| `/api/v1/login/start` | POST | `session.LoginStart` | 200 `session.LoginChallenge`, auch für unbekannte Namen | 429 `E_LOCKED`, 503 `E_NOT_SET_UP` (Anlage nie eingerichtet) |
+| `/api/v1/login/finish` | POST | `session.LoginFinish` | 200 `session.LoginResult` und das Cookie | 401 `E_LOGIN`, 429 `E_LOCKED`, 503 `E_NOT_SET_UP` |
 | `/api/v1/logout` | POST | – | 204, Cookie gelöscht | 401 `E_LOGIN` |
 | `/api/v1/trust?from=N` | GET | – | 200 `session.TrustChain` ab N; 204, wenn N eins nach der neuesten ist | 401 `E_LOGIN`, 404 `E_NOTFOUND` (N größer) |
 | `/api/v1/ws` | GET (Upgrade) | – | 101, Unterprotokoll `ngc.v1` | 401 `E_LOGIN` |

@@ -467,6 +467,10 @@ const (
 	// again.
 	CodeLogin  Code = "E_LOGIN"
 	CodeLocked Code = "E_LOCKED"
+	// E_NOT_SET_UP answers a login on an installation that was never set
+	// up, so the browser can send the person to setup instead of claiming
+	// the database is unreachable. It says nothing about any name.
+	CodeNotSetUp Code = "E_NOT_SET_UP"
 )
 
 var messages = map[Code]string{
@@ -484,6 +488,7 @@ var messages = map[Code]string{
 	CodeTooLarge:    "Zu viele Daten.",
 	CodeLogin:       "Anmeldung fehlgeschlagen.",
 	CodeLocked:      "Zu viele Fehlversuche. Bitte später erneut versuchen.",
+	CodeNotSetUp:    "NGC ist noch nicht eingerichtet.",
 }
 
 // Message returns the German text shown to users.
