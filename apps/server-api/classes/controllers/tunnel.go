@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
@@ -200,18 +201,47 @@ func (srv *Server) run(ctx context.Context, t *Tunnel) {
 			}
 			continue
 		}
-		// The API is the opener on a tunnel, so every number on it is one the
-		// API picked: a frame for a number that is not in the table belongs to
-		// a channel that was never opened, and that ends the tunnel.
+		// A break of the contract on one numbered channel closes THAT channel
+		// with E_PROTOCOL and nothing else (A24, Thomas' decision): on
+		// 24.10.2026 one failed setup took a running terminal of another app
+		// down with the whole tunnel. A frame for a number the API never
+		// opened is answered the same way and holds the number until the
+		// controller's CLOSE frees it. Only what FailChannel cannot answer --
+		// channel 0, one number too many, a CLOSE that did not go out -- still
+		// ends the tunnel.
 		c, ok := t.table.Get(f.Channel)
-		if !ok {
-			_ = t.link.Close(websocket.StatusProtocolError, "channel")
-			return
+		if !ok || !t.frame(c, f) {
+			if !t.failChannel(ctx, f.Channel) {
+				_ = t.link.Close(websocket.StatusProtocolError, "channel")
+				return
+			}
 		}
-		if !t.frame(c, f) {
-			_ = t.link.Close(websocket.StatusProtocolError, "channel")
-			return
+	}
+}
+
+// failChannel answers a contract break on one channel with CLOSE E_PROTOCOL
+// towards the controller and hands the same CLOSE to whoever relays the
+// channel, so the browser hears it too. False ends the tunnel.
+func (t *Tunnel) failChannel(ctx context.Context, num uint32) bool {
+	cl := wire.Error(wire.CodeProtocol)
+	err := t.table.FailChannel(num, func() error {
+		payload, err := json.Marshal(cl)
+		if err != nil {
+			return err
 		}
+		return t.link.Write(ctx, wire.Frame{Type: wire.TypeClose, Channel: num, Payload: payload})
+	})
+	switch {
+	case err == nil:
+		slog.Warn("a controller broke the contract on one channel, only that channel is closed",
+			"node", t.Node, "channel", num)
+		t.table.Abort(num, cl)
+		return true
+	case errors.Is(err, link.ErrClosing):
+		// Already answered; what still arrives for it is dropped.
+		return true
+	default:
+		return false
 	}
 }
 
