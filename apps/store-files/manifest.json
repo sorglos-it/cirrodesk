@@ -1,0 +1,22 @@
+{
+  "id": "org.sorglos.files",
+  "name": "Dateien",
+  "version": "1.0.0",
+  "publisher": "Sorglos Thomas Weirich",
+  "description": "Eigene Dateien ablegen, Ordner anlegen, Texte bearbeiten und Bilder ansehen.",
+  "ui": { "entry": "index.html", "width": 760, "height": 500 },
+  "actions": [
+    { "name": "list", "title": "Eigene Dateien ansehen", "service": "files" },
+    { "name": "get", "title": "Eigene Dateien öffnen", "service": "files", "stream": true },
+    { "name": "put", "title": "Eigene Dateien speichern", "service": "files", "stream": true },
+    { "name": "mkdir", "title": "Ordner anlegen", "service": "files" },
+    { "name": "rename", "title": "Eigene Dateien umbenennen", "service": "files" },
+    { "name": "remove", "title": "Eigene Dateien löschen", "service": "files" }
+  ],
+  "services": [
+    { "name": "files", "command": ["/usr/lib/ngc/ngc-files", "serve"] }
+  ],
+  "runtime": "podman",
+  "cpu": 500,
+  "memory": 128
+}

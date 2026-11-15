@@ -1,0 +1,35 @@
+/* Colours copied from the shell: a frame of its own origin cannot read them. */
+:root{
+  --win-bg:#1e2430; --win-fg:#e8ecf3; --win-border:#38414f; --title-bg:#2a3240;
+  --field-bg:#151a23; --muted:#97a3b6; --accent:#2f7de1; --bad:#e5484d;
+}
+html[data-theme="light"]{
+  --win-bg:#f6f8fb; --win-fg:#16202e; --win-border:#c9d3e0; --title-bg:#e6ebf3;
+  --field-bg:#ffffff; --muted:#5b6a80;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;color:var(--win-fg);background:var(--win-bg)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{border-radius:6px;border:1px solid var(--win-border);background:var(--title-bg);color:var(--win-fg);
+       font:inherit;padding:4px 10px;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+button.link{border:0;background:none;padding:2px 4px;color:var(--accent)}
+input,textarea{background:var(--field-bg);color:var(--win-fg);border:1px solid var(--win-border);border-radius:6px;font:inherit}
+.files{display:flex;flex-direction:column;height:100%;padding:8px;gap:6px}
+.bar,.question{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.question label{display:flex;gap:6px;align-items:center;flex:1}
+.question input{flex:1;padding:4px 8px}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;color:var(--muted)}
+.list{list-style:none;margin:0;padding:0;flex:1;overflow:auto;border:1px solid var(--win-border);border-radius:8px;background:var(--field-bg)}
+.list li button{display:flex;width:100%;gap:8px;border:0;border-radius:0;background:none;text-align:left;padding:6px 10px}
+.list li button:hover{background:rgba(127,160,220,.15)}
+.list li button[aria-pressed="true"]{background:rgba(127,160,220,.3)}
+.list .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .size{color:var(--muted);font-variant-numeric:tabular-nums}
+.list .none{padding:10px;color:var(--muted)}
+.view{flex:1;display:flex;flex-direction:column;gap:6px;min-height:0}
+.view img{max-width:100%;max-height:100%;object-fit:contain;flex:1;min-height:0}
+.view textarea{flex:1;resize:none;padding:8px;font-family:ui-monospace,Consolas,monospace}
+.status{margin:0;min-height:20px;color:var(--muted)}
+.status.bad{color:var(--bad)}
