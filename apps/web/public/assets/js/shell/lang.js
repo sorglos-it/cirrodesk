@@ -362,11 +362,18 @@ async function fetchPart(name) {
 // with what it has, and t() answers "" for a key it then does not hold. A
 // login mask that refuses to appear because a sentence could not be fetched
 // would be worse than a login mask with one empty line in it.
+// ready settles once the first load() is done, file or no file. The shell
+// awaits load() itself before it draws; a page that draws an app on its own
+// (a test) waits here, so it never draws before the language is in.
+let settleReady;
+export const ready = new Promise((r) => { settleReady = r; });
+
 export async function load(offers = navigator.languages ?? [navigator.language]) {
   chosen = pick(offers);
   fallbackTable = (await fetchLang(FALLBACK)) ?? Object.freeze({ __proto__: null });
   table = chosen === FALLBACK ? fallbackTable : (await fetchLang(chosen)) ?? fallbackTable;
   document.documentElement.lang = chosen;
+  settleReady(chosen);
   return chosen;
 }
 
