@@ -347,9 +347,10 @@ func (m *Manager) install(ctx context.Context, d access.Decision, p *core.Instal
 	// all, and then every version is newer. store.Newer does NOT say that -
 	// it answers false for a version that is no version, and "" is none - so
 	// the case is guarded here. core.Unattended makes the same comparison
-	// with store.Newer and therefore refuses the FIRST install of a part on
-	// a channel without a user; that one is reported as BLOCKED, because the
-	// line that would have to change is in shared/.
+	// with store.Newer and therefore refuses an install without a user when
+	// the installed version is unknown. That is intended (decided 15.11.2026):
+	// were "" older, a lost record - a reset database - would let any older
+	// signed version in without a human.
 	if installed != "" && !store.Newer(st.Version, installed) {
 		return nil, errors.Join(ErrForbidden, store.ErrRollback)
 	}
@@ -398,7 +399,22 @@ func (m *Manager) installedVersion(ctx context.Context, target string) (string, 
 		if err != nil {
 			return "", err
 		}
-		return parts[target], nil
+		if v := parts[target]; v != "" {
+			return v, nil
+		}
+		if target == trust.AutoWeb {
+			return m.webVersion(), nil
+		}
+		// Nothing written down yet, and that is every part ulh put in place:
+		// only a successful install here writes the list. The program that
+		// runs knows its version, so it is asked - otherwise "" would make an
+		// unattended round refuse every node (S8) or, read as "older", let it
+		// put an older program over a newer one. A program that is not there
+		// or does not answer leaves "", and then a human decides.
+		if v, err := m.d.Health(ctx, m.partFile(target)); err == nil {
+			return v, nil
+		}
+		return "", nil
 	}
 	a, err := m.d.State.App(ctx, target)
 	switch {
@@ -412,6 +428,30 @@ func (m *Manager) installedVersion(ctx context.Context, target string) (string, 
 	default:
 		return "", err
 	}
+}
+
+// webVersion is the version the tree under WebRoot names in its VERSION file,
+// which ngc-store packs under ui/ and unpack strips to WebRoot/VERSION. A file
+// that is missing, too long or no version is "" - unknown, and then a human
+// decides.
+func (m *Manager) webVersion() string {
+	if m.d.WebRoot == "" {
+		return ""
+	}
+	f, err := os.Open(m.d.WebRoot + "/VERSION")
+	if err != nil {
+		return ""
+	}
+	defer f.Close()
+	b, err := io.ReadAll(io.LimitReader(f, 65))
+	if err != nil || len(b) > 64 {
+		return ""
+	}
+	v := strings.TrimSpace(string(b))
+	if !store.ValidVersion(v) {
+		return ""
+	}
+	return v
 }
 
 // components are the installed NGC parts, with nothing written yet answered as
