@@ -28,6 +28,7 @@ import { CODES, MAX_PARAMS, validParams, message as codeMessage } from "../contr
 import { sha256 } from "../../vendor/noble-hashes/sha2.js";
 import { effectiveTheme, onThemeChange } from "./theme.js";
 import { language } from "./lang.js";
+import { saveError, saveFile } from "./save.js";
 
 // Where an app window comes from. It is a document of this server and not a
 // srcdoc frame, because only a document fetched over http gets a policy of
@@ -472,6 +473,24 @@ const whyOpenFailed = (e) => {
     else if (m.op === "send") doSend(m);
     else if (m.op === "end") doEnd(m);
     else if (m.op === "close") doCloseStream(m);
+    else if (m.op === "save") doSave(m);
+  };
+
+  // ngc.save: the shell saves what the app hands over, after its own checks
+  // (save.js). The answer is the "result" every call gets.
+  const doSave = (m) => {
+    const error = saveError(m);
+    if (error) {
+      toFrame({ id: m.id, op: "result", error });
+      return;
+    }
+    try {
+      saveFile(m);
+    } catch {
+      toFrame({ id: m.id, op: "result", error: "unavailable" });
+      return;
+    }
+    toFrame({ id: m.id, op: "result", value: true });
   };
   window.addEventListener("message", onMessage);
   stop.push(() => window.removeEventListener("message", onMessage));
