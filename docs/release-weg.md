@@ -283,6 +283,23 @@ BLOCKED-Absatz des Controllers verlangt. Dazu gehört die **echte** Testdatei:
 `shared/testdata/release/` bekommt die richtige Datei; `webtar_test.go` wird umgeschrieben und
 sagt, welche Form gewonnen hat.
 
+**Entschieden (S7, Thomas, 15.11.2026): Weg (b).** `shared/` bleibt, wie es ist. Eine
+`ngc-web`-Release-Datei ist ein UI-tar nach `store.WalkUI`, alles unter `ui/`, dazu
+`ui/VERSION` mit genau der Fassung des Release (eine Zeile, `store.ValidVersion`, ein `\n`;
+`ngc-store release -version X` unterschreibt sonst nicht).
+
+- `tools/pack-release.sh` lässt `git archive` weiter die Bytes des Commits wählen (nicht den
+  Arbeitsbaum, LF unabhängig vom Checkout), packt sie aus und schreibt das Archiv mit
+  `ngc-store web` über `store.UIWriter`: feste Köpfe, sortierte Namen. Die Reproduzierbarkeit
+  ruht damit auf dem Schreiber statt auf dem genagelten Datum; `TestPackIsReproducible` und
+  `TestPackBuildsItsOwnNgcStore` messen sie, `TestPackedArchivePassesWalkUI` den Dialekt.
+- `ngc-store` kommt von `build-release.sh` (`NGC_STORE`) oder wird mit `go build -trimpath`
+  gebaut. Am Ende prüft `ngc-store contents` das Archiv.
+- Das Ausführbar-Bit überlebt im Web-Archiv nicht mehr: `WalkUI` verlangt 0644 für jede Datei.
+  `apps/web` hat keine ausführbare Datei; `TestArchiveWritesTheModeOfTheContract` hält die
+  neue Regel fest.
+- ulh `ngc-web.sh` muss beim Auspacken das `ui/` abnehmen. Das schiebt nur Thomas.
+
 ### D3 — Was ist eine `ngc-api`- und `ngc-controller`-Release-Datei?
 
 **Dieselbe Form wie D2, und sie steht in keinem Vorschlag — auch nicht im V1.3-Vorschlag, der

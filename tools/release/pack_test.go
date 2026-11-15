@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/sorglos-it/nextgencloud/shared/sign"
@@ -96,7 +97,7 @@ func tarCmd(args ...string) *exec.Cmd {
 
 func needTools(t *testing.T) {
 	t.Helper()
-	for _, bin := range []string{"sh", "git", "tar", "openssl", "sha256sum", "base64"} {
+	for _, bin := range []string{"sh", "git", "tar", "openssl", "sha256sum", "base64", "go"} {
 		if _, err := exec.LookPath(bin); err != nil {
 			t.Skipf("%s is missing", bin)
 		}
@@ -251,20 +252,56 @@ func pack(t *testing.T, repo, ref, seq string) (string, string, error) {
 	// The guard has to name THIS repository, not the checkout: the script runs
 	// git inside repo.
 	env := append(gitEnv(t), "TZ=UTC", "LC_ALL=C",
-		"GIT_CONFIG_VALUE_0="+filepath.ToSlash(repo))
+		"GIT_CONFIG_VALUE_0="+filepath.ToSlash(repo), "NGC_STORE="+filepath.ToSlash(ngcStore(t)))
 	cmd.Env = env
 	b, err := cmd.CombinedOutput()
 	return out, string(b), err
 }
 
-// unpack extracts an archive so the graph can be walked over it.
+// ngcStore builds ngc-store from this checkout once for the package: every
+// case hands it to pack-release.sh as NGC_STORE, so a dozen parallel runs do
+// not build a dozen binaries. The script's own build path is measured by
+// TestPackBuildsItsOwnNgcStore.
+var (
+	ngcStoreOnce sync.Once
+	ngcStorePath string
+	ngcStoreErr  error
+)
+
+func ngcStore(t *testing.T) string {
+	t.Helper()
+	ngcStoreOnce.Do(func() {
+		dir, err := os.MkdirTemp("", "ngc-store-bin-")
+		if err != nil {
+			ngcStoreErr = err
+			return
+		}
+		ngcStorePath = filepath.Join(dir, "ngc-store")
+		if runtime.GOOS == "windows" {
+			ngcStorePath += ".exe"
+		}
+		cmd := exec.Command("go", "build", "-trimpath", "-o", ngcStorePath, "./apps/cli")
+		cmd.Dir = repoRoot(t)
+		cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
+		if b, err := cmd.CombinedOutput(); err != nil {
+			ngcStoreErr = fmt.Errorf("go build ngc-store: %v\n%s", err, b)
+		}
+	})
+	if ngcStoreErr != nil {
+		t.Fatal(ngcStoreErr)
+	}
+	return ngcStorePath
+}
+
+// unpack extracts an archive so the graph can be walked over it, and returns
+// its ui/ folder: since S7 the tree of apps/web lies there.
 func unpack(t *testing.T, tarball string) string {
 	t.Helper()
 	dir := t.TempDir()
 	if b, err := tarCmd("-xf", tarball, "-C", dir).CombinedOutput(); err != nil {
 		t.Fatalf("tar -xf: %v\n%s", err, b)
 	}
-	return dir
+	return filepath.Join(dir, "ui")
 }
 
 // lines reads one of the three short files beside this test.
@@ -358,7 +395,7 @@ func TestArchiveCarriesNoTests(t *testing.T) {
 		t.Fatalf("tar -tf: %v", err)
 	}
 	for _, e := range strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n") {
-		if strings.HasPrefix(strings.TrimSpace(e), "tests/") {
+		if strings.HasPrefix(strings.TrimSpace(e), "ui/tests/") {
 			t.Errorf("the archive carries a test file: %s", e)
 		}
 	}
@@ -392,7 +429,7 @@ func TestArchiveCarriesNoTestOnlyLink(t *testing.T) {
 		t.Fatalf("tar -tf: %v", err)
 	}
 	for _, e := range strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n") {
-		if strings.TrimPrefix(strings.TrimSpace(e), "./") == link {
+		if strings.TrimSpace(e) == "ui/"+link {
 			t.Errorf("the archive carries %s, which only the browser tests import", link)
 		}
 	}
@@ -413,7 +450,7 @@ func TestArchiveCarriesNoTestOnlyLink(t *testing.T) {
 	}
 	var found bool
 	for _, e := range strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n") {
-		if strings.TrimPrefix(strings.TrimSpace(e), "./") == keep {
+		if strings.TrimSpace(e) == "ui/"+keep {
 			found = true
 		}
 	}
@@ -454,9 +491,9 @@ func TestPackWritesLFWhateverTheCheckoutDoes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	b, err := tarCmd("-xOf", filepath.Join(out, "ngc-web-all.tar"), "VERSION").Output()
+	b, err := tarCmd("-xOf", filepath.Join(out, "ngc-web-all.tar"), "ui/VERSION").Output()
 	if err != nil {
-		t.Fatalf("tar -xOf VERSION: %v", err)
+		t.Fatalf("tar -xOf ui/VERSION: %v", err)
 	}
 	if strings.Contains(string(b), "\r") {
 		t.Errorf("VERSION in the archive holds a CR; on %s the eol conversion was not switched off", runtime.GOOS)
@@ -511,12 +548,16 @@ func TestPackRefusesAVersionStoreWouldReject(t *testing.T) {
 	}
 }
 
-// TestArchiveKeepsTheExecutableBit measures what the later archives of ngc-api
-// and ngc-controller live on: git archive takes the mode from the git entry and
-// not from the file system, so an executable stays executable even when the
-// archive is built on Windows. apps/web has no 100755 file at all (measured),
-// so the fixture makes one in the INDEX, which is why this works here.
-func TestArchiveKeepsTheExecutableBit(t *testing.T) {
+// TestArchiveWritesTheModeOfTheContract. Until S7 this case was
+// TestArchiveKeepsTheExecutableBit and held that git archive carried a 100755
+// entry over as -rwx. Since S7 the web archive is a UI tar, and store.WalkUI
+// refuses every mode but 0644 for a file (shared/store/ui.go), so an -rwx
+// entry would make the release unusable instead of executable. apps/web has
+// no 100755 file at all (measured), so nothing is lost; the archives of
+// ngc-api and ngc-controller are packed by build-release.sh and keep their
+// bits there. The fixture still makes an executable in the INDEX, so the case
+// falls if a packer ever takes the mode from git again.
+func TestArchiveWritesTheModeOfTheContract(t *testing.T) {
 	t.Parallel()
 	needTools(t)
 	repo := webFixture(t, func(f map[string]string) {
@@ -541,10 +582,8 @@ func TestArchiveKeepsTheExecutableBit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tar -tvf: %v", err)
 	}
-	// The name is matched as the LAST FIELD, with a leading "./" allowed. tar
-	// writes "./ngc-probe" when it packs a directory as ".", and a matcher that
-	// demanded " ngc-probe" would then report "not in the archive" - the wrong
-	// red for this subject, and the mistake the red of step 7 (b) walked into.
+	// The name is matched as the LAST FIELD of the listing, and exactly: a UI
+	// tar has no "./" and every name starts with "ui/".
 	var line string
 	for _, l := range strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n") {
 		l = strings.TrimSpace(l)
@@ -552,15 +591,15 @@ func TestArchiveKeepsTheExecutableBit(t *testing.T) {
 		if len(f) == 0 {
 			continue
 		}
-		if name := strings.TrimPrefix(f[len(f)-1], "./"); name == "ngc-probe" {
+		if name := f[len(f)-1]; name == "ui/ngc-probe" {
 			line = l
 		}
 	}
 	if line == "" {
 		t.Fatal("ngc-probe is not in the archive")
 	}
-	if !strings.HasPrefix(line, "-rwx") {
-		t.Errorf("the executable bit is gone: %q", line)
+	if !strings.HasPrefix(line, "-rw-r--r--") {
+		t.Errorf("the mode is not the 0644 store.WalkUI demands: %q", line)
 	}
 }
 
@@ -958,4 +997,37 @@ func readPub(t *testing.T, path string) ed25519.PublicKey {
 		t.Fatalf("the public key is %d bytes of DER, not 44", len(der))
 	}
 	return ed25519.PublicKey(der[12:])
+}
+
+// TestPackBuildsItsOwnNgcStore. Every other case hands pack-release.sh a
+// prebuilt ngc-store; this one leaves NGC_STORE empty, so the script builds
+// the tool from this checkout itself - and the archive must be the same bytes
+// as with the handed-over one, or the release depends on who built the tool.
+func TestPackBuildsItsOwnNgcStore(t *testing.T) {
+	t.Parallel()
+	needTools(t)
+	repo := webFixture(t, nil)
+	handed, log, err := pack(t, repo, "main", "3")
+	if err != nil {
+		t.Fatalf("pack-release.sh: %v\n%s", err, log)
+	}
+	own := filepath.Join(t.TempDir(), "out")
+	cmd := exec.Command("sh", filepath.Join(repoRoot(t), "tools", "pack-release.sh"), "main", "3", own)
+	cmd.Dir = repo
+	cmd.Env = append(gitEnv(t), "TZ=UTC", "LC_ALL=C",
+		"GIT_CONFIG_VALUE_0="+filepath.ToSlash(repo), "NGC_STORE=")
+	if b, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("pack-release.sh without NGC_STORE: %v\n%s", err, b)
+	}
+	a, err := os.ReadFile(filepath.Join(handed, "ngc-web-all.tar"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(own, "ngc-web-all.tar"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sha256.Sum256(a) != sha256.Sum256(b) {
+		t.Error("the archive differs between a handed-over and a self-built ngc-store")
+	}
 }

@@ -340,7 +340,8 @@ echo "== web"
 # lists five files, and ngc-store release builds that payload over the whole
 # directory, so the single-part payload is removed again: a stale one beside
 # five archives is a trap.
-sh "$self/pack-release.sh" "$ref" 1 "$out" || die "the web archive could not be packed"
+NGC_STORE="$work/$host_arch/ngc-store" sh "$self/pack-release.sh" "$ref" 1 "$out" ||
+	die "the web archive could not be packed"
 rm -f -- "$out/release.payload.json"
 # AND THEREFORE ITS CLOSING HINT DOES NOT APPLY HERE, and that has to be said in
 # the same breath or the two lines contradict each other. pack-release.sh ends
