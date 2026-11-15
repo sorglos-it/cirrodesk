@@ -950,3 +950,37 @@ func TestCreditWakesTheSender(t *testing.T) {
 		t.Fatalf("payload %d bytes, want %d", len(e.payload), len(big))
 	}
 }
+
+func TestACloseReadBeforeTheReaderNotedItFreesTheNumberAtOnce(t *testing.T) {
+	// The gap TestNormalCloseGivesTheNumberBackAtOnce fell into on CI under
+	// -race: the tunnel's reader queues the controller's CLOSE and notes it
+	// only after that, so the relay can read it first. Here the reader never
+	// gets to note it at all, which holds the gap open for the whole case.
+	rl := &Relay{}
+	sh, hop := newShell(), newHop(wire.MaxTunnelChannels)
+	fw := forwarded(t, rawOpen(t, "vendor.app", "main", "run", true), "c1")
+	c := sh.channel(t)
+	done := make(chan wire.Code, 1)
+	go func() { done <- rl.ForwardRaw(context.Background(), sh, c, hop, fw) }()
+	hop.await(t, "open")
+	hop.send(grant(wire.MinWindow, handshake()))
+	sh.await(t, "grant")
+	ok, err := json.Marshal(wire.Close{Status: wire.StatusOK})
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	if !hop.tbl.Deliver(1, wire.Frame{Type: wire.TypeClose, Channel: 1, Payload: ok}) {
+		t.Fatal("Deliver refused the CLOSE")
+	}
+	select {
+	case code := <-done:
+		if code != "" {
+			t.Fatalf("code %q, want none", code)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatalf("the channel was still waiting after 2 s, and CloseDrain is %v", CloseDrain)
+	}
+	if n := hop.tbl.Count(); n != 0 {
+		t.Fatalf("tunnel channels %d, want 0", n)
+	}
+}

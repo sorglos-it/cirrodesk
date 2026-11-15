@@ -477,8 +477,12 @@ func (rl *Relay) pump(ctx context.Context, sh Shell, c *link.Channel, hop Hop, t
 			if err != nil {
 				return wire.CodeProtocol, false
 			}
-			// Not noted here: the tunnel's reader noted the controller's CLOSE
-			// before it queued the frame, exactly as it counted the credit.
+			// Noted here as well, as collect does: the tunnel's reader notes
+			// the CLOSE only AFTER it queued the frame (controllers.Tunnel.frame),
+			// so endHop could run in that gap, still find the channel in the
+			// table and wait CloseDrain for a CLOSE already read. Noting it
+			// twice is harmless; Table.free drops a number only once.
+			tc.RecvClose()
 			//
 			// The CLOSE travels unchanged, so the shell sees what the
 			// controller said -- code, message and exit code.
