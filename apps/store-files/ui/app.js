@@ -51,7 +51,7 @@
   }
 
   const TEXTS = {
-    de: { saveBusy: "Es läuft schon ein Download.", title: "Dateien", home: "Meine Dateien", up: "Hoch", newdir: "Neuer Ordner", upload: "Hochladen",
+    de: { title: "Dateien", home: "Meine Dateien", up: "Hoch", newdir: "Neuer Ordner", upload: "Hochladen",
       rename: "Umbenennen", remove: "Löschen", download: "Herunterladen", save: "Speichern", close: "Schließen",
       empty: "Dieser Ordner ist leer.", cut: "Nicht alle Einträge werden gezeigt.", name: "Name",
       askName: "Name:", askRemove: "Wirklich löschen?", noDownload: "Download nicht verfügbar.",
@@ -59,7 +59,7 @@
       call: "Die Anfrage wurde abgelehnt.", path: "Dieser Name ist nicht erlaubt.", notfound: "Nicht gefunden.",
       exists: "Dieser Name ist schon vergeben.", notempty: "Der Ordner ist nicht leer.",
       toolarge: "Die Datei ist zu groß.", failed: "Das hat nicht geklappt.", offline: "Der Dienst antwortet nicht." },
-    en: { saveBusy: "A download is already waiting.", title: "Files", home: "My files", up: "Up", newdir: "New folder", upload: "Upload",
+    en: { title: "Files", home: "My files", up: "Up", newdir: "New folder", upload: "Upload",
       rename: "Rename", remove: "Delete", download: "Download", save: "Save", close: "Close",
       empty: "This folder is empty.", cut: "Not all entries are shown.", name: "Name",
       askName: "Name:", askRemove: "Really delete?", noDownload: "Download not available.",
@@ -67,7 +67,7 @@
       call: "The request was refused.", path: "This name is not allowed.", notfound: "Not found.",
       exists: "This name is already taken.", notempty: "The folder is not empty.",
       toolarge: "The file is too large.", failed: "That did not work.", offline: "The service does not answer." },
-    fr: { saveBusy: "Un téléchargement est déjà en attente.", title: "Fichiers", home: "Mes fichiers", up: "Remonter", newdir: "Nouveau dossier", upload: "Téléverser",
+    fr: { title: "Fichiers", home: "Mes fichiers", up: "Remonter", newdir: "Nouveau dossier", upload: "Téléverser",
       rename: "Renommer", remove: "Supprimer", download: "Télécharger", save: "Enregistrer", close: "Fermer",
       empty: "Ce dossier est vide.", cut: "Toutes les entrées ne sont pas affichées.", name: "Nom",
       askName: "Nom :", askRemove: "Vraiment supprimer ?", noDownload: "Téléchargement indisponible.",
@@ -75,7 +75,7 @@
       call: "La demande a été refusée.", path: "Ce nom n'est pas autorisé.", notfound: "Introuvable.",
       exists: "Ce nom est déjà pris.", notempty: "Le dossier n'est pas vide.",
       toolarge: "Le fichier est trop grand.", failed: "Cela n'a pas fonctionné.", offline: "Le service ne répond pas." },
-    it: { saveBusy: "Un download è già in attesa.", title: "File", home: "I miei file", up: "Su", newdir: "Nuova cartella", upload: "Carica",
+    it: { title: "File", home: "I miei file", up: "Su", newdir: "Nuova cartella", upload: "Carica",
       rename: "Rinomina", remove: "Elimina", download: "Scarica", save: "Salva", close: "Chiudi",
       empty: "Questa cartella è vuota.", cut: "Non tutte le voci sono mostrate.", name: "Nome",
       askName: "Nome:", askRemove: "Eliminare davvero?", noDownload: "Download non disponibile.",
@@ -83,7 +83,7 @@
       call: "La richiesta è stata rifiutata.", path: "Questo nome non è consentito.", notfound: "Non trovato.",
       exists: "Questo nome è già in uso.", notempty: "La cartella non è vuota.",
       toolarge: "Il file è troppo grande.", failed: "Non ha funzionato.", offline: "Il servizio non risponde." },
-    es: { saveBusy: "Ya hay una descarga pendiente.", title: "Archivos", home: "Mis archivos", up: "Subir nivel", newdir: "Nueva carpeta", upload: "Subir",
+    es: { title: "Archivos", home: "Mis archivos", up: "Subir nivel", newdir: "Nueva carpeta", upload: "Subir",
       rename: "Renombrar", remove: "Eliminar", download: "Descargar", save: "Guardar", close: "Cerrar",
       empty: "Esta carpeta está vacía.", cut: "No se muestran todas las entradas.", name: "Nombre",
       askName: "Nombre:", askRemove: "¿Eliminar de verdad?", noDownload: "Descarga no disponible.",
@@ -259,8 +259,9 @@
       say("");
     } catch (e) {
       // The shell's codes for ngc.save, agreed with Web: refused, toolarge,
-      // name, unavailable, busy.
-      const m = { refused: "", name: "path", unavailable: "noDownload", busy: "saveBusy" }[e && e.message];
+      // name, unavailable. Only the browser may ask before saving, so
+      // "refused" comes only if the shell later asks itself.
+      const m = { refused: "", name: "path", unavailable: "noDownload" }[e && e.message];
       if (m === "") say("");
       else if (m) say(T[m], true);
       else fail(e);
