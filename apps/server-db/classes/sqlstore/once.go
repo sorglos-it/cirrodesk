@@ -20,6 +20,7 @@ const (
 	// the UPDATE has decided. See the bolt there for why.
 	onceRead  = "SELECT data, expires FROM ngc_once WHERE kind = ? AND token = ?"
 	onceState = "SELECT expires FROM ngc_once WHERE kind = ? AND token = ?"
+	oncePeek  = "SELECT data, expires, used FROM ngc_once WHERE kind = ? AND token = ?"
 	oncePurge = "DELETE FROM ngc_once WHERE expires <= ?"
 
 	lockTake = "UPDATE ngc_lock SET owner = ?, until = ? WHERE name = ? AND (owner = ? OR until <= ?)"
@@ -189,6 +190,37 @@ func (s *store) OnceUse(ctx context.Context, kind string, value []byte, now int6
 		default:
 			return dbapi.ErrUsed
 		}
+	})
+	if err != nil {
+		return "", err
+	}
+	return data, nil
+}
+
+// OncePeek answers the data of a value without spending it, with the errors
+// of OnceUse. Every comparison is made in Go, not in SQL, for the reason of
+// the second bolt in OnceUse: a bent column type can invert a comparison in
+// SQLite, and a peek that hands out an expired value would let a MAC be
+// checked against it. Expired comes before used, as in OnceUse.
+func (s *store) OncePeek(ctx context.Context, kind string, value []byte, now int64) (string, error) {
+	if !okKey(kind) || len(value) > MaxKey {
+		return "", dbapi.ErrNotFound
+	}
+	var data string
+	err := s.query(ctx, func() error {
+		var expires, used int64
+		err := s.rdb.QueryRowContext(ctx, oncePeek, []byte(kind), blob(value)).Scan(&data, &expires, &used)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return dbapi.ErrNotFound
+		case err != nil:
+			return err
+		case expires <= now:
+			return dbapi.ErrNotFound
+		case used != 0:
+			return dbapi.ErrUsed
+		}
+		return nil
 	})
 	if err != nil {
 		return "", err
