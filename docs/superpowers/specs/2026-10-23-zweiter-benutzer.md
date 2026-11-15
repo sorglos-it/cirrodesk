@@ -1,4 +1,4 @@
-# NGC – Entwurf: einen zweiten Benutzer anlegen
+# CirroDesk – Entwurf: einen zweiten Benutzer anlegen
 
 **Stand:** 23.10.2026 · **Status:** Entwurf, nicht freigegeben. Nichts davon ist gebaut.
 **Einstieg für die nächste Sitzung:** [`docs/STAND.md`](../../STAND.md)
@@ -34,35 +34,35 @@ Alles in diesem Abschnitt steht am Stand von `origin/main` am 23.10.2026.
 
 | Weg | Geht? | Beleg |
 |---|---|---|
-| Kern-Aktion „Benutzer anlegen" in `shared/core` | **gibt es nicht** | `shared/core/core.go:44`–`:53`: die Aktionen von `ngc.users` sind `list`, `rights`, `set-rights`, `trust`, `pair-code`, `join-code`, `pending`, `pending-api`, `nodes`, `log`. Kein `add-user`, kein `invite`. |
+| Kern-Aktion „Benutzer anlegen" in `shared/core` | **gibt es nicht** | `shared/core/core.go:44`–`:53`: die Aktionen von `cd.users` sind `list`, `rights`, `set-rights`, `trust`, `pair-code`, `join-code`, `pending`, `pending-api`, `nodes`, `log`. Kein `add-user`, kein `invite`. |
 | Eine neue **Fassung der Vertrauensliste mit einem zweiten Benutzer** an die API schicken | **geht, heute, ohne Vertragsänderung** | `shared/core/core.go:142`: `{AppUsers, ServiceAPI, ActTrust, true, false, true, FlowIn, nil, MaxTrustIn}` — der Öffner schickt eine `trust.Signed` als JSON, bis 6 MiB (`:74`). Der Handler nimmt sie ungefiltert: `apps/server-api/classes/coreapp/users.go:226`–`:258` liest den Rumpf, `trust.ParseSigned`, `rq.S.AddVersion`, fertig. Nichts darin sieht sich die Benutzer an. |
 | Ein Admin darf in einer neuen Fassung einen Benutzer **hinzufügen** | **ja** | `shared/trust/trust.go:288` `Advance`: die Einschränkung `onlyOwnKeys` greift nur, wenn der Unterzeichner **kein** Admin ist (`:303`: `if !slices.Contains(u.Roles, RoleAdmin) && !onlyOwnKeys(...)`). Ein Admin unterschreibt jede Änderung. |
 | Mehrere Benutzer in einer Liste | **ja, bis 10 000** | `shared/trust/trust.go:26` `MaxUsers = 10000`; `:489` prüft nur `len(l.Users) == 0` und die Obergrenze. `validateUsers` (`:572`) verlangt je Benutzer eine ID, einen eindeutigen Anmeldenamen, mindestens eine Rolle und **mindestens einen Schlüssel** (`:578`) — und dass am Ende mindestens ein Admin übrig bleibt (`:616`). Eine Obergrenze für Admins gibt es nicht. |
 | Das Webinterface **baut** eine solche Fassung | **nein: es gibt keine Stelle, die Benutzer anfasst** | `apps/web/public/assets/js/apps/users.js:186` `buildNextVersion(version, change, …)` ist allgemein — der Rumpf `change(next)` darf alles. Aufgerufen wird sie aber genau einmal: `:1266`, in `joinNode` (`:1260`), und jeder `change`-Rumpf, der dort hineingeht, fasst nur `next.nodes` an. |
-| Der Reiter „Benutzer" zeigt ein Formular | **nein, nur eine Tabelle** | `apps/web/public/assets/js/apps/users.js:506`–`:532` `buildUsers`: eine Überschrift, eine Statuszeile, eine Tabelle aus `ngc.users/list`. Kein Knopf, kein Eingabefeld, keine Aktion. |
+| Der Reiter „Benutzer" zeigt ein Formular | **nein, nur eine Tabelle** | `apps/web/public/assets/js/apps/users.js:506`–`:532` `buildUsers`: eine Überschrift, eine Statuszeile, eine Tabelle aus `cd.users/list`. Kein Knopf, kein Eingabefeld, keine Aktion. |
 | Die Ersteinrichtung legt **mehr als einen** Benutzer an | **nein — hart auf einen verdrahtet** | `apps/web/public/assets/js/auth/setup.js:168`–`:176`: `users: [{ … roles: [trust.ROLE_ADMIN], keys: [{ … kind: proof.KIND_PASSWORD … }] }]` — ein Objekt, kein Array, das die Maske füllen könnte. Die Maske fragt nach genau einem Namen und einem Passwort (`setup.js:26`). |
 | Der Vertrag **verbietet** mehrere Benutzer in Fassung 1 | **nein** | `session.VerifySetup` (`shared/session/session.go:909`) vergleicht Installation, Knoten, Store und die Dauerfreigaben gegen das Angebot (`:918`–`:941`). Über `Users` sagt es **kein Wort**. Fassung 1 mit zwei Admins bestünde die Prüfung. Das ist nur kein Weg für später: sobald es einen Admin gibt, antwortet die Ersteinrichtung `E_NOTFOUND` (`apps/server-api/CLAUDE.md`, Abschnitt Ersteinrichtung). |
 | Ein Benutzer tauscht **seine eigenen** Schlüssel, ohne Admin zu sein | **im Vertrag ja, in der Oberfläche nein** | `shared/trust/trust.go:327` `onlyOwnKeys`, in JavaScript nachgebaut in `apps/web/public/assets/js/contracts/trust.js:381` und `:405`. Keine Oberfläche ruft das: `grep` über `apps/web/public/assets/js/` findet `onlyOwnKeys` nur in `contracts/trust.js` selbst. |
 | `set-rights` legt Benutzer an | **nein — es rührt die Vertrauensliste nicht an** | `apps/server-api/classes/coreapp/users.go:117`–`:138`: es prüft, dass die **Rolle** in der Vertrauensliste steht, und schreibt dann nur `rights.Set(ctx, rq.S.DB, *p)`, eine **Datenbankzeile** je Rolle. Es ersetzt die Rechte *einer Rolle*, nie einen Benutzer. Parameter ist `core.RoleRights` (`core.go:141`), nicht ein Benutzer. |
-| `ngc-store` (`apps/cli/`) | **nein** | `apps/cli/classes/run.go:23`–`:36`, der ganze Hilfetext: `pack`, `encrypt`, `catalog`, `license`, `release`, `check`, `contents`. Keine Benutzer, keine Vertrauensliste. `apps/cli/CLAUDE.md`: „Apps packen und verschlüsseln, Kataloge und Test-Lizenzen signieren, Release-Dateien packen und prüfen." |
+| `cd-store` (`apps/cli/`) | **nein** | `apps/cli/classes/run.go:23`–`:36`, der ganze Hilfetext: `pack`, `encrypt`, `catalog`, `license`, `release`, `check`, `contents`. Keine Benutzer, keine Vertrauensliste. `apps/cli/CLAUDE.md`: „Apps packen und verschlüsseln, Kataloge und Test-Lizenzen signieren, Release-Dateien packen und prüfen." |
 | `apps/cli-recovery/` | **existiert nicht** | `ls apps/` am 23.10.2026: `cli`, `server-api`, `server-controller`, `server-db`, `web`. Kein `cli-recovery`, kein `cli-stick`, kein `server-recovery`. |
 | Der Recovery-Modus als Weg | **nein, und zwar doppelt** | Erstens ist er nicht gebaut (Zeile darüber). Zweitens zielt er auf eine andere Sache: `docs/recovery-modus.md`, Abschnitt 2, Punkt 5 — „cli-recovery kann genau zwei Dinge (recover, enroll)". Er legt einen **Not-Admin** an, in einer netzlosen signierten Boot-Umgebung, mit einem Quorum an Root-Sticks, und sein Admin-Begriff ist ein anderer (signierte Admin-Datensätze in der Datenbank, `docs/recovery-modus.md`, Abschnitt 1, Zeile „Benutzerdatenbank"), nicht ein Benutzer der Vertrauensliste. Er ist der Weg zurück ins Haus, nicht die Tür für den Mitbewohner. |
-| Auf der Test-VM gibt es ein Werkzeug dafür | **nein** | `ngc-store` ist dort nicht installiert, und es könnte es ohnehin nicht (Zeile darüber). |
+| Auf der Test-VM gibt es ein Werkzeug dafür | **nein** | `cd-store` ist dort nicht installiert, und es könnte es ohnehin nicht (Zeile darüber). |
 
 ### 1.2 Wo ein Benutzer steht, und was ihn wo ausmacht
 
-Das ist der Grund, warum es keinen einfachen „`INSERT INTO ngc_user`"-Weg gibt.
+Das ist der Grund, warum es keinen einfachen „`INSERT INTO cd_user`"-Weg gibt.
 
 - **Vertrauensliste** (`shared/trust/trust.go:117` `List.Users`, Typ `User`): ID, Anmeldename,
-  Rollen, **Schlüssel**. Das ist die Wahrheit. `ngc.users/list` sagt es selbst:
+  Rollen, **Schlüssel**. Das ist die Wahrheit. `cd.users/list` sagt es selbst:
   „Who exists and which roles they hold comes out of the signed list and out of nothing else"
   (`apps/server-api/classes/coreapp/users.go:69`–`:72`).
-- **Datenbank** (`apps/server-db/sql/0001-core.sql:50`–`:61`, `ngc_user`): `id`, `name`, `roles`,
+- **Datenbank** (`apps/server-db/sql/0001-core.sql:50`–`:61`, `cd_user`): `id`, `name`, `roles`,
   `totp`, `locked`, `failures`, `last_login`. **Kein Schlüssel.** Name und Rollen stehen dort nur
   als Abschrift.
 - Die Zeile entsteht **bei der ersten Anmeldung** und nicht vorher:
   `apps/server-api/classes/login/finish.go:285`–`:288` schreibt sie mit Name und Rollen *aus der
-  Liste*, nicht aus einer älteren Zeile. `ngc.users/list` rechnet damit, dass sie fehlt
+  Liste*, nicht aus einer älteren Zeile. `cd.users/list` rechnet damit, dass sie fehlt
   (`coreapp/users.go:81`–`:83`: „A user of the list without a row is no fault").
 
 **Folge für den Entwurf:** Wer einen Benutzer anlegt, schreibt **keine** Datenbankzeile. Er
@@ -72,7 +72,7 @@ schreibt eine neue Fassung der Vertrauensliste. Das ist der ganze Vorgang.
 
 **Möglich, ohne eine Zeile in `shared/`:** Ein Admin könnte, hätte er die Oberfläche dafür, eine
 Fassung `seq+1` bauen, die einen zweiten Benutzer trägt, sie mit seinem eigenen Schlüssel
-unterschreiben (`confirm.js`, Zweck `trustlist/v1`) und über `ngc.users/api/trust` schicken. Die
+unterschreiben (`confirm.js`, Zweck `trustlist/v1`) und über `cd.users/api/trust` schicken. Die
 API nimmt sie an, `trust.Advance` lässt sie durch, `settle` und `pushTrust` verteilen sie
 (`coreapp/users.go:250`, `:257`). Der neue Benutzer kann sich danach anmelden, und seine
 Datenbankzeile entsteht dabei von selbst.
@@ -123,8 +123,8 @@ unterschreibt sie.
   (`apps/web/CLAUDE.md`, Abschnitt „Wartende Controller"). Das Passwort sieht er nie: es verlässt
   den Browser nicht, und der öffentliche Ed25519-Schlüssel gibt es nicht her. Wer die Warteliste
   vollschreiben will, braucht je Eintrag ein gültiges Einmal-Geheimnis.
-- **Das ist genau das Muster, das NGC für Server schon hat** (`tunnel.JoinCode` →
-  `tunnel.JoinRequest` → `ngc.users/pending-api` → Admin unterschreibt,
+- **Das ist genau das Muster, das CirroDesk für Server schon hat** (`tunnel.JoinCode` →
+  `tunnel.JoinRequest` → `cd.users/pending-api` → Admin unterschreibt,
   `shared/tunnel/tunnel.go:103`–`:122`). Ein zweites Muster für Menschen zu erfinden, wo dieses
   bewährt ist, wäre die schlechtere Wahl.
 
@@ -176,7 +176,7 @@ Wie (a), nur erzeugt der Browser des Eingeladenen keinen Passwortschlüssel, son
   Der Preis wird **im Formular benannt**, nicht verschwiegen: „Bis <Name> das Passwort geändert
   hat, kennst du seinen Schlüssel."
 - **(a) als das Ziel**, weil nur dort das Passwort nie durch einen fremden Browser geht, und weil
-  NGC dasselbe Muster für Server schon fährt. Es ist auch der Ablauf, der (b) ablöst, ohne ihn
+  CirroDesk dasselbe Muster für Server schon fährt. Es ist auch der Ablauf, der (b) ablöst, ohne ihn
   umzubauen: dieselbe Fassung, derselbe Unterzeichner, nur der Schlüssel kommt von weiter weg.
 - **(c) danach**, weil es die Entscheidung über `rp` erzwingt, die größer ist als diese Frage.
 
@@ -192,7 +192,7 @@ Das ist das Ergebnis des Messens, und es ist die wichtigste Zeile dieses Papiers
 
 | Was | Gibt es | Beleg |
 |---|---|---|
-| Aktion, um eine neue Fassung einzuliefern | `ngc.users/api/trust` | `shared/core/core.go:142` |
+| Aktion, um eine neue Fassung einzuliefern | `cd.users/api/trust` | `shared/core/core.go:142` |
 | Obergrenze dafür | `core.MaxTrustIn`, 6 MiB | `shared/core/core.go:74` |
 | Ein Admin darf Benutzer hinzufügen | `trust.Advance` | `shared/trust/trust.go:303` |
 | Form eines Benutzers und seines Schlüssels | `trust.User`, `proof.UserKey` | `shared/trust/trust.go:117`, `shared/proof/proof.go:123` |
@@ -210,7 +210,7 @@ allein, und kein Teil wartet auf einen anderen.
 Hier **wäre** eine Vertragsänderung nötig, und zwar diese:
 
 **1. Zwei Aktionsnamen, als Konstanten neben `ActSetRights`** in
-`shared/core/core.go`, im Block ab Zeile 44 (die Aktionen von `ngc.users`), alphabetisch bzw. in
+`shared/core/core.go`, im Block ab Zeile 44 (die Aktionen von `cd.users`), alphabetisch bzw. in
 der Reihenfolge des Ablaufs eingeordnet:
 
 ```go
@@ -227,7 +227,7 @@ und `pending-api`, weil es die dritte Warteliste derselben Art ist und die Shell
 behandelt: anzeigen, Fingerabdruck selbst rechnen, Admin vergleicht, Admin unterschreibt.
 
 **2. Zwei Zeilen in der Aktionstabelle** `var actions` in `shared/core/core.go`, zwischen Zeile
-147 (`ActNodes`) und 148 (`ActLog`) — also am Ende des `ngc.users`-Blocks, damit die Reihenfolge
+147 (`ActNodes`) und 148 (`ActLog`) — also am Ende des `cd.users`-Blocks, damit die Reihenfolge
 der Tabelle der Reihenfolge der Konstanten folgt:
 
 ```go
@@ -235,7 +235,7 @@ der Tabelle der Reihenfolge der Konstanten folgt:
 {AppUsers, ServiceAPI, ActPendingUser, true, false, false, FlowCall, nil, 0},
 ```
 
-*Begründung je Feld:* `Admin: true` wie jede Aktion von `ngc.users`. `Root: false`, weil beides auf
+*Begründung je Feld:* `Admin: true` wie jede Aktion von `cd.users`. `Root: false`, weil beides auf
 der API läuft und keinen Controller berührt. `Changes: true` bei `invite-code`, weil es ein
 Geheimnis verbraucht und eine Zeile schreibt — genau wie `pair-code` und `join-code` (`:143`,
 `:144`); `false` bei `pending-user`, weil es nur liest, wie `pending` und `pending-api` (`:145`,
@@ -244,16 +244,16 @@ Geheimnis verbraucht und eine Zeile schreibt — genau wie `pair-code` und `join
 wählen. `MaxIn: 0`, weil `call` keine Daten annimmt.
 
 **3. Zwei Ergebnisformen in `shared/core/results.go`**, bei den anderen Ergebnissen von
-`ngc.users`:
+`cd.users`:
 
 ```go
-// InviteCode is what ngc.users/invite-code answers: one use, valid for …
+// InviteCode is what cd.users/invite-code answers: one use, valid for …
 type InviteCode struct {
     Code   string `json:"code"`   // the text the admin hands over
     Expires int64 `json:"expires"`
 }
 
-// PendingUser is one row of ngc.users/pending-user: a key somebody offered
+// PendingUser is one row of cd.users/pending-user: a key somebody offered
 // under an invitation, not yet in any version.
 type PendingUser struct {
     Name string         `json:"name"` // trust.ValidLoginName
@@ -267,7 +267,7 @@ könnte, und nichts, das zweimal gezeigt werden darf. `PendingUser` trägt genau
 die der Admin für seine Entscheidung braucht, und den Schlüssel in der Form, die
 `proof.UserKey.Validate` schon prüft; der Fingerabdruck, den der Admin vergleicht, steht
 **nicht** darin, sondern wird von der Shell gerechnet — dieselbe Regel wie bei den wartenden
-Servern (`apps/web/CLAUDE.md`, Abschnitt „Wartende Controller"). `ngc.users/pending-user` ist als
+Servern (`apps/web/CLAUDE.md`, Abschnitt „Wartende Controller"). `cd.users/pending-user` ist als
 Ganzes eine Liste und gehört damit zu den Ergebnissen, die leer als `[]` geschrieben werden
 müssen (`core.EncodeResult`, `apps/server-api/CLAUDE.md`).
 

@@ -5,4 +5,4 @@ Browsers. Nur Oberfläche, kein Dienst. Titel in de, en, fr, it, es; Uhrzeit und
 `Intl.DateTimeFormat` in der gewählten Sprache. Ausgaben nur mit `textContent`.
 
 Tests: `go test ./apps/store-clock/` (pack, Katalog mit Testschlüssel, `check -store`,
-`store.Walk`, node-Tests). Bauen: `ngc-store pack apps/store-clock org.sorglos.clock-1.0.0.ngc`.
+`store.Walk`, node-Tests). Bauen: `cd-store pack apps/store-clock org.sorglos.clock-1.0.0.cd`.

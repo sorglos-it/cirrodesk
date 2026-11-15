@@ -1,9 +1,9 @@
-# App „Uhr" (`ngc-uhr`)
+# App „Uhr" (`cd-uhr`)
 
-Die zweite App von NGC. Verträge: V3 (Dienstaufruf), V5 (Paket, Manifest, Katalog)
+Die zweite App von CirroDesk. Verträge: V3 (Dienstaufruf), V5 (Paket, Manifest, Katalog)
 (`shared/README.md`).
 
-Aufbau: `main.go` ist der Einstiegspunkt von `ngc-uhr`, die Logik liegt in `classes/`
+Aufbau: `main.go` ist der Einstiegspunkt von `cd-uhr`, die Logik liegt in `classes/`
 (Regeln: `CLAUDE.md` im Stamm, Abschnitt „Aufbau"). In `templates/` liegt die App selbst:
 `manifest.json`, der `Containerfile` und `ui/`.
 

@@ -1,8 +1,8 @@
 # Beleg, nicht Bestandteil
 
-Dieser Ordner gehört **nicht** zu NGC. Er ist der Beweisversuch zu
-`docs/vertraege-v1.2.md`, Punkt 68 („Fremde Programme nach NGC portieren"): ein fremdes
-Rust-Programm von 272 101 Zeilen als NGC-App verpackt, um an gemessenen Zahlen zu zeigen,
+Dieser Ordner gehört **nicht** zu CirroDesk. Er ist der Beweisversuch zu
+`docs/vertraege-v1.2.md`, Punkt 68 („Fremde Programme nach CirroDesk portieren"): ein fremdes
+Rust-Programm von 272 101 Zeilen als CirroDesk-App verpackt, um an gemessenen Zahlen zu zeigen,
 was am Portieren geht und was nicht.
 
 **Ausgeliefert wird nichts davon**, aber **geprüft wird es wie jeder andere Code.** Der
@@ -17,18 +17,18 @@ Herausgeberzeile; das war für die Messung nötig und ist für einen Store falsc
 
 ## Was drinsteht
 
-`wordcraft/` ist eine vollständige NGC-App um `wordcraft-cli` aus
+`wordcraft/` ist eine vollständige CirroDesk-App um `wordcraft-cli` aus
 [storytold/wordcraft](https://github.com/storytold/wordcraft) (MIT oder Apache-2.0):
 
 - `manifest.json` — drei Aktionen (`text`, `info`, `convert`), ein Dienst.
 - `Containerfile` — `debian:13-slim`, per Digest festgenagelt. Der Digest ist **nicht hier
   gemessen**: es ist der, den die Terminal-App schon trägt und den `tools/pin-base.sh` am
   15.10.2026 gemessen hat.
-- `adapter/` — 145 Zeilen Go, die NGCs Aufrufvertrag auf eine Argumentliste übersetzen.
-  **Das ist der Kern des Befundes:** NGC übergibt die Aktion in `NGC_ACTION`, fremde
-  Programme wollen sie als Argument, und nichts in NGC überbrückt das. Mit Tests, weil die
+- `adapter/` — 145 Zeilen Go, die CirroDesks Aufrufvertrag auf eine Argumentliste übersetzen.
+  **Das ist der Kern des Befundes:** CirroDesk übergibt die Aktion in `CD_ACTION`, fremde
+  Programme wollen sie als Argument, und nichts in CirroDesk überbrückt das. Mit Tests, weil die
   Pfadprüfung darin sicherheitsrelevant ist.
-- `ui/` — die kleinstmögliche Oberfläche, mit Absicht. Die Oberfläche ist der Teil, den NGC
+- `ui/` — die kleinstmögliche Oberfläche, mit Absicht. Die Oberfläche ist der Teil, den CirroDesk
   **nicht** portieren kann; sie steht hier nur, damit das Paket vollständig ist.
 
 Nicht eingecheckt (`.gitignore`): `build/`, `services/`, das 40-MB-Binär und das 127-MB-Paket.
@@ -41,7 +41,7 @@ Nicht eingecheckt (`.gitignore`): `build/`, `services/`, das 40-MB-Binär und da
 | Adapter (Go, statisch) | 3 940 512 Bytes | — |
 | `podman build` | Abbild gebaut | 4,0 s |
 | `podman save --format docker-archive` | 127 236 096 Bytes | 7,5 s |
-| `ngc-store pack` | 127 244 288 Bytes, SHA-256 `9aae8b99…` | 0,99 s |
+| `cd-store pack` | 127 244 288 Bytes, SHA-256 `9aae8b99…` | 0,99 s |
 | `store.Walk` liest es zurück | angenommen: `Art=image Arch=amd64` | 0,08 s |
 
 Gegenprobe, dieselbe Quelle als **Oberfläche**: Wordcrafts WebAssembly-Bau ist
@@ -61,14 +61,14 @@ cargo build --release --target x86_64-unknown-linux-musl -p wordcraft-cli
 go test ./versuch-port/...
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o versuch-port/wordcraft/build/adapter ./versuch-port/wordcraft/adapter
 
-# 3. das Abbild - mit podman von Hand, weil "ngc-controller image" nur das Terminal baut
+# 3. das Abbild - mit podman von Hand, weil "cd-controller image" nur das Terminal baut
 cd versuch-port/wordcraft
-podman build --arch amd64 --file Containerfile --tag ngc/portversuch:0.0.1 --pull=always build
+podman build --arch amd64 --file Containerfile --tag cd/portversuch:0.0.1 --pull=always build
 rm -f services/amd64.tar   # podman save overwrote nothing here - measured
-podman save --format docker-archive --output services/amd64.tar ngc/portversuch:0.0.1
+podman save --format docker-archive --output services/amd64.tar cd/portversuch:0.0.1
 
 # 4. das Paket
-go run ./apps/cli pack versuch-port/wordcraft portversuch.ngc
+go run ./apps/cli pack versuch-port/wordcraft portversuch.cd
 ```
 
 Schritt 1 braucht zusätzlich `LICENSE-MIT` und `LICENSE-APACHE` aus dem Wordcraft-Repo in

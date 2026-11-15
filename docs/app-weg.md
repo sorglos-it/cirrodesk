@@ -1,9 +1,9 @@
 # Der Weg einer App in den Laden
 
-Wie aus einem Ordner eine NGC-App wird, die sich auf einem Server einrichten und öffnen lässt.
+Wie aus einem Ordner eine CirroDesk-App wird, die sich auf einem Server einrichten und öffnen lässt.
 Je Schritt der echte Befehl.
 
-Dieses Papier entstand, weil es den Weg nicht gab. NGC hatte **eine** App im Laden — das
+Dieses Papier entstand, weil es den Weg nicht gab. CirroDesk hatte **eine** App im Laden — das
 Terminal, im Oktober 2026 von Hand gebaut, von Hand paketiert, von Hand in einen Testladen
 gelegt. Keine Zeile beschrieb das. Belegt ist der Weg hier mit einer **zweiten** App
 (`apps/uhr/`, `org.sorglos.uhr`), die mit Absicht winzig ist: eine Uhr. Was daran Arbeit war,
@@ -15,16 +15,16 @@ Fenster stand die Zeit des Servers.
 
 **Gemessen und abgewogen stehen getrennt.** Jeder Abschnitt sagt, was gelaufen ist und was
 nicht. Am Ende stehen elf Befunde: Stellen, an denen der Weg einen Handgriff braucht, den kein
-Fremder erraten kann — oder an denen NGC etwas sagt, was nicht stimmt.
+Fremder erraten kann — oder an denen CirroDesk etwas sagt, was nicht stimmt.
 
 ---
 
 ## Die zwei Prüfstände
 
-Es gibt zwei NGC-Anlagen, und dieses Papier nennt sie auseinander, weil fast jeder Befund
+Es gibt zwei CirroDesk-Anlagen, und dieses Papier nennt sie auseinander, weil fast jeder Befund
 unten an der einen hängt und nicht an der anderen:
 
-- **Die Einzel-VM** (`ngc`, 10.2.3.208, Fassung 0.2.0): alles auf einer Maschine — API,
+- **Die Einzel-VM** (`cd`, 10.2.3.208, Fassung 0.2.0): alles auf einer Maschine — API,
   Controller, Shell und der Laden daneben. Dort steht die eine App, die es bisher gab, und
   dort sind die Befunde 2 bis 4 gemessen. Sie ist über Monate von Hand gewachsen.
 - **Die verteilte Anlage** (`ngc.mein.lan`, Fassung 0.2.1): sechs Maschinen.
@@ -43,7 +43,7 @@ Gemessen wird **gegen die Namen**, nie gegen die IP: die Shell besteht auf ihrem
 Anmeldung.
 
 Die Namen sind **keine Rollenverteilung, auf die man sich verlassen darf.** Es gab einen Stand,
-auf dem `db-1` einen Controller trug und `store` gar kein NGC. Wo eine App wirklich liegt, liest
+auf dem `db-1` einen Controller trug und `store` gar kein CirroDesk. Wo eine App wirklich liegt, liest
 man nach dem Einrichten nach, statt es aus einem Namen zu schließen.
 
 Für diesen Weg sind zwei Unterschiede die wichtigen: der Laden ist dort eine **eigene**
@@ -54,7 +54,7 @@ Dienstknoten, womit erstmals prüfbar ist, dass eine App dort landet, wo man sie
 
 ## 0. Was eine App ist
 
-Ein Paket (`*.ngc`) ist ein tar mit drei Dingen:
+Ein Paket (`*.cd`) ist ein tar mit drei Dingen:
 
 ```
 manifest.json          zuerst im Archiv, immer
@@ -93,7 +93,7 @@ Das Manifest der Uhr, vollständig (`apps/uhr/templates/manifest.json`):
     { "name": "zeit", "title": "Die Uhrzeit des Servers lesen", "service": "uhr" }
   ],
   "services": [
-    { "name": "uhr", "command": ["/usr/lib/ngc/ngc-uhr"] }
+    { "name": "uhr", "command": ["/usr/lib/cd/cd-uhr"] }
   ],
   "runtime": "podman",
   "cpu": 1000,
@@ -105,7 +105,7 @@ Das Manifest der Uhr, vollständig (`apps/uhr/templates/manifest.json`):
 
 | Feld | Pflicht | Regel |
 |---|---|---|
-| `id` | ja | `wire.ValidAppID`; **kein** Name einer Kern-App (`ngc.desktop`, `ngc.users`, `ngc.store`) |
+| `id` | ja | `wire.ValidAppID`; **kein** Name einer Kern-App (`cd.desktop`, `cd.users`, `cd.store`) |
 | `name` | ja | 1–64 Byte druckbarer Text |
 | `version` | ja | `MAJOR.MINOR.PATCH` oder `MAJOR.MINOR.PATCH.BUILD`, jede Stelle ohne führende Null |
 | `publisher` | ja | 1–64 Byte |
@@ -119,7 +119,7 @@ Das Manifest der Uhr, vollständig (`apps/uhr/templates/manifest.json`):
 | `needs` | nein | `root`, `network`, jedes höchstens einmal |
 | `cpu` | nein | Tausendstel eines Kerns, 100–64000; Vorgabe 1000 |
 | `memory` | nein | MiB, 16–65536; Vorgabe 256 |
-| `minNgc` | nein | die älteste NGC-Fassung, die die App braucht |
+| `minCd` | nein | die älteste CirroDesk-Fassung, die die App braucht |
 
 Eine Aktion kann noch `stream` (bleibt offen, kein Zeitlimit — dann **muss** `timeout` 0 sein),
 `timeout` (Sekunden, bis 3600, Vorgabe 30) und `critical` (braucht eine eigene Unterschrift).
@@ -166,20 +166,20 @@ Was das für die App heißt — drei Dinge, die man einmal falsch macht:
 - **Klassische Skripte, keine Module.** Der Rahmen macht **keine** Verbindung, und ein Modul
   wird geholt. `<script type="module">` läuft dort nie; die Shell sagt dann
   „Diese App braucht klassische Skripte" und zeigt die App nicht.
-- **`ngc.js` kommt von der Shell.** Die Shell schreibt die Bytes als erstes Skript in das
+- **`cd.js` kommt von der Shell.** Die Shell schreibt die Bytes als erstes Skript in das
   Dokument. Die App lädt sie nicht und darf sie nicht mitliefern.
 - **Relative Adressen, flach.** `href="app.css"` und `src="app.js"` zeigen auf Dateien im
   `ui/`-Ordner. `store.ValidPath` erlaubt keine `..`, keine führenden Schrägstriche und keine
   versteckten Namen.
 
-Die App spricht nur über `ngc.js` und nur mit ihren **eigenen** Diensten:
+Die App spricht nur über `cd.js` und nur mit ihren **eigenen** Diensten:
 
 ```js
-const bytes = await ngc.call("uhr", "zeit");   // Promise<Uint8Array>
-const strom = ngc.open("uhr", "shell");        // bleibt offen: write, end, onData, onClose
+const bytes = await cd.call("uhr", "zeit");   // Promise<Uint8Array>
+const strom = cd.open("uhr", "shell");        // bleibt offen: write, end, onData, onClose
 ```
 
-`ngc.call` liefert ein **`Uint8Array`** — die rohen Bytes von `stdout` des Dienstes,
+`cd.call` liefert ein **`Uint8Array`** — die rohen Bytes von `stdout` des Dienstes,
 unverändert durchgereicht. Das Umwandeln in Text ist die Sache der App
 (`new TextDecoder().decode(bytes)`), und das Misstrauen auch: alles davon gehört auf
 `textContent`, nie auf `innerHTML`.
@@ -209,9 +209,9 @@ Der `Containerfile` der Uhr (`apps/uhr/templates/Containerfile`), ohne die Komme
 
 ```Dockerfile
 FROM docker.io/library/debian:13-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
-RUN mkdir -p /usr/lib/ngc /data
-COPY --chmod=0755 ngc-uhr /usr/lib/ngc/ngc-uhr
-CMD ["/usr/lib/ngc/ngc-uhr", "hold"]
+RUN mkdir -p /usr/lib/cd /data
+COPY --chmod=0755 cd-uhr /usr/lib/cd/cd-uhr
+CMD ["/usr/lib/cd/cd-uhr", "hold"]
 ```
 
 Vier Dinge daran sind keine Geschmacksfrage:
@@ -226,7 +226,7 @@ Vier Dinge daran sind keine Geschmacksfrage:
   **Gemessen am 24.10.2026**, beim Bau dieser App.
 - **Ein `CMD`, das wartet.** Der Controller fährt den Dienst mit `exec` **in** den laufenden
   Behälter. Steht der Behälter nicht, gibt es nichts, in das man fahren könnte. Das Terminal
-  nimmt dafür `ngc-controller hold`, die Uhr `ngc-uhr hold`: ein Programm, das auf `SIGTERM`
+  nimmt dafür `cd-controller hold`, die Uhr `cd-uhr hold`: ein Programm, das auf `SIGTERM`
   wartet und sonst nichts tut.
 - **Nichts wird nachinstalliert.** Je weniger Programme im Abbild liegen, desto weniger
   erreicht, wer den Behälter erreicht.
@@ -238,14 +238,14 @@ Bauordner — das ist der Zusammenhang des Baus, und nur daraus kopiert der `Con
 
 ```sh
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath \
-  -ldflags "-X main.Version=1.0.0" -o apps/uhr/build/ngc-uhr ./apps/uhr
+  -ldflags "-X main.Version=1.0.0" -o apps/uhr/build/cd-uhr ./apps/uhr
 ```
 
 Dann das Abbild, auf dem Baurechner mit podman (hier: Debian unter WSL, podman 5.4.2):
 
 ```sh
 cd apps/uhr
-podman build --arch amd64 --file templates/Containerfile --tag ngc/uhr:1.0.0 --pull=always build
+podman build --arch amd64 --file templates/Containerfile --tag cd/uhr:1.0.0 --pull=always build
 ```
 
 `--arch` ist nötig: ohne das entscheidet die Architektur dessen, der baut, und das Abbild
@@ -258,7 +258,7 @@ Dann das Abbild in das tar, das das Paket trägt:
 ```sh
 mkdir -p templates/services
 rm -f templates/services/amd64.tar
-podman save --format docker-archive --output templates/services/amd64.tar ngc/uhr:1.0.0
+podman save --format docker-archive --output templates/services/amd64.tar cd/uhr:1.0.0
 ```
 
 `--format docker-archive` ist Vorschrift, keine Wahl: der Controller liest den Namen des
@@ -272,9 +272,9 @@ heißt als die Fassung im Manifest daneben, ist ein Abbild, das kein Paket benen
 | Schritt | Ergebnis |
 |---|---|
 | `go build` (statisch, amd64) | 4 337 545 Byte |
-| `podman build` | `localhost/ngc/uhr:1.0.0`, 4 Stufen |
+| `podman build` | `localhost/cd/uhr:1.0.0`, 4 Stufen |
 | `podman save --format docker-archive` | 85 614 080 Byte |
-| Dienst im Abbild gefahren (`NGC_ACTION=zeit`) | Ende 0, `stdout` die Zeit, `stderr` die andere Zeile |
+| Dienst im Abbild gefahren (`CD_ACTION=zeit`) | Ende 0, `stdout` die Zeit, `stderr` die andere Zeile |
 
 Der letzte Lauf ist die Gegenprobe zum Ausführungsbit und zu den zwei Richtungen; er steht
 ausgeschrieben in Stolperstein 4.
@@ -287,17 +287,17 @@ der Aufruf ist, steht in der Umgebung, und es gibt keine anderen Variablen
 
 | Variable | Inhalt |
 |---|---|
-| `NGC_ACTION` | die Aktion — **als Umgebungsvariable, nicht als Argument** |
-| `NGC_PARAMS` | die Parameter als JSON-Objekt in einer Zeile, oder leer |
-| `NGC_USER`, `NGC_USER_NAME` | wer fragt; bei der Start-Aktion leer |
-| `NGC_APP`, `NGC_SERVICE`, `NGC_VERSION` | welche App, welcher Dienst, welche Fassung |
-| `NGC_DATA` | immer `/data` |
-| `NGC_START` | `1` bei der Start-Aktion, sonst `0` |
+| `CD_ACTION` | die Aktion — **als Umgebungsvariable, nicht als Argument** |
+| `CD_PARAMS` | die Parameter als JSON-Objekt in einer Zeile, oder leer |
+| `CD_USER`, `CD_USER_NAME` | wer fragt; bei der Start-Aktion leer |
+| `CD_APP`, `CD_SERVICE`, `CD_VERSION` | welche App, welcher Dienst, welche Fassung |
+| `CD_DATA` | immer `/data` |
+| `CD_START` | `1` bei der Start-Aktion, sonst `0` |
 
 Dazu `LANG=C.UTF-8` und `PATH=/usr/local/bin:/usr/bin:/bin`.
 
 Dass die Aktion in der Umgebung steht und nicht als Argument, ist die Stelle, an der fremde
-Programme nicht passen: die wollen sie als Argument, und nichts in NGC überbrückt das. Wer ein
+Programme nicht passen: die wollen sie als Argument, und nichts in CirroDesk überbrückt das. Wer ein
 fremdes Programm portiert, schreibt dafür einen Adapter (Punkt 68, `versuch-port/`).
 
 ---
@@ -307,10 +307,10 @@ fremdes Programm portiert, schreibt dafür einen Adapter (Punkt 68, `versuch-por
 Ein Befehl. Der Ordner, der gepackt wird, ist der mit `manifest.json`, `ui/` und `services/`:
 
 ```sh
-go run ./apps/cli pack apps/uhr/templates /pfad/uhr-1.0.0.ngc
+go run ./apps/cli pack apps/uhr/templates /pfad/uhr-1.0.0.cd
 ```
 
-(Gebaut heißt das Werkzeug `ngc-store`: `go build -o ngc-store ./apps/cli`.)
+(Gebaut heißt das Werkzeug `cd-store`: `go build -o cd-store ./apps/cli`.)
 
 Es antwortet mit Kennung, Fassung und der SHA-256 der Datei:
 
@@ -349,10 +349,10 @@ go run ./apps/cli catalog <ordner> <schlüsseldatei> <laden> <folge> https://sto
 Für die Uhr, gegen einen eigenen Probeladen:
 
 ```sh
-go run ./apps/cli catalog /pfad/laden /pfad/laden-key.seed uhr-probe 1 https://store.ngc.test/uhr
+go run ./apps/cli catalog /pfad/laden /pfad/laden-key.seed uhr-probe 1 https://store.cd.test/uhr
 ```
 
-Fehlt die Schlüsseldatei, legt `ngc-store` sie an (Rechte 0600) und nennt **nur** ihren Pfad,
+Fehlt die Schlüsseldatei, legt `cd-store` sie an (Rechte 0600) und nennt **nur** ihren Pfad,
 den öffentlichen Teil und die Kennung — nie den Schlüssel selbst. Geheime Schlüssel stehen nie
 in einem Aufruf: ein Aufruf steht in der Prozessliste und ist für jeden anderen lesbar.
 
@@ -364,7 +364,7 @@ in einem Aufruf: ein Aufruf steht in der Prozessliste und ist für jeden anderen
     "publisher": "Sorglos Thomas Weirich",
     "description": "Die Uhrzeit des Servers lesen.",
     "versions": [ { "version": "1.0.0",
-      "url": "https://store.ngc.test/uhr/uhr-1.0.0.ngc",
+      "url": "https://store.cd.test/uhr/uhr-1.0.0.cd",
       "size": 85623296,
       "sha256": "21pfUXt0xiCaEJzG3NEnewhTDVQWapwkvJnaAinL_OA",
       "ui": "n0-Z4sCcKItN0qd6Kr1-DADIuquq5-infFHJfiNMLu8" } ] } ] }
@@ -378,7 +378,7 @@ Zwei Prüfsummen, nicht eine, und sie prüfen Verschiedenes:
 - `ui` ist die der **Oberfläche** (`store.PackageUI`), über das **unverschlüsselte** Paket. Das
   ist der Wert, gegen den die Shell in Schritt 2 prüft.
 
-`needs` und `minNgc` übernimmt `catalog` aus dem Manifest. Bei der Uhr fehlt `needs` ganz, weil
+`needs` und `minCd` übernimmt `catalog` aus dem Manifest. Bei der Uhr fehlt `needs` ganz, weil
 sie nichts anfragt — der Eintrag oben ist der Beleg dafür.
 
 Dazu legt `catalog` **`store-key.pem`** in den Ordner: den **öffentlichen** Teil des
@@ -388,14 +388,14 @@ geheimen Teil hält, verliert ihn — siehe Befund 2.)
 
 ### Die Folgenummer
 
-`seq` muss **höher** sein als die des Katalogs, der schon im Ordner liegt — `ngc-store` liest
+`seq` muss **höher** sein als die des Katalogs, der schon im Ordner liegt — `cd-store` liest
 ihn vorher und lehnt sonst ab. Eine Anlage lehnt einen Katalog mit niedrigerer Folge ab
 (`store.ErrRollback`). Ein neuer Katalog, der eine App dazunimmt, nennt also **alle** Apps und
 eine höhere Folge: ein Katalog ist das ganze Verzeichnis des Ladens, keine Ergänzung.
 
 **Und sie steht im Katalog, nicht in `seq`.** Auf der verteilten Anlage liegt neben dem
 Laden eine Datei `/root/store/seq`. Sie wird **nicht** mitgeschrieben, wenn
-`ngc-store catalog` läuft: am 29.10.2026 sagte sie **7**, während der ausgelieferte
+`cd-store catalog` läuft: am 29.10.2026 sagte sie **7**, während der ausgelieferte
 Katalog auf **Folge 9** stand. Wer die nächste Folge von dort abliest, unterschreibt einen
 Rückschritt, und jede Installation weist den Laden dann ab (`store.ErrRollback`), bis
 jemand höher unterschreibt. Die Folge liest man aus dem Katalog selbst:
@@ -419,8 +419,8 @@ go run ./apps/cli check -store uhr-probe /pfad/laden
 ### Den Laden ausliefern
 
 Apache braucht dafür nichts als ein Verzeichnis (`DocumentRoot`), TLS und
-`Options -Indexes -FollowSymLinks`. Auf der **Einzel-VM** (`ngc`, 10.2.3.208) steht der Laden
-unter `/srv/ngc-store` an `https://store.ngc.test`, mit einer eigenen CA, deren Wurzel im
+`Options -Indexes -FollowSymLinks`. Auf der **Einzel-VM** (`cd`, 10.2.3.208) steht der Laden
+unter `/srv/cd-store` an `https://store.cd.test`, mit einer eigenen CA, deren Wurzel im
 System-Vertrauensspeicher liegt — die API baut ihren Client ohne eigene Wurzeln und prüft die
 Kette darum wirklich. Die beiden Skripte dafür liegen **nicht** im Repo; siehe Befund 3.
 
@@ -436,7 +436,7 @@ ein TLS-Handschlag von außen kam nicht zustande.
 Hier gibt es **zwei** Wege, und das ist der Punkt, an dem man sich verläuft:
 
 - **Der globale Laden** (`"store": "global"`) steht **nicht** in der Vertrauensliste. Sein
-  Schlüssel und seine Adresse stehen in der Konfiguration der API, `/etc/ngc/api.json`, als
+  Schlüssel und seine Adresse stehen in der Konfiguration der API, `/etc/cd/api.json`, als
   `storeKey` und `storeUrl` (`config.API`). Ändern heißt: Root auf dem Server und die API neu
   starten.
 - **Jeder weitere Laden** steht in der **Vertrauensliste** (`trust.Store`: Kennung, Name,
@@ -444,7 +444,7 @@ Hier gibt es **zwei** Wege, und das ist der Punkt, an dem man sich verläuft:
   und unterschreibt das persönlich. Die Adresse darf einen Pfad tragen
   (`https://store.example.com/uhr`), mehrere Läden können also auf einem Host liegen.
 
-Wer einen **eigenen** Laden betreibt, nimmt also die Kennung **`global`**: `ngc-api.sh` trägt
+Wer einen **eigenen** Laden betreibt, nimmt also die Kennung **`global`**: `cd-api.sh` trägt
 `store_url` und `store_key` unter dieser Kennung ein. Ein Katalog, der sich anders nennt, wird
 abgelehnt, und die Anlage sagt dazu nur „Der Katalog ist fehlerhaft oder gehört zu einem anderen
 Store" (`store.VerifyCatalog`, `c.Store != st.ID`) — welche der beiden Kennungen nicht passt,
@@ -456,24 +456,24 @@ Das ist der Weg, den dieses Papier belegt, auf der verteilten Anlage am 24.10.20
 ist dort eine eigene Maschine (`store.ngc.mein.lan`), trug den Terminal und die Folge 6.
 
 Der geheime Schlüssel liegt dort, wo das Aufsetz-Skript ihn hingelegt hat —
-`/root/store/store.key` auf der Laden-Maschine — und `ngc-store` liegt unter
-`/usr/local/bin/ngc-store`. Erst der Katalog zur Seite gelegt, dann das Paket dazu, dann neu
+`/root/store/store.key` auf der Laden-Maschine — und `cd-store` liegt unter
+`/usr/local/bin/cd-store`. Erst der Katalog zur Seite gelegt, dann das Paket dazu, dann neu
 unterschrieben:
 
 ```sh
 # auf der Laden-Maschine
 cp -n /var/www/store/catalog.json /root/store/catalog-vor-uhr-20261024.json
 # das Paket dazu (von einem Baurechner hergebracht)
-ngc-store catalog /var/www/store /root/store/store.key global 7 https://store.ngc.mein.lan
-ngc-store check -store global /var/www/store
+cd-store catalog /var/www/store /root/store/store.key global 7 https://store.ngc.mein.lan
+cd-store check -store global /var/www/store
 ```
 
 Das Ergebnis, aus dem Katalog gelesen, der danach dort lag:
 
 ```
 store global seq 7
-  org.sorglos.terminal 1.0.0 https://store.ngc.mein.lan/terminal.ngc 108028416 needs=['root']
-  org.sorglos.uhr      1.0.0 https://store.ngc.mein.lan/uhr.ngc       85623296 needs=None
+  org.sorglos.terminal 1.0.0 https://store.ngc.mein.lan/terminal.cd 108028416 needs=['root']
+  org.sorglos.uhr      1.0.0 https://store.ngc.mein.lan/uhr.cd       85623296 needs=None
 kid RPmRtyPJs5WQECAkiPeBsg
 ```
 
@@ -501,7 +501,7 @@ Das ist der Teil, den die Einzel-VM nie prüfen konnte, weil der Laden dort dane
 
 Für die eigene App braucht man **keinen** Laden. Die App „App-Store" hat einen Reiter
 **„Hochladen"** — „Ein Paket von der Festplatte einrichten." Dahinter steht
-`ngc.store/api/upload` (`apps/server-api/classes/appstore/upload.go`): die API liest das Paket
+`cd.store/api/upload` (`apps/server-api/classes/appstore/upload.go`): die API liest das Paket
 in einem Durchgang, hasht es dabei, läuft es sicher durch und antwortet mit dem, was sie
 gelesen hat. Die Shell rechnet dieselben Werte aus der Datei nach, die sie geschickt hat, und
 lehnt einen Unterschied ab — nichts an dieser Antwort muss also geglaubt werden.
@@ -557,7 +557,7 @@ geöffnet, auf der verteilten Anlage, gegen API 0.2.2:
 
 Und die Gegenproben dazu, weil ein Satz auf dem Schirm noch kein Beleg ist:
 
-- **Sie liegt auf dem Knoten, den ich gewählt habe.** `/var/lib/ngc/apps/org.sorglos.uhr` steht
+- **Sie liegt auf dem Knoten, den ich gewählt habe.** `/var/lib/cd/apps/org.sorglos.uhr` steht
   auf **svc-1** und **nicht** auf svc-2. Damit ist zum ersten Mal gemessen, dass eine App dort
   landet, wo man sie hinschickt — mit einer Maschine war das nicht zu prüfen.
 - **Die Zeit ist echt.** `12:29:55Z` ist die Sekunde, in der das Fenster aufging. Sie wurde
@@ -572,16 +572,16 @@ Die Gegenprobe von der anderen Seite, auf `svc-1` mitgelesen. Sie belegt vier Di
 der Oberfläche nicht ansieht:
 
 ```
-12:28:03  image loadfromarchive 2c2b5074cb6b… /var/lib/ngc/staged/accept-…/files/services/amd64.tar
-12:28:04  container remove ngc-uhr-ad8c00e2      (die alte Fassung weicht)
-12:28:04  image pull 2c2b5074cb6b… localhost/ngc/uhr:1.0.0
-12:29:55  container exec ngc-uhr-ad8c00e2 (image=localhost/ngc/uhr:1.0.0)
+12:28:03  image loadfromarchive 2c2b5074cb6b… /var/lib/cd/staged/accept-…/files/services/amd64.tar
+12:28:04  container remove cd-uhr-ad8c00e2      (die alte Fassung weicht)
+12:28:04  image pull 2c2b5074cb6b… localhost/cd/uhr:1.0.0
+12:29:55  container exec cd-uhr-ad8c00e2 (image=localhost/cd/uhr:1.0.0)
 12:29:55  INFO a service wrote to stderr app=org.sorglos.uhr service=uhr action=zeit bytes=510
 ```
 
 1. **Das Abbild kommt aus dem Paket.** `loadfromarchive … /files/services/amd64.tar` — genau
    die Datei, die `podman save` auf dem Baurechner geschrieben hat. Der Server baut nichts.
-2. **Der Name des Abbilds ist der aus dem Manifest.** `localhost/ngc/uhr:1.0.0` — das `tag` ist
+2. **Der Name des Abbilds ist der aus dem Manifest.** `localhost/cd/uhr:1.0.0` — das `tag` ist
    die Fassung. Die Regel aus Schritt 3 ist damit am laufenden Server bestätigt und nicht nur
    abgeschrieben.
 3. **Der Dienst wird mit `exec` in den stehenden Behälter gefahren.** Darum braucht das Abbild
@@ -618,13 +618,13 @@ eine andere Sitzung oder ein Mensch am Browser. Für den Weg heißt es: **zwei v
 unabhängige Einrichtungen** auf 0.2.2 sind gelungen, und die erste ist nicht meine.
 
 **Eine Beobachtung, die dabei offen blieb:** der Controller meldet für jeden `zeit`-Aufruf über
-NGC `bytes=510` auf `stderr`. Der Dienst schreibt dort aber nur eine Zeile von **33 Byte** —
+CirroDesk `bytes=510` auf `stderr`. Der Dienst schreibt dort aber nur eine Zeile von **33 Byte** —
 gemessen von einer anderen Sitzung mit einem `podman exec` von Hand. Woher die übrigen rund 477
 Byte kommen, ist **nicht gemessen**; der Verdacht fällt auf Meldungen der Behälter-Laufzeit, die
 dem Dienst zugeschlagen werden. Es betrifft beide Einrichtungen gleich und sagt darum nichts
 darüber, wer eingerichtet hat.
 
-**Damit ist die Lücke zu, die diesen Auftrag ausgelöst hat:** NGC hat nicht mehr eine App,
+**Damit ist die Lücke zu, die diesen Auftrag ausgelöst hat:** CirroDesk hat nicht mehr eine App,
 sondern zwei, und der Weg dahin ist nicht mehr unaufgeschrieben. Dazu gehört die Anmeldung eines Verwalters, und die hatte diese Sitzung nicht. Bis
 das gelaufen ist, sind Schritt 2 und Schritt 7 aus dem Code gelesen und nicht am Gerät geprüft —
 und dieses Papier sagt es hier, statt es wie Erledigtes aussehen zu lassen.
@@ -655,7 +655,7 @@ Dasselbe gilt im Paket selbst: `store.Walk` nimmt als Verzeichnis nur `ui`, `ser
 etwas unter `ui/`. Ein `./` ist dort `store: invalid app package`.
 
 **Darum:** nie `tar -cf … .`, sondern die Namen nennen — oder gar nicht selbst packen und
-`ngc-store pack` nehmen, das keine Verzeichniseinträge schreibt.
+`cd-store pack` nehmen, das keine Verzeichniseinträge schreibt.
 
 ### 2. Das Abbild entsteht auf einem Baurechner
 
@@ -685,12 +685,12 @@ Die zwei Richtungen gehen an **verschiedene** Orte:
 
 | Richtung | Wohin | Wer sieht es |
 |---|---|---|
-| `stdout` | über den Kanal ins **Fenster der App** (`serve.CallInput.Out`; `ngc.call` löst damit auf) | der Mensch vor dem Fenster |
+| `stdout` | über den Kanal ins **Fenster der App** (`serve.CallInput.Out`; `cd.call` löst damit auf) | der Mensch vor dem Fenster |
 | `stderr` | ins **Protokoll des Controllers**, höchstens 64 KiB | nur ein Betreiber — **und nur, wenn er den Text eingeschaltet hat** |
 
 Von `stderr` schreibt der Controller **standardmäßig nur, dass es welches gab und wie viele
 Byte** — nicht den Text (`serve.CallInput.LogStderr`, aus als Vorgabe). Der Grund ist gut: ein
-Dienst hat `NGC_PARAMS` in seiner Umgebung, und einer, der seine Umgebung oder einen Fehler mit
+Dienst hat `CD_PARAMS` in seiner Umgebung, und einer, der seine Umgebung oder einen Fehler mit
 den Parametern darin schreibt, legte das, was der Nutzer getippt hat, ins Protokoll des Servers.
 
 **Also:** ein Dienst, der seine Fehler auf `stderr` meldet, hat dem Server etwas über sich
@@ -701,8 +701,8 @@ Die Uhr misst genau das. Ihre Aktion `zeit` schreibt mit Absicht in **beide** Ri
 (`apps/uhr/classes/uhr.go`), damit man sieht, welche wo ankommt:
 
 ```sh
-podman run --rm --arch amd64 -e NGC_ACTION=zeit localhost/ngc/uhr:1.0.0 \
-  /usr/lib/ngc/ngc-uhr > out.txt 2> err.txt
+podman run --rm --arch amd64 -e CD_ACTION=zeit localhost/cd/uhr:1.0.0 \
+  /usr/lib/cd/cd-uhr > out.txt 2> err.txt
 ```
 
 **Gemessen am 24.10.2026**, im Abbild:
@@ -710,7 +710,7 @@ podman run --rm --arch amd64 -e NGC_ACTION=zeit localhost/ngc/uhr:1.0.0 \
 ```
 exit=0
 out.txt   2026-10-24T09:37:39Z
-err.txt   ngc-uhr 1.0.0 beantwortet "zeit"
+err.txt   cd-uhr 1.0.0 beantwortet "zeit"
 ```
 
 Zwei Fälle halten das auch ohne Behälter fest, und einer davon prüft das Gegenteil mit:
@@ -740,8 +740,8 @@ Welches, entscheidet `apps/web/public/assets/js/shell/icon.js` an der Kennung de
 
 | Kennung | Icon |
 | --- | --- |
-| `ngc.store` | `laden` |
-| `ngc.users` | `benutzer` |
+| `cd.store` | `laden` |
+| `cd.users` | `benutzer` |
 | `org.sorglos.terminal` | `terminal` |
 | `org.sorglos.uhr` | `uhr` |
 | `org.sorglos.calculator` | `rechner` |
@@ -850,22 +850,22 @@ Grenzen, die heute wirklich gelten:
 Stellen, an denen der Weg einen Handgriff braucht, den kein Fremder erraten kann. **Keiner
 davon ist hier gebaut** — jeder steht als Befund mit Vorschlag.
 
-### Befund 1: `ngc-controller image` baut nur das Terminal
+### Befund 1: `cd-controller image` baut nur das Terminal
 
-`ngc-controller image -arch … -out …` ist der einzige sichtbare Schritt zu einem Abbild, und er
+`cd-controller image -arch … -out …` ist der einzige sichtbare Schritt zu einem Abbild, und er
 ist auf das Terminal festgenagelt: `terminalDir` ist
-`apps/server-controller/templates/terminal`, der Name des Abbilds ist `ngc/terminal:<Fassung>`,
+`apps/server-controller/templates/terminal`, der Name des Abbilds ist `cd/terminal:<Fassung>`,
 und der Zusammenhang des Baus ist `build/` im Stamm des Repos
 (`apps/server-controller/classes/node/image.go`). Wer eine **eigene** App baut, kann den Befehl
 nicht benutzen und muss podman von Hand aufrufen — was dieses Papier in Schritt 3 tut, und was
 der Portierversuch (Punkt 68) mit demselben Satz tut: „mit podman von Hand, weil
-`ngc-controller image` nur das Terminal baut".
+`cd-controller image` nur das Terminal baut".
 
 Die Hilfe des Befehls sagt das auch („Abbild der Terminal-App schreiben"), aber sie sagt nicht,
 wie man es für etwas anderes macht.
 
 **Vorschlag:** einen Unterbefehl, der einen App-Ordner nimmt statt des Terminals — etwa
-`ngc-store image -arch <arch> -dir <app-ordner>`, der `manifest.json` daneben liest, das Abbild
+`cd-store image -arch <arch> -dir <app-ordner>`, der `manifest.json` daneben liest, das Abbild
 `<id>:<fassung>` nennt und `services/<arch>.tar` schreibt. Die Prüfungen, die es dafür schon
 gibt, sind genau die, die man will: Basis hängt an einem Digest (`runtime.CheckBase`) und das
 Programm im Zusammenhang passt zur Architektur (`runtime.checkProgram`). Damit wären die drei
@@ -879,12 +879,12 @@ direkt, nicht über diesen Befehl. **Der Befehl ist weiterhin nie gelaufen.**
 ### Befund 2: Wo der geheime Ladenschlüssel liegt, steht nirgends als Regel
 
 Der Laden der Einzel-VM (`"store": "global"`, Folge 1, eine App) ist mit dem Schlüssel
-unterschrieben, dessen öffentlicher Teil in `/etc/ngc/api.json` als `storeKey` steht
+unterschrieben, dessen öffentlicher Teil in `/etc/cd/api.json` als `storeKey` steht
 (Kennung `WM0yymuJtd9UxaUONGIXow`). Der **geheime** Teil liegt nicht auf der Maschine: was
 dort unter `/home/berry/ngcapp/store/store-key.pem` liegt, ist der **öffentliche** Teil —
-`store-key.pem` ist der Name, unter dem `ngc-store catalog` den öffentlichen Teil neben den
+`store-key.pem` ist der Name, unter dem `cd-store catalog` den öffentlichen Teil neben den
 Katalog legt (`apps/cli/classes/check.go`, `StoreKeyFile`). Auf dem Baurechner liegt unter
-`/root/ngc-keys/` nur `release.key`, kein Ladenschlüssel.
+`/root/cd-keys/` nur `release.key`, kein Ladenschlüssel.
 
 **Die Folge:** dem globalen Laden **der Einzel-VM** kann niemand mehr eine zweite App
 hinzufügen. Jeder neue Katalog bräuchte Folge 2 und dieselbe Unterschrift, und die kann niemand
@@ -893,7 +893,7 @@ durchsuchen ist genau das, was man nicht tun soll.
 
 **Auf der verteilten Anlage ist es nicht so**, und der Unterschied ist der Befund. Dort liegt
 der geheime Schlüssel auf der Laden-Maschine unter `/root/store/store.key`, weil
-`tools/proxmox-sechs-ngc.sh` ihn dort anlegt — und darum konnte die zweite App dort wirklich in
+`tools/proxmox-sechs-cd.sh` ihn dort anlegt — und darum konnte die zweite App dort wirklich in
 den Laden (Schritt 5). Der Ort steht also in einem Aufsetz-Skript für **einen** Prüfstand, und
 sonst nirgends: nicht als Regel, nicht in der Anleitung zum Betrieb eines Ladens, nicht neben
 der Regel für den Release-Schlüssel. Wer die Einzel-VM aufsetzte, hat ihn an einer anderen
@@ -902,22 +902,22 @@ Stelle gesucht und verloren.
 **Vorschlag:** zwei Dinge, und das erste ist das wichtigere.
 
 1. **Festlegen, wo Ladenschlüssel liegen, und es aufschreiben** — als Regel, nicht als Zeile in
-   einem Skript. Für Release-Schlüssel gibt es den Ort schon (`/root/ngc-keys/release.key` auf
+   einem Skript. Für Release-Schlüssel gibt es den Ort schon (`/root/cd-keys/release.key` auf
    dem Baurechner) und die Regel, dass der echte Release-Schlüssel auf einem Hardware-Stick
    liegt (Entwurf 4.8). Für Ladenschlüssel gibt es die Regel nicht, nur zwei Prüfstände, die es
    verschieden gemacht haben. Ein Laden, dessen Schlüssel weg ist, ist ein Laden, der nie wieder
    eine App bekommt — und das merkt man erst bei der zweiten.
 2. Für die Einzel-VM: entweder einen neuen Ladenschlüssel ziehen und `storeKey` in
-   `/etc/ngc/api.json` tauschen (Root, API neu starten), oder den globalen Laden lassen, wie er
+   `/etc/cd/api.json` tauschen (Root, API neu starten), oder den globalen Laden lassen, wie er
    ist. Das Zweite rührt nichts an, was läuft, und ist darum das, was ich vorschlage — zumal der
    Weg jetzt auf der verteilten Anlage belegt ist.
 
 ### Befund 3: Der Laden der Einzel-VM steht in einem Heimatverzeichnis
 
 Was den Laden der Einzel-VM ausliefert, liegt in `/home/berry/ngcapp/`: ein Skript, das eine
-eigene CA und ein Zertifikat für `store.ngc.test` baut, und eines, das die CA in den
+eigene CA und ein Zertifikat für `store.cd.test` baut, und eines, das die CA in den
 System-Vertrauensspeicher legt, den Namen in `/etc/hosts` schreibt, die Dateien nach
-`/srv/ngc-store` kopiert und einen Apache-vhost auf 443 anlegt. Beide sind sauber geschrieben
+`/srv/cd-store` kopiert und einen Apache-vhost auf 443 anlegt. Beide sind sauber geschrieben
 und beide prüfen sich selbst. **Keines von beiden ist im Repo.** Wer die Einzel-VM neu
 aufsetzt, baut das noch einmal aus dem Kopf — oder gar nicht.
 
@@ -925,11 +925,11 @@ aufsetzt, baut das noch einmal aus dem Kopf — oder gar nicht.
 `tools/pruefladen-stellen.sh`), mit den Pfaden als Angaben statt festgenagelt. Sie gehören in
 kein Release — sie bauen einen **Prüf**laden —, aber sie gehören dorthin, wo man sie findet.
 
-### Befund 4: `ngc-store` liegt nicht auf dem Server
+### Befund 4: `cd-store` liegt nicht auf dem Server
 
-`ngc-store` soll mit der API ausgeliefert werden: das Release-Archiv `ngc-api-amd64.tar` trägt
-„genau die Dateien `ngc-api` und `ngc-store`", und `ngc-store contents` prüft das. Auf der
-Einzel-VM liegt in `/usr/lib/ngc/` nur `ngc-api` und `ngc-controller` — `ngc-store` ist
+`cd-store` soll mit der API ausgeliefert werden: das Release-Archiv `cd-api-amd64.tar` trägt
+„genau die Dateien `cd-api` und `cd-store`", und `cd-store contents` prüft das. Auf der
+Einzel-VM liegt in `/usr/lib/cd/` nur `cd-api` und `cd-controller` — `cd-store` ist
 nicht da und steht in keinem `PATH`. Für diesen Weg habe ich es selbst übersetzt und in einen
 eigenen Ordner gelegt (`~/uhr-bau/`).
 
@@ -937,7 +937,7 @@ Ob das Release es wirklich nicht mitbringt oder ob die Einzel-VM von Hand bestü
 ist **nicht gemessen** — die Maschine ist über Monate von Hand gewachsen. Gemessen ist nur:
 heute ist es nicht da.
 
-**Vorschlag:** einmal messen, ob ein Release nach `ngc-api.sh` wirklich beide Programme ablegt.
+**Vorschlag:** einmal messen, ob ein Release nach `cd-api.sh` wirklich beide Programme ablegt.
 Wenn nicht, ist das ein Fehler der Auslieferung; wenn doch, ist es ein Beleg mehr dafür, dass
 die Einzel-VM ein Handbau ist.
 
@@ -1062,21 +1062,21 @@ Gemessen am 24.10.2026: ein frisch geöffnetes Fenster zeigte im Reiter „Apps"
 > Der Katalog dieses Stores ist nicht echt.
 
 Der Katalog auf der Laden-Maschine war dabei **unberührt** — dieselbe Datei von 11:33, dieselbe
-Schlüsselkennung, `ngc-store check -store global` grün —, und **sechs Minuten vorher** hatte
+Schlüsselkennung, `cd-store check -store global` grün —, und **sechs Minuten vorher** hatte
 dasselbe Fenster beide Apps korrekt aufgelistet. Es ist also der Satz für „dieses Fenster hat
 den Katalog noch nicht geholt", nicht für einen gefälschten Katalog.
 
 Wer das liest, hält seinen Laden für kompromittiert. Das ist die teuerste Fehlmeldung von
 allen, die hier stehen: sie beschuldigt.
 
-**Hier stand zuerst, der Zweig `origin/ngc-ersteapp` behebe das und sei noch nicht eingespielt.
+**Hier stand zuerst, der Zweig `origin/cd-ersteapp` behebe das und sei noch nicht eingespielt.
 Das war falsch**, und es ist nachgemessen worden: die Oberfläche **kennt** den Fall und hat
 einen eigenen, besseren Satz dafür, aus PR 86 —
 
-> Der Katalog dieses Stores ist noch nicht geholt. NGC sieht stündlich nach; unter Quellen steht,
+> Der Katalog dieses Stores ist noch nicht geholt. CirroDesk sieht stündlich nach; unter Quellen steht,
 > wann es das letzte Mal geklappt hat.
 
-Und sie ist **ausgeliefert**: in `/var/www/ngc/public/assets/js/apps/store.js` auf api-1 stehen
+Und sie ist **ausgeliefert**: in `/var/www/cd/public/assets/js/apps/store.js` auf api-1 stehen
 **beide** Sätze (nachgezählt: „noch nicht geholt" einmal, „nicht echt." zweimal). Der alte
 Zweig trägt dieselbe Idee mit schwächerem Text und ist überholt, nicht ungemergt.
 
@@ -1094,7 +1094,7 @@ Antwort, nicht am Satz auf dem Schirm.
 
 **Vorschlag:** den Fall noch einmal herstellen und den **Code** lesen, den die API
 zurückgibt — Netzwerkansicht oder Protokoll der API —, statt den Satz auf dem Schirm. Erst dann
-weiß man, welcher Zweig anzufassen ist. `origin/ngc-ersteapp` ist es nicht; der ist überholt und
+weiß man, welcher Zweig anzufassen ist. `origin/cd-ersteapp` ist es nicht; der ist überholt und
 kollidiert mit main.
 
 ### Befund 9: Beim Aktivieren brach der Tunnel ab — auf 0.2.1, nicht mehr auf 0.2.2
@@ -1153,7 +1153,7 @@ weil niemand eine zweite App hatte.
 eine davon vergisst, bekommt ein Abbild, das baut, sich sichern, laden und einrichten lässt und
 erst auf dem Server mit einer Meldung über ein Format stirbt — nach dem Katalog.
 `runtime.checkProgram` fängt genau das ab, indem es den ELF-Kopf des Programms im Zusammenhang
-liest; es läuft aber nur in `ngc-controller image`, also nur für das Terminal (Befund 1).
+liest; es läuft aber nur in `cd-controller image`, also nur für das Terminal (Befund 1).
 
 **Vorschlag:** mit Befund 1 erledigt. Ein Unterbefehl, der den App-Ordner nimmt, nennt die
 Architektur einmal und schreibt den tar-Namen selbst.
@@ -1217,30 +1217,30 @@ auf diesem Rechner ist das die Debian-WSL.
 ```sh
 # 1. das Programm des Dienstes, für den Zielserver
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath \
-  -ldflags "-X main.Version=1.0.0" -o apps/uhr/build/ngc-uhr ./apps/uhr
+  -ldflags "-X main.Version=1.0.0" -o apps/uhr/build/cd-uhr ./apps/uhr
 
 # 2. das Abbild, auf dem Baurechner
 cd apps/uhr
-podman build --arch amd64 --file templates/Containerfile --tag ngc/uhr:1.0.0 --pull=always build
+podman build --arch amd64 --file templates/Containerfile --tag cd/uhr:1.0.0 --pull=always build
 mkdir -p templates/services && rm -f templates/services/amd64.tar
-podman save --format docker-archive --output templates/services/amd64.tar ngc/uhr:1.0.0
+podman save --format docker-archive --output templates/services/amd64.tar cd/uhr:1.0.0
 # Gegenprobe, beide Richtungen:
-podman run --rm -e NGC_ACTION=zeit localhost/ngc/uhr:1.0.0 /usr/lib/ngc/ngc-uhr >out.txt 2>err.txt
+podman run --rm -e CD_ACTION=zeit localhost/cd/uhr:1.0.0 /usr/lib/cd/cd-uhr >out.txt 2>err.txt
 cd ../..
 
 # 3. das Paket
-go run ./apps/cli pack apps/uhr/templates /pfad/laden/uhr-1.0.0.ngc
+go run ./apps/cli pack apps/uhr/templates /pfad/laden/uhr-1.0.0.cd
 
 # 4. der unterschriebene Katalog und seine Prüfung
-go run ./apps/cli catalog /pfad/laden /pfad/laden-key.seed uhr-probe 1 https://store.ngc.test/uhr
+go run ./apps/cli catalog /pfad/laden /pfad/laden-key.seed uhr-probe 1 https://store.cd.test/uhr
 go run ./apps/cli check -store uhr-probe /pfad/laden
 
 # 5. in einen laufenden Laden: Paket neben die anderen legen und den Katalog
 #    mit EINER höheren Folge neu unterschreiben - alle Apps, nicht nur die neue.
 #    Auf der Laden-Maschine:
 #      cp -n /var/www/store/catalog.json /root/store/catalog-vor-<app>-<datum>.json
-#      ngc-store catalog /var/www/store /root/store/store.key global <folge+1> https://store.<zone>
-#      ngc-store check -store global /var/www/store
+#      cd-store catalog /var/www/store /root/store/store.key global <folge+1> https://store.<zone>
+#      cd-store check -store global /var/www/store
 #    Gegenprobe von der API-Maschine aus, gegen den NAMEN und über IPv4:
 #      curl -4 https://store.<zone>/catalog.json -o /dev/null -w "%{http_code} %{ssl_verify_result}
 "

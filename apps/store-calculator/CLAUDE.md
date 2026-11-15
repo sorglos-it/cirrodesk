@@ -9,13 +9,13 @@ Oberfläche, kein Dienst, kein Container.
 - Texte in den 5 Sprachen der Shell (de, en, fr, it, es), Fallback en. Ausgaben nur mit
   `textContent`.
 - Tests: `go test ./apps/store-calculator/` packt, unterschreibt einen Katalog mit Testschlüssel,
-  prüft ihn mit `ngc-store check -store` und das Paket mit `store.Walk`; dazu laufen die
-  node-Tests mit Fuzz. Fuzz länger: `NGC_FUZZ=200000 node --test apps/store-calculator/tests/`,
-  einen Fehler nachstellen mit `NGC_FUZZ_SEED=<Saat>`.
+  prüft ihn mit `cd-store check -store` und das Paket mit `store.Walk`; dazu laufen die
+  node-Tests mit Fuzz. Fuzz länger: `CD_FUZZ=200000 node --test apps/store-calculator/tests/`,
+  einen Fehler nachstellen mit `CD_FUZZ_SEED=<Saat>`.
 
 Bauen:
 
 ```bash
-go build -o ngc-store ./apps/cli
-./ngc-store pack apps/store-calculator org.sorglos.calc-1.0.0.ngc
+go build -o cd-store ./apps/cli
+./cd-store pack apps/store-calculator org.sorglos.calc-1.0.0.cd
 ```

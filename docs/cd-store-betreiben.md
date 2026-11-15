@@ -1,20 +1,20 @@
-# Den NGC-Store betreiben
+# Den CirroDesk-Store betreiben
 
 Entscheidung S1 (Thomas, 15.11.2026): **A.** Den globalen Store (`trust.StoreGlobal`, Kennung
 `global`) betreibt Thomas als statische Dateien auf seinem eigenen Webspace. Der Signierschlüssel
 liegt offline als Datei; später geht er über die Vertrauensliste auf den Stick.
 
 **Die Adresse fehlt noch.** Bis Thomas sie nennt, steht hier überall der Platzhalter
-`https://store.example.invalid/ngc`. Er passt in die Grammatik `trust.ValidStoreURL`: `https://`,
+`https://store.example.invalid/cd`. Er passt in die Grammatik `trust.ValidStoreURL`: `https://`,
 Host, optional Pfad, **kein** `/` am Ende.
 
-Jeder Schritt unten läuft als Test: `TestFirstNGCStore` in `apps/cli/classes/ngcstore_test.go`.
+Jeder Schritt unten läuft als Test: `TestFirstCDStore` in `apps/cli/classes/cdstore_test.go`.
 Ist er rot, stimmt diese Anleitung nicht mehr.
 
 ## 1. Werkzeug bauen
 
 ```bash
-go build -o ngc-store ./apps/cli
+go build -o cd-store ./apps/cli
 ```
 
 ## 2. Schlüssel ziehen (nur Thomas, nie ein Agent)
@@ -23,10 +23,10 @@ Auf dem Rechner, der offline bleibt. Der erste Katalog legt die Schlüsseldatei 
 (Rechte 0600), und nennt nur ihren Pfad und den öffentlichen Teil:
 
 ```bash
-mkdir -p ~/ngc-keys && chmod 700 ~/ngc-keys
+mkdir -p ~/cd-keys && chmod 700 ~/cd-keys
 ```
 
-Die Datei heißt im Folgenden `~/ngc-keys/ngc-store.key`. **Sie geht nie auf den Webspace, in kein
+Die Datei heißt im Folgenden `~/cd-keys/cd-store.key`. **Sie geht nie auf den Webspace, in kein
 Repo, in keine Nachricht.** Eine Sicherung gehört auf einen zweiten Datenträger, der offline
 liegt. Ist der Schlüssel weg, bekommt der Store nie wieder eine App (Befund 2 in
 `docs/app-weg.md`): jeder neue Katalog braucht dieselbe Unterschrift.
@@ -34,11 +34,11 @@ liegt. Ist der Schlüssel weg, bekommt der Store nie wieder eine App (Befund 2 i
 Den öffentlichen Teil nennt jederzeit wieder:
 
 ```bash
-./ngc-store key ~/ngc-keys/ngc-store.key
+./cd-store key ~/cd-keys/cd-store.key
 ```
 
-Die Zeile `Öffentlicher Schlüssel:` ist der Wert für `storeKey` (`/etc/ngc/api.json`) und für
-`NGC_STORE_KEY_DEFAULT` in ulh (Abschnitt 6).
+Die Zeile `Öffentlicher Schlüssel:` ist der Wert für `storeKey` (`/etc/cd/api.json`) und für
+`CD_STORE_KEY_DEFAULT` in ulh (Abschnitt 6).
 
 ## 3. Katalog bauen
 
@@ -47,21 +47,21 @@ unterschrieben:
 
 ```bash
 mkdir site
-./ngc-store pack apps/store-calculator site/org.sorglos.calc-1.0.0.ngc
-./ngc-store catalog site ~/ngc-keys/ngc-store.key global 1 https://store.example.invalid/ngc
-./ngc-store check -store global site
+./cd-store pack apps/store-calculator site/org.sorglos.calc-1.0.0.cd
+./cd-store catalog site ~/cd-keys/cd-store.key global 1 https://store.example.invalid/cd
+./cd-store check -store global site
 ```
 
 - `global` ist die Kennung des Stores, immer genau so.
 - `1` ist die Folgenummer. **Jeder neue Katalog braucht eine höhere** als der letzte;
-  `ngc-store catalog` liest den alten `catalog.json` im Ordner und weist eine kleinere ab. Darum
+  `cd-store catalog` liest den alten `catalog.json` im Ordner und weist eine kleinere ab. Darum
   den Ordner `site/` behalten und nicht jedes Mal neu anlegen.
 - Die Basisadresse ist die Adresse des Stores; die Download-Links im Katalog werden
   `<Adresse>/<Paketname>`.
 - `check` muss `store ok` sagen. Sonst nichts hochladen.
 
-Danach liegen in `site/` genau: `catalog.json`, die Pakete (`*.ngc`, bei Kauf-Apps zusätzlich
-`*.ngc.enc` und `*.price.json`) und `store-key.pem`, der **öffentliche** Teil des Schlüssels.
+Danach liegen in `site/` genau: `catalog.json`, die Pakete (`*.cd`, bei Kauf-Apps zusätzlich
+`*.cd.enc` und `*.price.json`) und `store-key.pem`, der **öffentliche** Teil des Schlüssels.
 
 ## 4. Hochladen
 
@@ -82,7 +82,7 @@ folgt genau das:
 | **Antwort 200, keine Weiterleitung** | Die API folgt keiner 3xx (`CheckRedirect`). Auch `http`→`https` oder `www`-Umleitungen der Adresse selbst brechen ab. Die Adresse genau so eintragen, wie der Webspace sie ohne Umleitung ausliefert. |
 | **Keine Anmeldeseite, kein Bot-Schutz, kein Cookie-Banner davor** | Die API ist kein Browser; sie bekommt sonst HTML statt JSON. |
 | `catalog.json`: `Content-Type: application/json`, `Cache-Control: no-cache` | Ein neuer Katalog soll beim nächsten Holen ankommen, nicht erst nach einem Proxy-Ablauf. |
-| `*.ngc`, `*.enc`: `Content-Type: application/octet-stream` | Kein Umschreiben, keine Zeichensatz-Umwandlung. Lange cachebar: ein Paketname mit Fassung ändert sich nie. |
+| `*.cd`, `*.enc`: `Content-Type: application/octet-stream` | Kein Umschreiben, keine Zeichensatz-Umwandlung. Lange cachebar: ein Paketname mit Fassung ändert sich nie. |
 | `store-key.pem`: `Content-Type: text/plain` | Nur zum Nachsehen für Menschen. |
 | Kompression darf an, Bytes dürfen sich nicht ändern | Prüfsumme und Größe im Katalog gelten für die ausgelieferten Bytes. |
 | CORS: **nicht nötig** | Die Oberfläche zeigt die Adresse nur an (`setup.js`) und holt nichts vom Store. |
@@ -91,7 +91,7 @@ Für Apache (`.htaccess` im Store-Verzeichnis, falls der Webspace das zulässt):
 
 ```apache
 AddType application/json .json
-AddType application/octet-stream .ngc .enc
+AddType application/octet-stream .cd .enc
 AddType text/plain .pem
 <Files "catalog.json">
   Header set Cache-Control "no-cache"
@@ -102,20 +102,20 @@ Options -Indexes
 Prüfen von außen, ohne Umleitung:
 
 ```bash
-curl -sS -o /dev/null -w '%{http_code} %{content_type}\n' https://store.example.invalid/ngc/catalog.json
+curl -sS -o /dev/null -w '%{http_code} %{content_type}\n' https://store.example.invalid/cd/catalog.json
 ```
 
 Erwartet: `200 application/json`.
 
 ## 6. ulh: der Platzhalter (nur Thomas schiebt dort)
 
-In ulh steht `NGC_STORE_KEY_DEFAULT="REPLACE-THIS-LINE-WITH-THE-NGC-STORE-KEY"` in
-`scripts/ngc-api.sh:97` und `scripts/ngc-all.sh:177`. Wenn Adresse und Schlüssel feststehen,
+In ulh steht `CD_STORE_KEY_DEFAULT="REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY"` in
+`scripts/cd-api.sh:97` und `scripts/cd-all.sh:177`. Wenn Adresse und Schlüssel feststehen,
 in **beiden** Dateien:
 
 ```sh
-NGC_STORE_KEY_DEFAULT="<Wert der Zeile 'Öffentlicher Schlüssel:' von ngc-store key>"
-NGC_STORE_URL_DEFAULT="<Store-Adresse, ohne / am Ende>"
+CD_STORE_KEY_DEFAULT="<Wert der Zeile 'Öffentlicher Schlüssel:' von cd-store key>"
+CD_STORE_URL_DEFAULT="<Store-Adresse, ohne / am Ende>"
 ```
 
 Steht für die Adresse noch keine `…_DEFAULT`-Zeile neben der des Schlüssels, kommt sie direkt
