@@ -124,6 +124,14 @@ func owner(cfg *config.Controller) string {
 // this program he reads on the server, and it names the next step.
 const msgNoState = "Die lokale Datenbank dieses Servers lässt sich nicht öffnen. Bitte den Server mit ulh neu einrichten."
 
+// msgRunning is the answer to a second start beside a controller that runs on
+// the same database (E32): two of them would hold the same Noise key, open two
+// tunnels as one node and both drive the containers of the apps.
+const msgRunning = "Auf diesem Server läuft schon ein ngc-controller. Ein zweiter startet nicht."
+
+// errRunning says another process holds the lock of this controller's database.
+var errRunning = errors.New("node: another ngc-controller runs on this database")
+
 // msgStopped is the one line a clean end writes. An admin who stopped the
 // service reads it and knows the containers were left alone.
 const msgStopped = "Der Controller wurde beendet. Die Dienste dieses Servers laufen weiter."
@@ -532,6 +540,17 @@ func runWith(version, cfgPath string, open opener, stdout, stderr io.Writer) int
 		fmt.Fprintln(stderr, msgNoKey)
 		return 1
 	}
+	unlock, err := lockRun(cfg.DB)
+	if err != nil {
+		if errors.Is(err, errRunning) {
+			fmt.Fprintln(stderr, msgRunning)
+			return 1
+		}
+		slog.Error("the lock beside the store of this controller could not be taken", "err", err)
+		fmt.Fprintln(stderr, msgNoState)
+		return 1
+	}
+	defer unlock()
 	st, err := open(cfg)
 	if err != nil {
 		// The cause is not named to the admin: on this way it would name the
