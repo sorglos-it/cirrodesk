@@ -166,7 +166,7 @@ var logID = regexp.MustCompile(`^[0-9a-f]{32}$`)
 // characters.
 func ValidLogID(s string) bool { return logID.MatchString(s) }
 
-// SourceInfo is a store in ngc.store/sources.
+// SourceInfo is a store in ngc.store/sources and ngc.store/refresh.
 type SourceInfo struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
@@ -269,9 +269,9 @@ var ErrResult = errors.New("core: result the shell would refuse")
 // EncodeResult encodes the result of a core action as the API sends it.
 // encoding/json writes a nil slice as null, which the shell refuses (no null,
 // enc.Budget); EncodeResult writes an empty or nil list as [] and an empty or
-// nil map as {}, so the ten results that are lists (ngc.desktop/apps,
+// nil map as {}, so the eleven results that are lists (ngc.desktop/apps,
 // ngc.users/list, log, nodes, pending, pending-api and rights,
-// ngc.store/sources, installed and updates) are [] when empty. It encodes with
+// ngc.store/sources, refresh, installed and updates) are [] when empty. It encodes with
 // encoding/json/v2, whose omitempty keeps false and 0; the result types mark
 // optional bools and numbers omitzero, which both versions leave out alike.
 // Every failure is ErrResult: a value encoding/json/v2 refuses (invalid

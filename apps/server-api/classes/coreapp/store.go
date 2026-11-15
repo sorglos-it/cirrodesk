@@ -49,6 +49,7 @@ import (
 func (d *Dispatcher) registerStore() {
 	if d.Store != nil {
 		d.Register(core.AppStore, core.ServiceAPI, core.ActSources, d.storeSources)
+		d.Register(core.AppStore, core.ServiceAPI, core.ActRefresh, d.storeRefresh)
 		d.Register(core.AppStore, core.ServiceAPI, core.ActCatalog, d.storeCatalog)
 		d.Register(core.AppStore, core.ServiceAPI, core.ActInstalled, d.storeInstalled)
 		d.Register(core.AppStore, core.ServiceAPI, core.ActUpload, d.storeUpload)
@@ -68,6 +69,16 @@ func (d *Dispatcher) registerStore() {
 // what was last seen of each.
 func (d *Dispatcher) storeSources(ctx context.Context, rq *Call) ([]byte, error) {
 	list, err := d.Store.Sources(ctx)
+	if err != nil {
+		return nil, storeFail(err)
+	}
+	return result(list)
+}
+
+// storeRefresh answers ngc.store/refresh (A25): every store is asked now, not
+// at the next hourly round, and the answer is ngc.store/sources afterwards.
+func (d *Dispatcher) storeRefresh(ctx context.Context, rq *Call) ([]byte, error) {
+	list, err := d.Store.RefreshNow(ctx)
 	if err != nil {
 		return nil, storeFail(err)
 	}

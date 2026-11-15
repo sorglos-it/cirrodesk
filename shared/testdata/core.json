@@ -2,6 +2,7 @@
   "empty": {
     "ngc.desktop/apps": [],
     "ngc.store/installed": [],
+    "ngc.store/refresh": [],
     "ngc.store/sources": [],
     "ngc.store/updates": [],
     "ngc.users/list": [],
@@ -78,6 +79,15 @@
     "app": "org.sorglos.terminal",
     "state": "valid"
   },
+  "ngc.store/refresh": [
+    {
+      "id": "global",
+      "name": "NGC Store",
+      "url": "https://store.ngc.test",
+      "seq": 5,
+      "checked": 1790000000
+    }
+  ],
   "ngc.store/sources": [
     {
       "id": "global",

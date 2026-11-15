@@ -63,6 +63,7 @@ export const ACT_NODES = "nodes";
 export const ACT_LOG = "log";
 
 export const ACT_SOURCES = "sources";
+export const ACT_REFRESH = "refresh";
 export const ACT_CATALOG = "catalog";
 export const ACT_INSTALLED = "installed";
 export const ACT_UPLOAD = "upload";
@@ -138,6 +139,7 @@ export const ACTIONS = Object.freeze([
   [APP_USERS, SERVICE_API, ACT_LOG, true, false, false, FLOW_CALL, 0],
   [APP_USERS, SERVICE_CONTROLLER, ACT_TRUST, true, false, true, FLOW_IN, session.MAX_CHAIN],
   [APP_STORE, SERVICE_API, ACT_SOURCES, true, false, false, FLOW_CALL, 0],
+  [APP_STORE, SERVICE_API, ACT_REFRESH, true, false, false, FLOW_CALL, 0],
   [APP_STORE, SERVICE_API, ACT_CATALOG, true, false, false, FLOW_CALL, 0],
   [APP_STORE, SERVICE_API, ACT_INSTALLED, true, false, false, FLOW_CALL, 0],
   [APP_STORE, SERVICE_API, ACT_UPLOAD, true, false, true, FLOW_IN, MAX_PACKAGE],
@@ -597,6 +599,11 @@ const RESULTS = {
   },
 
   "ngc.store/sources": {
+    shape: A(sourceInfoShape), items: { "": trust.MAX_STORES },
+    check: (v) => every(v, checkSourceInfo) && unique(v, (s) => s.id),
+  },
+  // refresh answers exactly like sources: the stores after fetching each now.
+  "ngc.store/refresh": {
     shape: A(sourceInfoShape), items: { "": trust.MAX_STORES },
     check: (v) => every(v, checkSourceInfo) && unique(v, (s) => s.id),
   },

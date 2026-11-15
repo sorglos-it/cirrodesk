@@ -91,6 +91,11 @@ func (f *fakeStore) Sources(context.Context) ([]core.SourceInfo, error) {
 	return []core.SourceInfo{{ID: trust.StoreGlobal, Name: "Global", URL: "https://s.test"}}, nil
 }
 
+func (f *fakeStore) RefreshNow(context.Context) ([]core.SourceInfo, error) {
+	f.note(core.ActRefresh)
+	return []core.SourceInfo{{ID: trust.StoreGlobal, Name: "Global", URL: "https://s.test"}}, nil
+}
+
 func (f *fakeStore) Catalog(_ context.Context, id string) (*store.Catalog, sign.Envelope, error) {
 	f.note(core.ActCatalog)
 	f.catalogOf = id
@@ -272,6 +277,7 @@ func storeCases() []storeCase {
 	}
 	return []storeCase{
 		{core.ServiceAPI, core.ActSources, byHandler, call(core.ServiceAPI, core.ActSources, "")},
+		{core.ServiceAPI, core.ActRefresh, byHandler, call(core.ServiceAPI, core.ActRefresh, "")},
 		{core.ServiceAPI, core.ActCatalog, byHandler,
 			call(core.ServiceAPI, core.ActCatalog, `{"store":"`+trust.StoreGlobal+`"}`)},
 		{core.ServiceAPI, core.ActInstalled, byHandler, call(core.ServiceAPI, core.ActInstalled, "")},
