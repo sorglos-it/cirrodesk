@@ -12,8 +12,8 @@
 // THREE PLACES WHERE THIS FILE DIFFERS FROM THE TASK BRIEF, each measured
 // rather than argued:
 //
-//  1. The brief steers the mock with window.__ngcTest = { lock: 30 } and
-//     window.__ngcTest = { user: "clara" }. A hook on window that changes how
+//  1. The brief steers the mock with window.__cdTest = { lock: 30 } and
+//     window.__cdTest = { user: "clara" }. A hook on window that changes how
 //     the LOGIN behaves is a hook anything else on the page can set, and the
 //     login is the one page where that must not be possible - so the shell
 //     reads no such thing. What steers the mock here is the mock's own test
@@ -21,7 +21,7 @@
 //     and the login NAME, which is what steers a real API too.
 //  2. The passkey cases run at http://localhost:<port>/ and not at the
 //     suite's 127.0.0.1. Measured in chromium with a virtual authenticator:
-//     at an IP origin every rp id - "ngc.example.org", "127.0.0.1" and none
+//     at an IP origin every rp id - "cd.example.org", "127.0.0.1" and none
 //     at all - answers "SecurityError: This is an invalid domain", because an
 //     IP literal has no effective domain for WebAuthn. The same page reached
 //     through localhost takes rp id "localhost" and makes a credential. Both
@@ -158,7 +158,7 @@ async function atLocalhost(shell) {
 // mock holds the public half of, so the assertion it makes verifies.
 //
 // who: null puts an authenticator there that WORKS and holds nothing - the
-// state every NGC account is in today, and what the third case below needs.
+// state every CirroDesk account is in today, and what the third case below needs.
 async function withAuthenticator(shell, who) {
   const cdp = await shell.context().newCDPSession(shell);
   await cdp.send("WebAuthn.enable");
@@ -272,7 +272,7 @@ test("TOTP is asked for when the challenge says so", async ({ shell }) => {
 // Until 18.10.2026 every case here carried
 // `test.skip(browserName !== "chromium", "virtual authenticators only exist in
 // Chromium")` - a skip by the NAME of the engine, and the only passkey
-// measurement NGC had. On Firefox that is worse than it looks: the password
+// measurement CirroDesk had. On Firefox that is worse than it looks: the password
 // field is disabled there (contracts/proof.js publicFromSeed, OperationError
 // on a PKCS#8 seed), so the passkey is the ONLY route the mask offers, and it
 // was the one route nobody had ever driven. That is the shape the Firefox bug
@@ -378,7 +378,7 @@ for (const a of AUTHENTICATORS) {
     await a.allowed(shell);
     // An authenticator that WORKS and holds nothing for this installation, which
     // is the state every account is in today: there is no way to make a passkey
-    // (apps/web has no credentials.create, and no action of ngc.users writes a
+    // (apps/web has no credentials.create, and no action of cd.users writes a
     // user key), so somebody who presses this button has none.
     const done = await a.putEmpty(shell);
     await atLocalhost(shell);
@@ -435,7 +435,7 @@ test("a password login is told to switch to passkeys", async ({ shell }) => {
 // green. A case whose answer depends on which engine wins a race is a case
 // that measures the race.
 async function bootOver(shell) {
-  await expect(shell.getByRole("heading", { name: "Bei NGC anmelden" })).toBeVisible();
+  await expect(shell.getByRole("heading", { name: "Bei CirroDesk anmelden" })).toBeVisible();
 }
 
 //
@@ -461,7 +461,7 @@ test("a mask without password keys says so and shuts the password route", async 
   await shell.evaluate(async () => {
     const { loginView } = await import("/assets/js/auth/login.js");
     loginView(document.getElementById("root"), {
-      config: { rp: { id: "ngc.example.org", origins: ["https://ngc.example.org"] } },
+      config: { rp: { id: "cd.example.org", origins: ["https://cd.example.org"] } },
       passwordKeys: false,
     });
   });
@@ -481,7 +481,7 @@ test("a mask with password keys carries neither the sentence nor a disabled fiel
   await shell.evaluate(async () => {
     const { loginView } = await import("/assets/js/auth/login.js");
     loginView(document.getElementById("root"), {
-      config: { rp: { id: "ngc.example.org", origins: ["https://ngc.example.org"] } },
+      config: { rp: { id: "cd.example.org", origins: ["https://cd.example.org"] } },
     });
   });
   await expect(shell.locator(".note.warn")).toHaveCount(0);
@@ -498,7 +498,7 @@ test("Enter asks for no login where the password route is shut", async ({ shell 
   await shell.evaluate(async () => {
     const { loginView } = await import("/assets/js/auth/login.js");
     loginView(document.getElementById("root"), {
-      config: { rp: { id: "ngc.example.org", origins: ["https://ngc.example.org"] } },
+      config: { rp: { id: "cd.example.org", origins: ["https://cd.example.org"] } },
       passwordKeys: false,
     });
   });
@@ -511,10 +511,10 @@ test("Enter asks for no login where the password route is shut", async ({ shell 
   await expect(shell.locator(".note.warn")).toBeVisible();
 });
 
-// docs/gestaltung.md point 6: NGC stands small under the box, and the
+// docs/gestaltung.md point 6: CirroDesk stands small under the box, and the
 // installation's version is what it says. The version comes out of
 // /config.json, which the test installation sets, and it goes in as text.
-test("NGC stands small under the login box, with the version of the installation", async ({ page }) => {
+test("CirroDesk stands small under the login box, with the version of the installation", async ({ page }) => {
   await page.goto("/");
   await skipWithoutLogin(page);
   await expect(page.locator(".loginbox")).toBeVisible();
@@ -522,7 +522,7 @@ test("NGC stands small under the login box, with the version of the installation
     (await (await fetch("/config.json")).json()).version);
   expect(version).not.toBe("");
   const foot = page.locator(".poweredby");
-  await expect(foot).toHaveText("läuft mit NGC " + version);
+  await expect(foot).toHaveText("läuft mit CirroDesk " + version);
   // Under the box, not over it: that is the whole decision.
   expect(await page.evaluate(() => {
     const b = document.querySelector(".loginbox").getBoundingClientRect();
@@ -535,7 +535,7 @@ test("NGC stands small under the login box, with the version of the installation
 
 test("no version means no line, rather than a line with nothing in it", async ({ page }) => {
   // index.php leaves the version empty rather than taking the page down over
-  // it, and "läuft mit NGC" with nothing after it says less than no line.
+  // it, and "läuft mit CirroDesk" with nothing after it says less than no line.
   await page.route("**/config.json", async (route) => {
     const r = await route.fetch();
     const c = await r.json();

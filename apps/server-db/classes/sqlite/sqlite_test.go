@@ -15,8 +15,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 var ctx = context.Background()

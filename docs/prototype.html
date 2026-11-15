@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NGC Desktop</title>
+<title>CirroDesk Desktop</title>
 <style>
 :root{
   --bar-h: 44px;
@@ -274,8 +274,8 @@ kbd{background:var(--field-bg);border:1px solid var(--win-border);border-bottom-
    Einstellungen / Persistenz
    ======================================================================= */
 const LS = {
-  get(k, d){ try{ const v = localStorage.getItem("ngc."+k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
-  set(k, v){ try{ localStorage.setItem("ngc."+k, JSON.stringify(v)); }catch(e){} }
+  get(k, d){ try{ const v = localStorage.getItem("cd."+k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem("cd."+k, JSON.stringify(v)); }catch(e){} }
 };
 
 const WALLPAPERS = [
@@ -697,10 +697,10 @@ const APPS = [
     const t = el("div","term");
     body.appendChild(t);
     const line = txt => { const d = el("div", null, txt); t.appendChild(d); t.scrollTop = t.scrollHeight; };
-    line('NGC Shell 1.0 &nbsp;—&nbsp; "help" für Befehle.');
+    line('CirroDesk Shell 1.0 &nbsp;—&nbsp; "help" für Befehle.');
 
     const prompt = () => {
-      const row = el("div","in", `<span class="p">C:\\NGC&gt;</span>`);
+      const row = el("div","in", `<span class="p">C:\\CirroDesk&gt;</span>`);
       const inp = el("input"); inp.autocomplete="off"; inp.spellcheck=false;
       row.appendChild(inp); t.appendChild(row); inp.focus(); t.scrollTop = t.scrollHeight;
       inp.onkeydown = e => {
@@ -724,7 +724,7 @@ const APPS = [
         case "echo": line(arg.replace(/[<>&]/g, ch=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[ch]))); break;
         case "date": line(new Date().toLocaleString("de-DE")); break;
         case "dir":  line("Dokumente\\  Bilder\\  Downloads\\  index.html"); break;
-        case "ver":  line("NGC Desktop 1.0 (Web)"); break;
+        case "ver":  line("CirroDesk Desktop 1.0 (Web)"); break;
         case "theme": applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"); line("Design gewechselt."); break;
         case "cls": t.innerHTML = ""; break;
         case "exit": closeWin(focused); return;
@@ -841,10 +841,10 @@ const APPS = [
 
 /* ---------------- Über ---------------- */
 {
-  id:"about", name:"Über NGC", icon:"ℹ️", w:440, h:300, single:true,
+  id:"about", name:"Über CirroDesk", icon:"ℹ️", w:440, h:300, single:true,
   mount(body){
     body.innerHTML = `<div class="app pad">
-      <h2>NGC Desktop 1.0</h2>
+      <h2>CirroDesk Desktop 1.0</h2>
       <p>Eine Desktop-Oberfläche im Browser: Fenster lassen sich verschieben, in der Größe ändern,
          maximieren, minimieren und an den Bildschirmrändern andocken.</p>
       <p style="color:var(--muted)">Alles in einer einzigen <code>index.html</code> — kein Framework,

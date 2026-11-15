@@ -515,7 +515,7 @@ const MESSAGES = new Map([
   ["E_TOOLARGE", "Zu viele Daten."],
   ["E_LOGIN", "Anmeldung fehlgeschlagen."],
   ["E_LOCKED", "Zu viele Fehlversuche. Bitte später erneut versuchen."],
-  ["E_NOT_SET_UP", "NGC ist noch nicht eingerichtet."],
+  ["E_NOT_SET_UP", "CirroDesk ist noch nicht eingerichtet."],
 ]);
 
 // message returns the German text shown to users, and "" for a code that is

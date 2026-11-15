@@ -3,10 +3,10 @@ package coreapp
 import (
 	"context"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/browser"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/browser"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The seam package relay forwards a channel over, written out here so that the

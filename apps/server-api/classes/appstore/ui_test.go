@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // proofVectors is shared/testdata/uiproof.json: twenty-three UI proofs made
@@ -95,7 +95,7 @@ const (
 	storeAppProof = "store app from the global store"
 )
 
-// TestKeepUIKeepsTheBytesAsTheyAre: ngc.desktop/ui sends what is kept here
+// TestKeepUIKeepsTheBytesAsTheyAre: cd.desktop/ui sends what is kept here
 // byte for byte, so KeepUI must not touch one of them, and they must land
 // under "<app>@<version>" -- the ID the shell's request is answered from.
 func TestKeepUIKeepsTheBytesAsTheyAre(t *testing.T) {
@@ -156,7 +156,7 @@ func TestKeepProofTakesOnlyWhatHolds(t *testing.T) {
 		}
 		for _, row := range rows {
 			// A row that was written is bytes the contract's parser reads
-			// back: that is what ngc.desktop/ui-proof does with it, and it
+			// back: that is what cd.desktop/ui-proof does with it, and it
 			// cannot ask whoever wrote it to try again.
 			if _, perr := core.ParseUIProof(row.Data); perr != nil {
 				t.Errorf("%s: the kept row %q does not read back: %v", c.Name, row.ID, perr)
@@ -237,7 +237,7 @@ func TestProofOfAnUploadedApp(t *testing.T) {
 
 // TestProofAndUITarMustAgree: a proof is about one UI. Where the ui-tar of
 // that version is here too, Proof compares what the proof vouches for against
-// what ngc.desktop/ui would send, so bytes nobody signed for that app are not
+// what cd.desktop/ui would send, so bytes nobody signed for that app are not
 // handed out with evidence for other bytes.
 func TestProofAndUITarMustAgree(t *testing.T) {
 	v := loadProofVectors(t)

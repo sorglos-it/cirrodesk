@@ -41,7 +41,7 @@ const unhex = (s) => {
 // would make the seeds depend on a digest this file would then have to pin.
 function seedBytes(name) {
   const out = new Uint8Array(32);
-  const text = new TextEncoder().encode(`ngc-test-seed/${name}`);
+  const text = new TextEncoder().encode(`cd-test-seed/${name}`);
   if (text.length > out.length) throw new Error("seeded: name too long for one seed");
   out.set(text);
   // The tail is not left at zero: a seed of mostly zeroes is a seed somebody

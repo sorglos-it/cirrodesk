@@ -1,5 +1,5 @@
 // Package sign defines envelopes for documents signed with Ed25519 keys held
-// by NGC components: API nodes, stores and the release key.
+// by CirroDesk components: API nodes, stores and the release key.
 package sign
 
 import (
@@ -7,7 +7,7 @@ import (
 	"crypto/sha256"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
 )
 
 // Purposes. A signature always covers Message(purpose, payload), so a
@@ -93,10 +93,10 @@ func (e Envelope) Validate(maxPayload int) error {
 	return nil
 }
 
-// Message returns the bytes a signature covers: "ngc/" || purpose || 0x00 || payload.
+// Message returns the bytes a signature covers: "cd/" || purpose || 0x00 || payload.
 func Message(purpose string, payload []byte) []byte {
-	m := make([]byte, 0, len("ngc/")+len(purpose)+1+len(payload))
-	m = append(m, "ngc/"...)
+	m := make([]byte, 0, len("cd/")+len(purpose)+1+len(payload))
+	m = append(m, "cd/"...)
 	m = append(m, purpose...)
 	m = append(m, 0)
 	return append(m, payload...)

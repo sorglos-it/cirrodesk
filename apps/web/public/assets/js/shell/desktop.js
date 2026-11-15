@@ -27,8 +27,8 @@ import {
 // it runs in the frame like an app out of the store, against a proven user
 // interface of its own (apps/web/assets/apps/calculator/, which is NOT in the
 // web root: see shell/fake-link.js). It could never have
-// stayed: core.AppParams refuses a core app ("ngc.") for ngc.desktop/ui and
-// ngc.desktop/ui-proof alike, so "ngc.calc" could not even have been asked for
+// stayed: core.AppParams refuses a core app ("cd.") for cd.desktop/ui and
+// cd.desktop/ui-proof alike, so "cd.calc" could not even have been asked for
 // a user interface. What it cost while it stood here is what the move bought -
 // it ran in the shell's own origin, with the whole DOM of the shell and
 // localStorage in reach.
@@ -42,8 +42,8 @@ import {
 // like one - which is also why the contract refuses them a user interface.
 const BUILTIN = {
   __proto__: null,
-  "ngc.store": storeApp,
-  "ngc.users": usersApp,
+  "cd.store": storeApp,
+  "cd.users": usersApp,
 };
 
 // tintOf picks one of the six by the app's id. A sum of the characters, which
@@ -59,7 +59,7 @@ function tintOf(id) {
 
 // The id of the Store, written once. The empty desktop offers it by name, and
 // a second spelling of it somewhere else is a button that opens nothing.
-const STORE_APP = "ngc.store";
+const STORE_APP = "cd.store";
 
 // Accent colours in the order of theme.js, with the KEY of the name the swatch
 // carries for a screen reader. Six colours, no colour picker: a wall of choices
@@ -94,7 +94,7 @@ class Desktop {
     this.session = session ?? null;
     this.trust = trust ?? null;
     // The release key of the initial setup: what a standing approval for an
-    // NGC part is signed with. It never comes out of an answer of the API -
+    // CirroDesk part is signed with. It never comes out of an answer of the API -
     // see approvalKey in apps/store.js for why.
     this.releaseKey = releaseKey ?? null;
 
@@ -187,9 +187,9 @@ class Desktop {
 
     const tray = el("div", null);
     tray.id = "tray";
-    const themeBtn = button(null, "🌗", "Design wechseln");
+    const themeBtn = button(null, "🌗", t("desk.theme"));
     themeBtn.id = "themebtn";
-    themeBtn.title = "Design wechseln";
+    themeBtn.title = t("desk.theme");
     themeBtn.addEventListener("click", () => toggleTheme());
     this.clock = el("div", null);
     this.clock.id = "clock";
@@ -252,9 +252,9 @@ class Desktop {
     this.search = el("input", null);
     this.search.id = "smsearch";
     this.search.type = "text";
-    this.search.placeholder = "Apps durchsuchen …";
+    this.search.placeholder = t("desk.search") + " …";
     this.search.autocomplete = "off";
-    this.search.setAttribute("aria-label", "Apps durchsuchen");
+    this.search.setAttribute("aria-label", t("desk.search"));
     this.search.addEventListener("input", () => this.renderMenu(this.search.value));
     this.search.addEventListener("keydown", (e) => {
       if (e.key === "Escape") this.toggleMenu(false);
@@ -270,7 +270,7 @@ class Desktop {
       }
     });
 
-    const head = el("div", null, "Alle Apps");
+    const head = el("div", null, t("desk.allapps"));
     head.id = "smhead";
 
     this.list = el("div", null);
@@ -279,7 +279,7 @@ class Desktop {
     // and a role="menu" holding something else is a promise to a screen
     // reader that the shell would then break.
     this.list.setAttribute("role", "menu");
-    this.list.setAttribute("aria-label", "Alle Apps");
+    this.list.setAttribute("aria-label", t("desk.allapps"));
     // AND THE BOX ITSELF IS NO TAB STOP. #smlist scrolls, and a scroll
     // container is reachable with Tab in its own right since Firefox 136
     // ("focusable scroll containers"). MEASURED on 09.11.2026 with
@@ -368,19 +368,19 @@ class Desktop {
   buildLook() {
     const box = el("div", null);
     box.id = "smlook";
-    const head = el("div", null, "Aussehen");
+    const head = el("div", null, t("look.head"));
     head.id = "smlookhead";
 
     // Three choices since docs/gestaltung.md point 7, and the first of them is
     // the default: the machine decides unless the person says otherwise.
     const themes = el("div", "row");
-    for (const [t, label] of [["system", "Wie das System"], ["light", "Hell"], ["dark", "Dunkel"]]) {
+    for (const [id, label] of [["system", t("look.theme.system")], ["light", t("look.theme.light")], ["dark", t("look.theme.dark")]]) {
       const b = button("b", label, null);
       b.addEventListener("click", () => {
-        applyTheme(t);
+        applyTheme(id);
         this.markLook();
       });
-      b.dataset.theme = t;
+      b.dataset.theme = id;
       themes.append(b);
     }
     this.themeRow = themes;
@@ -400,7 +400,7 @@ class Desktop {
 
     const papers = el("div", "wpgrid");
     for (const w of WALLPAPERS) {
-      const b = button(null, null, "Hintergrund " + w.name);
+      const b = button(null, null, t("look.wallpaper", { name: t("look.wallpaper." + w.id) || w.name }));
       b.style.background = w.css;
       b.dataset.wallpaper = w.id;
       b.addEventListener("click", () => {
@@ -418,7 +418,7 @@ class Desktop {
     // without knowing what a pixel is.
     const dens = el("div", "row");
     for (const d of DENSITIES) {
-      const b = button("b", d.name, null);
+      const b = button("b", t("look.density." + d.id) || d.name, null);
       b.dataset.density = d.id;
       b.addEventListener("click", () => {
         applyDensity(d.id);
@@ -430,7 +430,7 @@ class Desktop {
 
     const glass = el("div", "row");
     for (const g of GLASSES) {
-      const b = button("b", g.name, null);
+      const b = button("b", t("look.glass." + g.id) || g.name, null);
       b.dataset.glass = g.id;
       b.addEventListener("click", () => {
         applyGlass(g.id);
@@ -466,12 +466,12 @@ class Desktop {
   buildFoot() {
     const foot = el("div", null);
     foot.id = "smfoot";
-    const tile = button(null, "Fenster anordnen", null);
+    const tile = button(null, t("win.tile"), null);
     tile.addEventListener("click", () => {
       this.tile();
       this.toggleMenu(false);
     });
-    const closeAll = button(null, "Alle schließen", null);
+    const closeAll = button(null, t("desk.closeall"), null);
     closeAll.addEventListener("click", () => {
       this.closeAll();
       this.toggleMenu(false);
@@ -509,7 +509,7 @@ class Desktop {
     this.status = el("p", "status", "");
     this.status.setAttribute("role", "status");
     this.status.setAttribute("aria-live", "polite");
-    this.noticeClose = button("noticeclose", "✕", "Meldung schließen");
+    this.noticeClose = button("noticeclose", "✕", t("desk.noticeclose"));
     this.noticeClose.hidden = true;
     this.noticeClose.addEventListener("click", () => this.clearNotice());
     bar.append(this.status, this.noticeClose);
@@ -607,8 +607,8 @@ class Desktop {
       // refused leaves this.loaded false, and a menu that says "here is room
       // for your apps" over a failed request says something that was never
       // measured - the same line renderEmpty draws, for the same reason.
-      if (f) this.list.append(el("div", "smempty", "Keine Treffer."));
-      else if (this.loaded) this.list.append(el("div", "smempty", "Hier ist Platz für Ihre Apps."));
+      if (f) this.list.append(el("div", "smempty", t("desk.nohits")));
+      else if (this.loaded) this.list.append(el("div", "smempty", t("desk.empty")));
       return;
     }
     for (const a of hits) this.list.append(this.menuItem(a));
@@ -701,7 +701,7 @@ class Desktop {
       //
       // Why the answer was no good is nothing the person can act on, and
       // saying more would describe the inside of the server.
-      this.notice("error", "Die Liste der Apps konnte nicht geladen werden.");
+      this.notice("error", t("desk.appsfailed"));
       return;
     }
     this.appList = list;
@@ -865,16 +865,16 @@ class Desktop {
     const bare = this.loaded && !this.appList.length;
     this.empty.hidden = !bare;
     if (!bare) return;
-    this.empty.append(el("p", "emptymain", "Hier ist Platz für Ihre Apps."));
+    this.empty.append(el("p", "emptymain", t("desk.empty")));
     // The Store is an app like any other and stands in the same list. With an
     // empty list it is not there either, and a button that opens nothing is
     // worse than no button: then the sentence says who does it instead.
     if (this.appList.some((a) => a.id === STORE_APP)) {
-      const go = button("b", "Store öffnen", null);
+      const go = button("b", t("desk.openstore"), null);
       go.addEventListener("click", () => this.openApp(STORE_APP));
       this.empty.append(go);
     } else {
-      this.empty.append(el("p", "muted", "Ein Verwalter aktiviert die Apps dieser Anlage."));
+      this.empty.append(el("p", "muted", t("desk.adminactivates")));
     }
   }
 
@@ -889,7 +889,7 @@ class Desktop {
       return null;
     }
     if (a.state === "unlicensed") {
-      this.notice("warn", "Keine gültige Lizenz.");
+      this.notice("warn", t("desk.nolicense"));
       return null;
     }
     // One window per app: two calculators help nobody, and a second window of
@@ -917,8 +917,8 @@ class Desktop {
       try {
         win.onClose = mount(win, this.appCtx(win)) || null;
       } catch {
-        this.placeholder(win, "Diese App konnte nicht geöffnet werden.",
-          "Bitte das Fenster schließen und es noch einmal versuchen.");
+        this.placeholder(win, t("desk.appfailed"),
+          t("desk.appfailed.hint"));
       }
     } else {
       // Every other app: its signed user interface, in the fenced frame.
@@ -1128,7 +1128,7 @@ export function startDesktop(root, { link, session, trust, releaseKey } = {}) {
 // touch the document before the desktop has built the element it paints.
 function localStorageWallpaper() {
   try {
-    return localStorage.getItem("ngc.wallpaper") ?? "";
+    return localStorage.getItem("cd.wallpaper") ?? "";
   } catch {
     return "";
   }

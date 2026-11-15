@@ -1,4 +1,4 @@
-// Command tunnelprobe is a measuring fixture, not part of NGC: it writes the
+// Command tunnelprobe is a measuring fixture, not part of CirroDesk: it writes the
 // two configuration files of one API and one controller, makes version 1 of
 // the trust list with both nodes in it and puts that version into the API own
 // store with state.AddVersion. Everything it short-circuits is named in the
@@ -17,28 +17,28 @@ import (
 	"os"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/apitls"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbopen"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	ctlstate "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	_ "github.com/sorglos-it/nextgencloud/apps/server-db/classes/register"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/apitls"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbopen"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	ctlstate "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	_ "github.com/sorglos-it/cirrodesk/apps/server-db/classes/register"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 const (
-	etc      = "/etc/ngc"
+	etc      = "/etc/cd"
 	apiJSON  = etc + "/api.json"
 	ctlJSON  = etc + "/controller.json"
 	certFile = etc + "/tls/api.crt"
 	keyFile  = etc + "/tls/api.key"
-	dbFile   = "/var/lib/ngc/api.db"
-	ctlDB    = "/var/lib/ngc/controller/state.db"
+	dbFile   = "/var/lib/cd/api.db"
+	ctlDB    = "/var/lib/cd/controller/state.db"
 	anchorF  = etc + "/anchor.json"
 	adminF   = etc + "/probe-admin.key"
 	nodeID   = "api-1"
@@ -128,7 +128,7 @@ func writeConfig() {
 		"challengeKey": b64key(32),
 		"releaseKey":   enc.B64.EncodeToString(relPub),
 		"storeKey":     enc.B64.EncodeToString(storePub),
-		"storeUrl":     "https://store.invalid/ngc",
+		"storeUrl":     "https://store.invalid/cd",
 	}
 	writeJSON(apiJSON, api)
 	ctl := map[string]any{
@@ -403,7 +403,7 @@ func printPairCode() {
 	fmt.Println(c.String())
 }
 
-// writeProvisional writes the configuration ngc-controller pair reads before
+// writeProvisional writes the configuration cd-controller pair reads before
 // it asks for the code, the same way the ulh script does it: the address in
 // the reserved domain .invalid and 32 zero bytes where the pairing will put
 // the API and the anchor.
@@ -416,7 +416,7 @@ func writeProvisional(path string) {
 			"url": "wss://unpaired.invalid:7443/tunnel", "key": zero, "tls": zero,
 		}},
 		"anchor":     map[string]any{"seq": 1, "hash": zero},
-		"db":         "/var/lib/ngc/controller/prov.db",
+		"db":         "/var/lib/cd/controller/prov.db",
 		"dbKey":      b64key(64),
 		"releaseKey": b64key(32),
 		"roles":      []string{"services"},

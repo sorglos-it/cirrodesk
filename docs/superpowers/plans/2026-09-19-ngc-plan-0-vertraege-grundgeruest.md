@@ -1,5 +1,7 @@
 # NGC Plan 0: Verträge, Anweisungen und Grundgerüst – Umsetzungsplan
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 > **Für ausführende Agenten:** PFLICHT-SKILL: superpowers:subagent-driven-development (empfohlen)
 > oder superpowers:executing-plans, Aufgabe für Aufgabe. Schritte nutzen Checkboxen (`- [ ]`).
 

@@ -29,10 +29,10 @@ import { vectors } from "../fixtures/vectors.js";
 //     to come out true - a step backwards stays green.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=6000 npm test -- contracts/proof-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=6000 npm test -- contracts/proof-fuzz
 const v = vectors("proof.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 800);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 800);
 
 test(`fuzz: true only for the one right proof, ${rounds} inputs from seed ${seed}`, async ({ shell }) => {
   // Every deep round goes through importKey and verify of the Web Crypto API,

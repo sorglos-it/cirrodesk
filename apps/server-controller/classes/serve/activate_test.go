@@ -8,16 +8,16 @@ import (
 	"io"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/install"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	ctrlrt "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/install"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	ctrlrt "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // fakeInbox hands out these messages in order and then says the channel is
@@ -76,7 +76,7 @@ func activateParams() core.ActivateParams {
 		SHA256: bytes.Repeat([]byte{0x7c}, 32), UI: bytes.Repeat([]byte{0x6d}, 32)}
 }
 
-// activateOpen is the OPEN of ngc.store/controller/activate with a root task
+// activateOpen is the OPEN of cd.store/controller/activate with a root task
 // of the fixture's admin: the one way this action may be opened at all
 // (core.Action.Root).
 func activateOpen(t testing.TB, w *world, id byte, p core.ActivateParams) []byte {

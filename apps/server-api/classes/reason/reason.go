@@ -3,8 +3,8 @@
 // nothing, and the line has to say WHICH check said no.
 //
 // Measured on 19.-21.10.2026 on the Debian machine during the first real
-// installation: three refusals in a row, and neither ngc-api nor
-// ngc-controller wrote a single line about any of them. One of the three was a
+// installation: three refusals in a row, and neither cd-api nor
+// cd-controller wrote a single line about any of them. One of the three was a
 // user with no root grant on that controller -- a decision this package can
 // now name (NotRoot).
 //
@@ -32,8 +32,8 @@
 package reason
 
 import (
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Reason is one sentence of the closed list below, or None.

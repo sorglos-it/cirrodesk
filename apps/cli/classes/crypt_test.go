@@ -15,13 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 func TestEncryptRoundTrip(t *testing.T) {
 	dir := t.TempDir()
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	if err := os.WriteFile(plain, bytes.Repeat([]byte("a"), 3*store.ChunkSize+7), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
@@ -74,7 +74,7 @@ func TestEncryptRoundTrip(t *testing.T) {
 
 func TestDecryptWithAnotherKeyFails(t *testing.T) {
 	dir := t.TempDir()
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	if err := os.WriteFile(plain, []byte("package"), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestDecryptWithAnotherKeyFails(t *testing.T) {
 
 func TestEncryptIsNotReproducibleOnPurpose(t *testing.T) {
 	dir := t.TempDir()
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	if err := os.WriteFile(plain, []byte("package"), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestEncryptIsNotReproducibleOnPurpose(t *testing.T) {
 	if bytes.Equal(a, b) {
 		t.Fatal("two runs gave the same bytes: the file ID is not fresh")
 	}
-	head := len("NGCENC1\n")
+	head := len("CD-ENC1\n")
 	if !bytes.Equal(a[:head], b[:head]) {
 		t.Fatal("the magic differs between two runs")
 	}
@@ -180,7 +180,7 @@ func TestNewContentKeyNeverOverwritesAKey(t *testing.T) {
 
 func TestEncryptRefusesAFileThatIsNoKey(t *testing.T) {
 	dir := t.TempDir()
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	write(t, plain, []byte("package"))
 	cases := []struct {
 		name string
@@ -229,13 +229,13 @@ func TestEncryptRefusesAFileThatIsNoKey(t *testing.T) {
 
 func TestEncryptRefusesToOverwriteItsInput(t *testing.T) {
 	dir := t.TempDir()
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	write(t, plain, []byte("package"))
 	keyFile := filepath.Join(dir, "content.key")
 	if _, err := NewContentKey(keyFile); err != nil {
 		t.Fatalf("key: %v", err)
 	}
-	if err := Encrypt(plain, filepath.Join(dir, ".", "app.ngc"), keyFile); !errors.Is(err, ErrSamePath) {
+	if err := Encrypt(plain, filepath.Join(dir, ".", "app.cd"), keyFile); !errors.Is(err, ErrSamePath) {
 		t.Fatalf("same path: %v", err)
 	}
 	if string(read(t, plain)) != "package" {
@@ -250,7 +250,7 @@ func TestEncryptLeavesNoFileBehindWhenTheInputGoes(t *testing.T) {
 		t.Fatalf("key: %v", err)
 	}
 	out := filepath.Join(dir, "app.enc")
-	if err := Encrypt(filepath.Join(dir, "gone.ngc"), out, keyFile); err == nil {
+	if err := Encrypt(filepath.Join(dir, "gone.cd"), out, keyFile); err == nil {
 		t.Fatal("a missing input did not fail")
 	}
 	if _, err := os.Stat(out); err == nil {
@@ -316,7 +316,7 @@ func TestNoSecretReachesAMessage(t *testing.T) {
 		}
 	}
 
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	write(t, plain, []byte("package"))
 	// Every way encrypt and license can fail or succeed, through the
 	// dispatcher, with the real key file in place.
@@ -324,7 +324,7 @@ func TestNoSecretReachesAMessage(t *testing.T) {
 		{"encrypt"},
 		{"encrypt", plain, keyFile},
 		{"encrypt", plain, filepath.Join(dir, "no.key")},
-		{"encrypt", filepath.Join(dir, "gone.ngc"), keyFile},
+		{"encrypt", filepath.Join(dir, "gone.cd"), keyFile},
 		{"encrypt", filepath.Join(dir, "app.txt"), keyFile},
 		{"license", "org.sorglos.demo", "x", keyFile, keyFile, "y", "z"},
 		{"license", "org.sorglos.demo", "x", filepath.Join(dir, "no.key"), keyFile, "y", "z"},
@@ -340,7 +340,7 @@ func TestNoSecretReachesAMessage(t *testing.T) {
 	// the key it just drew. The key is read back from the file afterwards,
 	// so the check knows the very bytes that were created.
 	fresh := filepath.Join(dir, "fresh.key")
-	freshPkg := filepath.Join(dir, "fresh.ngc")
+	freshPkg := filepath.Join(dir, "fresh.cd")
 	write(t, freshPkg, []byte("package"))
 	var stdout, stderr bytes.Buffer
 	if code := Run([]string{"encrypt", freshPkg, fresh}, &stdout, &stderr); code != 0 {
@@ -374,7 +374,7 @@ func TestNoSecretReachesAMessage(t *testing.T) {
 }
 
 // childEnv marks the process the next test starts as its own child.
-const childEnv = "NGC_T27_CHILD"
+const childEnv = "CD_T27_CHILD"
 
 // TestChildEncryptsWhenTheParentSaysSo is the child of
 // TestNoSecretReachesTheProcessList, not a test of its own. It blocks until
@@ -421,11 +421,11 @@ func TestNoSecretReachesTheProcessList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("key: %v", err)
 	}
-	plain := filepath.Join(dir, "app.ngc")
+	plain := filepath.Join(dir, "app.cd")
 	write(t, plain, []byte("package"))
-	marker := "ngc-t27-marker"
+	marker := "cd-t27-marker"
 
-	// Two children: the first is the call ngc-store really makes — paths
+	// Two children: the first is the call cd-store really makes — paths
 	// only. The second adds the key as an argument, the mistake this test
 	// forbids; it must be caught, or the measurement proves nothing.
 	for _, c := range []struct {
@@ -437,8 +437,8 @@ func TestNoSecretReachesTheProcessList(t *testing.T) {
 		{"the forbidden call", []string{enc.B64.EncodeToString(key)}, true},
 	} {
 		args := append([]string{"-test.run=TestChildEncryptsWhenTheParentSaysSo",
-			filepath.Join(dir, c.name+".ngc"), keyFile, marker}, c.extra...)
-		write(t, filepath.Join(dir, c.name+".ngc"), []byte("package"))
+			filepath.Join(dir, c.name+".cd"), keyFile, marker}, c.extra...)
+		write(t, filepath.Join(dir, c.name+".cd"), []byte("package"))
 		cmd := exec.Command(exe, args...)
 		cmd.Env = append(os.Environ(), childEnv+"=1")
 		in, err := cmd.StdinPipe()

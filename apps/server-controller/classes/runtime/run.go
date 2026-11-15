@@ -5,11 +5,11 @@ import (
 	"errors"
 	"os"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// The runtime directory of an app, /run/ngc/<name>, is where rootless podman
+// The runtime directory of an app, /run/cd/<name>, is where rootless podman
 // keeps what is running for that container (XDG_RUNTIME_DIR, Podman.run). It
 // belongs to the app's user, because podman runs as that user and writes there.
 //
@@ -42,7 +42,7 @@ func RunDirOf(name string) string { return paths.runDir + "/" + name }
 // back to 0700 BEFORE it is handed over, then the owner to the app's user - and
 // only a directory that cannot be made or cannot be handed over is an error.
 //
-// The owner is the whole point: a directory of root under /run/ngc would make
+// The owner is the whole point: a directory of root under /run/cd would make
 // every podman call of that app fail, and a directory of another app's user
 // would let that other app read what is running here.
 func EnsureRun(ctx context.Context, u User) (string, error) {

@@ -1,5 +1,7 @@
 # Ganz oder nicht: was NGC tut, wenn ein Teil wegbricht
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Die Frage dieses Blatts ist eine einzige: **ein halb laufender Server ist
 schlimmer als ein ganz stehender, weil niemand merkt, dass die Hälfte fehlt.**
 Gilt das für NGC, und wenn ja, wo?

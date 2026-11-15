@@ -14,7 +14,7 @@
     { "name": "remove", "title": "Eigene Dateien löschen", "service": "files" }
   ],
   "services": [
-    { "name": "files", "command": ["/usr/lib/ngc/ngc-files", "serve"] }
+    { "name": "files", "command": ["/usr/lib/cd/cd-files", "serve"] }
   ],
   "runtime": "podman",
   "cpu": 500,

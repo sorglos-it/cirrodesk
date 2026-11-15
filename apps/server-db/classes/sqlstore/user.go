@@ -5,32 +5,32 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 const (
-	userByID   = "SELECT id, name, roles, totp, locked, failures, last_login FROM ngc_user WHERE id = ?"
-	userByName = "SELECT id, name, roles, totp, locked, failures, last_login FROM ngc_user WHERE name = ?"
-	userIDOf   = "SELECT id FROM ngc_user WHERE name = ?"
-	userWithID = "SELECT id FROM ngc_user WHERE id = ?"
-	userUpdate = "UPDATE ngc_user SET name = ?, roles = ?, totp = ?, locked = ?, failures = ?, last_login = ? WHERE id = ?"
-	userInsert = "INSERT INTO ngc_user (id, name, roles, totp, locked, failures, last_login) VALUES (?, ?, ?, ?, ?, ?, ?)"
-	userList   = "SELECT id, name, roles, totp, locked, failures, last_login FROM ngc_user ORDER BY name"
-	userDelete = "DELETE FROM ngc_user WHERE id = ?"
+	userByID   = "SELECT id, name, roles, totp, locked, failures, last_login FROM cd_user WHERE id = ?"
+	userByName = "SELECT id, name, roles, totp, locked, failures, last_login FROM cd_user WHERE name = ?"
+	userIDOf   = "SELECT id FROM cd_user WHERE name = ?"
+	userWithID = "SELECT id FROM cd_user WHERE id = ?"
+	userUpdate = "UPDATE cd_user SET name = ?, roles = ?, totp = ?, locked = ?, failures = ?, last_login = ? WHERE id = ?"
+	userInsert = "INSERT INTO cd_user (id, name, roles, totp, locked, failures, last_login) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	userList   = "SELECT id, name, roles, totp, locked, failures, last_login FROM cd_user ORDER BY name"
+	userDelete = "DELETE FROM cd_user WHERE id = ?"
 
-	sessionSelect = "SELECT token, user_id, cert, proof, api_key, api_cert, created, expires, seen FROM ngc_session WHERE token = ?"
-	sessionUpdate = "UPDATE ngc_session SET user_id = ?, cert = ?, proof = ?, api_key = ?, api_cert = ?, " +
+	sessionSelect = "SELECT token, user_id, cert, proof, api_key, api_cert, created, expires, seen FROM cd_session WHERE token = ?"
+	sessionUpdate = "UPDATE cd_session SET user_id = ?, cert = ?, proof = ?, api_key = ?, api_cert = ?, " +
 		"created = ?, expires = ?, seen = ? WHERE token = ?"
-	sessionInsert = "INSERT INTO ngc_session (token, user_id, cert, proof, api_key, api_cert, created, expires, seen) " +
+	sessionInsert = "INSERT INTO cd_session (token, user_id, cert, proof, api_key, api_cert, created, expires, seen) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	sessionTouch  = "UPDATE ngc_session SET seen = ? WHERE token = ?"
-	sessionDelete = "DELETE FROM ngc_session WHERE token = ?"
-	sessionPurge  = "DELETE FROM ngc_session WHERE expires <= ?"
+	sessionTouch  = "UPDATE cd_session SET seen = ? WHERE token = ?"
+	sessionDelete = "DELETE FROM cd_session WHERE token = ?"
+	sessionPurge  = "DELETE FROM cd_session WHERE expires <= ?"
 
-	pendingUpdate = "UPDATE ngc_pending SET name = ?, since = ? WHERE pubkey = ?"
-	pendingInsert = "INSERT INTO ngc_pending (pubkey, name, since) VALUES (?, ?, ?)"
-	pendingList   = "SELECT pubkey, name, since FROM ngc_pending ORDER BY since, name"
-	pendingDelete = "DELETE FROM ngc_pending WHERE pubkey = ?"
+	pendingUpdate = "UPDATE cd_pending SET name = ?, since = ? WHERE pubkey = ?"
+	pendingInsert = "INSERT INTO cd_pending (pubkey, name, since) VALUES (?, ?, ?)"
+	pendingList   = "SELECT pubkey, name, since FROM cd_pending ORDER BY since, name"
+	pendingDelete = "DELETE FROM cd_pending WHERE pubkey = ?"
 )
 
 // scanUser reads one row into a User. The roles column goes back out through
@@ -62,7 +62,7 @@ func scanUser(scan func(...any) error) (dbapi.User, error) {
 //
 // TestTheNameCheckSitsInTheTransaction reads the source. It has to, because
 // no answer of this method says where the check is: the unique index
-// ngc_user_name gives the same word on both ways, so taking the check out,
+// cd_user_name gives the same word on both ways, so taking the check out,
 // asking it of the pool instead of this transaction, or leaving it written
 // where it stands and running it from a defer all leave every test that asks
 // this store a question green, and no group of the contract goes red with any
@@ -78,7 +78,7 @@ func scanUser(scan func(...any) error) (dbapi.User, error) {
 // property of the run, not of the shape - and three ways past it were found
 // in three rounds, each one a shape the round before had not thought of. So
 // TestTheCheckAloneRefusesATakenName and TestOnlyOneWriterGetsAName ask this
-// method instead, on a database whose ngc_user_name has been dropped, where
+// method instead, on a database whose cd_user_name has been dropped, where
 // the check is the only thing left that can answer. The two shapes the guard
 // could not see - the check under a condition that can never hold, and the
 // question asked with its answer thrown away - are red there at once, and the
@@ -100,8 +100,8 @@ func scanUser(scan func(...any) error) (dbapi.User, error) {
 //
 //   - The UPDATE renames onto a name the SELECT did not see - a writer one
 //     statement behind, or a row nobody of ours wrote. It leaves the ID alone,
-//     so the primary key is not in its way, and ngc_user carries no unique
-//     index besides that one and ngc_user_name: only the name can stop this
+//     so the primary key is not in its way, and cd_user carries no unique
+//     index besides that one and cd_user_name: only the name can stop this
 //     statement, so its duplicate is ErrInvalid on the spot. A second unique
 //     index on this table would come out here as "the name belongs to another
 //     ID" and say nothing about itself.

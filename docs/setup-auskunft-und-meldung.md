@@ -1,5 +1,7 @@
 # Die Setup-Auskunft und die Meldung der ungepaarten Anlage
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Entwurf, 03.11.2026. Zweig `api-setup-auskunft`, Basis `origin/main` (`0471b02d`).
 Rangfolge dieses Blattes: **Sicherheit > Stabilität > Geschwindigkeit.**
 

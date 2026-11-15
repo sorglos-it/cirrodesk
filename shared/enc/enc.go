@@ -1,4 +1,4 @@
-// Package enc holds the encodings shared by all NGC contracts.
+// Package enc holds the encodings shared by all CirroDesk contracts.
 package enc
 
 import (
@@ -11,7 +11,7 @@ import (
 	"io"
 )
 
-// B64 is the only binary-to-text encoding in NGC contracts: base64url without
+// B64 is the only binary-to-text encoding in CirroDesk contracts: base64url without
 // padding (RFC 4648, section 5). Decoding is strict: every byte must be in the
 // alphabet A-Z a-z 0-9 - _ (encoding/base64 alone would skip CR and LF), and
 // non-zero trailing bits are refused, so every byte string has exactly one

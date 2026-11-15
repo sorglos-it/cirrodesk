@@ -10,17 +10,17 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/rights"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/rights"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // upTunnels is a stand-in for the open tunnels in which every node answers.
@@ -29,7 +29,7 @@ type upTunnels struct{}
 
 func (upTunnels) Get(string) (*controllers.Tunnel, bool) { return nil, true }
 
-// call opens a core action of ngc.desktop and reads its result.
+// call opens a core action of cd.desktop and reads its result.
 func (h *harness) call(t *testing.T, action string, params string) []byte {
 	t.Helper()
 	o := wire.Open{App: core.AppDesktop, Service: core.ServiceAPI, Action: action, Window: wire.MinWindow}
@@ -555,7 +555,7 @@ func uiTar(t *testing.T, body string) []byte {
 	return buf.Bytes()
 }
 
-// appEntry finds the entry of an app in the result of ngc.desktop/apps.
+// appEntry finds the entry of an app in the result of cd.desktop/apps.
 func appEntry(t *testing.T, body []byte, id string) (core.DesktopApp, bool) {
 	t.Helper()
 	var list []core.DesktopApp

@@ -1,7 +1,7 @@
-// Package text: the names, texts, paths and versions of the NGC contracts,
+// Package text: the names, texts, paths and versions of the CirroDesk contracts,
 // exactly as in Go (wire.ValidText, wire.ValidName, wire.ValidAppID,
 // wire.CoreApp, store.ValidPath, store.ValidVersion, store.Newer,
-// store.SupportsMinNGC, trust.ValidID, trust.ValidLoginName, core.ValidLogID,
+// store.SupportsMinCD, trust.ValidID, trust.ValidLoginName, core.ValidLogID,
 // session.ValidTOTP).
 //
 // Go is handed a string and an int at every one of these; here a caller can
@@ -74,8 +74,8 @@ export const validName = (s) => typeof s === "string" && NAME.test(s);
 // 100 bytes.
 export const validAppID = (s) => typeof s === "string" && s.length <= MAX_APP_ID && APP_ID.test(s);
 
-// coreApp reports whether app belongs to NGC itself.
-export const coreApp = (s) => typeof s === "string" && s.startsWith("ngc.");
+// coreApp reports whether app belongs to CirroDesk itself.
+export const coreApp = (s) => typeof s === "string" && s.startsWith("cd.");
 
 // validLogID reports whether s is the id of a log entry: 32 lower-case hex.
 export const validLogID = (s) => typeof s === "string" && LOG_ID.test(s);
@@ -131,15 +131,15 @@ export function newer(a, b) {
   return false;
 }
 
-// supportsMinNGC reports whether an NGC of version ngc can take a package
-// that asks for minNGC.
-export function supportsMinNGC(ngc, minNGC) {
-  // Go is handed two strings here. A minNgc that was left out is not an empty
-  // minNgc: it is a question nobody asked, and the answer to it is no.
-  if (typeof ngc !== "string" || typeof minNGC !== "string") return false;
-  if (minNGC === "") return true;
+// supportsMinCD reports whether a CirroDesk of version cd can take a package
+// that asks for minCD.
+export function supportsMinCD(cd, minCD) {
+  // Go is handed two strings here. A minCd that was left out is not an empty
+  // minCd: it is a question nobody asked, and the answer to it is no.
+  if (typeof cd !== "string" || typeof minCD !== "string") return false;
+  if (minCD === "") return true;
   // A build that calls itself 0.0.0-dev is no release version and must fail
-  // every minNgc, not pass it: newer is false on both sides for it, so both
+  // every minCd, not pass it: newer is false on both sides for it, so both
   // versions are asked for here.
-  return validVersion(ngc) && validVersion(minNGC) && !newer(minNGC, ngc);
+  return validVersion(cd) && validVersion(minCD) && !newer(minCD, cd);
 }

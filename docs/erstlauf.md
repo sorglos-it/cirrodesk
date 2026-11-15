@@ -2,7 +2,7 @@
 
 Stand 23.10.2026. Lauf: `bash tools/erstlauf.sh`.
 
-Zwischen dem 19. und 21.10.2026 wurde zum ersten Mal eine NGC-Anlage aus einem veröffentlichten
+Zwischen dem 19. und 21.10.2026 wurde zum ersten Mal eine CirroDesk-Anlage aus einem veröffentlichten
 Release auf einer echten Maschine installiert. Dabei standen **sechs** Hürden im Weg — jede
 einzeln klein, zusammen unüberwindbar. **Keine davon hat ein Prüfsatz bemerkt.** Dieser Lauf baut
 den Weg nach, damit eine siebte nicht wieder erst von Hand gefunden wird.
@@ -38,14 +38,14 @@ Mensch ansieht, und bleibt **stderr** davon weg und landet im Journal.
 | `tools/check.sh` | gofmt, `go vet` (4 Konfigurationen), `go test ./...`, `go build` für linux/amd64 und arm64, der PHP-Selbsttest, die Modultyp-Sonde | **Beim Übersetzen und bei Unit-Tests.** Er installiert nichts, startet nichts und kennt keine Datei außerhalb dieses Repos. Er ist bemerkenswert gründlich gegen *hohle Prüfungen* (leere `go list`, `gofmt`-Exit 2, fehlende Dateien im Baum) — aber jede dieser Prüfungen fragt nach dem Inhalt dieses Repos. |
 | `apps/web/tests/` (Playwright) | Die Browser-Verträge und die Oberfläche gegen einen Attrappen-Server | **Am Attrappen-Server.** Kein echter API-Knoten, keine Vertrauensliste aus einer Datenbank, kein Controller. |
 | `apps/server-controller/classes/e2e` | zwei Dateien, Go-Ebene | Im Prozess. Keine Maschine, kein systemd, kein podman. |
-| ulh: `apps/cli/tests/ngc-*.test.sh` (auf den Zweigen `ngc-kette` / `pruefsatz-ngc-kette`, **nicht** auf `main`) | Was die Installationsskripte schreiben, ohne Server: `api.json` und die Unit **Byte für Byte**, und welche Namen, Adressen und Codes sie ablehnen | **Am Text.** Der Fall vergleicht die Unit mit einer wörtlichen Kopie ihrer selbst — einschließlich der Zeile `ReadWritePaths=/var/lib/ngc /etc/ngc/tls`. Damit ist **Hürde 1 in einem Prüffall eingefroren**: der Fall beweist, dass die Datei sich selbst gleicht. |
+| ulh: `apps/cli/tests/cd-*.test.sh` (auf den Zweigen `cd-kette` / `pruefsatz-cd-kette`, **nicht** auf `main`) | Was die Installationsskripte schreiben, ohne Server: `api.json` und die Unit **Byte für Byte**, und welche Namen, Adressen und Codes sie ablehnen | **Am Text.** Der Fall vergleicht die Unit mit einer wörtlichen Kopie ihrer selbst — einschließlich der Zeile `ReadWritePaths=/var/lib/cd /etc/cd/tls`. Damit ist **Hürde 1 in einem Prüffall eingefroren**: der Fall beweist, dass die Datei sich selbst gleicht. |
 
 ### Drei der sechs Hürden lagen gar nicht in einer `.go`-Datei
 
 Das ist der Kern des Befundes, nicht eine Randbemerkung:
 
-1. **Hürde 1 — die systemd-Unit liegt in einem anderen Repo.** `ngc-api.service` wird von
-   `apps/cli/assets/scripts/ngc-api.sh` im **ulh**-Repo geschrieben. In `nextgencloud` gibt es
+1. **Hürde 1 — die systemd-Unit liegt in einem anderen Repo.** `cd-api.service` wird von
+   `apps/cli/assets/scripts/cd-api.sh` im **ulh**-Repo geschrieben. In `cirrodesk` gibt es
    keine einzige Datei mit `ProtectSystem` oder `ReadWritePaths` (gemessen: Treffer nur in drei
    Dokumenten unter `docs/`). `tools/check.sh` kann diese Hürde prinzipiell nicht sehen.
 2. **Hürde 2 — die Version kommt aus einem Bau-Flag, das nur ein Dokument verlangt.**
@@ -72,9 +72,9 @@ bash tools/erstlauf.sh --machine erstlauf-vm --machine-staged /root/release/dist
   Hälfte, die aus den Quellen dieses Repos **und des ulh-Repos zusammen** entscheidbar ist. Läuft
   in Sekunden, braucht keine Maschine.
 - **Phase B — `tools/erstlauf-maschine.sh`, läuft ALS ROOT AUF der Wegwerf-Maschine.** Sie
-  installiert NGC so, wie ein Nutzer es tut: Testrelease nach `/var/lib/ngc/staged`, dann das
-  ulh-Skript `ngc-all.sh`, dann die Stationen. `--machine <ziel>` in Phase A legt das Skript per
-  `scp` hinüber und fährt es per `ssh`; zusätzliche ssh-Optionen kommen aus `NGC_SSH_OPTS`, damit
+  installiert CirroDesk so, wie ein Nutzer es tut: Testrelease nach `/var/lib/cd/staged`, dann das
+  ulh-Skript `cd-all.sh`, dann die Stationen. `--machine <ziel>` in Phase A legt das Skript per
+  `scp` hinüber und fährt es per `ssh`; zusätzliche ssh-Optionen kommen aus `CD_SSH_OPTS`, damit
   nichts in die ssh-Konfiguration des Nutzers geschrieben werden muss.
 
 ### Der Unterschied der beiden Phasen ist Station 1
@@ -88,9 +88,9 @@ der Datei richtig aussieht und trotzdem verbietet, fällt nur hier.
 
 | Station | Was fehlt |
 |---|---|
-| 3 koppeln | Der Kopplungscode kommt **aus dem Browser** (`pair_code`). Dafür braucht es das Webinterface: ulhs `ngc-web.sh` mit Apache und PHP — `ngc-all.sh` installiert das nicht (`NGC_PACKAGES=(openssl jq curl ca-certificates podman)`). |
+| 3 koppeln | Der Kopplungscode kommt **aus dem Browser** (`pair_code`). Dafür braucht es das Webinterface: ulhs `cd-web.sh` mit Apache und PHP — `cd-all.sh` installiert das nicht (`CD_PACKAGES=(openssl jq curl ca-certificates podman)`). |
 | 4, 5 | Brauchen Station 3. |
-| 6 Katalog | Braucht einen Store mit signiertem Katalog in der Vertrauensliste. NGCs eigener Store-Schlüssel ist im Skript noch ein Platzhalter (`NGC_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-…`). |
+| 6 Katalog | Braucht einen Store mit signiertem Katalog in der Vertrauensliste. CirroDesks eigener Store-Schlüssel ist im Skript noch ein Platzhalter (`CD_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-…`). |
 | 7 App einrichten | **Der Kern kann nicht verschlüsseln.** `# CONFIG_FS_ENCRYPTION is not set` auf `6.18.33.2-microsoft-standard-WSL2`, gemessen am 23.10.2026. `apps/server-controller/classes/serve/activate.go` sagt es an der Zeile selbst: auf so einem Kern endet **jede** Aktivierung in `runtime.ErrNoFscrypt`. **Alle** WSL-Instanzen teilen diesen Kern. |
 | 8 | Braucht Station 7 und einen zweiten Benutzer. |
 
@@ -111,25 +111,25 @@ Gemessen am 23.10.2026, mit den Orten:
   richtig und bleibt stehen; er trägt heute nur nicht mehr — es gibt keine eingerichtete
   Einzel-Maschine, die man schonen müsste. Siehe `docs/alte-vm-verweise.md`.
 
-Die Wegwerf-Instanz heißt `ngc-erstlauf` und liegt in `D:\claude\ngc-erstlauf-vm`; das
-Testrelease in `D:\claude\ngc-erstlauf-release`. Beides ist meins und darf weg.
+Die Wegwerf-Instanz heißt `cd-erstlauf` und liegt in `D:\claude\cd-erstlauf-vm`; das
+Testrelease in `D:\claude\cd-erstlauf-release`. Beides ist meins und darf weg.
 
 **Lieber ein ehrlicher Lauf über die halbe Strecke als ein grüner, der nichts beweist.**
 
 ### Der eine Riegel, den Phase B ersetzt
 
-`ngc-all.sh` trägt den öffentlichen Release-Schlüssel von NGC im Text, und niemand außer NGC kann
+`cd-all.sh` trägt den öffentlichen Release-Schlüssel von CirroDesk im Text, und niemand außer CirroDesk kann
 ein Release signieren, das er annimmt. Phase B nennt darum mit `--test-release-key` eine
 **Test-Wurzel** und sagt es in jeder Ausgabe. Was weiter läuft: die Signaturprüfung selbst, samt
 Prüfsummen und Größe — eine manipulierte Datei fällt hier wie im Feld. Was **nicht** gemessen ist:
-dass NGCs eigener Schlüssel im Skript steht und stimmt.
+dass CirroDesks eigener Schlüssel im Skript steht und stimmt.
 
 ## 3. Die Stationen
 
 | # | Station | Aussage, die rot wird | Hürde | heute |
 |---|---|---|---|---|
-| 1 | installieren | **A:** Jeder Pfad, den `ngc-api` **schreibt**, muss von `ReadWritePaths=` der Unit gedeckt sein — beide Hälften aus den beiden Repos **gelesen**, nicht abgetippt. **B:** die Installation kommt mit Code 0 durch, und ein Prozess in der **echten** Sandbox der Unit kann `/etc/ngc/trust-anchor.json` schreiben. | 1 | **ROT**, in beiden Phasen |
-| 2 | API und Controller laufen | **A:** `tools/build-servers.sh` muss es geben, muss laufen, und die Programme müssen auf `-version` eine Nummer melden, die das **Muster der Oberfläche** annimmt (aus `contracts/text.js` gelesen); Gegenprobe im selben Lauf: ein Bau **ohne** `-ldflags` muss abgelehnt werden. **B:** das **installierte** `/usr/lib/ngc/ngc-api` meldet so eine Nummer, `ngc-api.service` ist aktiv und behält **eine** MainPID über 10 s. | 2 | grün |
+| 1 | installieren | **A:** Jeder Pfad, den `cd-api` **schreibt**, muss von `ReadWritePaths=` der Unit gedeckt sein — beide Hälften aus den beiden Repos **gelesen**, nicht abgetippt. **B:** die Installation kommt mit Code 0 durch, und ein Prozess in der **echten** Sandbox der Unit kann `/etc/cd/trust-anchor.json` schreiben. | 1 | **ROT**, in beiden Phasen |
+| 2 | API und Controller laufen | **A:** `tools/build-servers.sh` muss es geben, muss laufen, und die Programme müssen auf `-version` eine Nummer melden, die das **Muster der Oberfläche** annimmt (aus `contracts/text.js` gelesen); Gegenprobe im selben Lauf: ein Bau **ohne** `-ldflags` muss abgelehnt werden. **B:** das **installierte** `/usr/lib/cd/cd-api` meldet so eine Nummer, `cd-api.service` ist aktiv und behält **eine** MainPID über 10 s. | 2 | grün |
 | 3 | Controller koppeln | Kopplung gelingt und der Controller meldet sich. | — | UNMEASURABLE |
 | 4 | aufnehmen | Ein frisch aufgenommener Controller ist über die Oberfläche **änderbar** — nicht nur `rootUsers: []`. | 4 | UNMEASURABLE |
 | 5 | Systemrechte setzen | Systemrechte sind über die Oberfläche setzbar. | 4 | UNMEASURABLE |
@@ -153,9 +153,9 @@ Ausstiegscode 1.
 ### Hürde 1 ist nicht behoben, und Phase B zeigt sie am laufenden System
 
 ```
-station 1 installieren: FAIL -- ngc-api.service grants ProtectSystem=strict with
-  ReadWritePaths='/var/lib/ngc /etc/ngc/tls', and a process in that sandbox CANNOT write
-  /etc/ngc/trust-anchor.json: touch: cannot touch '…': Read-only file system
+station 1 installieren: FAIL -- cd-api.service grants ProtectSystem=strict with
+  ReadWritePaths='/var/lib/cd /etc/cd/tls', and a process in that sandbox CANNOT write
+  /etc/cd/trust-anchor.json: touch: cannot touch '…': Read-only file system
 ```
 
 Die Installation lief dabei mit **Code 0** durch, die API läuft, der Einmal-Code wurde gezeigt —
@@ -166,26 +166,26 @@ sieht ihn):
 
 | Lage | `ReadWritePaths` | Schreiben |
 |---|---|---|
-| wie installiert | `/var/lib/ngc /etc/ngc/tls` | **geht nicht** |
-| Drop-in mit `/etc/ngc` | `/var/lib/ngc /etc/ngc` | **geht** |
-| Kontrolle: `RestartSec=7` dazu | `/var/lib/ngc /etc/ngc` | geht (unverändert) |
-| Drop-in weg | `/var/lib/ngc /etc/ngc/tls` | **geht nicht** |
+| wie installiert | `/var/lib/cd /etc/cd/tls` | **geht nicht** |
+| Drop-in mit `/etc/cd` | `/var/lib/cd /etc/cd` | **geht** |
+| Kontrolle: `RestartSec=7` dazu | `/var/lib/cd /etc/cd` | geht (unverändert) |
+| Drop-in weg | `/var/lib/cd /etc/cd/tls` | **geht nicht** |
 
 ### Hürde 2 ist behoben — von diesem Zug
 
 `tools/build-servers.sh` baut die drei Programme mit `-ldflags "-s -w -X main.Version=…"` aus den
 `VERSION`-Dateien. Station 2 **führt es aus** und fragt die Programme; die Gegenprobe im selben
 Lauf verlangt, dass ein Bau ohne das Flag von demselben Muster **abgelehnt** wird. Auf der
-Maschine meldet das installierte `/usr/lib/ngc/ngc-api` **0.2.0**, der Dienst ist aktiv und
+Maschine meldet das installierte `/usr/lib/cd/cd-api` **0.2.0**, der Dienst ist aktiv und
 behielt eine MainPID über 10 s.
 
 ### Neu gefunden: ohne eigenen Store kommt keine Installation zustande
 
-Nicht gesucht, vom Lauf gefunden. Mit beiden Store-Antworten leer bricht `ngc-all.sh install` ab:
+Nicht gesucht, vom Lauf gefunden. Mit beiden Store-Antworten leer bricht `cd-all.sh install` ab:
 
-> NGC has no official app store yet, so this installation needs a store of its own: give its
+> CirroDesk has no official app store yet, so this installation needs a store of its own: give its
 > address and its key in the two questions about the store. Leaving them empty would write a
-> placeholder into `/etc/ngc/api.json`, and the API refuses that file.
+> placeholder into `/etc/cd/api.json`, and the API refuses that file.
 
 Eine Installation aus einem veröffentlichten Release ist heute also **nur** möglich, wenn der
 Admin sich einen Store ausdenkt. Phase B nennt darum einen (`https://store.erstlauf.invalid`),
@@ -212,7 +212,7 @@ Nach `messen.md`, und jede dieser Prüfungen hat eine gemessene Vorgeschichte:
 - **Baum:** `git diff --diff-filter=D` muss 0 sein — eine fehlende Testdatei macht einen Lauf
   still kleiner.
 - **Vorbereitung je Station:** `broken()` trennt einen **Fehler dieses Skripts** von einem Befund
-  über NGC und bricht ab, statt eine Zahl zu nennen. Fällt `render_unit` weg, wird `ProtectSystem`
+  über CirroDesk und bricht ab, statt eine Zahl zu nennen. Fällt `render_unit` weg, wird `ProtectSystem`
   nicht mehr gesetzt, verschwindet eine Konstante aus `config.go` oder nennt der benannte
   Schreiber sie nicht mehr, dann sagt der Lauf das — er meldet nicht grün.
 - **Muster-Übertragung:** das Versionsmuster wird aus `contracts/text.js` gelesen und
@@ -266,7 +266,7 @@ ist nirgends gemessen und braucht einen Container.
 ### Beweis, dass die beiden Stationen den Fehler FINDEN
 
 `messen.md`: eine Prüfung, die den Fehler nicht nachweislich findet, misst nichts. Alle Läufe am
-23.10.2026 im Arbeitsbaum `D:\claude\nextgencloud-erstlauf-weiter`, Basis `0bf7201`, jeweils
+23.10.2026 im Arbeitsbaum `D:\claude\cirrodesk-erstlauf-weiter`, Basis `0bf7201`, jeweils
 `bash tools/erstlauf.sh`:
 
 | Änderung | Station 9 | Station 10 |
@@ -292,7 +292,7 @@ offen und liegt im ulh-Repo), **7 unmeasurable**, Ausstiegscode 1. Station 9 und
 
 Stand 24.10.2026. Lauf: `bash tools/erstlauf-verteilt.sh`, gemessen gegen sechs Maschinen
 (`tools/proxmox-sechs.sh`). Maschinen nicht in `~/.ssh/config`:
-`NGC_SSH_OPTS="-i ~/Documents/ssh/keys/id_ed25519_ngc -o IdentitiesOnly=yes"`.
+`CD_SSH_OPTS="-i ~/Documents/ssh/keys/id_ed25519_cd -o IdentitiesOnly=yes"`.
 
 Phase A liest die Quellen, Phase B (`--machine`) eine Maschine, auf der **alles** liegt.
 **Phase C** ist diese Datei: dieselben Stationsnummern, gefragt dort, wo die Teile auseinander
@@ -306,12 +306,12 @@ Die Namen der Maschinen sagen nicht, was auf ihnen läuft. Gemessen am laufenden
 
 | Maschine | Name | läuft wirklich |
 |---|---|---|
-| 10.2.3.210 | api-1 | `apache2`, `ngc-api`, `ngc-controller` |
-| 10.2.3.211 | api-2 | `ngc-api` |
-| 10.2.3.212 | db-1 | `mariadb` **und** `ngc-controller` |
-| 10.2.3.213 | svc-1 | `ngc-controller` + podman |
-| 10.2.3.214 | svc-2 | `ngc-controller` + podman |
-| 10.2.3.215 | store | `nginx`, kein NGC |
+| 10.2.3.210 | api-1 | `apache2`, `cd-api`, `cd-controller` |
+| 10.2.3.211 | api-2 | `cd-api` |
+| 10.2.3.212 | db-1 | `mariadb` **und** `cd-controller` |
+| 10.2.3.213 | svc-1 | `cd-controller` + podman |
+| 10.2.3.214 | svc-2 | `cd-controller` + podman |
+| 10.2.3.215 | store | `nginx`, kein CirroDesk |
 
 `db-1` trägt **beides** — die Datenbank und einen Controller. Wer die Rolle aus dem Namen
 abliest, hält `db-1` für reine Datenbank und `api-1` für reine API; beide stimmen nicht.
@@ -329,13 +329,13 @@ Dreimal dieselbe Form, und `messen.md` nennt sie: eine Ersetzung, die scheitert,
 | Station D4 | `sed` über eine Datei, die es nicht gibt — unter `set -o pipefail` | Lauf endet nach Station 7 |
 | Station 7 (Datenträger) | `findmnt` findet nichts, `[ -n "" ]` ist falsch, der Fernbefehl endet mit 1 | Lauf endet **vor** der Station, die genau das melden wollte |
 
-Dazu: `NGC_SSH_OPTS` fehlte in dieser Datei. `tools/erstlauf.sh` trägt es seit PR 99; hier
+Dazu: `CD_SSH_OPTS` fehlte in dieser Datei. `tools/erstlauf.sh` trägt es seit PR 99; hier
 antwortete jeder Aufruf „Permission denied (publickey)" und der Lauf schrieb es den **Maschinen**
 zu („the six have to be up") statt sich selbst.
 
 ### Station D0 — die Namen zeigen dorthin, wo die Teile stehen
 
-**Die neue Station, und sie steht zuerst, weil jede Station hinter ihr als NGC-Fehler zu lesen
+**Die neue Station, und sie steht zuerst, weil jede Station hinter ihr als CirroDesk-Fehler zu lesen
 ist, solange sie rot ist.** Auf einer Maschine hat die Frage keinen Inhalt: dort ist alles
 `localhost`, und ein Name, der auf die falsche Maschine zeigt, landet trotzdem auf der richtigen.
 
@@ -345,7 +345,7 @@ nehmen das `::` zuerst, verbinden sich zur **eigenen** Maschine und treffen dort
 lauscht — auf api-1 ist das `apache`. Darum antwortete „holt api-1 den Katalog vom Laden?" mit
 `self-signed certificate, 404`, während der Laden gesund fünf Meter daneben stand.
 
-**Go geht die Adressen der Reihe nach durch und fällt an der falschen vorbei, darum läuft NGC
+**Go geht die Adressen der Reihe nach durch und fällt an der falschen vorbei, darum läuft CirroDesk
 selbst.** Jedes Werkzeug, zu dem ein Mensch greift, läuft nicht. Fünf von sechs Namen sind rot;
 `api-1` ist grün, weil es auf seine **eigenen** echten IPv6-Adressen auflöst.
 
@@ -386,7 +386,7 @@ vier Minuten verändert, und sie weigert sich, wenn `--api1` und `--api2` diesel
 
 Die alte Station D3 fragte, ob api-2 installiert ist und sein Dienst läuft. Das ist eine andere
 Frage als die, die ein Mensch hat: der Browser nimmt für **jeden** Aufruf **eine** API aus
-`/etc/ngc/web.json`, also landet die Hälfte der Anmeldungen auf api-2. Eine zweite API, die oben
+`/etc/cd/web.json`, also landet die Hälfte der Anmeldungen auf api-2. Eine zweite API, die oben
 ist und Anmeldungen anders beantwortet, sperrt die Hälfte der Leute aus, während jede Statuszeile
 grün bleibt.
 
@@ -420,7 +420,7 @@ gelandet, wo man es hingeschickt hat" zu „irgendwo ist irgendwas" machen.
 ### Beweis, dass die neuen Stationen den Fehler FINDEN
 
 `messen.md`: eine Prüfung, die den Fehler nicht nachweislich findet, misst nichts. Alle Läufe
-24.10.2026 im Arbeitsbaum `D:\claude\nextgencloud-erstlauf-verteilt` gegen dieselbe Anlage.
+24.10.2026 im Arbeitsbaum `D:\claude\cirrodesk-erstlauf-verteilt` gegen dieselbe Anlage.
 
 | Mutation | Station | Ergebnis |
 |---|---|---|
@@ -442,7 +442,7 @@ anderen Grund „error" sagt, als Beweis durchgegangen.
 5 unmeasurable.
 
 Die sechs roten sind **fünf Namen** (Station D0) und **Station D2**, die an denselben fünf Namen
-hängt. Es ist **ein** Fehler, und er liegt im DNS dieses Netzes, nicht in NGC.
+hängt. Es ist **ein** Fehler, und er liegt im DNS dieses Netzes, nicht in CirroDesk.
 
 ### Was nur ein Mensch drücken kann
 
@@ -450,7 +450,7 @@ Weder Phase A noch B noch C kann das, und keine Station überspringt es — jede
 UNMEASURABLE mit ihrem Namen:
 
 1. **Die erste Einrichtung** einer Anlage. `GET/POST /api/v1/setup`, mit einem MAC über den
-   Einmalcode aus `/var/lib/ngc/setup-code`. Alles dahinter hängt an einem angemeldeten Admin.
+   Einmalcode aus `/var/lib/cd/setup-code`. Alles dahinter hängt an einem angemeldeten Admin.
    *(Auf dieser Anlage schon getan — `setup-code` ist weg.)*
 2. **Eine Anmeldung auf api-2.** `https://ngc.mein.lan` öffnen, anmelden, und das **zweimal mit
    einem Neuladen dazwischen**, weil `web.json` api-1 und api-2 abwechselnd herausgibt.

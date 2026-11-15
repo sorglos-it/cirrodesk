@@ -25,12 +25,12 @@ func (ready) ExecContext(ctx any, args ...any) (result, error) { return result{}
 func (conn) PrepareContext(ctx any, stmt string) (ready, error) { return ready{}, nil }
 
 const (
-	blobSelect = "SELECT seq, data FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobUpdate = "UPDATE ngc_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
-	blobInsert = "INSERT INTO ngc_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
-	blobFrom   = "SELECT id, seq FROM ngc_blob WHERE kind = ? AND seq >= ?"
-	blobDelete = "DELETE FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobCount  = "SELECT count(*) FROM ngc_blob WHERE kind = ?"
+	blobSelect = "SELECT seq, data FROM cd_blob WHERE kind = ? AND id = ?"
+	blobUpdate = "UPDATE cd_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
+	blobInsert = "INSERT INTO cd_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
+	blobFrom   = "SELECT id, seq FROM cd_blob WHERE kind = ? AND seq >= ?"
+	blobDelete = "DELETE FROM cd_blob WHERE kind = ? AND id = ?"
+	blobCount  = "SELECT count(*) FROM cd_blob WHERE kind = ?"
 )
 
 type store struct {

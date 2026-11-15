@@ -1,5 +1,7 @@
 # Changelog
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 ## 0.2.2
 
 **Der Grund für diese Fassung: aus 0.2.1 installiert, blieb nach dem ersten Neustart jede App

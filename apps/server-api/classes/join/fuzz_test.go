@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
 )
 
 // FuzzJoinRequest sends arbitrary bodies and arbitrary query values to Accept

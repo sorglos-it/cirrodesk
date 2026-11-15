@@ -11,21 +11,21 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Environment variables a service program gets; there are no others.
 const (
-	EnvUser     = "NGC_USER"      // user ID; empty for the start action
-	EnvUserName = "NGC_USER_NAME" // login name, for display only
-	EnvApp      = "NGC_APP"
-	EnvService  = "NGC_SERVICE"
-	EnvAction   = "NGC_ACTION"
-	EnvParams   = "NGC_PARAMS" // JSON object or empty
-	EnvVersion  = "NGC_VERSION"
-	EnvData     = "NGC_DATA"  // always DataDir
-	EnvStart    = "NGC_START" // "1" for the start action, else "0"
+	EnvUser     = "CD_USER"      // user ID; empty for the start action
+	EnvUserName = "CD_USER_NAME" // login name, for display only
+	EnvApp      = "CD_APP"
+	EnvService  = "CD_SERVICE"
+	EnvAction   = "CD_ACTION"
+	EnvParams   = "CD_PARAMS" // JSON object or empty
+	EnvVersion  = "CD_VERSION"
+	EnvData     = "CD_DATA"  // always DataDir
+	EnvStart    = "CD_START" // "1" for the start action, else "0"
 )
 
 // Paths and limits. Times in seconds.
@@ -81,7 +81,7 @@ func (c Call) Env() []string {
 		start = "1"
 	}
 	// Compact JSON: one line without insignificant whitespace, as the service
-	// reads it. The controller never logs NGC_PARAMS: params can carry user data.
+	// reads it. The controller never logs CD_PARAMS: params can carry user data.
 	var paramsBuf bytes.Buffer
 	params := ""
 	if err := json.Compact(&paramsBuf, c.Params); err == nil {

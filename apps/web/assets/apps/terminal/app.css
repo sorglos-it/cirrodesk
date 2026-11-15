@@ -2,7 +2,7 @@
    shell's stylesheet, for the same reason the calculator's does: the frame has
    an origin of its own, so nothing of shell.css reaches in here. The shell
    writes data-theme on <html> before the first paint; app.js keeps it and
-   --accent current from what ngc.js reports. */
+   --accent current from what cd.js reports. */
 :root{
   --win-bg:#1e2430; --win-fg:#e8ecf3; --win-border:#38414f;
   --field-bg:#151a23; --muted:#97a3b6; --accent:#2f7de1; --alarm:#ff7b72;

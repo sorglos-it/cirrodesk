@@ -125,8 +125,8 @@ test("host, port, origin and path are cut the way Go cuts them", async ({ shell 
       // that merely begins with dots is not.
       storePath: u.validStoreURL("https://a/..a") && u.validStoreURL("https://a/a..")
         && !u.validStoreURL("https://a/a/../b") && !u.validStoreURL("https://a//")
-        && !u.validStoreURL("https://a/ngc/") && u.validStoreURL("https://a/a/b/c")
-        && u.validStoreURL("https://[2001:db8::1]:8443/ngc"),
+        && !u.validStoreURL("https://a/cd/") && u.validStoreURL("https://a/a/b/c")
+        && u.validStoreURL("https://[2001:db8::1]:8443/cd"),
       // The tunnel path is cut off once, not repeatedly.
       tunnelPath: u.validTunnelURL("wss://a:1/tunnel")
         && !u.validTunnelURL("wss://a:1/tunnel/tunnel") && !u.validTunnelURL("wss:///tunnel")

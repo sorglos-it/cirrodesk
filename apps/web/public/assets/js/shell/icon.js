@@ -110,8 +110,8 @@ export const PLACEHOLDER = "platzhalter";
 // called itself "constructor" would read a function out of Object's prototype.
 const BY_APP = {
   __proto__: null,
-  "ngc.store": "laden",
-  "ngc.users": "benutzer",
+  "cd.store": "laden",
+  "cd.users": "benutzer",
   "org.sorglos.terminal": "terminal",
   "org.sorglos.uhr": "uhr",
   "org.sorglos.calculator": "rechner",

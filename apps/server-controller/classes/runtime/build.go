@@ -18,7 +18,7 @@ import (
 // builder on a BUILD MACHINE.
 //
 // Who calls it, decided here and named out loud: the admin, by hand, with
-// "ngc-controller image". NOT the controller when a terminal session first
+// "cd-controller image". NOT the controller when a terminal session first
 // opens. Three reasons, in this order:
 //
 //  1. The target server has no builder and must not need one. That is not a
@@ -33,7 +33,7 @@ import (
 //     either.
 //  3. A builder on the server is a second program that writes images into the
 //     store the apps run out of. The whole separation of podman.go is that
-//     nothing but NGC puts something there.
+//     nothing but CirroDesk puts something there.
 //
 // What is measurable here without podman is the argument list and the inputs,
 // and that is what this file is cut for (buildArgs, saveArgs, checkProgram).
@@ -41,7 +41,7 @@ import (
 // there is no podman and no docker on the machine this was written on, so no
 // image has ever come out of this code. The stage "ausgefuehrt" is missing.
 
-// Arches are the architectures NGC is built for. The list stands here, where
+// Arches are the architectures CirroDesk is built for. The list stands here, where
 // the value becomes an argument of podman, and node refers to it: two lists
 // that have to agree are the shape of a wall in front of an open door.
 var Arches = []string{"amd64", "arm64"}
@@ -50,7 +50,7 @@ const (
 	// ContextProgram is the name the cross compiled controller has inside the
 	// build context. The Containerfile copies exactly this name, so this and
 	// that COPY line are one decision in two places.
-	ContextProgram = "ngc-controller"
+	ContextProgram = "cd-controller"
 	// SaveFormat is the archive podman has to write. docker-archive and not
 	// oci-archive, and that is not a taste: ImageTag reads the member
 	// "manifest.json" with its single RepoTags out of the tar, and an OCI
@@ -64,7 +64,7 @@ const (
 	// and elfMachineAt is where that number stands in it.
 	elfHeader    = 20
 	elfMachineAt = 18
-	// The two numbers ELF gives the two architectures NGC is built for.
+	// The two numbers ELF gives the two architectures CirroDesk is built for.
 	elfAMD64 = 0x3e
 	elfARM64 = 0xb7
 )
@@ -72,7 +72,7 @@ const (
 var (
 	// ErrArch reports an architecture that is not one of Arches, or a program
 	// that is built for another one than the image is for.
-	ErrArch = errors.New("runtime: not an architecture NGC is built for")
+	ErrArch = errors.New("runtime: not an architecture CirroDesk is built for")
 	// ErrProgram reports the program in the build context: missing, or no
 	// 64 bit ELF program at all.
 	ErrProgram = errors.New("runtime: the program in the build context is missing or is no ELF program")
@@ -218,7 +218,7 @@ func checkProgram(s BuildSpec) error {
 	if _, err := io.ReadFull(f, head); err != nil {
 		return errors.Join(ErrProgram, err)
 	}
-	// Magic, 64 bit class and little endian data. Both architectures NGC is
+	// Magic, 64 bit class and little endian data. Both architectures CirroDesk is
 	// built for are 64 bit and little endian, so anything else is not the
 	// program this builds with - and the two bytes read below mean nothing
 	// without them.

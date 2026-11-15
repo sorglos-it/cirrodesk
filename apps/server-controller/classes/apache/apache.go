@@ -25,11 +25,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/templates"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/templates"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 var (
@@ -419,7 +419,7 @@ func read(path string) ([]byte, bool) {
 // them as its own user and neither holds a secret.
 func writeAtomic(path string, body []byte) error {
 	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, "."+filepath.Base(path)+".ngc-")
+	tmp, err := os.CreateTemp(dir, "."+filepath.Base(path)+".cd-")
 	if err != nil {
 		return errors.Join(ErrFile, err)
 	}

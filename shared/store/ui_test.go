@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
 )
 
 // uiVector is one case of ui.json: a UI tar and whether WalkUI accepts it,
@@ -632,7 +632,7 @@ func TestPackageUI(t *testing.T) {
 	}
 }
 
-// packUIVector is one case of packui.json: an app package as ngc-store pack
+// packUIVector is one case of packui.json: an app package as cd-store pack
 // writes it (archive/tar with the writer's defaults), the ui-tar PackageUI
 // makes of it and that ui-tar's SHA-256, the app's UI hash.
 type packUIVector struct {
@@ -661,7 +661,7 @@ func packUICases(t testing.TB) []packUIVector {
 	calculator := &Manifest{ID: "org.sorglos.calculator", Name: "Rechner", Version: "1.0.0", Publisher: "Sorglos IT",
 		UI: &UI{Entry: "index.html"}}
 	backup := &Manifest{ID: "org.sorglos.backup", Name: "Sicherung", Version: "1.0.0", Publisher: "Sorglos IT",
-		Services: []Service{{Name: "backup", Command: []string{"/usr/local/bin/ngc-backup"}}}}
+		Services: []Service{{Name: "backup", Command: []string{"/usr/local/bin/cd-backup"}}}}
 
 	cases := []struct {
 		name    string

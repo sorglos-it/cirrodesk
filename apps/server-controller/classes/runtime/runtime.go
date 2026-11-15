@@ -9,7 +9,7 @@
 //
 // Nothing here decides whether something may run - access and install do that
 // - and nothing here writes a log line: what a service was given is secret
-// (NGC_PARAMS, content keys, licenses), so this package hands its output to
+// (CD_PARAMS, content keys, licenses), so this package hands its output to
 // the writers of the caller and keeps nothing.
 package runtime
 
@@ -113,12 +113,12 @@ type Container struct {
 	// ErrHome, and where the user is not in the database yet it refuses a
 	// directory outside config.AppDataDir.
 	DataDir string
-	// Hold is the program that keeps the container alive: ngc-controller
-	// itself, mounted read-only as /ngc/ngc-hold and started with the
+	// Hold is the program that keeps the container alive: cd-controller
+	// itself, mounted read-only as /cd/cd-hold and started with the
 	// subcommand hold. An app image therefore needs to bring nothing of its
 	// own - that would be a change to store.Manifest. It has to lie under
 	// config.BinDir: what is mounted into a container decides what the
-	// container can read, so only what NGC installed may be named here.
+	// container can read, so only what CirroDesk installed may be named here.
 	Hold string
 	// Network lets the app reach the network (store.NeedNetwork). Without it the
 	// container has none at all. With it, which way out a rootless container
@@ -146,7 +146,7 @@ type Exec struct {
 	Command []string
 	// EnvFile holds the environment of the call, one NAME=value per line.
 	// The engine passes the file instead of the values and removes it when
-	// the call is over, so NGC_PARAMS stands in no command line, in no
+	// the call is over, so CD_PARAMS stands in no command line, in no
 	// /proc/*/cmdline and in no log.
 	//
 	// It has to lie under config.RunDir, which the engine refuses otherwise:

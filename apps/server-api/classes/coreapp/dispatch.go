@@ -1,5 +1,5 @@
-// Package coreapp serves the channels of the core apps (ngc.desktop,
-// ngc.users, ngc.store) and hands every other channel to package relay. Core
+// Package coreapp serves the channels of the core apps (cd.desktop,
+// cd.users, cd.store) and hands every other channel to package relay. Core
 // channels carry no end-to-end handshake of their own: the session to the API
 // is already encrypted end to end (package wire, "Core apps").
 //
@@ -39,27 +39,27 @@ import (
 	"errors"
 	"io"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/browser"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/login"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/rights"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/browser"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/login"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/rights"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // trustList is the trust list as package state hands it out: the cached one,
@@ -106,7 +106,7 @@ type Relay interface {
 
 // JoinCodes hands out the one-time code a new API server joins with; *join.Join
 // implements it. Like Tunnels it is an interface and not that type because the
-// package it lives in is a later task, and ngc.users/join-code has to be
+// package it lives in is a later task, and cd.users/join-code has to be
 // measurable before it exists.
 //
 // Nothing of a code ever reaches a log or a message from here: users.go takes
@@ -115,7 +115,7 @@ type JoinCodes interface {
 	NewJoinCode(ctx context.Context) (tunnel.JoinCode, int64, error)
 }
 
-// Store is what the actions of ngc.store need of package appstore. It is an
+// Store is what the actions of cd.store need of package appstore. It is an
 // interface for the reason Tunnels is one: *appstore.Stores reaches a
 // controller and the network, so a case that had to build one could measure
 // nothing of the dispatcher's own share -- the parameters it resolves, the
@@ -143,12 +143,12 @@ type Store interface {
 	Uninstall(ctx context.Context, rq appstore.UninstallRequest) (wire.Code, error)
 	// UsersAllowed is the seat count of a licence: how many users hold
 	// "<app>/use" and whether the licence allows that many. It is not an
-	// action of a channel -- ngc.users/set-rights asks it before it lets a
+	// action of a channel -- cd.users/set-rights asks it before it lets a
 	// right stand (setRights).
 	UsersAllowed(ctx context.Context, app string) (int, bool, error)
 }
 
-// Updates is what ngc.store/updates and ngc.store/set-update need of package
+// Updates is what cd.store/updates and cd.store/set-update need of package
 // updates; *updates.Updates implements it. Rollout is NOT in here: a round is
 // driven by the server's own beat and never by a channel of the shell, so the
 // dispatcher has no way at all to start one.
@@ -164,13 +164,13 @@ type Deps struct {
 	Login *login.Handler
 	// Tunnels are the controller tunnels open right now, Controllers the
 	// server that pairs new ones, Sessions the open shells and Join the join
-	// codes of a new API server; the actions of ngc.users use all four.
+	// codes of a new API server; the actions of cd.users use all four.
 	Tunnels     Tunnels
 	Controllers *controllers.Server
 	Sessions    *browser.Registry
 	Join        JoinCodes
 	Relay       Relay
-	// Store serves the actions of ngc.store, Updates its two update actions.
+	// Store serves the actions of cd.store, Updates its two update actions.
 	// Both may be nil, and then New registers NO handler for the actions that
 	// need them: an action of service api without a handler answers
 	// E_NOTFOUND (open), which says what is true -- this API does not serve
@@ -216,12 +216,12 @@ type Handler func(ctx context.Context, rq *Call) ([]byte, error)
 type Dispatcher struct {
 	Deps
 	handlers map[string]Handler
-	// totp holds the secrets of ngc.desktop/totp-begin until a code confirms
+	// totp holds the secrets of cd.desktop/totp-begin until a code confirms
 	// them; desktop.go says why they stay on the server.
 	totp totpStore
 }
 
-// New returns a dispatcher with the handlers of ngc.desktop and ngc.users;
+// New returns a dispatcher with the handlers of cd.desktop and cd.users;
 // tasks 19 to 23 register theirs beside them.
 func New(d Deps) *Dispatcher {
 	dp := &Dispatcher{Deps: d, handlers: map[string]Handler{}}
@@ -299,7 +299,7 @@ func reasonOf(err error) reason.Reason {
 // It runs in a goroutine of its own (browser.(*Server).channel), and a
 // goroutine is where a panic is final: nothing above it can catch one, so
 // before the catch below a programming error in any handler of any channel
-// took the whole ngc-api with it -- every session of every user, and the
+// took the whole cd-api with it -- every session of every user, and the
 // controller tunnels (V1.2 point 38). The catch is in TWO places on purpose:
 // serve holds the work, so the channel still gets its code and its log line,
 // and this line holds the little that happens after it, so a defect in the
@@ -395,20 +395,20 @@ func (d *Dispatcher) open(ctx context.Context, s *browser.Session, c *link.Chann
 	// contract unreachable: every action of service controller went to the
 	// relay before a handler was ever looked for, and relay.Forward has for a
 	// FlowTransfer action neither the Transfer header nor the file, so
-	// ngc.store/controller/activate ended in E_INTERNAL -- while deactivate
+	// cd.store/controller/activate ended in E_INTERNAL -- while deactivate
 	// and uninstall did reach the controller and left this API's own books
 	// untouched (the app's row, its log line, the rows of the version that was
 	// removed).
 	//
 	// Turning it round moves ONLY what this API serves itself. What has no
-	// handler is forwarded exactly as before -- ngc.store/controller/
+	// handler is forwarded exactly as before -- cd.store/controller/
 	// delete-data and .../install are root tasks the controller carries out
 	// alone, and TestAControllerActionWithoutAHandlerStillGoesToTheRelay holds
 	// that half.
 	//
 	// What it does not move is who may open any of this. rights.Check ran
 	// above, before this line, for the handler path and the relay path alike:
-	// every ngc.store action is core.Action.Admin, so a user who is no admin
+	// every cd.store action is core.Action.Admin, so a user who is no admin
 	// is already turned away with E_FORBIDDEN, and a root task without its
 	// signed task with E_CONFIRM. A handler registered here therefore cannot
 	// widen who gets in; it only decides what happens once somebody is in.
@@ -503,7 +503,7 @@ func (d *Dispatcher) run(ctx context.Context, s *browser.Session, c *link.Channe
 	}
 	// The DATA of a FlowIn channel is STREAMED to the handler and not read
 	// into a []byte first. It matters for one action and it decides whether
-	// the process survives it: core.Action.MaxIn for ngc.store/api/upload is
+	// the process survives it: core.Action.MaxIn for cd.store/api/upload is
 	// store.MaxPackage, four gigabytes, and a []byte of that is what an admin
 	// with a large package used to kill this process with. Measured over the
 	// channel at 16 and 64 MiB, before and after, with a run that collects on

@@ -1,5 +1,7 @@
 # Abnahme Controller
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Dieses Blatt gehört zu Aufgabe 25 des Controller-Plans
 (`docs/superpowers/plans/2026-09-23-ngc-plan-3-controller.md`, ab Zeile 2733) und ist die
 letzte Aufgabe des Pakets. Vorbild ist `docs/recovery-abnahme.md` des Recovery-Pakets —

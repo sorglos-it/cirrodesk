@@ -14,7 +14,7 @@ import (
 )
 
 // linuxOnly skips everything that needs a user database with numeric ids or a
-// shell to run a stand-in program. NGC is written on Windows and run on Linux,
+// shell to run a stand-in program. CirroDesk is written on Windows and run on Linux,
 // so these cases say so instead of failing there.
 func linuxOnly(t *testing.T) {
 	t.Helper()
@@ -45,7 +45,7 @@ func fakeUseradd(t *testing.T) string {
 	// A variable of this process that must not reach useradd. The whole
 	// environment of a controller is read this way: it runs as root under
 	// systemd and carries whatever systemd gave it.
-	t.Setenv("NGC_LEAK", "this must not reach useradd")
+	t.Setenv("CD_LEAK", "this must not reach useradd")
 	for _, name := range []string{"useradd", "userdel"} {
 		if err := os.WriteFile(filepath.Join(dir, name), []byte(script), 0o700); err != nil {
 			t.Fatal(err)
@@ -83,7 +83,7 @@ func loggedArgs(t *testing.T, log string) []string {
 func TestUserNameIsStableAndShort(t *testing.T) {
 	long := "org.example." + strings.Repeat("a", 80)
 	n := UserName(long)
-	if len(n) > 32 || !strings.HasPrefix(n, "ngc-") {
+	if len(n) > 32 || !strings.HasPrefix(n, "cd-") {
 		t.Fatalf("name = %q (%d bytes)", n, len(n))
 	}
 	if n != UserName(long) {
@@ -260,7 +260,7 @@ func TestSubIDsAreOnePerAppAndNeverOverlap(t *testing.T) {
 		[]byte("someone:100000:65536\nsomething this package cannot read\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"ngc-a", "ngc-b", "ngc-a", "ngc-c"} {
+	for _, name := range []string{"cd-a", "cd-b", "cd-a", "cd-c"} {
 		if err := ensureSubIDs(name); err != nil {
 			t.Fatalf("%s: %v", name, err)
 		}
@@ -323,7 +323,7 @@ func TestSubIDsAreOnePerAppAndNeverOverlap(t *testing.T) {
 // which is what /etc/subuid has to be.
 func TestSubIDsAreWrittenWholeOrNotAtAll(t *testing.T) {
 	fakeUseradd(t)
-	if err := ensureSubIDs("ngc-a"); err != nil {
+	if err := ensureSubIDs("cd-a"); err != nil {
 		t.Fatal(err)
 	}
 	es, err := os.ReadDir(filepath.Dir(paths.subuid))
@@ -358,14 +358,14 @@ func TestSubIDsNeverHandOutARangeThatIsTaken(t *testing.T) {
 	if err := os.WriteFile(paths.subuid, []byte(foreign+"\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := ensureSubIDs("ngc-a"); err != nil {
+	if err := ensureSubIDs("cd-a"); err != nil {
 		t.Fatal(err)
 	}
 	b, err := os.ReadFile(paths.subuid)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "ngc-a:" + strconv.Itoa(wantBase+2*wantCount) + ":" + strconv.Itoa(wantCount)
+	want := "cd-a:" + strconv.Itoa(wantBase+2*wantCount) + ":" + strconv.Itoa(wantCount)
 	if !strings.Contains(string(b), want) {
 		t.Fatalf("want the line %q, the file is:\n%s", want, b)
 	}
@@ -389,7 +389,7 @@ func TestEnsureUserReallyMakesTheUser(t *testing.T) {
 	paths.subuid = filepath.Join(dir, "subuid")
 	paths.subgid = filepath.Join(dir, "subgid")
 	paths.appData = filepath.Join(dir, "apps")
-	app := "org.ngc.test-ensure-user"
+	app := "org.cd.test-ensure-user"
 	name := UserName(app)
 	t.Cleanup(func() { _ = DropUser(context.Background(), app) })
 
@@ -458,7 +458,7 @@ func TestEnsureUserReallyMakesTheUser(t *testing.T) {
 // distribution's tooling and not ours.
 func FuzzSubIDs(f *testing.F) {
 	f.Add("someone:100000:65536\n")
-	f.Add("ngc-a:524288:65536\nngc-b:589824:65536\n")
+	f.Add("cd-a:524288:65536\nngc-b:589824:65536\n")
 	f.Add("a:0:4294967295\n")
 	f.Add("x:18446744073709551615:18446744073709551615\n")
 	f.Add("no colons at all\n:::\na::\n\n\n")

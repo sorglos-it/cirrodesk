@@ -18,8 +18,8 @@ import (
 
 	"golang.org/x/crypto/argon2"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
 )
 
 // Kind tells password keys and passkeys apart.
@@ -195,8 +195,8 @@ func ValidKeyID(s string) bool {
 
 // RP names the relying party for passkeys.
 type RP struct {
-	ID      string   `json:"id"`                // e.g. "ngc.example.org"
-	Origins []string `json:"origins,omitempty"` // e.g. ["https://ngc.example.org"]
+	ID      string   `json:"id"`                // e.g. "cd.example.org"
+	Origins []string `json:"origins,omitempty"` // e.g. ["https://cd.example.org"]
 }
 
 // MaxRPID is the longest relying party ID, the length of a DNS name.

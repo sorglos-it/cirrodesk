@@ -1,5 +1,5 @@
 // Package migrate applies the numbered migrations of apps/server-db/sql. They
-// belong to the version of ngc-api and travel inside its release file: one
+// belong to the version of cd-api and travel inside its release file: one
 // controller with role db runs them before the new API starts, and the
 // installation runs them once.
 package migrate
@@ -17,8 +17,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	migrations "github.com/sorglos-it/nextgencloud/apps/server-db/sql"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	migrations "github.com/sorglos-it/cirrodesk/apps/server-db/sql"
 )
 
 // File is one migration: its number, its file name and its statements in
@@ -73,7 +73,7 @@ func List() ([]File, error) {
 // maxFile is the most one migration may be long, maxStatements the most it
 // may carry, and maxFiles the most there may be. The migrations are built
 // into the release file, so none of this comes from outside; a bound belongs
-// on every count all the same. 0001 is the whole schema of NGC and carries
+// on every count all the same. 0001 is the whole schema of CirroDesk and carries
 // fourteen statements.
 const (
 	maxFile       = 1 << 20
@@ -123,7 +123,7 @@ func split(body string) ([]string, error) {
 	return out, nil
 }
 
-// lockName is the row of ngc_lock that keeps two servers from migrating at
+// lockName is the row of cd_lock that keeps two servers from migrating at
 // the same time, and lockFor is how long one run may hold it. maxNow is the
 // latest time a run may be given: a unix second far past any real date, and
 // low enough that now+lockFor can never wrap around into the past. A bound
@@ -148,33 +148,33 @@ const (
 // all the same, and they go through fill like every other statement, so the
 // program and not only a test holds them to the rules. That is also why they
 // stand here with a space between every piece: that is the form a statement
-// runs in, see write. ngc_lock is the table dbapi.LockTake uses later: same
+// runs in, see write. cd_lock is the table dbapi.LockTake uses later: same
 // row, same columns, same deadline, so the two never disagree about who holds
 // a lock. The runner is stricter in one point, see take.
 const (
-	createSchema = "CREATE TABLE ngc_schema ( version {{int}} NOT NULL , step {{int}} NOT NULL , " +
+	createSchema = "CREATE TABLE cd_schema ( version {{int}} NOT NULL , step {{int}} NOT NULL , " +
 		"done {{int}} NOT NULL , applied {{int}} NOT NULL , PRIMARY KEY ( version ) ) {{opts}}"
-	createLock = "CREATE TABLE ngc_lock ( name {{key}} NOT NULL , owner {{text}} NOT NULL , " +
+	createLock = "CREATE TABLE cd_lock ( name {{key}} NOT NULL , owner {{text}} NOT NULL , " +
 		"until {{int}} NOT NULL , PRIMARY KEY ( name ) ) {{opts}}"
-	probeSchema = "SELECT version FROM ngc_schema WHERE version = ?"
-	probeLock   = "SELECT owner FROM ngc_lock WHERE name = ?"
+	probeSchema = "SELECT version FROM cd_schema WHERE version = ?"
+	probeLock   = "SELECT owner FROM cd_lock WHERE name = ?"
 	// The owner is compared in the database, not read out of it: a column
 	// holds whatever was written into it, and nothing unbounded belongs in
 	// the program.
-	holdLock    = "SELECT until FROM ngc_lock WHERE name = ? AND owner = ?"
-	selectUntil = "SELECT until FROM ngc_lock WHERE name = ?"
+	holdLock    = "SELECT until FROM cd_lock WHERE name = ? AND owner = ?"
+	selectUntil = "SELECT until FROM cd_lock WHERE name = ?"
 	// The same read for a database that wants the row held for the write
 	// behind it, see sqlstore.Dialect.RowLock. Two constants and not one put
 	// together, so that every statement stays readable off this file.
-	selectUntilLocked = "SELECT until FROM ngc_lock WHERE name = ? FOR UPDATE"
-	selectState       = "SELECT step, done FROM ngc_schema WHERE version = ?"
-	selectLevel       = "SELECT version FROM ngc_schema WHERE done = ? ORDER BY version DESC"
-	insertState       = "INSERT INTO ngc_schema (version, step, done, applied) VALUES (?, ?, ?, ?)"
-	updateStep        = "UPDATE ngc_schema SET step = ? WHERE version = ?"
-	updateDone        = "UPDATE ngc_schema SET step = ?, done = ?, applied = ? WHERE version = ?"
-	takeLock          = "UPDATE ngc_lock SET owner = ?, until = ? WHERE name = ? AND until <= ?"
-	insertLock        = "INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)"
-	freeLock          = "DELETE FROM ngc_lock WHERE name = ? AND owner = ?"
+	selectUntilLocked = "SELECT until FROM cd_lock WHERE name = ? FOR UPDATE"
+	selectState       = "SELECT step, done FROM cd_schema WHERE version = ?"
+	selectLevel       = "SELECT version FROM cd_schema WHERE done = ? ORDER BY version DESC"
+	insertState       = "INSERT INTO cd_schema (version, step, done, applied) VALUES (?, ?, ?, ?)"
+	updateStep        = "UPDATE cd_schema SET step = ? WHERE version = ?"
+	updateDone        = "UPDATE cd_schema SET step = ?, done = ?, applied = ? WHERE version = ?"
+	takeLock          = "UPDATE cd_lock SET owner = ?, until = ? WHERE name = ? AND until <= ?"
+	insertLock        = "INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)"
+	freeLock          = "DELETE FROM cd_lock WHERE name = ? AND owner = ?"
 )
 
 // errLockLost says that the run no longer holds the migration lock. It is the
@@ -182,7 +182,7 @@ const (
 // server took over, or somebody deleted the row.
 var errLockLost = errors.New("the lock of the migrations is no longer ours: another server has taken it over")
 
-// errLockBent says the deadline in ngc_lock cannot be read as a number, so
+// errLockBent says the deadline in cd_lock cannot be read as a number, so
 // the second bolt of take cannot judge it. It is its own sentence because it
 // says something else than every other answer here: not "somebody else is
 // migrating" and not "the connection broke", but "this row or this column is
@@ -227,7 +227,7 @@ func Apply(ctx context.Context, db *sql.DB, d sqlstore.Dialect, owner string, no
 	}
 	if !taken {
 		// Both reasons are named, because the runner cannot tell them apart,
-		// and with them how long the wait is: whoever installs NGC is no
+		// and with them how long the wait is: whoever installs CirroDesk is no
 		// expert, and "in 340 seconds" is something to act on.
 		return 0, fmt.Errorf("migrate: the lock is held: another server is running the migrations, "+
 			"or a run died before it gave the lock back - %s", freeIn(ctx, db, now))
@@ -350,7 +350,7 @@ func bootstrap(ctx context.Context, db *sql.DB, d sqlstore.Dialect) error {
 		// The same door every statement of a migration goes through: measured
 		// again here, and what runs has to be what was measured. The one
 		// difference is who is knocking - these two statements are the only
-		// ones that may name ngc_schema and ngc_lock.
+		// ones that may name cd_schema and cd_lock.
 		stmt, err := fill(d, pair.create, fromRunner)
 		if err != nil {
 			return err
@@ -370,7 +370,7 @@ func bootstrap(ctx context.Context, db *sql.DB, d sqlstore.Dialect) error {
 // handed their error on bare. Measured at two running programs on one file on
 // 13.10.2026: what came out of a busy file was the driver's "sqlite3: database
 // is locked" and nothing else. That is the sentence an admin gets at a failed
-// start of ngc-api on a Pi where the controller is writing, and it says
+// start of cd-api on a Pi where the controller is writing, and it says
 // neither which part gave up, nor that busy_timeout had already waited its ten
 // seconds, nor that the cure is to try again rather than to look for damage.
 //
@@ -630,7 +630,7 @@ func applyOne(ctx context.Context, db *sql.DB, d sqlstore.Dialect, f File, owner
 // database is given the form a statement runs in and no longer the text of
 // the file, so an error that quotes it cannot be searched for in the .sql;
 // the running number is what points the author at the right line, and it is
-// the same number the record in ngc_schema counts in.
+// the same number the record in cd_schema counts in.
 func at(i int, f File, err error) error {
 	return fmt.Errorf("statement %d of %d: %w", i+1, len(f.Statements), err)
 }

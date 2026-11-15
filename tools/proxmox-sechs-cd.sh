@@ -1,88 +1,88 @@
 #!/usr/bin/env bash
-# proxmox-sechs-ngc - NGC on the six, distributed, with the ulh scripts and a
+# proxmox-sechs-cd - CirroDesk on the six, distributed, with the ulh scripts and a
 # REAL published release.
 #
 # It runs from the Proxmox host (or anywhere that reaches the six by ssh) and
 # drives each machine over ssh, in the order shared/ulh.md gives:
 #
-#   store  the store FIRST, because ngc-api wants its address and its public
+#   store  the store FIRST, because cd-api wants its address and its public
 #          key as answers and an installation cannot be completed without a
-#          store (measured 23.10.2026: with both answers empty ngc-all.sh
+#          store (measured 23.10.2026: with both answers empty cd-all.sh
 #          stops). The store is NOT part of the installation - it is a plain
 #          web server with signed files on it, on its own machine, so that
 #          "does the API really fetch over the network, does it check the
 #          certificate, what happens when the store is gone" can be asked at
 #          all.
-#   db     ngc-db with bootstrap=yes; it makes the CA of the installation and
-#          leaves its certificate in /etc/ngc/tls/ca.crt, which api and the
+#   db     cd-db with bootstrap=yes; it makes the CA of the installation and
+#          leaves its certificate in /etc/cd/tls/ca.crt, which api and the
 #          controller of the db role need.
-#   api1   ngc-api with join_code empty: the first API. It prints the setup
+#   api1   cd-api with join_code empty: the first API. It prints the setup
 #          code of the first admin and the pin of its TLS key.
-#   api2   ngc-api with the join code of api1: the only way to reach the
+#   api2   cd-api with the join code of api1: the only way to reach the
 #          joining path and the bolt "this is the only API of this
 #          installation" at all.
-#   web    ngc-web with BOTH apis and BOTH pins, so Apache's balancer has a
+#   web    cd-web with BOTH apis and BOTH pins, so Apache's balancer has a
 #          second member and web.json holds real pins.
 #
 # THE RELEASE IS THE REAL ONE AND THAT IS NEW. tools/erstlauf-maschine.sh has
-# to replace the release key of ngc-all.sh with a test root, because it builds
+# to replace the release key of cd-all.sh with a test root, because it builds
 # the release it measures. Here the published v0.2.1 is used, and its
-# release-key.pem is byte for byte the NGC_RELEASE_KEY the ulh scripts carry
+# release-key.pem is byte for byte the CD_RELEASE_KEY the ulh scripts carry
 # (compared 24.10.2026). So nothing in this run replaces a security bolt: the
-# signature check runs against NGC's own key, as it would in the field.
+# signature check runs against CirroDesk's own key, as it would in the field.
 #
 # SECRETS. The database passwords are made ON the machine that needs them and
-# stay in a 0600 file there (/root/ngc-antworten.env). They never stand in an
+# stay in a 0600 file there (/root/cd-antworten.env). They never stand in an
 # argument of a command, because /proc/<pid>/cmdline is readable by every local
 # user without hidepid, and they are never printed by this script.
 #
 # Usage, as root ON THE PROXMOX HOST:
-#   proxmox-sechs-ngc.sh laden     fetch release v0.2.1 and stage it on the five
-#   proxmox-sechs-ngc.sh ulh       put the ulh checkout with the NGC scripts there
-#   proxmox-sechs-ngc.sh store     the store on its own machine, with its own CA
-#   proxmox-sechs-ngc.sh db        ngc-db on db-1
-#   proxmox-sechs-ngc.sh api1      ngc-api on web-api-1 (first API)
-#   proxmox-sechs-ngc.sh api2      ngc-api on api-2 (joining API)
-#   proxmox-sechs-ngc.sh web       ngc-web on web-api-1
-#   proxmox-sechs-ngc.sh messen    the distributed questions, changes nothing
+#   proxmox-sechs-cd.sh laden     fetch release v0.2.1 and stage it on the five
+#   proxmox-sechs-cd.sh ulh       put the ulh checkout with the CirroDesk scripts there
+#   proxmox-sechs-cd.sh store     the store on its own machine, with its own CA
+#   proxmox-sechs-cd.sh db        cd-db on db-1
+#   proxmox-sechs-cd.sh api1      cd-api on web-api-1 (first API)
+#   proxmox-sechs-cd.sh api2      cd-api on api-2 (joining API)
+#   proxmox-sechs-cd.sh web       cd-web on web-api-1
+#   proxmox-sechs-cd.sh messen    the distributed questions, changes nothing
 set -euo pipefail
 
 if [ -z "${BASH_VERSION:-}" ]; then
-	echo "sechs-ngc: run with bash, not sh" >&2
+	echo "sechs-cd: run with bash, not sh" >&2
 	exit 1
 fi
 probe=$( (exit 7) >/dev/null 2>&1 || echo "$?")
 [ "$probe" = 7 ] || {
-	echo "sechs-ngc: this shell loses exit codes (the (exit 7) probe answered '$probe')" >&2
+	echo "sechs-cd: this shell loses exit codes (the (exit 7) probe answered '$probe')" >&2
 	exit 1
 }
 
-ZONE=${NGC_ZONE:-ngc.mein.lan}
-WEB_IP=${NGC_WEB_IP:-10.2.3.210}
-API1_IP=${NGC_API1_IP:-10.2.3.210}
-API2_IP=${NGC_API2_IP:-10.2.3.211}
-DB_IP=${NGC_DB_IP:-10.2.3.212}
-SVC1_IP=${NGC_SVC1_IP:-10.2.3.213}
-SVC2_IP=${NGC_SVC2_IP:-10.2.3.214}
-STORE_IP=${NGC_STORE_IP:-10.2.3.215}
-NUTZER=${NGC_CIUSER:-root}
+ZONE=${CD_ZONE:-ngc.mein.lan}
+WEB_IP=${CD_WEB_IP:-10.2.3.210}
+API1_IP=${CD_API1_IP:-10.2.3.210}
+API2_IP=${CD_API2_IP:-10.2.3.211}
+DB_IP=${CD_DB_IP:-10.2.3.212}
+SVC1_IP=${CD_SVC1_IP:-10.2.3.213}
+SVC2_IP=${CD_SVC2_IP:-10.2.3.214}
+STORE_IP=${CD_STORE_IP:-10.2.3.215}
+NUTZER=${CD_CIUSER:-root}
 
 # Measured 24.10.2026: this is the newest published release, it carries all
 # five tars, and its release-key.pem equals the key in ulh's scripts.
-RELEASE=${NGC_RELEASE:-v0.2.1}
-REPO=${NGC_REPO:-sorglos-it/nextgencloud}
-# Measured 24.10.2026: ngc-kette is on ulh's origin at afb2ea4. The local
+RELEASE=${CD_RELEASE:-v0.2.1}
+REPO=${CD_REPO:-sorglos-it/cirrodesk}
+# Measured 24.10.2026: cd-kette is on ulh's origin at afb2ea4. The local
 # checkout on the developer machine is AHEAD of it with work that is not pushed,
 # and a run must not depend on that - so the public branch is used and named.
-ULH_URL=${NGC_ULH_URL:-https://github.com/sorglos-it/ulh}
-ULH_REF=${NGC_ULH_REF:-ngc-kette}
+ULH_URL=${CD_ULH_URL:-https://github.com/sorglos-it/ulh}
+ULH_REF=${CD_ULH_REF:-cd-kette}
 
-STAGED=/var/lib/ngc/staged
-ANTWORTEN=/root/ngc-antworten.env
-ARBEIT=${NGC_WORK:-/root/ngc-sechs}
+STAGED=/var/lib/cd/staged
+ANTWORTEN=/root/cd-antworten.env
+ARBEIT=${CD_WORK:-/root/cd-sechs}
 
 fehler() {
-	echo "sechs-ngc: $*" >&2
+	echo "sechs-cd: $*" >&2
 	exit 1
 }
 
@@ -97,13 +97,13 @@ auf() {
 # content ever being an argument.
 datei_hin() {
 	local ip=$1 pfad=$2 modus=$3
-	# The directory first: a target under /etc/ngc exists only after a script
+	# The directory first: a target under /etc/cd exists only after a script
 	# of ulh has run there, and "install: cannot create regular file" is a
 	# confusing way to learn that.
 	auf "$ip" "mkdir -p \"\$(dirname $pfad)\" && install -m $modus /dev/null $pfad && cat > $pfad"
 }
 
-NGC_MASCHINEN="$API1_IP $API2_IP $DB_IP $SVC1_IP $SVC2_IP"
+CD_MASCHINEN="$API1_IP $API2_IP $DB_IP $SVC1_IP $SVC2_IP"
 
 # ------------------------------------------------------------------ laden
 laden() {
@@ -113,8 +113,8 @@ laden() {
 	# curl and not gh: a Proxmox host has no gh, and it needs none - the
 	# release is public (measured 24.10.2026: an unauthenticated HEAD on
 	# release.json answers 200), so no token is involved in this run at all.
-	for teil in release.json release-key.pem ngc-api-amd64.tar \
-		ngc-controller-amd64.tar ngc-web-all.tar; do
+	for teil in release.json release-key.pem cd-api-amd64.tar \
+		cd-controller-amd64.tar cd-web-all.tar; do
 		[ -s "$ARBEIT/release/$teil" ] && continue
 		curl -fsSL -o "$ARBEIT/release/$teil" \
 			"https://github.com/$REPO/releases/download/$RELEASE/$teil" ||
@@ -125,15 +125,15 @@ laden() {
 	# five times the work of finding it out once.
 	[ -s "$ARBEIT/release/release-key.pem" ] || fehler "release-key.pem is missing"
 	printf 'laden: %s with %s assets\n' "$RELEASE" "$(find "$ARBEIT/release" -type f | wc -l)"
-	for ip in $NGC_MASCHINEN; do
+	for ip in $CD_MASCHINEN; do
 		auf "$ip" "mkdir -p $STAGED"
 		# Only the amd64 parts and the common ones: an arm64 tar on an amd64
 		# machine is bytes nobody reads, and 55 MB per machine over ssh is
 		# time nobody gets back.
 		scp -q -o StrictHostKeyChecking=accept-new \
 			"$ARBEIT/release/release.json" "$ARBEIT/release/release-key.pem" \
-			"$ARBEIT/release/ngc-api-amd64.tar" "$ARBEIT/release/ngc-controller-amd64.tar" \
-			"$ARBEIT/release/ngc-web-all.tar" "$NUTZER@$ip:$STAGED/" ||
+			"$ARBEIT/release/cd-api-amd64.tar" "$ARBEIT/release/cd-controller-amd64.tar" \
+			"$ARBEIT/release/cd-web-all.tar" "$NUTZER@$ip:$STAGED/" ||
 			fehler "could not stage the release on $ip"
 		printf 'laden: %s has the release in %s\n' "$ip" "$STAGED"
 	done
@@ -143,12 +143,12 @@ laden() {
 # ------------------------------------------------------------------ ulh
 ulh() {
 	local ip
-	for ip in $NGC_MASCHINEN; do
+	for ip in $CD_MASCHINEN; do
 		auf "$ip" "command -v git >/dev/null || (DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git >/dev/null)"
 		auf "$ip" "[ -d /root/ulh/.git ] || git clone -q --branch $ULH_REF --single-branch $ULH_URL /root/ulh"
 		auf "$ip" "cd /root/ulh && git fetch -q origin $ULH_REF && git checkout -q FETCH_HEAD"
-		auf "$ip" "test -f /root/ulh/apps/cli/assets/scripts/ngc-api.sh" ||
-			fehler "$ip: the NGC scripts are not in the checkout - is $ULH_REF right?"
+		auf "$ip" "test -f /root/ulh/apps/cli/assets/scripts/cd-api.sh" ||
+			fehler "$ip: the CirroDesk scripts are not in the checkout - is $ULH_REF right?"
 		printf 'ulh: %s has %s at %s\n' "$ip" "$ULH_REF" "$(auf "$ip" "cd /root/ulh && git rev-parse --short HEAD")"
 	done
 	echo "ulh: ok"
@@ -162,18 +162,18 @@ ulh() {
 store() {
 	local pub
 	auf "$STORE_IP" "mkdir -p /root/store /var/www/store"
-	# ngc-store comes out of the release's api tar: the tar carries exactly
-	# ngc-api and ngc-store (the usage text of apps/cli says so).
-	scp -q "$ARBEIT/release/ngc-api-amd64.tar" "$NUTZER@$STORE_IP:/root/store/" ||
+	# cd-store comes out of the release's api tar: the tar carries exactly
+	# cd-api and cd-store (the usage text of apps/cli says so).
+	scp -q "$ARBEIT/release/cd-api-amd64.tar" "$NUTZER@$STORE_IP:/root/store/" ||
 		fehler "could not copy the api tar to the store machine"
-	auf "$STORE_IP" "cd /root/store && tar xf ngc-api-amd64.tar && install -m 0755 ngc-store /usr/local/bin/ngc-store" ||
-		fehler "ngc-store is not in the api tar"
-	# The key of the store. ngc-store makes the file itself with 0600 and
+	auf "$STORE_IP" "cd /root/store && tar xf cd-api-amd64.tar && install -m 0755 cd-store /usr/local/bin/cd-store" ||
+		fehler "cd-store is not in the api tar"
+	# The key of the store. cd-store makes the file itself with 0600 and
 	# prints only its path, never its content. The sequence number counts up on
 	# every call, which is what the rollback guard of the API is about
 	# (store.VerifyRelease / ErrRollback): a catalog with a LOWER seq than the
 	# one already seen has to be refused, and "messen" asks exactly that.
-	auf "$STORE_IP" "cd /root/store && /usr/local/bin/ngc-store catalog /var/www/store /root/store/store.key ngc-sechs \$(( \$(cat /root/store/seq 2>/dev/null || echo 0) + 1 )) https://store.$ZONE > /root/store/catalog.log 2>&1 && echo \$(( \$(cat /root/store/seq 2>/dev/null || echo 0) + 1 )) > /root/store/seq" ||
+	auf "$STORE_IP" "cd /root/store && /usr/local/bin/cd-store catalog /var/www/store /root/store/store.key cd-sechs \$(( \$(cat /root/store/seq 2>/dev/null || echo 0) + 1 )) https://store.$ZONE > /root/store/catalog.log 2>&1 && echo \$(( \$(cat /root/store/seq 2>/dev/null || echo 0) + 1 )) > /root/store/seq" ||
 		fehler "the catalog could not be written: $(auf "$STORE_IP" "tail -3 /root/store/catalog.log")"
 	auf "$STORE_IP" "test -s /var/www/store/catalog.json" ||
 		fehler "no catalog.json on the store machine: $(auf "$STORE_IP" "tail -5 /root/store/catalog.log")"
@@ -183,7 +183,7 @@ store() {
 	auf "$STORE_IP" "[ -s /root/store/ca.crt ] || (
 		openssl genpkey -algorithm ed25519 -out /root/store/ca.key &&
 		chmod 0400 /root/store/ca.key &&
-		openssl req -new -x509 -key /root/store/ca.key -out /root/store/ca.crt -days 3650 -subj '/CN=ngc-sechs store CA' &&
+		openssl req -new -x509 -key /root/store/ca.key -out /root/store/ca.crt -days 3650 -subj '/CN=cd-sechs store CA' &&
 		openssl genpkey -algorithm ed25519 -out /root/store/store.tls.key &&
 		chmod 0400 /root/store/store.tls.key &&
 		openssl req -new -key /root/store/store.tls.key -out /root/store/store.csr -subj '/CN=store.$ZONE' &&
@@ -197,19 +197,19 @@ store() {
 	auf "$STORE_IP" "ln -sf /etc/nginx/sites-available/store /etc/nginx/sites-enabled/store && rm -f /etc/nginx/sites-enabled/default && nginx -t >/dev/null 2>&1 && systemctl reload nginx" ||
 		fehler "nginx does not take the store site"
 	# The CA into the system trust of the two APIs. THIS IS THE OPERATOR'S
-	# STEP and it is named as one: NGC checks the certificate against the
+	# STEP and it is named as one: CirroDesk checks the certificate against the
 	# system pool, so a store with a certificate nobody trusts is refused -
 	# which is the right answer and the reason this line exists.
 	auf "$STORE_IP" "cat /root/store/ca.crt" >"$ARBEIT/store-ca.crt"
 	local ip
 	for ip in "$API1_IP" "$API2_IP"; do
-		datei_hin "$ip" /usr/local/share/ca-certificates/ngc-sechs-store.crt 0644 <"$ARBEIT/store-ca.crt"
+		datei_hin "$ip" /usr/local/share/ca-certificates/cd-sechs-store.crt 0644 <"$ARBEIT/store-ca.crt"
 		auf "$ip" "update-ca-certificates >/dev/null 2>&1" || fehler "$ip: update-ca-certificates failed"
 		printf 'store: %s trusts the store CA\n' "$ip"
 	done
 	# The public key of the store, base64url, as the answer store_key wants it.
 	# It is DERIVED from the published store-key.pem and not scraped out of a
-	# log line: ngc-store prints the key only on the run that CREATES the key
+	# log line: cd-store prints the key only on the run that CREATES the key
 	# file (measured 24.10.2026 - the second run prints one summary line), so a
 	# scrape would come back empty on every later run and leave the answer
 	# silently blank. The PRIVATE key never leaves the store machine.
@@ -230,23 +230,23 @@ db() {
 	auf "$DB_IP" "[ -s $ANTWORTEN ] || (
 		install -m 0600 /dev/null $ANTWORTEN &&
 		{
-			printf 'export NGC_HOSTNAME=db-1.%s\n' '$ZONE'
-			printf 'export NGC_NODES=db-1.%s:3306\n' '$ZONE'
-			printf 'export NGC_BOOTSTRAP=yes\n'
-			printf 'export NGC_PASSWORD_NGC=%s\n' \"\$(openssl rand 24 | base64 | tr -d '=+/,')\"
-			printf 'export NGC_PASSWORD_MIGRATE=%s\n' \"\$(openssl rand 24 | base64 | tr -d '=+/,')\"
-			printf 'export NGC_CA_DIR=/etc/ngc/db-ca\n'
+			printf 'export CD_HOSTNAME=db-1.%s\n' '$ZONE'
+			printf 'export CD_NODES=db-1.%s:3306\n' '$ZONE'
+			printf 'export CD_BOOTSTRAP=yes\n'
+			printf 'export CD_PASSWORD_CirroDesk=%s\n' \"\$(openssl rand 24 | base64 | tr -d '=+/,')\"
+			printf 'export CD_PASSWORD_MIGRATE=%s\n' \"\$(openssl rand 24 | base64 | tr -d '=+/,')\"
+			printf 'export CD_CA_DIR=/etc/cd/db-ca\n'
 		} >> $ANTWORTEN
 	)" || fehler "could not write the answers on db-1"
 	# A NAMED PIECE OF GROUNDWORK, AND IT IS A FINDING OF THIS RUN.
 	#
-	# ngc-db.sh install dies on a FRESH Debian at its very first step:
-	#   "NextGenCloud: MariaDB with Galera for db-1.ngc.mein.lan"
+	# cd-db.sh install dies on a FRESH Debian at its very first step:
+	#   "CirroDesk: MariaDB with Galera for db-1.ngc.mein.lan"
 	#   "chown: invalid group: 'root:mysql'"
-	# prepare() runs "ensure_dir $NGC_TLS root:mysql 0710" and
-	# "ensure_dir $NGC_KEYS root:mysql 0710", and install_ngc_db() calls
+	# prepare() runs "ensure_dir $CD_TLS root:mysql 0710" and
+	# "ensure_dir $CD_KEYS root:mysql 0710", and install_cd_db() calls
 	# prepare BEFORE ensure_packages - so the group mysql does not exist yet.
-	# (Measured 24.10.2026 on 10.2.3.212 against ulh origin/ngc-kette afb2ea4.
+	# (Measured 24.10.2026 on 10.2.3.212 against ulh origin/cd-kette afb2ea4.
 	# The line three statements further down, "MariaDB has to be there before
 	# the keys: they belong to its user", shows the ordering was seen for the
 	# keys and missed for the directories.)
@@ -257,14 +257,14 @@ db() {
 	auf "$DB_IP" "dpkg-query -W -f='\${Status}' mariadb-server 2>/dev/null | grep -q 'install ok installed' ||
 		DEBIAN_FRONTEND=noninteractive apt-get install -y -qq mariadb-server galera-4 mariadb-backup >/dev/null" ||
 		fehler "db-1: mariadb-server could not be installed"
-	auf "$DB_IP" "set -a; . $ANTWORTEN; set +a; bash /root/ulh/apps/cli/assets/scripts/ngc-db.sh install" ||
-		fehler "ngc-db install failed on db-1 - look at the output above"
-	# /etc/ngc/db-tls and NOT /etc/ngc/tls: ngc-db.sh keeps its own directory
-	# (NGC_TLS="/etc/ngc/db-tls" in the script), while ngc-api and ngc-web use
-	# /etc/ngc/tls for theirs. Looking in the wrong one is a run that reports
+	auf "$DB_IP" "set -a; . $ANTWORTEN; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-db.sh install" ||
+		fehler "cd-db install failed on db-1 - look at the output above"
+	# /etc/cd/db-tls and NOT /etc/cd/tls: cd-db.sh keeps its own directory
+	# (CD_TLS="/etc/cd/db-tls" in the script), while cd-api and cd-web use
+	# /etc/cd/tls for theirs. Looking in the wrong one is a run that reports
 	# "the database has no CA" about a database that just printed it.
-	auf "$DB_IP" "test -s /etc/ngc/db-tls/ca.crt" || fehler "db-1 has no /etc/ngc/db-tls/ca.crt"
-	auf "$DB_IP" "cat /etc/ngc/db-tls/ca.crt" >"$ARBEIT/db-ca.crt"
+	auf "$DB_IP" "test -s /etc/cd/db-tls/ca.crt" || fehler "db-1 has no /etc/cd/db-tls/ca.crt"
+	auf "$DB_IP" "cat /etc/cd/db-tls/ca.crt" >"$ARBEIT/db-ca.crt"
 	printf 'db: ok - the CA of the installation is in %s\n' "$ARBEIT/db-ca.crt"
 }
 
@@ -290,34 +290,34 @@ api() {
 	[ -s "$ARBEIT/store-key.txt" ] || fehler "no store key - run 'store' first"
 	# The CA of the database as a FILE on the machine, which is what the
 	# answer db_ca names.
-	datei_hin "$ip" /etc/ngc/db-ca.crt 0644 <"$ARBEIT/db-ca.crt"
+	datei_hin "$ip" /etc/cd/db-ca.crt 0644 <"$ARBEIT/db-ca.crt"
 	antwort=$ANTWORTEN
 	# THE PASSWORD. It is read out of db-1's 0600 answers file and piped into
 	# this machine's 0600 answers file. It never stands in an argument (every
 	# local user can read /proc/<pid>/cmdline without hidepid) and this script
 	# never prints it.
 	{
-		printf 'export NGC_NODE=%s\n' "$node"
-		printf 'export NGC_HOSTNAME=%s.%s\n' "$node" "$ZONE"
-		printf 'export NGC_DB_DRIVER=mariadb\n'
-		printf 'export NGC_DB_NODES=db-1.%s:3306\n' "$ZONE"
-		printf 'export NGC_DB_NAME=ngc\n'
-		printf 'export NGC_DB_USER=ngc\n'
-		auf "$DB_IP" "grep '^export NGC_PASSWORD_NGC=' $ANTWORTEN" |
-			sed 's/NGC_PASSWORD_NGC=/NGC_DB_PASSWORD=/'
-		printf 'export NGC_DB_CA=/etc/ngc/db-ca.crt\n'
-		printf 'export NGC_STORE_URL=https://store.%s\n' "$ZONE"
-		printf 'export NGC_STORE_KEY=%s\n' "$(cat "$ARBEIT/store-key.txt")"
+		printf 'export CD_NODE=%s\n' "$node"
+		printf 'export CD_HOSTNAME=%s.%s\n' "$node" "$ZONE"
+		printf 'export CD_DB_DRIVER=mariadb\n'
+		printf 'export CD_DB_NODES=db-1.%s:3306\n' "$ZONE"
+		printf 'export CD_DB_NAME=cd\n'
+		printf 'export CD_DB_USER=cd\n'
+		auf "$DB_IP" "grep '^export CD_PASSWORD_CirroDesk=' $ANTWORTEN" |
+			sed 's/CD_PASSWORD_CirroDesk=/CD_DB_PASSWORD=/'
+		printf 'export CD_DB_CA=/etc/cd/db-ca.crt\n'
+		printf 'export CD_STORE_URL=https://store.%s\n' "$ZONE"
+		printf 'export CD_STORE_KEY=%s\n' "$(cat "$ARBEIT/store-key.txt")"
 		if [ "$welche" = 2 ]; then
 			[ -s "$ARBEIT/join-code.txt" ] ||
 				fehler "no join code - it comes out of the first API (api1) and has to be in $ARBEIT/join-code.txt"
-			printf 'export NGC_JOIN_CODE=%s\n' "$(cat "$ARBEIT/join-code.txt")"
+			printf 'export CD_JOIN_CODE=%s\n' "$(cat "$ARBEIT/join-code.txt")"
 		else
-			printf 'export NGC_JOIN_CODE=\n'
+			printf 'export CD_JOIN_CODE=\n'
 		fi
 	} | datei_hin "$ip" "$antwort" 0600
-	auf "$ip" "set -a; . $antwort; set +a; bash /root/ulh/apps/cli/assets/scripts/ngc-api.sh install" ||
-		fehler "ngc-api install failed on $node - look at the output above"
+	auf "$ip" "set -a; . $antwort; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-api.sh install" ||
+		fehler "cd-api install failed on $node - look at the output above"
 	printf 'api%s: ok\n' "$welche"
 }
 
@@ -327,19 +327,19 @@ api() {
 web() {
 	local pin1 pin2 adressen pins
 	# The pin is the SHA-256 of the public key of the certificate, base64url -
-	# the same number shared/testdata/tls/pin.sh computes and ngc-api prints at
+	# the same number shared/testdata/tls/pin.sh computes and cd-api prints at
 	# the end of its install. There is no pin.sh in the ulh checkout (measured
-	# 24.10.2026 on origin/ngc-kette), so it is computed here from the
+	# 24.10.2026 on origin/cd-kette), so it is computed here from the
 	# certificate the API made itself.
-	pin1=$(auf "$API1_IP" "openssl x509 -in /etc/ngc/tls/api.crt -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform DER 2>/dev/null | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='")
+	pin1=$(auf "$API1_IP" "openssl x509 -in /etc/cd/tls/api.crt -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform DER 2>/dev/null | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='")
 	[ ${#pin1} -eq 43 ] || fehler "the pin of api-1 came back as '${pin1:-}' - that is no SHA-256 in base64url"
 	adressen="https://api-1.$ZONE:7443"
 	pins=$pin1
 	# api-2 only if it is really installed. A pin typed in for a machine that
 	# is not there would make Apache's balancer point at nothing, and web.json
 	# would carry a number nobody can check.
-	if auf "$API2_IP" "test -s /etc/ngc/tls/api.crt" 2>/dev/null; then
-		pin2=$(auf "$API2_IP" "openssl x509 -in /etc/ngc/tls/api.crt -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform DER 2>/dev/null | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='")
+	if auf "$API2_IP" "test -s /etc/cd/tls/api.crt" 2>/dev/null; then
+		pin2=$(auf "$API2_IP" "openssl x509 -in /etc/cd/tls/api.crt -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform DER 2>/dev/null | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='")
 		[ ${#pin2} -eq 43 ] || fehler "the pin of api-2 came back as '${pin2:-}'"
 		adressen="$adressen https://api-2.$ZONE:7443"
 		pins="$pins $pin2"
@@ -347,26 +347,26 @@ web() {
 		echo "web: api-2 carries no certificate yet, so the balancer gets ONE member - the second API joins with a join code, and that comes from a signed-in admin in the browser"
 	fi
 	{
-		printf 'export NGC_HOSTNAME=%s\n' "$ZONE"
-		printf 'export NGC_CERT_MODE=selfsigned\n'
-		printf 'export NGC_CERT_FILE=\n'
-		printf 'export NGC_KEY_FILE=\n'
+		printf 'export CD_HOSTNAME=%s\n' "$ZONE"
+		printf 'export CD_CERT_MODE=selfsigned\n'
+		printf 'export CD_CERT_FILE=\n'
+		printf 'export CD_KEY_FILE=\n'
 		# QUOTED, and that is not cosmetic: both answers are LISTS separated by
-		# spaces, and an unquoted "export NGC_APIS=a b" makes the shell read
+		# spaces, and an unquoted "export CD_APIS=a b" makes the shell read
 		# "b" as a second assignment - "export: `https://api-2...': not a
 		# valid identifier". Measured 24.10.2026: the second API fell out of
 		# the balancer that way while api-trust.pem already held both
 		# certificates, so nothing looked wrong except one BalancerMember.
-		printf 'export NGC_APIS="%s"\n' "$adressen"
-		printf 'export NGC_API_PINS="%s"\n' "$pins"
-	} | datei_hin "$WEB_IP" /root/ngc-web.env 0600
-	auf "$WEB_IP" "set -a; . /root/ngc-web.env; set +a; bash /root/ulh/apps/cli/assets/scripts/ngc-web.sh install" ||
-		fehler "ngc-web install failed - look at the output above"
+		printf 'export CD_APIS="%s"\n' "$adressen"
+		printf 'export CD_API_PINS="%s"\n' "$pins"
+	} | datei_hin "$WEB_IP" /root/cd-web.env 0600
+	auf "$WEB_IP" "set -a; . /root/cd-web.env; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-web.sh install" ||
+		fehler "cd-web install failed - look at the output above"
 	echo "web: ok"
 }
 
 # ------------------------------------------------------------------ controller
-# ngc-controller.sh pairs WHILE it installs, and the pairing code comes out of
+# cd-controller.sh pairs WHILE it installs, and the pairing code comes out of
 # the browser: "Benutzer und Server" -> Server -> Kopplungscode. A code is
 # good ONCE (dbapi.OncePair) and for 24 hours (tunnel.PairLifetime = 86400),
 # so every server needs its own.
@@ -375,9 +375,9 @@ web() {
 # into a 0600 file on the machine. It never stands in an argument:
 # /proc/<pid>/cmdline is readable by every local user without hidepid, and
 # the script of ulh keeps the same promise where it hands the code to
-# "ngc-controller pair".
+# "cd-controller pair".
 #
-# Usage:  printf '%s' 'ngc-pair:...' | proxmox-sechs-ngc.sh controller svc-1
+# Usage:  printf '%s' 'cd-pair:...' | proxmox-sechs-cd.sh controller svc-1
 controller() {
 	local name=$1 ip rollen code
 	case $name in
@@ -405,32 +405,32 @@ controller() {
 	esac
 	code=$(cat)
 	case $code in
-	ngc-pair:*) ;;
-	*) fehler "that is no pairing code - it begins with 'ngc-pair:' (a join code, 'ngc-join:', belongs to ngc-api and not here)" ;;
+	cd-pair:*) ;;
+	*) fehler "that is no pairing code - it begins with 'cd-pair:' (a join code, 'cd-join:', belongs to cd-api and not here)" ;;
 	esac
 	{
-		printf 'export NGC_NAME=%s\n' "$name"
-		printf 'export NGC_PAIR_CODE=%s\n' "$code"
-		printf 'export NGC_ROLES=%s\n' "$rollen"
+		printf 'export CD_NAME=%s\n' "$name"
+		printf 'export CD_PAIR_CODE=%s\n' "$code"
+		printf 'export CD_ROLES=%s\n' "$rollen"
 		if [ "$name" = db-1 ]; then
 			# Role db carries the migration in controller.json, and that is
 			# the account which may change the schema - a different one from
 			# the db_user of api.json, which may not (measured: "CREATE
-			# command denied to user 'ngc'").
-			printf 'export NGC_MIGRATE_NODES=db-1.%s:3306\n' "$ZONE"
-			printf 'export NGC_MIGRATE_NAME=ngc\n'
-			printf 'export NGC_MIGRATE_USER=ngc_migrate\n'
-			auf "$DB_IP" "grep '^export NGC_PASSWORD_MIGRATE=' $ANTWORTEN" |
-				sed 's/NGC_PASSWORD_MIGRATE=/NGC_MIGRATE_PASSWORD=/'
-			printf 'export NGC_MIGRATE_CA=/etc/ngc/db-ca.crt\n'
+			# command denied to user 'cd'").
+			printf 'export CD_MIGRATE_NODES=db-1.%s:3306\n' "$ZONE"
+			printf 'export CD_MIGRATE_NAME=cd\n'
+			printf 'export CD_MIGRATE_USER=cd_migrate\n'
+			auf "$DB_IP" "grep '^export CD_PASSWORD_MIGRATE=' $ANTWORTEN" |
+				sed 's/CD_PASSWORD_MIGRATE=/CD_MIGRATE_PASSWORD=/'
+			printf 'export CD_MIGRATE_CA=/etc/cd/db-ca.crt\n'
 		fi
-	} | datei_hin "$ip" /root/ngc-controller.env 0600
+	} | datei_hin "$ip" /root/cd-controller.env 0600
 	if [ "$name" = db-1 ] || [ "$name" = web-api-1 ] || [ "$name" = api-2 ]; then
 		[ -s "$ARBEIT/db-ca.crt" ] || fehler "no $ARBEIT/db-ca.crt - run 'db' first"
-		datei_hin "$ip" /etc/ngc/db-ca.crt 0644 <"$ARBEIT/db-ca.crt"
+		datei_hin "$ip" /etc/cd/db-ca.crt 0644 <"$ARBEIT/db-ca.crt"
 	fi
-	auf "$ip" "set -a; . /root/ngc-controller.env; set +a; bash /root/ulh/apps/cli/assets/scripts/ngc-controller.sh install; rc=\$?; shred -u /root/ngc-controller.env 2>/dev/null || rm -f /root/ngc-controller.env; exit \$rc" ||
-		fehler "ngc-controller install failed on $name - look at the output above"
+	auf "$ip" "set -a; . /root/cd-controller.env; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-controller.sh install; rc=\$?; shred -u /root/cd-controller.env 2>/dev/null || rm -f /root/cd-controller.env; exit \$rc" ||
+		fehler "cd-controller install failed on $name - look at the output above"
 	printf 'controller: %s is paired (roles: %s)\n' "$name" "$rollen"
 }
 

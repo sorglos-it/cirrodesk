@@ -13,11 +13,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // empty reports that nothing is left under base: every refusal must remove
@@ -267,26 +267,26 @@ func TestAcceptDecryptsAPaidApp(t *testing.T) {
 	refuses(t, "sealed file without a key", i, store.ErrPackage)
 }
 
-// TestAcceptRefusesTooNewMinNGC covers minNgc on both sides: in the
+// TestAcceptRefusesTooNewMinCD covers minCd on both sides: in the
 // catalogue entry, where it is checked before a byte is written, and in the
 // manifest, which is the only place an uploaded app states it.
-func TestAcceptRefusesTooNewMinNGC(t *testing.T) {
+func TestAcceptRefusesTooNewMinCD(t *testing.T) {
 	f := catalogFixture(t)
-	f.withCatalog(func(c *store.Catalog) { c.Apps[0].Versions[0].MinNGC = "2.0.0" })
-	refuses(t, "catalogue minNgc 2.0.0 against NGC 1.0.0", f, ErrVerify)
+	f.withCatalog(func(c *store.Catalog) { c.Apps[0].Versions[0].MinCD = "2.0.0" })
+	refuses(t, "catalogue minCd 2.0.0 against CirroDesk 1.0.0", f, ErrVerify)
 
-	// 0.0.0-dev is no release version, so it suits no minNgc at all.
+	// 0.0.0-dev is no release version, so it suits no minCd at all.
 	g := catalogFixture(t)
-	g.withCatalog(func(c *store.Catalog) { c.Apps[0].Versions[0].MinNGC = "1.0.0" })
-	g.in.NGC = "0.0.0-dev"
-	refuses(t, "a development build against minNgc 1.0.0", g, ErrVerify)
+	g.withCatalog(func(c *store.Catalog) { c.Apps[0].Versions[0].MinCD = "1.0.0" })
+	g.in.CirroDesk = "0.0.0-dev"
+	refuses(t, "a development build against minCd 1.0.0", g, ErrVerify)
 
-	// The same minNgc that this NGC does support must pass, or the case above
-	// would prove nothing but that minNgc is read.
+	// The same minCd that this CirroDesk does support must pass, or the case above
+	// would prove nothing but that minCd is read.
 	h := catalogFixture(t)
-	h.withCatalog(func(c *store.Catalog) { c.Apps[0].Versions[0].MinNGC = "1.0.0" })
+	h.withCatalog(func(c *store.Catalog) { c.Apps[0].Versions[0].MinCD = "1.0.0" })
 	if _, err := h.run(); err != nil {
-		t.Errorf("minNgc 1.0.0 against NGC 1.0.0: %v, want accepted", err)
+		t.Errorf("minCd 1.0.0 against CirroDesk 1.0.0: %v, want accepted", err)
 	}
 
 	// An uploaded app has no catalogue entry: its manifest is the only source.
@@ -294,14 +294,14 @@ func TestAcceptRefusesTooNewMinNGC(t *testing.T) {
 	i := uploadFixture(t)
 	i.setFile(pkg)
 	i.in.UI = uiHashOf(t, pkg)
-	refuses(t, "manifest minNgc 2.0.0 against NGC 1.0.0", i, ErrVerify)
+	refuses(t, "manifest minCd 2.0.0 against CirroDesk 1.0.0", i, ErrVerify)
 
 	ok := buildTar(t, goodEntries(t, appManifest(testApp, testVer, "1.0.0")))
 	j := uploadFixture(t)
 	j.setFile(ok)
 	j.in.UI = uiHashOf(t, ok)
 	if _, err := j.run(); err != nil {
-		t.Errorf("manifest minNgc 1.0.0 against NGC 1.0.0: %v, want accepted", err)
+		t.Errorf("manifest minCd 1.0.0 against CirroDesk 1.0.0: %v, want accepted", err)
 	}
 }
 
@@ -396,7 +396,7 @@ func TestAcceptRefusesABadSignature(t *testing.T) {
 		f.tr.Catalog, f.tr.Store = nil, ""
 		f.in.Store, f.in.App, f.in.ReleaseKey = "", store.ReleaseController, relPub
 		f.tr.Release = releaseOf(t, relPriv, store.Release{Seq: 4, Issued: 1, Version: testVer,
-			Files: []store.File{{Part: store.ReleaseController, Arch: "amd64", URL: "ngc-controller",
+			Files: []store.File{{Part: store.ReleaseController, Arch: "amd64", URL: "cd-controller",
 				Size: int64(len(f.file)), SHA256: enc.Bytes(sha(f.file))}}})
 		return f
 	}

@@ -1,5 +1,7 @@
 # Was passiert, wenn ein Rechner ausfällt
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Sechs Maschinen, damit der Ausfall einer einzelnen die Anlage nicht mitnimmt.
 Gemessen hat das bis zum 24.10.2026 niemand: gemessen war nur, dass alles
 läuft, wenn alles läuft. Dieses Blatt schaltet jede Maschine einmal aus und

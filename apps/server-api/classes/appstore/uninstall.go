@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Deactivate stops an app on its controller without removing it
-// (ngc.store/controller/deactivate). The row stays with everything in it and
+// (cd.store/controller/deactivate). The row stays with everything in it and
 // only Active and Updated change, so activating the app again needs neither
 // the package nor the grants a second time.
 func (st *Stores) Deactivate(ctx context.Context, rq DeactivateRequest) (wire.Code, error) {
@@ -41,7 +41,7 @@ func (st *Stores) Deactivate(ctx context.Context, rq DeactivateRequest) (wire.Co
 	return st.noteApp(ctx, rq.Carried, row.ID, "deaktiviert")
 }
 
-// Uninstall removes an app from its controller (ngc.store/controller/uninstall)
+// Uninstall removes an app from its controller (cd.store/controller/uninstall)
 // and then takes it out of this API's books.
 //
 // What goes and what stays is a decision, not a side effect, and the UI rows
@@ -49,7 +49,7 @@ func (st *Stores) Deactivate(ctx context.Context, rq DeactivateRequest) (wire.Co
 //
 //   - The ui-tar (dbapi.BlobUI) and the evidence of the installed version
 //     (dbapi.BlobApproval) GO. They belong to a version that is on no node any
-//     more, they are up to store.MaxUITotal of bytes, and nothing else in NGC
+//     more, they are up to store.MaxUITotal of bytes, and nothing else in CirroDesk
 //     would ever remove them: a row that only this step deletes and only
 //     Activate writes would otherwise lie there for good, with nothing left to
 //     name it. Activating the version again writes both anew out of the
@@ -122,7 +122,7 @@ func (st *Stores) Uninstall(ctx context.Context, rq UninstallRequest) (wire.Code
 //
 // A task that names another node than the row is refused. It would otherwise
 // take away the row of an app that goes on running on its own node -- and an
-// app NGC holds no row for can be neither seen nor stopped, which is the one
+// app CirroDesk holds no row for can be neither seen nor stopped, which is the one
 // state this package must never create.
 func (st *Stores) rowFor(ctx context.Context, c Carried, app string) (dbapi.App, wire.Code, error) {
 	if !wire.ValidName(c.Node) {
@@ -155,7 +155,7 @@ func (st *Stores) noteApp(ctx context.Context, c Carried, app, detail string) (w
 	return "", nil
 }
 
-// Installed answers ngc.store/installed: one row per app this API holds a
+// Installed answers cd.store/installed: one row per app this API holds a
 // record of, in the order of the database (by ID), so the shell always shows
 // the same order.
 //

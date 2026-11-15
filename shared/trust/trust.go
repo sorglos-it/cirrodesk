@@ -14,10 +14,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Limits and the admin role.
@@ -60,9 +60,9 @@ const (
 
 // Targets of standing approvals besides app IDs.
 const (
-	AutoWeb        = "ngc-web"
-	AutoAPI        = "ngc-api" // includes the database migrations of that API version
-	AutoController = "ngc-controller"
+	AutoWeb        = "cd-web"
+	AutoAPI        = "cd-api" // includes the database migrations of that API version
+	AutoController = "cd-controller"
 	AutoSystem     = "system" // Debian and Ubuntu packages via apt
 )
 
@@ -222,7 +222,7 @@ var listBudget = enc.Budget{Size: sign.MaxPayload, Items: map[string]int{
 var signedBudget = enc.Budget{Size: enc.B64.EncodedLen(sign.MaxPayload) + 64<<10}
 
 // ParseSigned decodes one version from outside, such as the body of
-// ngc.users/api/trust: strict JSON within a budget (enc.Budget) of the
+// cd.users/api/trust: strict JSON within a budget (enc.Budget) of the
 // base64url of sign.MaxPayload bytes plus 64 KiB, a payload of 1 to
 // sign.MaxPayload bytes and a proof that passes proof.Proof.Validate. It
 // checks no signature: Open and Advance do, and expect versions parsed here
@@ -554,7 +554,7 @@ func (l *List) Validate() error {
 			if len(a.Key) != 0 {
 				return ErrInvalid
 			}
-		// Core apps ship inside the NGC parts, not from a store, so they are
+		// Core apps ship inside the CirroDesk parts, not from a store, so they are
 		// no update target: the same set as store.ValidTarget, which trust
 		// cannot import.
 		case a.Target == AutoWeb || a.Target == AutoAPI || a.Target == AutoController ||

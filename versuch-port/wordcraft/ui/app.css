@@ -1,5 +1,5 @@
 /* The app draws everything inside its window itself: the shell hands it only
-   ngc.js and the theme. No stylesheet of NGC reaches a frame. */
+   cd.js and the theme. No stylesheet of CirroDesk reaches a frame. */
 :root { color-scheme: light dark; }
 body {
   margin: 0; padding: 1.5rem;

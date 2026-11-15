@@ -1,5 +1,5 @@
 [package]
-name = "ngc-sign-versuch"
+name = "cd-sign-versuch"
 version = "0.0.0"
 edition = "2021"
 publish = false
@@ -17,7 +17,7 @@ panic = "abort"
 # The probes are named here rather than left in src/bin/, because the repo's
 # .gitignore holds "bin/" and a file nobody can commit is no evidence.
 [[bin]]
-name = "ngc-sign-versuch"
+name = "cd-sign-versuch"
 path = "src/main.rs"
 
 [[bin]]

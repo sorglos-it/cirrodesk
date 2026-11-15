@@ -16,10 +16,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // maxFile is the largest upload; a var only so the test need not send 1 GiB.
@@ -120,10 +120,10 @@ func Run(getenv func(string) string, data string, stdin io.Reader, stdout, stder
 	if errors.As(err, &f) {
 		code = string(f)
 	} else {
-		fmt.Fprintf(stderr, "ngc-files: %s: %v\n", action, err)
+		fmt.Fprintf(stderr, "cd-files: %s: %v\n", action, err)
 	}
 	if stream {
-		fmt.Fprintln(stderr, "ngc-files:", code)
+		fmt.Fprintln(stderr, "cd-files:", code)
 		return 1
 	}
 	json.NewEncoder(stdout).Encode(Answer{Error: code})

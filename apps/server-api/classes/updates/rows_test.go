@@ -9,12 +9,12 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // theFleet puts the three controllers of the fixture online: one that runs the
@@ -40,7 +40,7 @@ func TestRowsPerTargetAndNode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Rows: %v", err)
 	}
-	// One row per NGC part the node's roles name (tunnel.Components), system
+	// One row per CirroDesk part the node's roles name (tunnel.Components), system
 	// on every node, the app on the node it runs on -- as a SET, so a row
 	// nobody expected is a failure too.
 	want := []string{
@@ -75,7 +75,7 @@ func TestRowsPerTargetAndNode(t *testing.T) {
 	}) {
 		t.Fatalf("rows are not sorted by target then node: %v", got)
 	}
-	// The node that runs no API gets no ngc-api row, and that is the half of
+	// The node that runs no API gets no cd-api row, and that is the half of
 	// this that an "it contains" check would miss.
 	if _, ok := findRow(rows, trust.AutoAPI, dbNode); ok {
 		t.Fatalf("%s has no role api and must have no %s row", dbNode, trust.AutoAPI)
@@ -86,7 +86,7 @@ func TestRowsPerTargetAndNode(t *testing.T) {
 	if api.Installed != "1.0.0" || api.Available != "1.1.0" {
 		t.Fatalf("%s on %s: installed %q available %q", trust.AutoAPI, ctlNode, api.Installed, api.Available)
 	}
-	// The web node is arm64 and the release carries ngc-web as arch "all":
+	// The web node is arm64 and the release carries cd-web as arch "all":
 	// without that rule the row would offer nothing.
 	web := rowOf(t, rows, trust.AutoWeb, webNode)
 	if web.Available != "1.1.0" {
@@ -131,23 +131,23 @@ func TestARowOffersNothingForAnArchitectureTheReleaseDoesNotCarry(t *testing.T) 
 	}
 }
 
-func TestRowLeavesOutAVersionWithAHigherMinNGC(t *testing.T) {
+func TestRowLeavesOutAVersionWithAHigherMinCD(t *testing.T) {
 	cases := []struct {
-		name, ngc, minNGC, want string
+		name, cd, minCD, want string
 	}{
-		{"older NGC", "1.0.0", "1.1.0", ""},
+		{"older CirroDesk", "1.0.0", "1.1.0", ""},
 		{"exactly the minimum", "1.1.0", "1.1.0", "1.2.0"},
-		{"newer NGC", "1.2.0", "1.1.0", "1.2.0"},
+		{"newer CirroDesk", "1.2.0", "1.1.0", "1.2.0"},
 		{"no minimum at all", "1.0.0", "", "1.2.0"},
 		// A build that names itself 0.0.0-dev is no release version and suits
-		// no minNgc (store.SupportsMinNGC).
+		// no minCd (store.SupportsMinCD).
 		{"a development build", "0.0.0-dev", "1.0.0", ""},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			fx := newFixture(t)
-			fx.Fleet.put(ctlNode, "amd64", c.ngc, []string{tunnel.RoleServices}, nil)
-			fx.listCatalog(t, storePriv, 9, entry(theApp, "1.2.0", nil, c.minNGC))
+			fx.Fleet.put(ctlNode, "amd64", c.cd, []string{tunnel.RoleServices}, nil)
+			fx.listCatalog(t, storePriv, 9, entry(theApp, "1.2.0", nil, c.minCD))
 			fx.putApp(t, theApp, "1.0.0", store.GlobalID, ctlNode, nil)
 			rows, err := fx.U.Rows(ctx)
 			if err != nil {
@@ -208,7 +208,7 @@ func TestRowNeedsGrants(t *testing.T) {
 		t.Fatalf("state %q available %q, want %q and 1.1.0", r.State, r.Available, store.UpdateNeedsGrants)
 	}
 	// And nothing is installed for such a row: Rollout touches apps at all
-	// only through the shell, and a round of NGC parts leaves it alone.
+	// only through the shell, and a round of CirroDesk parts leaves it alone.
 	if sents := fx.Send.list(); len(sents) != 0 {
 		t.Fatalf("something travelled for a needsgrants row: %+v", sents)
 	}
@@ -270,7 +270,7 @@ func TestRowsAreNotStored(t *testing.T) {
 	}
 }
 
-func TestKeyOfANGCPartIsTheReleaseKey(t *testing.T) {
+func TestKeyOfACDPartIsTheReleaseKey(t *testing.T) {
 	fx := newFixture(t)
 	fx.theFleet()
 	fx.serveRelease(t, relPriv, 3, "1.1.0", map[string][]byte{partFile: []byte("api")})
@@ -282,7 +282,7 @@ func TestKeyOfANGCPartIsTheReleaseKey(t *testing.T) {
 	}
 	for _, r := range rows {
 		switch {
-		case ngcPart(r.Target):
+		case cdPart(r.Target):
 			if !bytes.Equal(r.Key, fx.S.Cfg.ReleaseKey) {
 				t.Fatalf("%s on %s carries key %x, want the release key %x",
 					r.Target, r.Node, []byte(r.Key), []byte(fx.S.Cfg.ReleaseKey))
@@ -345,7 +345,7 @@ func TestTheChecksumOfARowComesOutOfTheSignedSource(t *testing.T) {
 }
 
 // TestAReleaseOfAStrangerReachesNoRow: a release signed with another key is
-// refused by store.VerifyRelease, and nothing of NGC is then offered. The apps
+// refused by store.VerifyRelease, and nothing of CirroDesk is then offered. The apps
 // still are -- a store that is away must not empty the whole page.
 func TestAReleaseOfAStrangerReachesNoRow(t *testing.T) {
 	fx := newFixture(t)
@@ -476,8 +476,8 @@ func TestSetSettingTakesOnlyWhatTheContractTakes(t *testing.T) {
 
 // TestAutoNeedsAStandingApproval: "auto" means "install without asking
 // anybody", and the trust list is the only place this installation says that
-// is allowed. trusttest.Genesis approves ngc-controller and system and nothing
-// else, so ngc-api and ngc-web are the measured negative.
+// is allowed. trusttest.Genesis approves cd-controller and system and nothing
+// else, so cd-api and cd-web are the measured negative.
 func TestAutoNeedsAStandingApproval(t *testing.T) {
 	fx := newFixture(t)
 	for _, target := range []string{trust.AutoController, trust.AutoSystem} {
@@ -496,7 +496,7 @@ func TestAutoNeedsAStandingApproval(t *testing.T) {
 			t.Fatalf("%s semi: %v", target, err)
 		}
 	}
-	// The way is open: once the list approves ngc-api, auto is taken.
+	// The way is open: once the list approves cd-api, auto is taken.
 	fx.approve(t, trust.AutoAPI)
 	if err := fx.U.SetSetting(ctx, core.UpdateSetting{Target: trust.AutoAPI,
 		Mode: store.ModeAuto}); err != nil {

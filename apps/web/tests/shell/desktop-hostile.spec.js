@@ -201,19 +201,19 @@ test("names that try to be markup become text, and nothing of them runs", async 
 
 test("a notice that tries to be markup is shown as text", async ({ page }) => {
   await desktop(page, [CALC]);
-  await page.evaluate(() => window.__ngcSendNotice("warn", "<img src=x onerror=alert(9)>"));
+  await page.evaluate(() => window.__cdSendNotice("warn", "<img src=x onerror=alert(9)>"));
   await expect(page.getByRole("status")).toHaveText("<img src=x onerror=alert(9)>");
   expect(await page.locator(".noticebar img, .noticebar script, .noticebar svg").count()).toBe(0);
 });
 
 test("a notice the contract does not hold with is dropped without a word", async ({ page }) => {
   await desktop(page, [CALC]);
-  await page.evaluate(() => window.__ngcSendNotice("warn", "Die eine Meldung."));
+  await page.evaluate(() => window.__cdSendNotice("warn", "Die eine Meldung."));
   await expect(page.getByRole("status")).toHaveText("Die eine Meldung.");
   // Too long for the wire, and an invented level: both are bodies the shell
   // cannot vouch for, and a message it cannot vouch for is worse than none.
-  await page.evaluate(() => window.__ngcSendNotice("warn", "Z".repeat(5000)));
-  await page.evaluate(() => window.__ngcSendNotice("erfunden", "Eine erfundene Stufe."));
+  await page.evaluate(() => window.__cdSendNotice("warn", "Z".repeat(5000)));
+  await page.evaluate(() => window.__cdSendNotice("erfunden", "Eine erfundene Stufe."));
   await expect(page.getByRole("status")).toHaveText("Die eine Meldung.");
   await stillADesktop(page);
 });

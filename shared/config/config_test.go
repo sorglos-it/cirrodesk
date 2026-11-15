@@ -22,12 +22,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 func example(t *testing.T, name string) string {
@@ -74,13 +74,13 @@ func certPEM(der []byte) string {
 }
 
 // testCA makes a database CA from the Ed25519 seed of 32 bytes of fill:
-// serial 1, CN "NGC DB CA (Test)", a CA for certificates and CRLs. It returns
+// serial 1, CN "CirroDesk DB CA (Test)", a CA for certificates and CRLs. It returns
 // the certificate, its key and its PEM.
 func testCA(t testing.TB, fill byte) (*x509.Certificate, ed25519.PrivateKey, string) {
 	t.Helper()
 	der, key := testCert(t, &x509.Certificate{
 		SerialNumber:          big.NewInt(1),
-		Subject:               pkix.Name{CommonName: "NGC DB CA (Test)"},
+		Subject:               pkix.Name{CommonName: "CirroDesk DB CA (Test)"},
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
@@ -125,13 +125,13 @@ func TestExamples(t *testing.T) {
 	t.Logf("exampleCA as a JSON string: %s", quoted)
 
 	w, err := LoadWeb(example(t, "web.json"))
-	if err != nil || len(w.APIs) != 2 || w.RP.ID != "ngc.example.org" ||
-		w.APIs[0].URL != "https://api-1.ngc.test:7443" || !bytes.Equal(w.APIs[0].TLS, pin(0xE1)) ||
-		w.APIs[1].URL != "https://api-2.ngc.test:7443" || !bytes.Equal(w.APIs[1].TLS, pin(0xE2)) {
+	if err != nil || len(w.APIs) != 2 || w.RP.ID != "cd.example.org" ||
+		w.APIs[0].URL != "https://api-1.cd.test:7443" || !bytes.Equal(w.APIs[0].TLS, pin(0xE1)) ||
+		w.APIs[1].URL != "https://api-2.cd.test:7443" || !bytes.Equal(w.APIs[1].TLS, pin(0xE2)) {
 		t.Fatalf("web: %+v, %v", w, err)
 	}
 	a, err := LoadAPI(example(t, "api.json"))
-	if err != nil || a.Node != "api-1" || a.URL != "wss://api-1.ngc.test:7443/tunnel" || a.DB.Driver != DriverMariaDB ||
+	if err != nil || a.Node != "api-1" || a.URL != "wss://api-1.cd.test:7443/tunnel" || a.DB.Driver != DriverMariaDB ||
 		len(a.DB.Nodes) != 3 {
 		t.Fatalf("api: %+v, %v", a, err)
 	}
@@ -145,13 +145,13 @@ func TestExamples(t *testing.T) {
 	}
 	d, err := LoadController(example(t, "controller-db.json"))
 	if err != nil || d.Name != "datenbank" || len(d.Roles) != 2 || d.Roles[0] != tunnel.RoleDB || d.Migrate == nil ||
-		d.Migrate.Driver != DriverMariaDB || d.Migrate.User != "ngc_migrate" || len(d.Migrate.Nodes) != 3 {
+		d.Migrate.Driver != DriverMariaDB || d.Migrate.User != "cd_migrate" || len(d.Migrate.Nodes) != 3 {
 		t.Fatalf("controller with the db role: %+v, %v", d, err)
 	}
 	// Both controllers dial api-1 of web.json, pinned to its TLS key.
 	for _, ctl := range []*Controller{c, d} {
 		for _, api := range ctl.APIs {
-			if api.URL != "wss://api-1.ngc.test:7443/tunnel" || !bytes.Equal(api.TLS, pin(0xE1)) {
+			if api.URL != "wss://api-1.cd.test:7443/tunnel" || !bytes.Equal(api.TLS, pin(0xE1)) {
 				t.Errorf("%s: api %+v", ctl.Name, api)
 			}
 		}
@@ -252,7 +252,7 @@ func TestSaveWeb(t *testing.T) {
 		t.Fatal(err)
 	}
 	// As the controller with role web does when a third API server joins.
-	w.APIs = append(w.APIs, WebAPI{URL: "https://api-3.ngc.test:7443", TLS: pin(0xE3)})
+	w.APIs = append(w.APIs, WebAPI{URL: "https://api-3.cd.test:7443", TLS: pin(0xE3)})
 	dir := t.TempDir()
 	path := filepath.Join(dir, "web.json")
 	// An older file only root may read: saving must make it readable again.
@@ -355,7 +355,7 @@ func TestSaveAnchorInvalid(t *testing.T) {
 func origins(n int) []string {
 	o := make([]string, n)
 	for i := range o {
-		o[i] = fmt.Sprintf("https://ngc-%d.example.org", i)
+		o[i] = fmt.Sprintf("https://cd-%d.example.org", i)
 	}
 	return o
 }
@@ -364,7 +364,7 @@ func origins(n int) []string {
 func webAPIs(n int) []WebAPI {
 	apis := make([]WebAPI, n)
 	for i := range apis {
-		apis[i] = WebAPI{URL: fmt.Sprintf("https://api-%d.ngc.test:7443", i+1), TLS: pin(byte(0xE1 + i))}
+		apis[i] = WebAPI{URL: fmt.Sprintf("https://api-%d.cd.test:7443", i+1), TLS: pin(byte(0xE1 + i))}
 	}
 	return apis
 }
@@ -384,29 +384,29 @@ func TestValidate(t *testing.T) {
 		"sixteen apis":            {func(w *Web) { w.APIs = webAPIs(maxList) }, true},
 		"api url of 256 bytes":    {func(w *Web) { w.APIs[1].URL = "https://" + trusttest.Host(243) + ":7443" }, true},
 		"origin of 256 bytes":     {func(w *Web) { w.RP.Origins = []string{"https://" + trusttest.Host(248)} }, true},
-		"origin with a port":      {func(w *Web) { w.RP.Origins = []string{"https://ngc.example.org:8443"} }, true},
+		"origin with a port":      {func(w *Web) { w.RP.Origins = []string{"https://cd.example.org:8443"} }, true},
 		"without apis":            {func(w *Web) { w.APIs = nil }, false},
 		"seventeen apis":          {func(w *Web) { w.APIs = webAPIs(maxList + 1) }, false},
-		"plain http":              {func(w *Web) { w.APIs[0].URL = "http://api-1.ngc.test:7443" }, false},
+		"plain http":              {func(w *Web) { w.APIs[0].URL = "http://api-1.cd.test:7443" }, false},
 		"api url of 257 bytes":    {func(w *Web) { w.APIs[1].URL = "https://" + trusttest.Host(244) + ":7443" }, false},
 		"api url with a path":     {func(w *Web) { w.APIs[1].URL += "/api" }, false},
-		"api url without a port":  {func(w *Web) { w.APIs[1].URL = "https://api-2.ngc.test" }, false},
+		"api url without a port":  {func(w *Web) { w.APIs[1].URL = "https://api-2.cd.test" }, false},
 		"api without pin":         {func(w *Web) { w.APIs[1].TLS = nil }, false},
 		"api pin of 31 bytes":     {func(w *Web) { w.APIs[1].TLS = w.APIs[1].TLS[:31] }, false},
 		"api url twice":           {func(w *Web) { w.APIs[1].URL = w.APIs[0].URL }, false},
-		"origin not https":        {func(w *Web) { w.RP.Origins = []string{"http://ngc.example.org"} }, false},
-		"http origin":             {func(w *Web) { w.RP.Origins = append(w.RP.Origins, "http://ngc.example.org") }, false},
+		"origin not https":        {func(w *Web) { w.RP.Origins = []string{"http://cd.example.org"} }, false},
+		"http origin":             {func(w *Web) { w.RP.Origins = append(w.RP.Origins, "http://cd.example.org") }, false},
 		"nine origins":            {func(w *Web) { w.RP.Origins = origins(trust.MaxOrigins + 1) }, false},
 		"origin of 257 bytes":     {func(w *Web) { w.RP.Origins = []string{"https://" + trusttest.Host(249)} }, false},
-		"origin on port 443":      {func(w *Web) { w.RP.Origins = []string{"https://ngc.example.org:443"} }, false},
-		"origin with a path":      {func(w *Web) { w.RP.Origins = []string{"https://ngc.example.org/x"} }, false},
-		"origin with a query":     {func(w *Web) { w.RP.Origins = []string{"https://ngc.example.org?y=1"} }, false},
-		"origin with user info":   {func(w *Web) { w.RP.Origins = []string{"https://user@ngc.example.org"} }, false},
-		"origin in upper case":    {func(w *Web) { w.RP.Origins = []string{"https://NGC.example.org"} }, false},
-		"origin with a line feed": {func(w *Web) { w.RP.Origins = []string{"https://ngc.example.org\x0a"} }, false},
-		"RP ID with a space":      {func(w *Web) { w.RP.ID = "ngc example.org" }, false},
-		"RP ID in upper case":     {func(w *Web) { w.RP.ID = "NGC.example.org" }, false},
-		"RP ID with a port":       {func(w *Web) { w.RP.ID = "ngc.example.org:443" }, false},
+		"origin on port 443":      {func(w *Web) { w.RP.Origins = []string{"https://cd.example.org:443"} }, false},
+		"origin with a path":      {func(w *Web) { w.RP.Origins = []string{"https://cd.example.org/x"} }, false},
+		"origin with a query":     {func(w *Web) { w.RP.Origins = []string{"https://cd.example.org?y=1"} }, false},
+		"origin with user info":   {func(w *Web) { w.RP.Origins = []string{"https://user@cd.example.org"} }, false},
+		"origin in upper case":    {func(w *Web) { w.RP.Origins = []string{"https://CirroDesk.example.org"} }, false},
+		"origin with a line feed": {func(w *Web) { w.RP.Origins = []string{"https://cd.example.org\x0a"} }, false},
+		"RP ID with a space":      {func(w *Web) { w.RP.ID = "cd example.org" }, false},
+		"RP ID in upper case":     {func(w *Web) { w.RP.ID = "CirroDesk.example.org" }, false},
+		"RP ID with a port":       {func(w *Web) { w.RP.ID = "cd.example.org:443" }, false},
 		"RP ID of 254 bytes":      {func(w *Web) { w.RP.ID = strings.Repeat(strings.Repeat("a", 62)+".", 4) + "ab" }, false},
 		"RP ID without origins":   {func(w *Web) { w.RP.Origins = nil }, false},
 		"origins without RP ID":   {func(w *Web) { w.RP.ID = "" }, false},
@@ -423,10 +423,10 @@ func TestValidate(t *testing.T) {
 	}
 
 	caCert, _, ca := testCA(t, 0xCA)
-	leaf, _ := nodeCert(t, "db-1.ngc.test")
+	leaf, _ := nodeCert(t, "db-1.cd.test")
 	// A self-signed certificate without basic constraints: no CA.
 	unconstrained, _ := testCert(t, &x509.Certificate{SerialNumber: big.NewInt(3),
-		Subject: pkix.Name{CommonName: "NGC DB CA (Test)"}, KeyUsage: x509.KeyUsageCertSign}, 0xCA, nil, nil)
+		Subject: pkix.Name{CommonName: "CirroDesk DB CA (Test)"}, KeyUsage: x509.KeyUsageCertSign}, 0xCA, nil, nil)
 	caBlock := func(b pem.Block) string { return string(pem.EncodeToMemory(&b)) }
 	apiCases := map[string]struct {
 		mutate func(*API)
@@ -446,22 +446,22 @@ func TestValidate(t *testing.T) {
 		"SQLite":                      {func(a *API) { a.DB = validSQLite() }, true},
 		"without node":                {func(a *API) { a.Node = "" }, false},
 		"without url":                 {func(a *API) { a.URL = "" }, false},
-		"https url":                   {func(a *API) { a.URL = "https://api-1.ngc.test:7443/tunnel" }, false},
+		"https url":                   {func(a *API) { a.URL = "https://api-1.cd.test:7443/tunnel" }, false},
 		"url of 257 bytes":            {func(a *API) { a.URL = "wss://" + trusttest.Host(239) + ":7443/tunnel" }, false},
-		"url without the tunnel path": {func(a *API) { a.URL = "wss://api-1.ngc.test:7443" }, false},
+		"url without the tunnel path": {func(a *API) { a.URL = "wss://api-1.cd.test:7443" }, false},
 		"short key":                   {func(a *API) { a.NoiseKey = NewSecret([]byte{1}) }, false},
 		"mariadb node no colon":       {func(a *API) { a.DB.Nodes = []string{"db-1"} }, false},
 		"mariadb node with DSN parameters": {func(a *API) {
-			a.DB.Nodes = []string{"db-1.ngc.test:3306)/ngc?allowAllFiles=true"}
+			a.DB.Nodes = []string{"db-1.cd.test:3306)/cd?allowAllFiles=true"}
 		}, false},
-		"mariadb node in upper case":   {func(a *API) { a.DB.Nodes = []string{"DB-1.ngc.test:3306"} }, false},
+		"mariadb node in upper case":   {func(a *API) { a.DB.Nodes = []string{"DB-1.cd.test:3306"} }, false},
 		"db password too long":         {func(a *API) { a.DB.Password = NewSecretText(strings.Repeat("x", MaxField+1)) }, false},
 		"store url too long":           {func(a *API) { a.StoreURL = "https://" + trusttest.Host(249) }, false},
 		"store url with a query":       {func(a *API) { a.StoreURL += "?x=1" }, false},
 		"session lifetime above 86400": {func(a *API) { a.SessionLifetime = session.MaxLifetime + 1 }, false},
 		"idle longer than the session": {func(a *API) { a.IdleTimeout = a.SessionLifetime + 1 }, false},
 		"MariaDB without CA":           {func(a *API) { a.DB.CA = "" }, false},
-		"CA not PEM":                   {func(a *API) { a.DB.CA = "NGC DB CA (Test)" }, false},
+		"CA not PEM":                   {func(a *API) { a.DB.CA = "CirroDesk DB CA (Test)" }, false},
 		"CA that is a leaf":            {func(a *API) { a.DB.CA = certPEM(leaf) }, false},
 		"CA without basic constraints": {func(a *API) { a.DB.CA = certPEM(unconstrained) }, false},
 		"five CA certificates":         {func(a *API) { a.DB.CA = strings.Repeat(ca, maxCACerts+1) }, false},
@@ -474,10 +474,10 @@ func TestValidate(t *testing.T) {
 			a.DB.CA = "-----BEGIN CERTIFICATE-----\nAAAA!\n-----END CERTIFICATE-----\n" + ca
 		}, false},
 		"CA with a PEM header": {func(a *API) {
-			a.DB.CA = caBlock(pem.Block{Type: "CERTIFICATE", Headers: map[string]string{"Comment": "NGC"}, Bytes: caCert.Raw})
+			a.DB.CA = caBlock(pem.Block{Type: "CERTIFICATE", Headers: map[string]string{"Comment": "CirroDesk"}, Bytes: caCert.Raw})
 		}, false},
 		"CA of another PEM type": {func(a *API) { a.DB.CA = caBlock(pem.Block{Type: "TRUSTED CERTIFICATE", Bytes: caCert.Raw}) }, false},
-		"CA that does not parse": {func(a *API) { a.DB.CA = caBlock(pem.Block{Type: "CERTIFICATE", Bytes: []byte("NGC")}) }, false},
+		"CA that does not parse": {func(a *API) { a.DB.CA = caBlock(pem.Block{Type: "CERTIFICATE", Bytes: []byte("CirroDesk")}) }, false},
 		"SQLite with a CA":       {func(a *API) { a.DB = validSQLite(); a.DB.CA = ca }, false},
 	}
 	for name, c := range apiCases {
@@ -497,17 +497,17 @@ func TestValidate(t *testing.T) {
 		valid  bool
 	}{
 		"all four roles": {func(c *Controller) {
-			c.Roles, c.WebConfig = []string{tunnel.RoleWeb, tunnel.RoleAPI, tunnel.RoleDB, tunnel.RoleServices}, "/etc/ngc/web.json"
+			c.Roles, c.WebConfig = []string{tunnel.RoleWeb, tunnel.RoleAPI, tunnel.RoleDB, tunnel.RoleServices}, "/etc/cd/web.json"
 		}, true},
 		"migrate to SQLite":         {func(c *Controller) { c.Migrate = &sqlite }, true},
 		"name":                      {func(c *Controller) { c.Name = "Server 1" }, false},
-		"api url":                   {func(c *Controller) { c.APIs[0].URL = "https://api-1.ngc.test:7443/tunnel" }, false},
+		"api url":                   {func(c *Controller) { c.APIs[0].URL = "https://api-1.cd.test:7443/tunnel" }, false},
 		"api url with a line feed":  {func(c *Controller) { c.APIs[0].URL += "\x0a" }, false},
 		"api pin of 31 bytes":       {func(c *Controller) { c.APIs[0].TLS = c.APIs[0].TLS[:31] }, false},
 		"api without pin":           {func(c *Controller) { c.APIs[0].TLS = nil }, false},
 		"without apis":              {func(c *Controller) { c.APIs = nil }, false},
 		"unknown role":              {func(c *Controller) { c.Roles = []string{"mail"} }, false},
-		"old part name":             {func(c *Controller) { c.Roles = []string{"ngc-controller"} }, false},
+		"old part name":             {func(c *Controller) { c.Roles = []string{"cd-controller"} }, false},
 		"no roles":                  {func(c *Controller) { c.Roles, c.Migrate = nil, nil }, false},
 		"duplicate role":            {func(c *Controller) { c.Roles = []string{tunnel.RoleDB, tunnel.RoleDB} }, false},
 		"five roles":                {func(c *Controller) { c.Roles = append(c.Roles, tunnel.RoleWeb, tunnel.RoleAPI, tunnel.RoleWeb) }, false},
@@ -534,7 +534,7 @@ func TestValidate(t *testing.T) {
 // validSQLite is a DB configuration that passes Validate(): SQLite, an
 // absolute path, a 64-byte key, no Galera nodes and no MariaDB leftovers.
 func validSQLite() DB {
-	return DB{Driver: DriverSQLite, Path: "/var/lib/ngc/api/api.db", Key: NewSecret(make([]byte, 64))}
+	return DB{Driver: DriverSQLite, Path: "/var/lib/cd/api/api.db", Key: NewSecret(make([]byte, 64))}
 }
 
 // TestValidateSQLite pins one SQLite rule per case: each starts from a fresh
@@ -545,7 +545,7 @@ func TestValidateSQLite(t *testing.T) {
 		t.Fatalf("baseline: %v", err)
 	}
 	cases := map[string]func(*DB){
-		"relative path":     func(d *DB) { d.Path = "var/lib/ngc/api/api.db" },
+		"relative path":     func(d *DB) { d.Path = "var/lib/cd/api/api.db" },
 		"wrong key length":  func(d *DB) { d.Key = NewSecret(make([]byte, 32)) },
 		"nodes present":     func(d *DB) { d.Nodes = []string{"db-1:3306"} },
 		"leftover password": func(d *DB) { d.Password = NewSecretText("leftover") },
@@ -595,7 +595,7 @@ func handshake(t *testing.T, server, client *tls.Config) error {
 // node counts, and only over TLS 1.3. Without a CA there is no configuration.
 func TestDBTLSConfig(t *testing.T) {
 	_, _, other := testCA(t, 0xCB) // the same name as the example CA, another key
-	der, key := nodeCert(t, "db-1.ngc.test")
+	der, key := nodeCert(t, "db-1.cd.test")
 	node := tls.Certificate{Certificate: [][]byte{der}, PrivateKey: key}
 	cases := []struct {
 		name       string
@@ -604,12 +604,12 @@ func TestDBTLSConfig(t *testing.T) {
 		serverMax  uint16 // highest TLS version of the node; 0 is Go's default
 		fails      func(error) bool
 	}{
-		{"node of the CA", exampleCA(t), "db-1.ngc.test", 0, nil},
-		{"another CA", other, "db-1.ngc.test", 0,
+		{"node of the CA", exampleCA(t), "db-1.cd.test", 0, nil},
+		{"another CA", other, "db-1.cd.test", 0,
 			func(err error) bool { return errors.As(err, new(x509.UnknownAuthorityError)) }},
-		{"another server name", exampleCA(t), "db-2.ngc.test", 0,
+		{"another server name", exampleCA(t), "db-2.cd.test", 0,
 			func(err error) bool { return errors.As(err, new(x509.HostnameError)) }},
-		{"node limited to TLS 1.2", exampleCA(t), "db-1.ngc.test", tls.VersionTLS12,
+		{"node limited to TLS 1.2", exampleCA(t), "db-1.cd.test", tls.VersionTLS12,
 			func(err error) bool { return err != nil && strings.Contains(err.Error(), "protocol version") }},
 	}
 	for _, c := range cases {
@@ -631,7 +631,7 @@ func TestDBTLSConfig(t *testing.T) {
 		"MariaDB without CA":   {Driver: DriverMariaDB},
 		"five CA certificates": {Driver: DriverMariaDB, CA: strings.Repeat(exampleCA(t), maxCACerts+1)},
 	} {
-		if cfg, err := d.TLSConfig("db-1.ngc.test"); cfg != nil || err != ErrConfig {
+		if cfg, err := d.TLSConfig("db-1.cd.test"); cfg != nil || err != ErrConfig {
 			t.Errorf("%s: %v, %v", name, cfg, err)
 		}
 	}
@@ -639,8 +639,8 @@ func TestDBTLSConfig(t *testing.T) {
 	// certificate must match: only a host of the grammar is one.
 	for name, server := range map[string]string{
 		"without a server name": "",
-		"in upper case":         "DB-1.ngc.test",
-		"with a line feed":      "db-1.ngc.test\x0a",
+		"in upper case":         "DB-1.cd.test",
+		"with a line feed":      "db-1.cd.test\x0a",
 	} {
 		if cfg, err := (DB{Driver: DriverMariaDB, CA: exampleCA(t)}).TLSConfig(server); cfg != nil || err != ErrConfig {
 			t.Errorf("server name %s: %v, %v", name, cfg, err)
@@ -706,7 +706,7 @@ func TestRedaction(t *testing.T) {
 			secretForms([][]byte{ctl.NoiseKey.Bytes(), ctl.DBKey.Bytes()}, []string{ctl.Migrate.Password.Text()})},
 		{"controller with SQLite", *withSQLite, withSQLite, "dienste",
 			secretForms([][]byte{withSQLite.NoiseKey.Bytes(), withSQLite.DBKey.Bytes(), sqlite.Key.Bytes()}, nil)},
-		{"db", api.DB, &api.DB, "ngc.test", secretForms(nil, []string{api.DB.Password.Text()})},
+		{"db", api.DB, &api.DB, "cd.test", secretForms(nil, []string{api.DB.Password.Text()})},
 	}
 	for _, c := range cases {
 		var outs []string
@@ -761,11 +761,11 @@ func TestLogValues(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s := api.String(); !strings.Contains(s, "url=wss://api-1.ngc.test:7443/tunnel ") || !strings.Contains(s, " ca=true]") ||
+	if s := api.String(); !strings.Contains(s, "url=wss://api-1.cd.test:7443/tunnel ") || !strings.Contains(s, " ca=true]") ||
 		strings.Contains(s, "CERTIFICATE") {
 		t.Errorf("api: %s", s)
 	}
-	dials := "wss://api-1.ngc.test:7443/tunnel " + enc.B64.EncodeToString(ctl.APIs[0].Key) + " " + enc.B64.EncodeToString(pin(0xE1))
+	dials := "wss://api-1.cd.test:7443/tunnel " + enc.B64.EncodeToString(ctl.APIs[0].Key) + " " + enc.B64.EncodeToString(pin(0xE1))
 	if s := ctl.String(); !strings.Contains(s, "apis=["+dials+"]") || !strings.Contains(s, " ca=true]") ||
 		strings.Contains(s, "CERTIFICATE") {
 		t.Errorf("controller: %s", s)
@@ -945,7 +945,7 @@ func FuzzLoad(f *testing.F) {
 // blocks, and TLSConfig takes it too.
 func FuzzParseCA(f *testing.F) {
 	ca := exampleCA(f)
-	leaf, _ := nodeCert(f, "db-1.ngc.test")
+	leaf, _ := nodeCert(f, "db-1.cd.test")
 	for _, s := range []string{ca, " \t\r\n" + ca + "\r\n" + ca, strings.ReplaceAll(ca, "\n", "\r\n"), strings.Repeat(ca, maxCACerts+1),
 		certPEM(leaf), "-----BEGIN CERTIFICATE-----\nAAAA!\n-----END CERTIFICATE-----\n" + ca, "CA:\n" + ca, ca + "#", ""} {
 		f.Add(s)
@@ -976,7 +976,7 @@ func FuzzParseCA(f *testing.F) {
 		if strings.Trim(rest, pemSpace) != "" {
 			t.Fatalf("accepted text after the blocks: %q", s)
 		}
-		if _, err := (DB{Driver: DriverMariaDB, CA: s}).TLSConfig("db-1.ngc.test"); err != nil {
+		if _, err := (DB{Driver: DriverMariaDB, CA: s}).TLSConfig("db-1.cd.test"); err != nil {
 			t.Fatalf("TLSConfig: %v", err)
 		}
 	})

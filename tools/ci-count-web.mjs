@@ -107,7 +107,7 @@ if (flaky) {
 // floor of 500 and reported nothing - the exact shape this job exists to
 // catch. So: skips never carry the floor, and a run with ZERO passed cases is
 // red whatever the floor says, because that one needs no number to be wrong.
-const floor = Number(process.env.NGC_WEB_FLOOR || 0);
+const floor = Number(process.env.CD_WEB_FLOOR || 0);
 if (passed === 0) {
   console.error(`\nci-count-web: kein einziger Fall ist gelaufen (${skipped} uebersprungen) - der Lauf hat nicht stattgefunden.`);
   process.exit(1);

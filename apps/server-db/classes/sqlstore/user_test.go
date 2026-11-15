@@ -11,8 +11,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // TestUserNameIsUnique: a name belongs to one ID. The check has to happen in
@@ -204,7 +204,7 @@ func TestOneWriteAndOneDelete(t *testing.T) {
 // TestADuplicateNameIsErrInvalid: dbapi promises that the same name for
 // another ID gives ErrInvalid, and the store owes that answer however the
 // name turns out to be taken - by the SELECT of UserPut or by the unique
-// index ngc_user_name behind it. Without the translation the caller gets the
+// index cd_user_name behind it. Without the translation the caller gets the
 // driver's "UNIQUE constraint failed" and errors.Is finds nothing in it.
 //
 // The race that reaches the index - two writers past the SELECT together - is
@@ -230,7 +230,7 @@ func TestOneWriteAndOneDelete(t *testing.T) {
 // where it stands.
 func TestADuplicateNameIsErrInvalid(t *testing.T) {
 	s, db := openDB(t)
-	if _, err := db.ExecContext(ctx, "INSERT INTO ngc_user (id, name, roles, totp, locked, failures, "+
+	if _, err := db.ExecContext(ctx, "INSERT INTO cd_user (id, name, roles, totp, locked, failures, "+
 		"last_login) VALUES (?, ?, ?, ?, ?, ?, ?)", []byte(""), []byte("admin"), []byte(""),
 		[]byte(""), int64(0), int64(0), int64(0)); err != nil {
 		t.Fatal(err)
@@ -289,7 +289,7 @@ func TestADuplicateNameIsErrInvalid(t *testing.T) {
 func TestAUserRowNobodyOfOursWrote(t *testing.T) {
 	s, db := openDB(t)
 	roles := strings.Repeat("admin\n", sqlstore.MaxList+1) + "admin"
-	if _, err := db.ExecContext(ctx, "INSERT INTO ngc_user (id, name, roles, totp, locked, failures, "+
+	if _, err := db.ExecContext(ctx, "INSERT INTO cd_user (id, name, roles, totp, locked, failures, "+
 		"last_login) VALUES (?, ?, ?, ?, ?, ?, ?)", []byte("u-admin"), []byte("admin"), []byte(roles),
 		[]byte(""), int64(0), int64(0), int64(0)); err != nil {
 		t.Fatal(err)
@@ -358,10 +358,10 @@ func TestAnEmptyTokenIsNobodysSession(t *testing.T) {
 // touch the row it matched and only leaves it out of the count, while the
 // trigger takes it out of the statement altogether. Nothing this test asks
 // turns on the difference - it reads the answers of UserPut and the row
-// afterwards, and both are the same either way. Every column of ngc_user is
+// afterwards, and both are the same either way. Every column of cd_user is
 // NOT NULL, so the WHEN compares values and never NULL, where an equality
 // would be neither true nor false and the row would be counted after all.
-const countChangedRows = `CREATE TRIGGER ngc_user_counts_changed_rows BEFORE UPDATE ON ngc_user
+const countChangedRows = `CREATE TRIGGER cd_user_counts_changed_rows BEFORE UPDATE ON cd_user
 FOR EACH ROW WHEN NEW.name = OLD.name AND NEW.roles = OLD.roles AND NEW.totp = OLD.totp
  AND NEW.locked = OLD.locked AND NEW.failures = OLD.failures AND NEW.last_login = OLD.last_login
 BEGIN SELECT RAISE(IGNORE); END`
@@ -431,7 +431,7 @@ func TestUserPutAnswersTheSameHoweverRowsAreCounted(t *testing.T) {
 		// A name the SELECT of UserPut cannot see, so the INSERT walks into
 		// the index: the row carries an empty ID, which this store never
 		// writes, the way TestADuplicateNameIsErrInvalid plants it.
-		if _, err := db.ExecContext(ctx, "INSERT INTO ngc_user (id, name, roles, totp, locked, "+
+		if _, err := db.ExecContext(ctx, "INSERT INTO cd_user (id, name, roles, totp, locked, "+
 			"failures, last_login) VALUES (?, ?, ?, ?, ?, ?, ?)", []byte(""), []byte("taken"),
 			[]byte(""), []byte(""), int64(0), int64(0), int64(0)); err != nil {
 			t.Fatal(err)
@@ -460,11 +460,11 @@ func TestUserPutAnswersTheSameHoweverRowsAreCounted(t *testing.T) {
 
 // countedRows writes the row of u with SQL of the test's own and gives back
 // how many rows the database says it affected. It sets every column of
-// ngc_user, the way the UPDATE of UserPut does, so what the database counts
+// cd_user, the way the UPDATE of UserPut does, so what the database counts
 // here is what it counts there.
 func countedRows(t *testing.T, db *sql.DB, u dbapi.User, lastLogin int64) int64 {
 	t.Helper()
-	res, err := db.ExecContext(ctx, "UPDATE ngc_user SET name = ?, roles = ?, totp = ?, locked = ?, "+
+	res, err := db.ExecContext(ctx, "UPDATE cd_user SET name = ?, roles = ?, totp = ?, locked = ?, "+
 		"failures = ?, last_login = ? WHERE id = ?", []byte(u.Name), []byte(strings.Join(u.Roles, "\n")),
 		u.TOTP, u.Locked, int64(u.Failures), lastLogin, []byte(u.ID))
 	if err != nil {
@@ -478,7 +478,7 @@ func countedRows(t *testing.T, db *sql.DB, u dbapi.User, lastLogin int64) int64 
 }
 
 // withoutTheNameIndex gives back the store with the unique index
-// ngc_user_name dropped, and measures that it really is gone before anything
+// cd_user_name dropped, and measures that it really is gone before anything
 // rests on that.
 //
 // Why a test takes the index away at all. With it in place the promise "a
@@ -502,7 +502,7 @@ func countedRows(t *testing.T, db *sql.DB, u dbapi.User, lastLogin int64) int64 
 // of a fixture that had one fewer. A proof at the top says the index was gone
 // when the store was handed over; it says nothing about the run that follows.
 // Measured on 2a21a26, where it ran once: one line behind it,
-// CREATE UNIQUE INDEX ngc_user_name ON ngc_user (name), left the package 142/0
+// CREATE UNIQUE INDEX cd_user_name ON cd_user (name), left the package 142/0
 // green with that proof passing - and with the index answering again, both
 // tests below held nothing at all. On that drift the whole refusal deleted
 // (case false: in place of the condition) was 142/0 too, where it is 140/2
@@ -543,7 +543,7 @@ func withoutTheNameIndex(t *testing.T) (dbapi.Store, fixture) {
 	t.Helper()
 	s, db := openDB(t)
 	f := fixture{db: db, standing: nameIndexGone}
-	if _, err := db.ExecContext(ctx, "DROP INDEX ngc_user_name"); err != nil {
+	if _, err := db.ExecContext(ctx, "DROP INDEX cd_user_name"); err != nil {
 		t.Fatal(err)
 	}
 	if err := nameIndexGone(t, db); err != nil {
@@ -553,7 +553,7 @@ func withoutTheNameIndex(t *testing.T) (dbapi.Store, fixture) {
 	t.Cleanup(func() {
 		if err := nameIndexGone(t, db); err != nil {
 			t.Errorf("two rows under one name were refused after this test was done, so "+
-				"ngc_user_name stood again: something between the proof above and here put it "+
+				"cd_user_name stood again: something between the proof above and here put it "+
 				"back, and while it stood this test held nothing - it is the index that "+
 				"refused, not the check in UserPut: %v", err)
 		}
@@ -575,7 +575,7 @@ type fixture struct {
 	standing func(*testing.T, *sql.DB) error
 }
 
-// nameIndexGone is the whole proof that ngc_user_name is not there: two rows
+// nameIndexGone is the whole proof that cd_user_name is not there: two rows
 // under one name are written, and its own two rows are taken away again. It
 // gives back what the database said to the first of the two that was refused.
 //
@@ -589,7 +589,7 @@ type fixture struct {
 // question whoever writes the source already knows. Measured on this tree with
 // the fixed name it used to carry, one line after the DROP:
 //
-//	CREATE UNIQUE INDEX ngc_user_name2 ON ngc_user (name) WHERE name <> x'7477696365'
+//	CREATE UNIQUE INDEX cd_user_name2 ON cd_user (name) WHERE name <> x'7477696365'
 //
 // x'7477696365' is "twice", the name this proof used to ask with, as a BLOB
 // because the column holds one. Both runs of the proof came through honestly
@@ -615,10 +615,10 @@ type fixture struct {
 // spares this proof and guards every name these tests write. Measured on this
 // tree, one line after the DROP in withoutTheNameIndex, each on its own:
 //
-//	CREATE UNIQUE INDEX ngc_user_name2 ON ngc_user (name)
+//	CREATE UNIQUE INDEX cd_user_name2 ON cd_user (name)
 //	    WHERE substr(id,1,4) NOT IN (x'6f6e652d', x'74776f2d')
-//	CREATE UNIQUE INDEX ngc_user_name2 ON ngc_user (name) WHERE length(name) <> 26
-//	CREATE UNIQUE INDEX ngc_user_name2 ON ngc_user (name) WHERE length(id) <> 30
+//	CREATE UNIQUE INDEX cd_user_name2 ON cd_user (name) WHERE length(name) <> 26
+//	CREATE UNIQUE INDEX cd_user_name2 ON cd_user (name) WHERE length(id) <> 30
 //
 // x'6f6e652d' and x'74776f2d' are "one-" and "two-" as BLOBs, because the
 // column holds one. All three are 143/0 green, with all three runs of this
@@ -626,7 +626,7 @@ type fixture struct {
 // (case false: in place of the condition in UserPut) is 143/0 too, where that
 // deletion alone is 141/2 - so under any of the three both fences below hold
 // nothing at all. The same shape carries against the other fixture: built on
-// ngc_user_rows, either predicate over id leaves the mutant
+// cd_user_rows, either predicate over id leaves the mutant
 // TestAFailedQuestionIsNotAFreeName is for - other = "" in place of return err
 // - 143/0 green, where alone it is 142/1.
 //
@@ -656,21 +656,21 @@ func nameIndexGone(t *testing.T, db *sql.DB) error {
 	ids := []string{"one-" + name, "two-" + name}
 	var refused error
 	for _, id := range ids {
-		if _, err := db.ExecContext(ctx, "INSERT INTO ngc_user (id, name, roles, totp, locked, "+
+		if _, err := db.ExecContext(ctx, "INSERT INTO cd_user (id, name, roles, totp, locked, "+
 			"failures, last_login) VALUES (?, ?, ?, ?, ?, ?, ?)", []byte(id), []byte(name),
 			[]byte(""), []byte(""), int64(0), int64(0), int64(0)); err != nil && refused == nil {
 			refused = err
 		}
 	}
 	for _, id := range ids {
-		if _, err := db.ExecContext(ctx, "DELETE FROM ngc_user WHERE id = ?", []byte(id)); err != nil {
+		if _, err := db.ExecContext(ctx, "DELETE FROM cd_user WHERE id = ?", []byte(id)); err != nil {
 			t.Error(err)
 		}
 	}
 	return refused
 }
 
-// namedRows is how many rows of ngc_user carry that name, asked of the
+// namedRows is how many rows of cd_user carry that name, asked of the
 // database and not of the store: what a writer was told and what stands there
 // are two different things, and both tests below want both.
 //
@@ -686,7 +686,7 @@ func namedRows(t *testing.T, f fixture, name string) int {
 			"from here on it held nothing: %v", err)
 	}
 	var n int
-	if err := f.db.QueryRowContext(ctx, "SELECT count(*) FROM ngc_user WHERE name = ?",
+	if err := f.db.QueryRowContext(ctx, "SELECT count(*) FROM cd_user WHERE name = ?",
 		[]byte(name)).Scan(&n); err != nil {
 		t.Fatal(err)
 	}
@@ -806,9 +806,9 @@ func renameOntoTaken(t *testing.T, s dbapi.Store, u dbapi.User) error {
 // place of return err where the Scan answers an error that is not
 // sql.ErrNoRows - is green here, and this comment said it would take a driver
 // of the test's own, on two grounds. Both grounds hold: every column of
-// ngc_user is NOT NULL, so no row a test can plant makes a scan of id into a
+// cd_user is NOT NULL, so no row a test can plant makes a scan of id into a
 // string fail, and SQLite has no trigger on SELECT. Neither of them says what
-// the name ngc_user has to stand for, and the conclusion drawn from them did.
+// the name cd_user has to stand for, and the conclusion drawn from them did.
 // A view whose id column reads NULL, with INSTEAD-OF triggers carrying the
 // write through to the table behind it, makes that Scan fail without taking a
 // column from the INSERT or the UPDATE. TestAFailedQuestionIsNotAFreeName is
@@ -817,7 +817,7 @@ func renameOntoTaken(t *testing.T, s dbapi.Store, u dbapi.User) error {
 //
 // What this test and TestOnlyOneWriterGetsAName hold, and what they do not.
 // They hold the property for the rows they write and the conditions they run:
-// with ngc_user_name gone, a writer asking for a name another ID holds is
+// with cd_user_name gone, a writer asking for a name another ID holds is
 // refused, and one row carries that name. A change that narrows the check to
 // something these two do not write, or hangs it on something they do not vary,
 // they do not see. Two of those are measured on this tree, each on its own,
@@ -1022,26 +1022,26 @@ func TestOnlyOneWriterGetsAName(t *testing.T) {
 	}
 }
 
-// throughAViewWithoutAnID puts a view in front of ngc_user whose id column
+// throughAViewWithoutAnID puts a view in front of cd_user whose id column
 // reads NULL, with INSTEAD-OF triggers carrying the INSERT and the UPDATE
 // through to the table behind it, and takes the unique index away as
 // withoutTheNameIndex does.
 //
 // What it is for. The question UserPut asks in front of its write - SELECT id
-// FROM ngc_user WHERE name = ? - reads that one column into a Go string, and a
+// FROM cd_user WHERE name = ? - reads that one column into a Go string, and a
 // NULL cannot be read into one: the question fails where it used to answer.
 // The write does not, because a view replaces the column that is read without
 // taking one away from the INSERT and the UPDATE behind it.
 //
 // This corrects a sentence that stood at TestTheCheckAloneRefusesATakenName
 // and was wrong. It said this shape would take a driver of the test's own, on
-// two grounds that are both true - every column of ngc_user is NOT NULL, so no
+// two grounds that are both true - every column of cd_user is NOT NULL, so no
 // row a test can plant makes that scan fail, and SQLite has no trigger on
 // SELECT - and the conclusion drawn from them was not. Neither ground says
-// anything about what the name ngc_user has to stand for.
+// anything about what the name cd_user has to stand for.
 //
 // The index has to go with it. With the index in place the INSERT meets
-// ngc_user_name in the table behind the view, and UserPut comes back with
+// cd_user_name in the table behind the view, and UserPut comes back with
 // ErrInvalid after all, for the wrong reason. Measured: with the index left
 // standing it is 142/1 whether the mutant is there or not, because this
 // fixture's own proof refuses to start - two rows under one name are refused,
@@ -1057,15 +1057,15 @@ func throughAViewWithoutAnID(t *testing.T) (dbapi.Store, fixture) {
 	s, db := openDB(t)
 	f := fixture{db: db, standing: theViewAnswers}
 	for _, stmt := range []string{
-		"DROP INDEX ngc_user_name",
-		"ALTER TABLE ngc_user RENAME TO ngc_user_rows",
-		"CREATE VIEW ngc_user (id, name, roles, totp, locked, failures, last_login) AS " +
-			"SELECT NULL, name, roles, totp, locked, failures, last_login FROM ngc_user_rows",
-		"CREATE TRIGGER ngc_user_insert INSTEAD OF INSERT ON ngc_user BEGIN " +
-			"INSERT INTO ngc_user_rows (id, name, roles, totp, locked, failures, last_login) VALUES " +
+		"DROP INDEX cd_user_name",
+		"ALTER TABLE cd_user RENAME TO cd_user_rows",
+		"CREATE VIEW cd_user (id, name, roles, totp, locked, failures, last_login) AS " +
+			"SELECT NULL, name, roles, totp, locked, failures, last_login FROM cd_user_rows",
+		"CREATE TRIGGER cd_user_insert INSTEAD OF INSERT ON cd_user BEGIN " +
+			"INSERT INTO cd_user_rows (id, name, roles, totp, locked, failures, last_login) VALUES " +
 			"(NEW.id, NEW.name, NEW.roles, NEW.totp, NEW.locked, NEW.failures, NEW.last_login); END",
-		"CREATE TRIGGER ngc_user_update INSTEAD OF UPDATE ON ngc_user BEGIN " +
-			"UPDATE ngc_user_rows SET name = NEW.name, roles = NEW.roles, totp = NEW.totp, " +
+		"CREATE TRIGGER cd_user_update INSTEAD OF UPDATE ON cd_user BEGIN " +
+			"UPDATE cd_user_rows SET name = NEW.name, roles = NEW.roles, totp = NEW.totp, " +
 			"locked = NEW.locked, failures = NEW.failures, last_login = NEW.last_login " +
 			"WHERE name = OLD.name; END",
 	} {
@@ -1104,7 +1104,7 @@ func throughAViewWithoutAnID(t *testing.T) (dbapi.Store, fixture) {
 //
 // The bound on that is written out at nameIndexGone too, and it is measured
 // against this fixture as well: what is rolled here is the values and not the
-// shape, so a partial index on ngc_user_rows keyed on the shape of these two
+// shape, so a partial index on cd_user_rows keyed on the shape of these two
 // rows - substr(id,1,4) NOT IN (x'6f6e652d', x'74776f2d'), or length(id) <> 30
 // - lets this proof through while it guards the rest, and the mutant the test
 // below is for goes green with it, 143/0 where alone it is 142/1.
@@ -1114,7 +1114,7 @@ func theViewAnswers(t *testing.T, db *sql.DB) error {
 	ids := []string{"one-" + name, "two-" + name}
 	var bad error
 	for _, id := range ids {
-		if _, err := db.ExecContext(ctx, "INSERT INTO ngc_user (id, name, roles, totp, locked, "+
+		if _, err := db.ExecContext(ctx, "INSERT INTO cd_user (id, name, roles, totp, locked, "+
 			"failures, last_login) VALUES (?, ?, ?, ?, ?, ?, ?)", []byte(id), []byte(name),
 			[]byte(""), []byte(""), int64(0), int64(0), int64(0)); err != nil && bad == nil {
 			bad = fmt.Errorf("two rows under one name were refused, so something still keeps the "+
@@ -1122,13 +1122,13 @@ func theViewAnswers(t *testing.T, db *sql.DB) error {
 		}
 	}
 	var other string
-	err := db.QueryRowContext(ctx, "SELECT id FROM ngc_user WHERE name = ?", []byte(name)).Scan(&other)
+	err := db.QueryRowContext(ctx, "SELECT id FROM cd_user WHERE name = ?", []byte(name)).Scan(&other)
 	if err == nil && bad == nil {
 		bad = fmt.Errorf("the question about a taken name answered %q, so the view is not in "+
-			"front of ngc_user and nothing here makes that question fail", other)
+			"front of cd_user and nothing here makes that question fail", other)
 	}
 	for _, id := range ids {
-		if _, err := db.ExecContext(ctx, "DELETE FROM ngc_user_rows WHERE id = ?", []byte(id)); err != nil {
+		if _, err := db.ExecContext(ctx, "DELETE FROM cd_user_rows WHERE id = ?", []byte(id)); err != nil {
 			t.Error(err)
 		}
 	}

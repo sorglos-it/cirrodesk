@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // control handles a frame on channel 0; false ends the link. Channel 0 carries

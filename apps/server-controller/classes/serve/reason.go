@@ -42,8 +42,8 @@
 package serve
 
 import (
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The reasons an app channel ended, in German, for the journal of this

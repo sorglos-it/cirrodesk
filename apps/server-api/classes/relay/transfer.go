@@ -8,13 +8,13 @@ import (
 	"io"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/link"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/link"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // CallController opens a channel to a controller without a user and returns
@@ -70,7 +70,7 @@ func (rl *Relay) Transfer(ctx context.Context, hop Hop, app, service, action str
 // is the one place where an OPEN of the shell is not relayed byte for byte
 // (relay.forward passes Forwarded.Raw) but written anew, and what is not
 // written here does not travel. The row that paid for it was
-// ngc.store/controller/activate: the API accepted task and confirmation,
+// cd.store/controller/activate: the API accepted task and confirmation,
 // wrote its "ok" line into the log (coreapp.Dispatcher.logTask) and then
 // opened a channel of its own without the confirmation, so the controller
 // asked for one, got none and closed with E_CONFIRM. Measured on the running

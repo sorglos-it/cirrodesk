@@ -11,17 +11,17 @@ import (
 
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/coreapp"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/coreapp"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/core"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestJoinCodeFitsTheTrustList holds that a fresh code passes

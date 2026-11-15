@@ -14,9 +14,9 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()
@@ -39,7 +39,7 @@ var testClient = &http.Client{Transport: &http.Transport{
 // the same Noise handshake back.
 func dialTest(t *testing.T) (*Link, *noisep.Transport, *websocket.Conn, func()) {
 	t.Helper()
-	return dialOptions(t, Options{Origins: []string{"https://ngc.example"}})
+	return dialOptions(t, Options{Origins: []string{"https://cd.example"}})
 }
 
 // dialOptions is dialTest with room for the fields of Options a case wants to
@@ -84,7 +84,7 @@ func dialRawLinger(t *testing.T, o Options, linger bool) (*Link, *noisep.Transpo
 	}
 	links := make(chan *Link, 1)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		o.Subprotocol, o.Prologue, o.Static, o.Peer = "ngc.test.v1", noisep.PrologueSession, server, client.Public
+		o.Subprotocol, o.Prologue, o.Static, o.Peer = "cd.test.v1", noisep.PrologueSession, server, client.Public
 		l, err := Accept(w, r, o)
 		if err != nil {
 			return
@@ -103,7 +103,7 @@ func dialRawLinger(t *testing.T, o Options, linger bool) (*Link, *noisep.Transpo
 		},
 	}}
 	conn, _, err := websocket.Dial(ctx, "ws"+srv.URL[len("http"):],
-		&websocket.DialOptions{Subprotocols: []string{"ngc.test.v1"}, HTTPClient: hc})
+		&websocket.DialOptions{Subprotocols: []string{"cd.test.v1"}, HTTPClient: hc})
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
@@ -266,13 +266,13 @@ func TestAcceptGivesUpOnASilentClient(t *testing.T) {
 	const wait = 50 * time.Millisecond
 	back := make(chan error, 1)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := Accept(w, r, Options{Subprotocol: "ngc.test.v1", Prologue: noisep.PrologueSession,
+		_, err := Accept(w, r, Options{Subprotocol: "cd.test.v1", Prologue: noisep.PrologueSession,
 			Static: server, Peer: client.Public, Handshake: wait})
 		back <- err
 	}))
 	defer srv.Close()
 	conn, _, err := websocket.Dial(ctx, "ws"+srv.URL[len("http"):],
-		&websocket.DialOptions{Subprotocols: []string{"ngc.test.v1"}, HTTPClient: testClient})
+		&websocket.DialOptions{Subprotocols: []string{"cd.test.v1"}, HTTPClient: testClient})
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
@@ -307,13 +307,13 @@ func TestAcceptRefusesAHandshakeWithoutWaiting(t *testing.T) {
 	}
 	back := make(chan error, 1)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := Accept(w, r, Options{Subprotocol: "ngc.test.v1", Prologue: noisep.PrologueSession,
+		_, err := Accept(w, r, Options{Subprotocol: "cd.test.v1", Prologue: noisep.PrologueSession,
 			Static: server, Peer: client.Public})
 		back <- err
 	}))
 	defer srv.Close()
 	conn, _, err := websocket.Dial(ctx, "ws"+srv.URL[len("http"):],
-		&websocket.DialOptions{Subprotocols: []string{"ngc.test.v1"}, HTTPClient: testClient})
+		&websocket.DialOptions{Subprotocols: []string{"cd.test.v1"}, HTTPClient: testClient})
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
@@ -389,35 +389,35 @@ func TestARefusalDoesNotWaitOnTheRulebreaker(t *testing.T) {
 
 // TestOriginsAreChecked holds the rules on the list of allowed origins. The
 // WebSocket library reads every value as a path.Match pattern, measured: "*"
-// matches the origin host evil.example.com, "ngc.exampl?" matches ngc.example,
+// matches the origin host evil.example.com, "cd.exampl?" matches cd.example,
 // "[" is a syntax error that makes the library refuse every origin, and
 // "https://[::1]:8443" does not even match itself, quietly. A list that holds
 // one of those is not a list of allowed origins.
 func TestOriginsAreChecked(t *testing.T) {
 	many := make([]string, trust.MaxOrigins+1)
 	for i := range many {
-		many[i] = "ngc.example"
+		many[i] = "cd.example"
 	}
 	good := [][]string{
 		nil,
 		{},
-		{"https://ngc.example"},
+		{"https://cd.example"},
 		// http://localhost is why trust.ValidOrigin is not the check here.
-		{"ngc.example", "https://ngc.example:8443", "http://localhost:8101"},
+		{"cd.example", "https://cd.example:8443", "http://localhost:8101"},
 		many[:trust.MaxOrigins],
 	}
 	bad := [][]string{
-		{""},                         // matches nothing, says nothing
-		{"*"},                        // every origin host
-		{"https://*.example"},        // every host under it
-		{"ngc.exampl?"},              // one character free
-		{"["},                        // unreadable: the library then refuses every origin
-		{"a\\"},                      // unreadable for the same reason
-		{"https://[::1]:8443"},       // a character class, so it never matches itself
-		{"https://ngc.example", "*"}, // the wildcard behind a good value
+		{""},                        // matches nothing, says nothing
+		{"*"},                       // every origin host
+		{"https://*.example"},       // every host under it
+		{"cd.exampl?"},              // one character free
+		{"["},                       // unreadable: the library then refuses every origin
+		{"a\\"},                     // unreadable for the same reason
+		{"https://[::1]:8443"},      // a character class, so it never matches itself
+		{"https://cd.example", "*"}, // the wildcard behind a good value
 		// A dead entry beside a good one: refused here, so Accept refuses every
 		// request of that link rather than letting the list half work.
-		{"https://ngc.example", "https://[::1]:8443"},
+		{"https://cd.example", "https://[::1]:8443"},
 		many, // more than the contract allows
 	}
 	for _, o := range good {
@@ -446,13 +446,13 @@ func TestAcceptRefusesAWildcardOrigin(t *testing.T) {
 	}
 	back := make(chan error, 1)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := Accept(w, r, Options{Subprotocol: "ngc.test.v1", Prologue: noisep.PrologueSession,
+		_, err := Accept(w, r, Options{Subprotocol: "cd.test.v1", Prologue: noisep.PrologueSession,
 			Static: server, Peer: client.Public, Origins: []string{"*"}})
 		back <- err
 	}))
 	defer srv.Close()
 	conn, _, err := websocket.Dial(ctx, "ws"+srv.URL[len("http"):],
-		&websocket.DialOptions{Subprotocols: []string{"ngc.test.v1"}, HTTPClient: testClient})
+		&websocket.DialOptions{Subprotocols: []string{"cd.test.v1"}, HTTPClient: testClient})
 	if err == nil {
 		conn.CloseNow()
 		t.Fatal("the upgrade went through although a wildcard stood in the origins")
@@ -513,11 +513,11 @@ func TestASealedFrameAsTextIsRefused(t *testing.T) {
 // Origin header shows it - websocket.Dial sends none, and the library lets a
 // request without one through, so every other case runs past the matcher.
 func TestAForeignOriginIsRefused(t *testing.T) {
-	back, srv := acceptOnce(t, Options{Origins: []string{"https://ngc.example"},
+	back, srv := acceptOnce(t, Options{Origins: []string{"https://cd.example"},
 		Handshake: 50 * time.Millisecond})
 	defer srv.Close()
 	conn, resp, err := websocket.Dial(ctx, "ws"+srv.URL[len("http"):],
-		&websocket.DialOptions{Subprotocols: []string{"ngc.test.v1"}, HTTPClient: testClient,
+		&websocket.DialOptions{Subprotocols: []string{"cd.test.v1"}, HTTPClient: testClient,
 			HTTPHeader: http.Header{"Origin": []string{"https://evil.example"}}})
 	if err == nil {
 		conn.CloseNow()
@@ -534,12 +534,12 @@ func TestAForeignOriginIsRefused(t *testing.T) {
 // TestAnAllowedOriginGetsThrough is the other direction: an origin the list
 // names must get through, or the list would be a lock with no key.
 func TestAnAllowedOriginGetsThrough(t *testing.T) {
-	_, srv := acceptOnce(t, Options{Origins: []string{"https://ngc.example"},
+	_, srv := acceptOnce(t, Options{Origins: []string{"https://cd.example"},
 		Handshake: 50 * time.Millisecond})
 	defer srv.Close()
 	conn, resp, err := websocket.Dial(ctx, "ws"+srv.URL[len("http"):],
-		&websocket.DialOptions{Subprotocols: []string{"ngc.test.v1"}, HTTPClient: testClient,
-			HTTPHeader: http.Header{"Origin": []string{"https://ngc.example"}}})
+		&websocket.DialOptions{Subprotocols: []string{"cd.test.v1"}, HTTPClient: testClient,
+			HTTPHeader: http.Header{"Origin": []string{"https://cd.example"}}})
 	if err != nil {
 		status := 0
 		if resp != nil {
@@ -573,7 +573,7 @@ func TestAWrongSubprotocolIsRefused(t *testing.T) {
 	back, srv := acceptOnce(t, Options{Handshake: 2 * time.Second})
 	defer srv.Close()
 	conn, _, err := websocket.Dial(ctx, "ws"+srv.URL[len("http"):],
-		&websocket.DialOptions{Subprotocols: []string{"ngc.other.v1"}, HTTPClient: testClient})
+		&websocket.DialOptions{Subprotocols: []string{"cd.other.v1"}, HTTPClient: testClient})
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
@@ -894,7 +894,7 @@ func acceptOnce(t *testing.T, o Options) (<-chan error, *httptest.Server) {
 	}
 	back := make(chan error, 1)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		o.Subprotocol, o.Prologue, o.Static, o.Peer = "ngc.test.v1", noisep.PrologueSession, server, client.Public
+		o.Subprotocol, o.Prologue, o.Static, o.Peer = "cd.test.v1", noisep.PrologueSession, server, client.Public
 		_, err := Accept(w, r, o)
 		back <- err
 	}))

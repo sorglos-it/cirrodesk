@@ -3,7 +3,7 @@
   "name": "Portierversuch",
   "version": "0.0.1",
   "publisher": "Sorglos Thomas Weirich",
-  "description": "Beleg zu Punkt 68: ein fremdes Rust-Programm als NGC-Dienst.",
+  "description": "Beleg zu Punkt 68: ein fremdes Rust-Programm als CirroDesk-Dienst.",
   "ui": { "entry": "index.html", "width": 720, "height": 480 },
   "actions": [
     { "name": "text", "title": "Text aus einem Dokument lesen", "service": "wordcraft" },
@@ -11,7 +11,7 @@
     { "name": "convert", "title": "Ein Dokument umwandeln", "service": "wordcraft", "timeout": 120 }
   ],
   "services": [
-    { "name": "wordcraft", "command": ["/usr/lib/ngc/adapter"] }
+    { "name": "wordcraft", "command": ["/usr/lib/cd/adapter"] }
   ],
   "runtime": "podman",
   "cpu": 1000,

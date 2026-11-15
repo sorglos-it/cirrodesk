@@ -14,10 +14,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // testSeed is the Ed25519 seed the key file of these cases carries. It is a
@@ -46,7 +46,7 @@ func packInto(t *testing.T, dir, id, version, extra string) string {
 		`"description":"Eine Test-App","ui":{"entry":"index.html"}%s}`, id, id, version, extra)
 	write(t, filepath.Join(src, "manifest.json"), []byte(manifest))
 	write(t, filepath.Join(src, "ui", "index.html"), []byte("<!doctype html><title>"+id+" "+version+"</title>"))
-	out := filepath.Join(dir, id+"-"+version+".ngc")
+	out := filepath.Join(dir, id+"-"+version+".cd")
 	if _, _, err := Pack(src, out); err != nil {
 		t.Fatalf("pack %s %s: %v", id, version, err)
 	}
@@ -131,7 +131,7 @@ func TestCatalogListsEveryPackage(t *testing.T) {
 		if !bytes.Equal(p.UI, uiHash(t, path)) {
 			t.Fatalf("ui of version %d: %x", i, p.UI)
 		}
-		if p.Encrypted || p.MinNGC != "" || len(p.Needs) != 0 {
+		if p.Encrypted || p.MinCD != "" || len(p.Needs) != 0 {
 			t.Fatalf("version %d carries more than it should: %+v", i, p)
 		}
 	}
@@ -156,7 +156,7 @@ func TestCatalogSortsByTheContractNotByFileName(t *testing.T) {
 			`{"id":%q,"name":"App","version":%q,"publisher":"Sorglos IT","ui":{"entry":"index.html"}}`,
 			f.id, f.version)))
 		write(t, filepath.Join(src, "ui", "index.html"), []byte("<!doctype html><title>"+f.file+"</title>"))
-		if _, _, err := Pack(src, filepath.Join(dir, f.file+".ngc")); err != nil {
+		if _, _, err := Pack(src, filepath.Join(dir, f.file+".cd")); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -170,7 +170,7 @@ func TestCatalogSortsByTheContractNotByFileName(t *testing.T) {
 	}
 	v := c.Apps[0].Versions
 	if len(v) != 2 || v[0].Version != "1.0.0" || v[1].Version != "2.0.0" ||
-		v[0].URL != "ccc.ngc" || v[1].URL != "bbb.ngc" {
+		v[0].URL != "ccc.cd" || v[1].URL != "bbb.cd" {
 		t.Fatalf("versions: %+v", v)
 	}
 }
@@ -201,7 +201,7 @@ func TestCatalogComputesUIBeforeEncryption(t *testing.T) {
 	// measures exactly what has to be measured.
 	sealed := plain + EncSuffix
 	write(t, sealed, append([]byte("sealed:"), read(t, plain)...))
-	write(t, strings.TrimSuffix(plain, ".ngc")+PriceSuffix, []byte(testPrice))
+	write(t, strings.TrimSuffix(plain, ".cd")+PriceSuffix, []byte(testPrice))
 
 	env, err := Catalog(dir, key, opts(2, ""))
 	if err != nil {
@@ -231,10 +231,10 @@ func TestCatalogComputesUIBeforeEncryption(t *testing.T) {
 	}
 }
 
-func TestCatalogTakesMinNGCFromTheManifest(t *testing.T) {
+func TestCatalogTakesMinCDFromTheManifest(t *testing.T) {
 	dir := t.TempDir()
 	key, pub := signingKey(t, testSeed)
-	packInto(t, dir, "org.sorglos.calculator", "2.0.0", `,"minNgc":"1.4.0","needs":["network"]`)
+	packInto(t, dir, "org.sorglos.calculator", "2.0.0", `,"minCd":"1.4.0","needs":["network"]`)
 	// Control on the same directory: without the two manifest members the
 	// entry carries neither.
 	packInto(t, dir, "org.sorglos.editor", "2.0.0", "")
@@ -244,10 +244,10 @@ func TestCatalogTakesMinNGCFromTheManifest(t *testing.T) {
 	}
 	c := readBack(t, env, pub, 0)
 	p := c.Apps[0].Versions[0]
-	if p.MinNGC != "1.4.0" || len(p.Needs) != 1 || p.Needs[0] != store.NeedNetwork {
+	if p.MinCD != "1.4.0" || len(p.Needs) != 1 || p.Needs[0] != store.NeedNetwork {
 		t.Fatalf("calculator: %+v", p)
 	}
-	if q := c.Apps[1].Versions[0]; q.MinNGC != "" || len(q.Needs) != 0 {
+	if q := c.Apps[1].Versions[0]; q.MinCD != "" || len(q.Needs) != 0 {
 		t.Fatalf("editor: %+v", q)
 	}
 }
@@ -271,7 +271,7 @@ func TestCatalogVerifies(t *testing.T) {
 	c := readBack(t, env, pub, 0)
 	// The signed download address passed store's own grammar (validURL);
 	// this tool has no second one.
-	if c.Apps[0].Versions[0].URL != "https://store.example.com/pkg/org.sorglos.calculator-1.0.0.ngc" {
+	if c.Apps[0].Versions[0].URL != "https://store.example.com/pkg/org.sorglos.calculator-1.0.0.cd" {
 		t.Fatalf("url: %s", c.Apps[0].Versions[0].URL)
 	}
 	// A reader that has already seen 7 calls this catalog a rollback.
@@ -359,7 +359,7 @@ func TestAssembleRefusesTooManyVersionsInTotal(t *testing.T) {
 			for v := 0; v < store.MaxVersions && total > 0; v++ {
 				out = append(out, appVersion{
 					entry: store.Entry{ID: id, Name: "App", Publisher: "Sorglos IT"},
-					pkg: store.Package{Version: fmt.Sprintf("1.0.%d", v), URL: "a.ngc", Size: 1,
+					pkg: store.Package{Version: fmt.Sprintf("1.0.%d", v), URL: "a.cd", Size: 1,
 						SHA256: bytes.Repeat([]byte{2}, 32), UI: bytes.Repeat([]byte{3}, 32)},
 				})
 				total--
@@ -488,7 +488,7 @@ func TestCatalogTakesTheMetadataOfTheNewestVersion(t *testing.T) {
 	write(t, filepath.Join(src, "manifest.json"), []byte(`{"id":"org.sorglos.calculator","name":"Rechner",`+
 		`"version":"2.0.0","publisher":"Sorglos IT","ui":{"entry":"index.html"}}`))
 	write(t, filepath.Join(src, "ui", "index.html"), []byte("<!doctype html><title>2</title>"))
-	if _, _, err := Pack(src, filepath.Join(dir, "org.sorglos.calculator-2.0.0.ngc")); err != nil {
+	if _, _, err := Pack(src, filepath.Join(dir, "org.sorglos.calculator-2.0.0.cd")); err != nil {
 		t.Fatal(err)
 	}
 	env, err := Catalog(dir, key, opts(1, ""))
@@ -502,12 +502,12 @@ func TestCatalogTakesTheMetadataOfTheNewestVersion(t *testing.T) {
 }
 
 // TestCatalogRefusesAFileThatIsNoPackage: whatever lies in the directory
-// under *.ngc has to be a package. A refusal here leaves no catalog.
+// under *.cd has to be a package. A refusal here leaves no catalog.
 func TestCatalogRefusesAFileThatIsNoPackage(t *testing.T) {
 	dir := t.TempDir()
 	key, _ := signingKey(t, testSeed)
 	packInto(t, dir, "org.sorglos.calculator", "1.0.0", "")
-	write(t, filepath.Join(dir, "broken.ngc"), []byte("no tar at all"))
+	write(t, filepath.Join(dir, "broken.cd"), []byte("no tar at all"))
 	if _, err := Catalog(dir, key, opts(1, "")); err == nil {
 		t.Fatal("a file that is no package was listed")
 	}
@@ -604,7 +604,7 @@ func TestRunWritesTheCatalog(t *testing.T) {
 	}
 	// A wrong call is exit 2 and prints the usage.
 	errOut.Reset()
-	if code := Run([]string{"catalog", dir}, io.Discard, &errOut); code != 2 || !strings.Contains(errOut.String(), "ngc-store catalog") {
+	if code := Run([]string{"catalog", dir}, io.Discard, &errOut); code != 2 || !strings.Contains(errOut.String(), "cd-store catalog") {
 		t.Fatalf("wrong call: exit %d %q", code, errOut.String())
 	}
 }

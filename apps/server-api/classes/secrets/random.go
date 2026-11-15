@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
 )
 
 // setupAlphabet is the alphabet of a one-time setup code

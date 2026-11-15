@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // TestBackupSurvivesARegistrationAtTheSameTime drives the one shared value of

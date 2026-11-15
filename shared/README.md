@@ -2,7 +2,7 @@
 
 Hier stehen die Schnittstellen zwischen Webinterface, API, Controller und Datenbank. Sie gehören
 dem Koordinator. Wer einen Vertrag ändern will, fragt ihn; alle vier Teile erfahren jede Änderung
-sofort. Dieses Verzeichnis steht unter MIT (siehe `LICENSE`), NGC selbst unter AGPL-3.0.
+sofort. Dieses Verzeichnis steht unter MIT (siehe `LICENSE`), CirroDesk selbst unter AGPL-3.0.
 
 Noch kein Vertrag ist die Wiederherstellung (Codes, Zurücksetzen durch einen Admin, Notfallbefehl):
 Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plänen 1 bis 4.
@@ -35,7 +35,7 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
 - **Jede Eingabe von außen** läuft durch die `Parse…`- oder `Verify…`-Funktion des Vertrags, nie
   direkt durch `json.Unmarshal` (im Browser nie direkt durch `JSON.parse`). JSON ist dabei immer
   strikt, siehe „Striktes JSON“.
-- **Grenzen gelten immer**, auch wenn die Gegenstelle zu NGC gehört. Jede Grenze aus den Go-Paketen
+- **Grenzen gelten immer**, auch wenn die Gegenstelle zu CirroDesk gehört. Jede Grenze aus den Go-Paketen
   (`Max…`, `Min…`, die Budgets und die Regeln in `Validate`) setzt das JavaScript des Webinterface
   genauso durch, auch die, für die es keine eigenen Testdaten gibt (etwa `trust.MaxAuto`,
   `trust.MaxOrigins`, `trust.MaxRoot`, die Grenzen für Passkey-Beweise `proof.MaxPublic`,
@@ -61,10 +61,10 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
   hochlädt (`core.UploadResult` dient nur dem Abgleich), die Fingerabdrücke wartender Controller
   (`tunnel.Fingerprint` ihres Schlüssels) und API-Server (`tunnel.JoinFingerprint`). Ein Paket liest
   sie dafür wie `store.Walk`, also in jeder Form, die Go `archive/tar` liest, auch mit PAX-Köpfen
-  und langen GNU-Namen; `packui.json` zeigt nur die USTAR-Pakete von `ngc-store pack`. Was sie nicht
+  und langen GNU-Namen; `packui.json` zeigt nur die USTAR-Pakete von `cd-store pack`. Was sie nicht
   lesen kann, lehnt sie ab. Rechnet sie anders als Go, scheitert nur die Aktivierung: Eine
   UI-Prüfsumme, die nicht zum Paket passt, lehnt der Controller ab (`E_VERIFY`). Außerdem:
-  - `sha256` eines Updates per Klick darf aus der Zeile von `ngc.store/updates` kommen: Der
+  - `sha256` eines Updates per Klick darf aus der Zeile von `cd.store/updates` kommen: Der
     Controller installiert nur eine Datei, die zur unterschriebenen Aufgabe und zum signierten
     Release oder Katalogeintrag passt; ein falscher Wert lässt das Update also nur scheitern.
   - Die Werte eines neuen API-Servers kommen aus `core.PendingAPI`: Der Admin vergleicht
@@ -75,7 +75,7 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
     Vertrauensliste der Shell, der Release-Schlüssel aus Fassung 1 (dem per MAC geprüften Angebot
     der Ersteinrichtung) oder aus den bestehenden Dauerfreigaben. `key` in `core.UpdateInfo` dient
     nur Anzeige und Abgleich.
-- **TLS intern:** Jede TLS-Strecke zwischen NGC-Teilen prüft ihre Gegenseite; eine Prüfung
+- **TLS intern:** Jede TLS-Strecke zwischen CirroDesk-Teilen prüft ihre Gegenseite; eine Prüfung
   abzuschalten ist verboten. API-Server weisen sich mit dem Fingerabdruck ihres TLS-Schlüssels aus
   (`trust.Node.TLS`, `trust.TLSPin`; in Go `tunnel.PinnedTLS`, im Skript `testdata/tls/pin.sh`),
   MariaDB-Knoten mit einem Zertifikat der CA der Installation (`config.DB.CA`,
@@ -120,10 +120,10 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
 - **Signierte Dokumente, die bleiben:** Release, Katalog und Lizenz bekommen ein neues Feld nur mit
   einem neuen Zweck (`release/v2` usw.) an einem eigenen Ort; in der Übergangszeit signiert der
   Herausgeber beide Fassungen, jeder Leser nimmt die neueste, die er kennt. Ein neues Feld im
-  Manifest braucht `minNgc` (im Manifest und im Katalog) mindestens bei der NGC-Version, die es
-  liest: Eine Version, deren `minNgc` neuer ist als die NGC-Version des Knotens, bietet die API
-  nicht an, und der Controller installiert sie nicht (`store.SupportsMinNGC`; eine NGC-Version,
-  die keine Release-Version ist, etwa `0.0.0-dev`, gilt als älter als jedes `minNgc`). Die
+  Manifest braucht `minCd` (im Manifest und im Katalog) mindestens bei der CirroDesk-Version, die es
+  liest: Eine Version, deren `minCd` neuer ist als die CirroDesk-Version des Knotens, bietet die API
+  nicht an, und der Controller installiert sie nicht (`store.SupportsMinCD`; eine CirroDesk-Version,
+  die keine Release-Version ist, etwa `0.0.0-dev`, gilt als älter als jedes `minCd`). Die
   Vertrauensliste ist eine einzige Kette: ein neues Format nur mit einer neuen Vertragsnummer,
   sobald alle Controller sie in `hello` nennen; ein Controller, der dabei fehlte, spielt erst
   sein Update ein und liest dann weiter. Das ui-tar ändert sich nie; eine andere Form wäre eine
@@ -135,7 +135,7 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
   `[secret]` lautet, lehnt `config` ab.
 - **Rollen und Softwareteile:** Ein Server hat Rollen (`tunnel.RoleWeb`, `tunnel.RoleAPI`,
   `tunnel.RoleDB`, `tunnel.RoleServices`: `web`, `api`, `db`, `services`). Softwareteile sind
-  `ngc-web`, `ngc-api` und `ngc-controller` (`trust.AutoWeb`, `trust.AutoAPI`,
+  `cd-web`, `cd-api` und `cd-controller` (`trust.AutoWeb`, `trust.AutoAPI`,
   `trust.AutoController`). Release-Dateien und `tunnel.Status.Components` nennen Softwareteile,
   Update-Ziele ebenso (dazu `system` und Apps); welche Softwareteile ein Server mit seinen Rollen
   braucht, sagt `tunnel.Components`.
@@ -158,7 +158,7 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
 - **Nachrichten vor der Einigung** bleiben über alle Nummern gleich: `hello` (`tunnel.Hello`),
   `tunnel.PairRequest`, `tunnel.JoinRequest`, `tunnel.PairCode` und `tunnel.JoinCode`. Mit ihnen
   erfahren die Seiten erst, welche Fassung die andere spricht. Eine Änderung daran bekommt einen
-  neuen Nachrichtentyp bzw. ein neues Präfix (etwa `ngc-pair2:`).
+  neuen Nachrichtentyp bzw. ein neues Präfix (etwa `cd-pair2:`).
 - **Sprache**: Code und Kommentare Englisch, Meldungen für Benutzer Deutsch (`wire.Code.Message`).
 
 ## Testdaten
@@ -177,10 +177,10 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
 | `noise.json` | ein Ende-zu-Ende-Handschlag mit festen Schlüsseln und Transportnachrichten; `prologues`: je ein OPEN mit seinen `params`- und `task`-Bytes (base64url, leer, wenn das Feld fehlt), Prolog und Nachricht 1 | `noisep`: `TestVectors` |
 | `tunnel.json` | Kopplungscode (mit `tls`) mit MAC und Fingerabdruck, `pairCheck` (`tunnel.PairCode.Check`), `join` (Beitrittscode und Anfrage mit `node`, `tls`, `url`, MAC nach `tunnel.JoinMAC` und `fingerprint` nach `tunnel.JoinFingerprint`), `tlsPin` (Fingerabdruck von `tls/api.pem`) | `tunnel`: `TestVectors` |
 | `tls/` | `api.pem`: TLS-Zertifikat von `api-1` aus `trust.json`; `pin.sh` (von Hand) rechnet den Fingerabdruck wie `trust.TLSPin`, geprüft von `TestTLSPinScript` | `tunnel`: `TestVectors` |
-| `core.json` | ein Beispiel-Ergebnis je Kern-Aktion mit Ergebnis (auch `ngc.desktop/ui-proof` und `ngc.users/pending-api`; Kopplungs- und Beitrittscode sind echte Codes zur Fassung „genesis“ aus `trust.json`, `ngc.store/catalog` ein echter Katalog des globalen Stores; `ngc.users/nodes` die Controller der Vertrauensliste, `entry` in `ngc.desktop/apps` die erste Seite, `ngc.store/updates` mit einer Zeile `needsgrants`), dazu `notice`; unter `empty` die elf Ergebnisse, die Listen sind, leer, wie `core.EncodeResult` sie schickt (`[]`) | `core`: `TestExamples` |
+| `core.json` | ein Beispiel-Ergebnis je Kern-Aktion mit Ergebnis (auch `cd.desktop/ui-proof` und `cd.users/pending-api`; Kopplungs- und Beitrittscode sind echte Codes zur Fassung „genesis“ aus `trust.json`, `cd.store/catalog` ein echter Katalog des globalen Stores; `cd.users/nodes` die Controller der Vertrauensliste, `entry` in `cd.desktop/apps` die erste Seite, `cd.store/updates` mit einer Zeile `needsgrants`), dazu `notice`; unter `empty` die elf Ergebnisse, die Listen sind, leer, wie `core.EncodeResult` sie schickt (`[]`) | `core`: `TestExamples` |
 | `uiproof.json` | UI-Beweise gegen eine Vertrauensliste (`trust`): je Fall App, Version, Beweis, die UI-Prüfsumme, die er belegt, und ob er gilt | `core`: `TestUIProofVectors` |
 | `store.json`, `pack.json` | Katalog (mit `ui` je Version), Lizenz und Release, je mit abgelehnten: `catalogRejects` (darunter sieben Adressen, die die Grammatik brechen), `licenseRejects` (darunter eine Lizenz für eine andere App), `releaseRejects`; dazu die Werte zum Prüfen (`store`, `installation`, `installKey`, `licenseApp`, `catalogLastSeq`, `releaseLastSeq`); Verschlüsselung der Kauf-Apps | `store`: `TestVectors`, `TestPackVectors` |
-| `packui.json` | Pakete, wie `ngc-store pack` sie schreibt, mit dem ui-tar von `store.PackageUI` und dessen SHA-256 | `store`: `TestPackageUIVectors` |
+| `packui.json` | Pakete, wie `cd-store pack` sie schreibt, mit dem ui-tar von `store.PackageUI` und dessen SHA-256 | `store`: `TestPackageUIVectors` |
 | `ui.json` | ui-tars, gültige und ungültige (Regeln im Kommentar von `store/ui.go`); bei gültigen unter `files` die Dateien, die `store.WalkUI` liefert. Fälle mit Daten bis `store.MaxUIFile`, `store.MaxUITotal` oder mit `store.MaxEntries` Einträgen stehen nicht darin | `store`: `TestUIVectors` |
 | `release/` | signiertes Release mit Release-Schlüssel als PEM und einer Datei; `verify.sh` (von Hand) prüft wie die ulh-Skripte die Datei eines Teils (`verify.sh <Verzeichnis> <Teil> <Arch>`), `TestReleaseScript` in 31 Fällen | `store`: `TestReleaseScriptVector` |
 | `config/*.json` | Beispiel-Konfigurationen | von Hand |
@@ -238,7 +238,7 @@ Vorher prüft das Budget in einem Durchgang, der nichts aufbaut:
 | Dokument | Go | Bytes | Listen und Maps (Pfad: höchstens) |
 |---|---|---|---|
 | Fassung der Vertrauensliste (Nutzlast) | `trust.Parse` | `sign.MaxPayload` (4 MiB) | `users` 10000, `users/*/roles` 256, `users/*/keys` 16, `roles` 256, `roles/*/black` 256, `roles/*/white` 256, `nodes` 256, `nodes/*/rootUsers` 256, `nodes/*/rootRoles` 256, `stores` 64, `auto` 64, `rp/origins` 8 |
-| Fassung samt Beweis (`trust.Signed`), etwa an `ngc.users/api/trust` | `trust.ParseSigned` | base64url von `sign.MaxPayload` Byte + 64 KiB | keine |
+| Fassung samt Beweis (`trust.Signed`), etwa an `cd.users/api/trust` | `trust.ParseSigned` | base64url von `sign.MaxPayload` Byte + 64 KiB | keine |
 | Anmeldung, Ersteinrichtung | `session.ParseLoginStart`, `session.ParseLoginFinish`, `session.ParseSetup` | `session.MaxRequest` (64 KiB) | keine |
 | Antwort von `POST /api/v1/login/start` | `session.ParseLoginChallenge` | `session.MaxRequest` | `passkeys` 16 (`session.MaxPasskeys`), `rp/origins` 8 |
 | Angebot der Ersteinrichtung | `session.ParseSetupOffer` | `session.MaxSetupOffer` (128 KiB), darin `info` höchstens `session.MaxRequest` | `info`: `nodes` 16 (`session.MaxSetupNodes`) |
@@ -287,7 +287,7 @@ Bis zum WebSocket spricht die Shell HTTPS mit JSON (`Content-Type: application/j
 | `/api/v1/login/finish` | POST | `session.LoginFinish` | 200 `session.LoginResult` und das Cookie | 401 `E_LOGIN`, 429 `E_LOCKED`, 503 `E_NOT_SET_UP` |
 | `/api/v1/logout` | POST | – | 204, Cookie gelöscht | 401 `E_LOGIN` |
 | `/api/v1/trust?from=N` | GET | – | 200 `session.TrustChain` ab N; 204, wenn N eins nach der neuesten ist | 401 `E_LOGIN`, 404 `E_NOTFOUND` (N größer) |
-| `/api/v1/ws` | GET (Upgrade) | – | 101, Unterprotokoll `ngc.v1` | 401 `E_LOGIN` |
+| `/api/v1/ws` | GET (Upgrade) | – | 101, Unterprotokoll `cd.v1` | 401 `E_LOGIN` |
 
 Überall zusätzlich 400 `E_PROTOCOL` (kaputte Anfrage, `from` nicht nach `session.ParseFrom`), 413
 `E_TOOLARGE` (mehr als `session.MaxRequest`), 500 `E_INTERNAL`, 503 `E_UNREACHABLE` (Datenbank nicht
@@ -330,7 +330,7 @@ erreichbar).
   oder abgelaufene Sitzung. `E_LOCKED` kommt mit `Retry-After` in Sekunden. Die Sperre gilt je
   Anmeldename, auch für Namen, die es nicht gibt, damit auch `E_LOCKED` nie verrät, ob ein Benutzer
   existiert.
-- Cookie `ngc_session` (`session.CookieName`): base64url von 32 Zufallsbytes, dazu
+- Cookie `cd_session` (`session.CookieName`): base64url von 32 Zufallsbytes, dazu
   `Path=/api/; Secure; HttpOnly; SameSite=Strict` (`session.CookieAttributes`), ohne `Domain` und
   ohne `Max-Age`; die Datenbank kennt nur `session.TokenHash` der 32 Bytes. Abmelden löscht es mit
   `Max-Age=0`. Die API beendet eine Sitzung nach `IdleTimeout` ohne Nutzung oder nach
@@ -344,7 +344,7 @@ erreichbar).
   dann `info` nach den Regeln der Vertrauensliste: Knoten nach `trust.ValidAPINode`, nach ID
   sortiert und ohne doppelte ID, der Store nach `trust.ValidStore`). Daraus baut sie Fassung 1: der
   Admin, die API-Knoten aus `info.nodes`, wahlweise der globale Store aus `info.store`,
-  Dauerfreigaben nur für `ngc-web`, `ngc-api`, `ngc-controller` mit `info.releaseKey` und für
+  Dauerfreigaben nur für `cd-web`, `cd-api`, `cd-controller` mit `info.releaseKey` und für
   `system`. Sie schickt sie mit `session.SetupMAC` über die genauen Bytes der Nutzlast; die API
   prüft sie mit `session.VerifySetup`. Der Code selbst geht nie über die Leitung.
 
@@ -355,9 +355,9 @@ Kurzfassung.
 
 ### Leitungen und Frames
 
-- **Leitungen:** Sitzung (Browser ↔ API: `/api/v1/ws`, Unterprotokoll `ngc.v1`, Prolog
-  `ngc/session/v1`) und Tunnel (Controller ↔ API: `/tunnel?key=` mit dem Fingerabdruck des
-  Controller-Schlüssels, `ngc.tunnel.v1`, Prolog `ngc/tunnel/v1`), beide mit
+- **Leitungen:** Sitzung (Browser ↔ API: `/api/v1/ws`, Unterprotokoll `cd.v1`, Prolog
+  `cd/session/v1`) und Tunnel (Controller ↔ API: `/tunnel?key=` mit dem Fingerabdruck des
+  Controller-Schlüssels, `cd.tunnel.v1`, Prolog `cd/tunnel/v1`), beide mit
   Noise_KK_25519_AESGCM_SHA256 (`noisep`). Die erste binäre WebSocket-Nachricht ist
   Noise-Nachricht 1 von Browser bzw. Controller, die zweite Nachricht 2 der API; beide ohne
   Nutzlast, genau 48 Byte (`wire.HandshakeSize`). Danach ist jede binäre Nachricht genau eine
@@ -390,7 +390,7 @@ dessen Noise-Schlüssel den Tunnel aufgebaut hat (leer, solange der Controller n
 Vertrauensliste steht). Nennt er einen anderen, beendet die API den Tunnel. Nach `bye` schließt der
 Absender die Leitung. `trust` ist nur ein Hinweis: Die Fassungen holt die Shell mit
 `GET /api/v1/trust?from=N` (`session.TrustChain`, seitenweise mit `more`); ein Controller bekommt
-sie über den Kanal `ngc.users/controller/trust`.
+sie über den Kanal `cd.users/controller/trust`.
 
 ### Öffnen, Schließen, Freigabe
 
@@ -442,7 +442,7 @@ Controller, mit dem Schlüssel `dh` des Client-Zertifikats und dem Noise-Schlüs
 aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (Feld `node`).
 
 - **Prolog** (`noisep.E2EPrologue`):
-  `ngc/e2e/v1` 0x00 Controller-ID 0x00 App 0x00 Dienst 0x00 Aktion 0x00 SHA-256(params)
+  `cd/e2e/v1` 0x00 Controller-ID 0x00 App 0x00 Dienst 0x00 Aktion 0x00 SHA-256(params)
   SHA-256(task), beide Hashes als 32 rohe Byte. params und task sind die Werte der Felder `params`
   und `task` genau so, wie sie im OPEN stehen, jeweils von `{` bis `}`; fehlt ein Feld, wird der
   leere Text gehasht. Der Controller nimmt sie aus `Opened.Open.Params` und
@@ -466,14 +466,14 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
 
 ### Kern-Apps und Aufgaben
 
-- **Kern-Apps** (`ngc.desktop`, `ngc.users`, `ngc.store`) haben keinen eigenen
+- **Kern-Apps** (`cd.desktop`, `cd.users`, `cd.store`) haben keinen eigenen
   Ende-zu-Ende-Austausch; ihre DATA laufen ohne zweite Verschlüsselung in der Noise-Sitzung der
   Leitung. Wie Daten fließen, sagt `core.Action` (`Flow`, `MaxIn`):
   - `call` (`core.FlowCall`): Parameter im OPEN oder in der Aufgabe; der Öffner schickt sofort EOF.
     Das Ergebnis sind alle DATA bis zum EOF der Gegenseite. Aktionen ohne Ergebnis antworten `{}`.
     Beispiele: `core.json`.
-  - `ngc.store/refresh` (nur Admin, keine Parameter) ruft jeden Store sofort ab und antwortet wie
-    `ngc.store/sources` mit dem Stand danach. Die API ruft höchstens einmal je Minute ab; ein zweiter
+  - `cd.store/refresh` (nur Admin, keine Parameter) ruft jeden Store sofort ab und antwortet wie
+    `cd.store/sources` mit dem Stand danach. Die API ruft höchstens einmal je Minute ab; ein zweiter
     Aufruf in dieser Zeit bekommt den letzten Stand.
   - `in` (`core.FlowIn`): Der Öffner schickt höchstens `MaxIn` Byte, dann EOF; Ergebnis wie bei
     `call`.
@@ -485,7 +485,7 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
 - **Wer öffnet:** Die Shell öffnet alle Aktionen des Dienstes `api` (mit Aufgabe nur, wo
   `task.Check` sie verlangt) und die Root-Aufgaben des Dienstes `controller` (`activate`,
   `deactivate`, `uninstall`, `delete-data`, `install`), diese immer mit Aufgabe
-  (`core.ShellOpens`); `stage`, `license` und `ngc.users/controller/trust` öffnet nur die API,
+  (`core.ShellOpens`); `stage`, `license` und `cd.users/controller/trust` öffnet nur die API,
   ohne Benutzer, und lehnt ein OPEN der Shell dafür mit `E_FORBIDDEN` ab.
 - **`transfer` mit Aufgabe** (`activate`): Die Shell schickt nach der ersten GRANT sofort EOF und
   keine DATA (sonst `E_PROTOCOL`). Die API schreibt auf der Tunnel-Strecke selbst den Kopf
@@ -507,10 +507,10 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
     sieht.
 - **Grenze für Eingaben:** Was der Öffner bei `in` und was die API bei `transfer` schickt, begrenzt
   `MaxIn` (`core.Action`); der Empfänger schließt bei mehr ebenso mit `E_TOOLARGE`:
-  - die API bei `ngc.store/api/upload` (bis `store.MaxPackage`, 4 GiB), `ngc.users/api/trust` und
-    `ngc.store/api/license`;
-  - der Controller bei `ngc.store/controller/activate` und `ngc.store/controller/stage`
-    (`transfer`) und bei `ngc.users/controller/trust` und `ngc.store/controller/license`.
+  - die API bei `cd.store/api/upload` (bis `store.MaxPackage`, 4 GiB), `cd.users/api/trust` und
+    `cd.store/api/license`;
+  - der Controller bei `cd.store/controller/activate` und `cd.store/controller/stage`
+    (`transfer`) und bei `cd.users/controller/trust` und `cd.store/controller/license`.
 - **Aufgaben:** Ein OPEN mit Aufgabe (`task`) hat keine eigenen Parameter; es gelten die der
   Aufgabe. Ob ein Kanal eine Aufgabe braucht, root ist oder kritisch, entscheidet `task.Check` mit
   einer Regel aus geprüften Daten, nie aus dem OPEN: `core.RuleFor` für Kern-Aktionen (ohne
@@ -519,13 +519,13 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
   prüft eine Aufgabe, bevor sie sie an einen Controller weiterleitet, mit dem Ziel-Controller als
   `task.Input.Node`. Wer prüft, merkt sich die ID der Aufgabe bis zu ihrem Ablauf
   (`dbapi.OnceTask`).
-- **Vertrauensliste an Controller:** Kanal `ngc.users/controller/trust` (`in`). Die API schickt eine
+- **Vertrauensliste an Controller:** Kanal `cd.users/controller/trust` (`in`). Die API schickt eine
   `session.TrustChain`; der Controller prüft sie (`session.ParseTrustChain`, `trust.Advance`) und
   antwortet mit `core.TrustResult` (seine neueste geprüfte Fassung) oder schließt mit `E_VERIFY`.
 - **Ohne Benutzer** (`tunnel.Open` ohne `client` und `proof`, mit einem OPEN der API) öffnet die
-  API nur, was `core.WithoutUser` nennt: `ngc.users/controller/trust`,
-  `ngc.store/controller/stage`, `ngc.store/controller/install` und
-  `ngc.store/controller/license`. `install` ohne Benutzer führt
+  API nur, was `core.WithoutUser` nennt: `cd.users/controller/trust`,
+  `cd.store/controller/stage`, `cd.store/controller/install` und
+  `cd.store/controller/license`. `install` ohne Benutzer führt
   der Controller nur aus, wenn `core.Unattended` zustimmt: Es gibt eine Dauerfreigabe für das Ziel
   und den Schlüssel, der die Datei signiert hat, und die Version ist neuer als die installierte; ist
   nichts installiert, nie. Bei `system` gibt es keinen Versionsvergleich. Es zählen nur die
@@ -536,7 +536,7 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
   und Version, nie schon die Erlaubnis zu installieren. Store und Rechte einer App prüft der
   Controller daneben selbst (`dbapi.App.Store`, `store.Granted`).
 - **Lizenzen auf Controllern:** Die Lizenz einer Kauf-App kommt beim Aktivieren und bei Updates
-  im Kopf der Übertragung (`core.Transfer`), eine erneuerte über `ngc.store/controller/license`
+  im Kopf der Übertragung (`core.Transfer`), eine erneuerte über `cd.store/controller/license`
   (`in`, Parameter `app`, Inhalt der Umschlag der Lizenz, Ergebnis `core.LicenseResult`).
   - Der Controller prüft sie mit `store.VerifyLicenseFor`: Unterschrift des Stores, aus dem die
     App aktiviert wurde, die Installation seiner Vertrauensliste, die App und die Form. Nur die
@@ -553,8 +553,8 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
   die Dateien unter `ui/` in der Reihenfolge des Pakets, mit `store.UIWriter` geschrieben, ohne
   Ordner). Sie steht im Katalog je Version (`ui`, vom Store signiert) und in `activate` (`ui`, vom
   Admin signiert); der Controller vergleicht sie beim Aktivieren und Installieren. Den Beweis holt
-  die Shell mit `ngc.desktop/ui-proof` (`core.UIProof`) und prüft ihn wie `core.VerifyUIProof`;
-  dann lädt sie `ngc.desktop/ui` ganz, vergleicht SHA-256 und liest es erst danach nach den Regeln
+  die Shell mit `cd.desktop/ui-proof` (`core.UIProof`) und prüft ihn wie `core.VerifyUIProof`;
+  dann lädt sie `cd.desktop/ui` ganz, vergleicht SHA-256 und liest es erst danach nach den Regeln
   von `store.WalkUI`. Geprüfte Prüfsummen merkt sie sich je App und Version, Kataloge je Store und
   `seq`. Nach jeder neuen Fassung der Vertrauensliste prüft sie die Beweise neu, vor allem die
   hochgeladener Apps: Ein Store oder der Schlüssel eines Admins kann darin fehlen. Die erste Seite
@@ -571,10 +571,10 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
   - Der Beweis einer hochgeladenen App gilt ohne Zeitprüfung, aber nur, solange Schlüssel und
     Root-Recht des Admins, der sie aktiviert hat, in der Vertrauensliste stehen. Nach einem Wechsel
     dieses Schlüssels muss die App neu aktiviert werden.
-- **Updates per Klick, Dauerfreigaben:** `ngc.store/updates` hat eine Zeile je Ziel und Controller
+- **Updates per Klick, Dauerfreigaben:** `cd.store/updates` hat eine Zeile je Ziel und Controller
   (`core.UpdateInfo`). Ein Update per Klick ist je Controller eine Root-Aufgabe `install` mit
   `target`, `version` = `available` und `sha256` der Zeile (gesetzt, sobald `state` `downloaded`
-  ist; bei `system` nur `target`). Eine Dauerfreigabe für einen NGC-Teil nennt den Release-Schlüssel
+  ist; bei `system` nur `target`). Eine Dauerfreigabe für einen CirroDesk-Teil nennt den Release-Schlüssel
   aus Fassung 1 (bei der Ersteinrichtung aus `session.SetupInfo`) oder aus den bestehenden
   Dauerfreigaben, für eine App den Schlüssel ihres Stores aus der geprüften Vertrauensliste; `key`
   der Zeile dient nur Anzeige und Abgleich (Regel „Selbst rechnen“). Controller prüfen Releases nur

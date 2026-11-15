@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // UIKey is the ID of the rows of one version: the ui-tar (dbapi.BlobUI) and
@@ -27,9 +27,9 @@ import (
 // of app and version can spell the key of another pair.
 func UIKey(app, version string) string { return app + "@" + version }
 
-// KeepUI keeps the canonical ui-tar of one version; ngc.desktop/ui sends
+// KeepUI keeps the canonical ui-tar of one version; cd.desktop/ui sends
 // exactly these bytes, and the shell compares their SHA-256 against the proof
-// of ngc.desktop/ui-proof. Nothing is formatted, trimmed or re-packed here:
+// of cd.desktop/ui-proof. Nothing is formatted, trimmed or re-packed here:
 // one byte changed and that comparison fails, which is the point.
 func (st *Stores) KeepUI(ctx context.Context, app, version string, ui []byte) error {
 	return st.S.DB.BlobPut(ctx, dbapi.Blob{Kind: dbapi.BlobUI, ID: UIKey(app, version),
@@ -37,7 +37,7 @@ func (st *Stores) KeepUI(ctx context.Context, app, version string, ui []byte) er
 }
 
 // KeepProof keeps the evidence a version was installed with
-// (ngc.desktop/ui-proof): the catalog of its store for a store app, the
+// (cd.desktop/ui-proof): the catalog of its store for a store app, the
 // activate task with the client certificate and the user's proof for an
 // uploaded one (core.LocalStore).
 //
@@ -51,7 +51,7 @@ func (st *Stores) KeepUI(ctx context.Context, app, version string, ui []byte) er
 // come from a Go value and not from a wire, so no unknown field or duplicate
 // can be among them. What it does hold is the other property: the row that is
 // written is a row core.ParseUIProof reads back, which is what
-// ngc.desktop/ui-proof needs of it, and that row outlives this call
+// cd.desktop/ui-proof needs of it, and that row outlives this call
 // (TestKeepProofTakesOnlyWhatHolds reads every kept row back).
 func (st *Stores) KeepProof(ctx context.Context, p core.UIProof) error {
 	data, err := json.Marshal(p)
@@ -73,7 +73,7 @@ func (st *Stores) KeepProof(ctx context.Context, p core.UIProof) error {
 		ID: UIKey(parsed.App, parsed.Version), Data: data, Updated: st.S.Now()})
 }
 
-// Proof answers ngc.desktop/ui-proof: the evidence kept for one version, as
+// Proof answers cd.desktop/ui-proof: the evidence kept for one version, as
 // far as it still holds.
 //
 // It is verified again here, against the trust list as it reads today. The row

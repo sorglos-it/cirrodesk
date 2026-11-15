@@ -1,18 +1,18 @@
 #!/bin/sh
-# Checks the file of one NGC part in a release the way the ulh scripts do
+# Checks the file of one CirroDesk part in a release the way the ulh scripts do
 # (shared/ulh.md), with the tools of a Linux server: sh, jq, openssl 3,
 # base64, sha256sum, od, tr, cut, wc and mktemp.
 #
 # Usage: verify.sh <directory> <part> <arch>
 #   <directory> holds release.json (a sign.Envelope), release-key.pem (the
 #   release key as PEM "PUBLIC KEY") and the downloaded files.
-#   <part> <arch> name the one file to check: ngc-web all, ngc-api amd64,
-#   ngc-controller arm64 and so on (store.File). The signed release must list
+#   <part> <arch> name the one file to check: cd-web all, cd-api amd64,
+#   cd-controller arm64 and so on (store.File). The signed release must list
 #   exactly one entry for them.
 #
 # The entry names its file by the last segment of its url: "https://example.org
-# /1.1.0/ngc-web-all.tar" and "ngc-web-all.tar" both mean the file
-# ngc-web-all.tar in <directory>. That name must start with a letter or digit
+# /1.1.0/cd-web-all.tar" and "cd-web-all.tar" both mean the file
+# cd-web-all.tar in <directory>. That name must start with a letter or digit
 # and hold only letters, digits and . _ -, or the check fails. Only this one
 # file is checked, and only it may be installed afterwards: files of other
 # parts and files the release does not list are ignored, whatever lies in
@@ -63,12 +63,12 @@ b64url() {
 	cat "$work/b64.bin"
 }
 
-# The signature over "ngc/release/v1", a NUL byte and the payload.
+# The signature over "cd/release/v1", a NUL byte and the payload.
 jq -er '.payload | strings' release.json > "$work/payload.txt" || fail "no payload"
 jq -er '.sig | strings' release.json > "$work/sig.txt" || fail "no signature"
 b64url < "$work/payload.txt" > "$work/payload.json" || fail "payload not base64url"
 b64url < "$work/sig.txt" > "$work/sig.bin" || fail "signature not base64url"
-{ printf 'ngc/release/v1\0'; cat "$work/payload.json"; } > "$work/message.bin"
+{ printf 'cd/release/v1\0'; cat "$work/payload.json"; } > "$work/message.bin"
 openssl pkeyutl -verify -pubin -inkey release-key.pem -rawin -in "$work/message.bin" \
 	-sigfile "$work/sig.bin" > /dev/null 2>&1 || fail "signature does not verify"
 

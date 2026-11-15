@@ -1,8 +1,8 @@
-//! Envelopes for documents signed with Ed25519 keys held by NGC components:
+//! Envelopes for documents signed with Ed25519 keys held by CirroDesk components:
 //! API nodes, stores and the release key. A Rust reading of `shared/sign`
 //! (sign.go), written to answer one question: what does a second
 //! implementation of one contract cost, and does it come out bit for bit the
-//! same? It is evidence for a decision paper, not a part of NGC.
+//! same? It is evidence for a decision paper, not a part of CirroDesk.
 
 use base64::engine::{general_purpose::URL_SAFE_NO_PAD, Engine};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
@@ -37,7 +37,7 @@ const PUBLIC_KEY_SIZE: usize = 32;
 /// alphabet is checked and trailing bits must be zero, so every byte string
 /// has exactly one encoding. The crate's default config refuses trailing
 /// bits; it is named here rather than relied on, because a default that
-/// changes under us would change what NGC accepts.
+/// changes under us would change what CirroDesk accepts.
 pub fn b64_encode(b: &[u8]) -> String {
     URL_SAFE_NO_PAD.encode(b)
 }
@@ -139,11 +139,11 @@ pub fn parse_envelope(b: &[u8], max_payload: usize) -> Result<Envelope, Error> {
     Ok(env)
 }
 
-/// The bytes a signature covers: "ngc/" || purpose || 0x00 || payload
+/// The bytes a signature covers: "cd/" || purpose || 0x00 || payload
 /// (Go: sign.Message).
 pub fn message(purpose: &str, payload: &[u8]) -> Vec<u8> {
     let mut m = Vec::with_capacity(4 + purpose.len() + 1 + payload.len());
-    m.extend_from_slice(b"ngc/");
+    m.extend_from_slice(b"cd/");
     m.extend_from_slice(purpose.as_bytes());
     m.push(0);
     m.extend_from_slice(payload);

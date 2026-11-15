@@ -7,9 +7,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/../classes/Config.php';
 require_once __DIR__ . '/../classes/Page.php';
 
-use Ngc\Config;
-use Ngc\ConfigError;
-use Ngc\Page;
+use CirroDesk\Config;
+use CirroDesk\ConfigError;
+use CirroDesk\Page;
 
 // VERSION is the only file read without a contract behind it, and its content
 // goes out in the answer: bound it and check it like everything else. An
@@ -22,12 +22,12 @@ if (is_string($raw) && preg_match('/^\d+\.\d+\.\d+\z/', trim($raw)) === 1) {
 }
 
 // In operation the two paths are fixed. Only the test server may point them
-// elsewhere, so no Apache setting can hand NGC a different configuration.
-$webFile = '/etc/ngc/web.json';
-$anchorFile = '/etc/ngc/trust-anchor.json';
+// elsewhere, so no Apache setting can hand CirroDesk a different configuration.
+$webFile = '/etc/cd/web.json';
+$anchorFile = '/etc/cd/trust-anchor.json';
 if (PHP_SAPI === 'cli-server') {
-    $webFile = getenv('NGC_WEB_CONFIG') ?: $webFile;
-    $anchorFile = getenv('NGC_WEB_ANCHOR') ?: $anchorFile;
+    $webFile = getenv('CD_WEB_CONFIG') ?: $webFile;
+    $anchorFile = getenv('CD_WEB_ANCHOR') ?: $anchorFile;
 }
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
@@ -59,7 +59,7 @@ try {
     return true;
 } catch (Throwable) {
     // Never show any other reason: it would name paths of the server.
-    Page::fail(500, 'NGC ist nicht eingerichtet.');
+    Page::fail(500, 'CirroDesk ist nicht eingerichtet.');
     return true;
 }
 
@@ -94,7 +94,7 @@ switch ($path) {
             $payload['apis'] = $config->apis;
             $body = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
         } catch (Throwable) {
-            Page::fail(500, 'NGC ist nicht eingerichtet.');
+            Page::fail(500, 'CirroDesk ist nicht eingerichtet.');
             return true;
         }
         Page::send('application/json; charset=utf-8', $body);

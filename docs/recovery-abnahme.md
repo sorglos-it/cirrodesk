@@ -1,5 +1,7 @@
 # Abnahme Recovery-Modus
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Zwei Tabellen: oben die Abnahme je Arbeitspaket aus Abschnitt 11 von `docs/recovery-modus.md`,
 unten die 18 Kriterien aus Abschnitt 12. Eine Zeile gilt erst als bestanden, wenn Ergebnis, Datum
 und Prüfer eingetragen sind. **Prüfer ist immer ein Mensch.** Ein einziges offenes Kriterium

@@ -7,7 +7,7 @@
    this step does not carry is written there too - the shadow, the window frame
    and the font follow in their own steps. */
 :root{
-  /* The height of the menu band at the top. 28 is LordOS MENU_H; NGC stood at
+  /* The height of the menu band at the top. 28 is LordOS MENU_H; CirroDesk stood at
      44. The entries inside it are 22 high (LordOS), which is why that number
      and this one travel together: an entry of 34 does not fit in a band of 28,
      and lowering only the band would have cut the entries off. */
@@ -38,7 +38,7 @@
      oversight: it is not one number in one place. The accent the shell shows
      is picked by the user out of six, and those six live in shell/theme.js
      (ACCENTS), their names in shell/desktop.js (ACCENT_NAMES), a fallback in
-     ngc.js, an expectation in tests/shell/desktop-look.spec.js - and once more
+     cd.js, an expectation in tests/shell/desktop-look.spec.js - and once more
      in every app's own app.css, which runs in a frame of its own origin and
      cannot read this file at all. Measured: putting the LordOS blue here alone
      turned one case red and left the Rechner's "=" key in the old blue.
@@ -67,7 +67,7 @@
   --menu-bg: rgba(36,36,42,.72);
   /* TWO shadows, not one, because the shadow is what says which window you
      are talking to. Lord Flow lifts the window in front far off the page and
-     lets the ones behind lie almost flat; NGC had one shadow for both and had
+     lets the ones behind lie almost flat; CirroDesk had one shadow for both and had
      to tint the title bar instead. --shadow is the window in front,
      --shadow-back every other one. Both stand here once, and every rule that
      needs a shadow reads one of the two. */
@@ -97,7 +97,7 @@
      --fs above is NOT one of these steps and must not be confused with them:
      it is the body size that the density setting moves (12.5 / 14 / 15.5),
      while a step is fixed and stays where it is at every density. LordOS
-     calls its 13 px step "--fs" and makes it the base; NGC's base is 14 and
+     calls its 13 px step "--fs" and makes it the base; CirroDesk's base is 14 and
      has been measured at 14, so the 13 keeps a name of its own - it is the
      size of the SHELL's own chrome, the band, the menus and the labels, which
      sits one step under the text of a window on purpose. */
@@ -187,12 +187,12 @@ html,body{height:100%;margin:0}
    same file, and that is the finding, not a failed measurement. On a Mac it
    WAS reached, and there the look now follows system-ui instead of being
    named Apple's font outright. */
-/* And the font the stack now reaches FIRST is one that travels with NGC.
+/* And the font the stack now reaches FIRST is one that travels with CirroDesk.
    Until here the look followed whatever the machine happened to have, which
    is why the same desktop was Segoe UI on Windows, Roboto on Android and
    something else again on a Mac - three different pictures of one design.
    Inter is in the repository (assets/vendor/inter/, SIL OFL 1.1, provenance
-   in its SOURCE.md) and is served from NGC's own origin, so no browser asks
+   in its SOURCE.md) and is served from CirroDesk's own origin, so no browser asks
    a font service for it: a request to fonts.gstatic.com would tell a third
    party the address of every person who opens this desktop, once per cache.
    That is the deciding step - Security over Speed - and it costs 352 KB once
@@ -283,7 +283,7 @@ body{font:var(--fs)/1.45 "Inter","Segoe UI",system-ui,Roboto,sans-serif;overflow
 /* The name of the app in front, and its menu. 700 is the sheet's weight for
    it (LordOS): in a menu band the app's own name is the one entry that is not
    a command, so weight is what tells it from the rest. It is HIDDEN while no
-   window is in front - NGC has no Finder that is always running, and a menu
+   window is in front - CirroDesk has no Finder that is always running, and a menu
    named after nothing is a menu that opens onto nothing. */
 #appbtn{display:none;align-items:center;height:22px;padding:0 9px;border:0;border-radius:5px;
         background:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;
@@ -438,7 +438,7 @@ body{font:var(--fs)/1.45 "Inter","Segoe UI",system-ui,Roboto,sans-serif;overflow
    right as a spacer, and the title sits between two equal weights - no
    padding beside it, or the two sides would not be equal any more.
    That the spacer may SHRINK is the whole reason it is a box and not a
-   second padding: a padding of 120 on both sides of the smallest window NGC
+   second padding: a padding of 120 on both sides of the smallest window CirroDesk
    allows - 240 across - would leave the title exactly 0 px to live in.
    It gives way FIRST, and not in step with the title: with both yielding
    together, a 300 px window cut "Rechner" down to "Rech..." while the empty
@@ -464,7 +464,7 @@ body{font:var(--fs)/1.45 "Inter","Segoe UI",system-ui,Roboto,sans-serif;overflow
 .win.focus .titlebar .t{opacity:1}
 /* The three window buttons. Forty by forty pixels, by Thomas' decision of
    2026-10-30 - a deliberate step away from the LordOS template, whose round
-   lights measure 13 x 13: NGC is touched with a finger, and a finger needs
+   lights measure 13 x 13: CirroDesk is touched with a finger, and a finger needs
    about 40. The height comes from the title bar, which is why that bar is
    exactly 40 high: 40 across x 40 down, with no number chosen twice. */
 /* 120 minus the 8 px gap that stands between the title and this box: the gap
@@ -499,7 +499,7 @@ body{font:var(--fs)/1.45 "Inter","Segoe UI",system-ui,Roboto,sans-serif;overflow
 /* The frame an app runs in. It fills the window's body edge to edge: a border
    of the shell around an app's page would read as part of the app. The frame
    has an origin of its own, so nothing of this stylesheet reaches inside it -
-   an app brings its own look and is told the shell's through ngc.js. */
+   an app brings its own look and is told the shell's through cd.js. */
 .appframe{display:block;width:100%;height:100%;border:0;background:var(--win-bg)}
 
 /* ---------- App-Inhalte ---------- */
@@ -511,11 +511,11 @@ button.b,.b{padding:calc(var(--pad) * .7) 12px;border-radius:7px;border:1px soli
 button.b:hover{border-color:var(--accent)}
 button.b.on{border-color:var(--accent);background:var(--accent);color:#fff}
 
-/* The look of an app that ships with NGC does NOT stand here. Until task 25
+/* The look of an app that ships with CirroDesk does NOT stand here. Until task 25
    the calculator's did, and the rules reached it because it was built straight
    into the window. It runs in the frame now, which is a document with an origin
    of its own: nothing of this stylesheet gets in there. Every app brings its
-   own look - public/assets/apps/<app>/app.css for the two that ship with NGC. */
+   own look - public/assets/apps/<app>/app.css for the two that ship with CirroDesk. */
 
 /* App-Store */
 .store{display:flex;flex-direction:column;height:100%}
@@ -642,7 +642,7 @@ button.b.on{border-color:var(--accent);background:var(--accent);color:#fff}
 }
 
 /* ---------- Benutzer und Rechte ---------- */
-/* The most dangerous window of NGC, and it is meant to look like it: the
+/* The most dangerous window of CirroDesk, and it is meant to look like it: the
    button that gives something away is the only red one in the whole shell,
    and the question that stands in front of it covers its window. */
 .usersapp{display:flex;flex-direction:column;height:100%;position:relative;
@@ -741,7 +741,7 @@ button.b.on{border-color:var(--accent);background:var(--accent);color:#fff}
 .note.warn{border-color:#d2932a}
 .note.error{border-color:#e13e3e}
 .note:empty{margin:0;padding:0;border:0;background:none}
-/* Was NGC ist, klein und unter dem Kasten (docs/gestaltung.md Punkt 6). Oben
+/* Was CirroDesk ist, klein und unter dem Kasten (docs/gestaltung.md Punkt 6). Oben
    gehört hin, bei wem man sich anmeldet; was es betreibt, gehört nach unten.
    Mittig unter dem Anmeldekasten, nicht am Schirmrand: unten links steht der
    Passkey-Hinweis und unten mittig der Meldungsstreifen des Schreibtisches. */

@@ -3,16 +3,16 @@ package task_test
 import (
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/task"
 )
 
 // TestVectorParamsAreValid keeps the task in task.json one a verifier would
 // accept: a core action, whichever it is, whose params core accepts. The task
-// is ngc.store/controller/deactivate; the example of activate, whose params
+// is cd.store/controller/deactivate; the example of activate, whose params
 // carry the UI hash, lives in uiproof.json. It is an external test package so
 // that core may import task.
 func TestVectorParamsAreValid(t *testing.T) {

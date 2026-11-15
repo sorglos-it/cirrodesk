@@ -43,7 +43,7 @@ test("a confirmation handed to the streaming helper reaches the OPEN", async ({ 
     };
     const action = core.lookup(core.APP_STORE, core.SERVICE_API, core.ACT_UPLOAD);
     // The flow is taken from a SECOND row of the same table that is FlowIn
-    // (ngc.users/api/trust), so the case carries no copy of the word "in" -
+    // (cd.users/api/trust), so the case carries no copy of the word "in" -
     // core.js keeps FLOW_IN to itself on purpose.
     const alsoIn = core.lookup(core.APP_USERS, core.SERVICE_API, core.ACT_TRUST);
     const task = new TextEncoder().encode("{\"task\":\"upload\"}");
@@ -69,7 +69,7 @@ test("a confirmation handed to the streaming helper reaches the OPEN", async ({ 
   });
   expect(got).toEqual({
     opens: 1,
-    app: "ngc.store",
+    app: "cd.store",
     action: "upload",
     task: "{\"task\":\"upload\"}",
     confirm: "{\"confirm\":\"anna\"}",

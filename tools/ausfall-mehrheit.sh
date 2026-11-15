@@ -10,7 +10,7 @@
 # Wer nur die Anmeldung misst, bekommt ein "geht nicht" und weiss nicht, ob das
 # Lesen oder das Schreiben daran gescheitert ist. Darum erst SELECT und INSERT
 # auf db-1 selbst, und dann die Anlage. Die Schreibprobe laeuft in einer
-# EIGENEN Datenbank (messung.nachtrag), nie in ngc: eine Messung darf keine
+# EIGENEN Datenbank (messung.nachtrag), nie in cd: eine Messung darf keine
 # Zeile der Anlage anfassen.
 #
 # WARUM DER WORTLAUT UND NICHT NUR DER CODE. Der schwerere Befund waere eine
@@ -25,7 +25,7 @@
 set -uo pipefail
 
 PVE=root@10.2.3.2
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 A1=10.2.3.210
 A2=10.2.3.211
@@ -97,7 +97,7 @@ verbund() {
 # Die entscheidende Probe: liest der Knoten ohne Quorum, und schreibt er?
 lesen_schreiben() {
   echo "      SELECT 1 (ohne Tabelle) : $(sql 'select 1;')"
-  echo "      SELECT aus ngc (echt)   : $(sql 'select count(*) from ngc.ngc_app;')"
+  echo "      SELECT aus cd (echt)   : $(sql 'select count(*) from cd.cd_app;')"
   echo "      INSERT in messung       : $(sql 'insert into messung.nachtrag (wann) values (now());')"
   echo "      SELECT aus messung      : $(sql 'select count(*) from messung.nachtrag;')"
 }
@@ -136,11 +136,11 @@ echo "db-1 ($BLEIBT, VMID $BLEIBT_ID) bleibt stehen und ist der Zeuge."
 echo "db.nodes der APIs:"
 for a in $A1 $A2; do
   printf "    %s: " "$a"
-  $SSH "root@$a" 'python3 -c "import json;print(json.load(open(\"/etc/ngc/api.json\"))[\"db\"][\"nodes\"])"' 2>&1
+  $SSH "root@$a" 'python3 -c "import json;print(json.load(open(\"/etc/cd/api.json\"))[\"db\"][\"nodes\"])"' 2>&1
 done
 echo "wsrep_dirty_reads: $(sql "show variables like 'wsrep_dirty_reads';")"
 echo
-echo ">>> Messtabelle anlegen (eigene Datenbank, nie ngc):"
+echo ">>> Messtabelle anlegen (eigene Datenbank, nie cd):"
 sql "create database if not exists messung; create table if not exists messung.nachtrag (id int auto_increment primary key, wann datetime);"
 echo "    $(sql 'select count(*) from messung.nachtrag;')"
 echo
@@ -176,7 +176,7 @@ echo
 echo "    Was die APIs sagen:"
 for a in $A1 $A2; do
   echo "      --- $a:"
-  $SSH "root@$a" "journalctl -u ngc-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
+  $SSH "root@$a" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
 done
 echo "    Was mariadb auf db-1 sagt:"
 $SSH "root@$BLEIBT" "journalctl -u mariadb --since '$VOR' --no-pager 2>/dev/null | grep -iE 'wsrep|quorum|primary|non-prim|view' | tail -10 | sed 's/^/      /'" 2>&1

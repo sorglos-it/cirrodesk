@@ -10,13 +10,13 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // AppLookup returns the row of an app this controller runs. Only
@@ -137,7 +137,7 @@ func Check(ctx context.Context, r Request) (Decision, *wire.Close) {
 			// The channel carries a certificate, so it is judged as a user's,
 			// and a user opens only what core.ShellOpens allows. What that
 			// leaves of this service — stage, license and
-			// ngc.users/controller/trust — the API opens on its own.
+			// cd.users/controller/trust — the API opens on its own.
 			if !core.ShellOpens(a) {
 				return refuse(wire.CodeForbidden)
 			}
@@ -241,7 +241,7 @@ func Check(ctx context.Context, r Request) (Decision, *wire.Close) {
 }
 
 // firstChain decides the one channel a controller may run while it has
-// verified no version of the trust list: ngc.users/controller/trust, the
+// verified no version of the trust list: cd.users/controller/trust, the
 // channel the API sends the first chain on. Everything else is refused, the
 // way everything was refused here before.
 //

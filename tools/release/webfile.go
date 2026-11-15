@@ -5,27 +5,27 @@ import (
 	"io"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
-// WHAT AN ngc-web RELEASE FILE IS, measured at the programs and not at the
+// WHAT AN cd-web RELEASE FILE IS, measured at the programs and not at the
 // decoy in shared/testdata.
 //
 // Two different things carry the extension ".tar" today, and the code says so
 // plainly:
 //
-//   - ngc-web: apps/server-controller/classes/update/install.go, unpack (line
+//   - cd-web: apps/server-controller/classes/update/install.go, unpack (line
 //     881) hands the file to store.WalkUI and strips the one prefix "ui/". So
-//     an ngc-web release file is a tar in the ONE dialect shared/store/ui.go
+//     a cd-web release file is a tar in the ONE dialect shared/store/ui.go
 //     describes at its top: names "ui/<ValidPath>", mode "0000644" (a
 //     directory "0000755"), mtime "00000000000", ustar magic, the end marker.
-//   - ngc-api and ngc-controller: installPart (line 527) calls copyInto,
-//     chmod 0755 and os.Rename onto BinDir/ngc-api. It unpacks NOTHING. So
+//   - cd-api and cd-controller: installPart (line 527) calls copyInto,
+//     chmod 0755 and os.Rename onto BinDir/cd-api. It unpacks NOTHING. So
 //     that release file is the naked program, and ".tar" is a misleading name
 //     (docs/release-weg.md, D3).
 //
-// shared/testdata/release/ngc-web-all.tar is 18 bytes of ASCII text
-// ("NGC web test file"), and nothing in the repository ever unpacks it: the
+// shared/testdata/release/cd-web-all.tar is 18 bytes of ASCII text
+// ("CD web test file."), and nothing in the repository ever unpacks it: the
 // only reader is apps/cli Check, which treats it as an opaque blob and
 // compares its SHA-256 against release.json. Measured: release.json names
 // size 18 and sha256 b15225b7…f3e0, which is exactly that text - so the decoy
@@ -39,18 +39,18 @@ import (
 // tools/release/testdata/ - the area this session may write - and the cases
 // beside it read it back the way the controller reads it.
 
-// webEntries are the files of the smallest ngc-web release file that is a
+// webEntries are the files of the smallest cd-web release file that is a
 // real surface: an entry page and one asset below a directory, so a nested
 // path is exercised and not only the flat case.
 var webEntries = []struct {
 	path string // without the "ui/" prefix
 	body string
 }{
-	{"index.html", "<!doctype html>\n<title>NGC</title>\n"},
-	{"assets/app.js", "export const ngc = true;\n"},
+	{"index.html", "<!doctype html>\n<title>CirroDesk</title>\n"},
+	{"assets/app.js", "export const cd = true;\n"},
 }
 
-// WebFile writes an ngc-web release file to w: a tar store.WalkUI accepts,
+// WebFile writes a cd-web release file to w: a tar store.WalkUI accepts,
 // rooted at "ui/", built by store.NewUIWriter.
 //
 // It uses the writer of the contract on purpose. A tar assembled here by hand

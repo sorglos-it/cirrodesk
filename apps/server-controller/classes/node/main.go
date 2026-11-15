@@ -16,17 +16,17 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/pairing"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/pairing"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
 	// Named, because this package already has a terminal: ask.go asks whether
 	// a reader is the admin's terminal. Two unrelated things, one word - the
 	// same collision that broke the build when tasks 15 and 16 both wrote a
 	// disk. The import carries the name, so nothing of the older code moves.
-	ctrlrt "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	termsvc "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/terminal"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	ctrlrt "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	termsvc "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/terminal"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // Options carries what one command took from the command line. The later tasks
@@ -37,7 +37,7 @@ type Options struct {
 	Arch   string            // target of "image", one out of arches
 }
 
-// arches are the targets NGC is built for. The list itself stands in the
+// arches are the targets CirroDesk is built for. The list itself stands in the
 // runtime package, where the value becomes an argument of podman: two lists
 // that have to agree are two places to change and one to forget.
 var arches = ctrlrt.Arches
@@ -52,13 +52,13 @@ const (
 // Wrong use is answered with one German line, the same one for every mistake:
 // a second line with the cause could carry the pairing code back to the screen.
 const (
-	usagePair  = "Aufruf: ngc-controller pair (den Kopplungscode fragt das Programm danach ab)"
-	usageImage = "Aufruf: ngc-controller image -arch <amd64|arm64> -out <Datei>"
+	usagePair  = "Aufruf: cd-controller pair (den Kopplungscode fragt das Programm danach ab)"
+	usageImage = "Aufruf: cd-controller image -arch <amd64|arm64> -out <Datei>"
 	// Both commands run inside a container and take nothing: the channel is
 	// their input. A word behind them would be one nobody put there on
 	// purpose, so it is answered instead of ignored.
-	usageTerminal = "Aufruf: ngc-controller terminal (ohne weitere Angaben, läuft im Container)"
-	usageHold     = "Aufruf: ngc-controller hold (ohne weitere Angaben, läuft im Container)"
+	usageTerminal = "Aufruf: cd-controller terminal (ohne weitere Angaben, läuft im Container)"
+	usageHold     = "Aufruf: cd-controller hold (ohne weitere Angaben, läuft im Container)"
 )
 
 // What "pair" answers. Each is one fixed German line: the cause would name the
@@ -84,12 +84,12 @@ const (
 	// got as far as: nothing sent, no answer, the wrong server, or a refusal.
 	// Whether the code is spent follows from that, and that is the one thing
 	// the admin needs for his next step.
-	msgNotPaired    = "Die Kopplung ist gescheitert. Bitte einen neuen Kopplungscode in NextGenCloud erzeugen und es noch einmal versuchen."
+	msgNotPaired    = "Die Kopplung ist gescheitert. Bitte einen neuen Kopplungscode in CirroDesk erzeugen und es noch einmal versuchen."
 	msgPairNothing  = "Die Kopplung wurde nicht abgeschickt: dieser Server passt mit seinen eigenen Angaben nicht zu einer Kopplung. Bitte den Server mit ulh neu einrichten. Der Kopplungscode ist noch gültig."
-	msgPairNoAnswer = "Die API hat nicht geantwortet. Bitte prüfen, ob der Server von NextGenCloud läuft und von hier aus erreichbar ist, dann noch einmal versuchen. Der Kopplungscode ist noch gültig."
+	msgPairNoAnswer = "Die API hat nicht geantwortet. Bitte prüfen, ob der Server von CirroDesk läuft und von hier aus erreichbar ist, dann noch einmal versuchen. Der Kopplungscode ist noch gültig."
 	msgPairTooSlow  = "Die API hat nicht rechtzeitig geantwortet. Bitte in ein paar Minuten noch einmal versuchen. Ob der Kopplungscode dabei verbraucht wurde, lässt sich von hier aus nicht sagen; falls es wieder scheitert, einen neuen erzeugen."
-	msgPairWrongAPI = "Es hat ein anderer Server geantwortet als der, den der Kopplungscode nennt. Bitte nicht wiederholen: in NextGenCloud einen neuen Kopplungscode erzeugen und, wenn es wieder geschieht, das Netz dieses Servers prüfen."
-	msgPairRefused  = "Die API hat den Kopplungscode abgelehnt. Er ist wahrscheinlich schon benutzt oder abgelaufen. Bitte in NextGenCloud einen neuen erzeugen und diesen einfügen."
+	msgPairWrongAPI = "Es hat ein anderer Server geantwortet als der, den der Kopplungscode nennt. Bitte nicht wiederholen: in CirroDesk einen neuen Kopplungscode erzeugen und, wenn es wieder geschieht, das Netz dieses Servers prüfen."
+	msgPairRefused  = "Die API hat den Kopplungscode abgelehnt. Er ist wahrscheinlich schon benutzt oder abgelaufen. Bitte in CirroDesk einen neuen erzeugen und diesen einfügen."
 	// msgWorked is the only word of success on this way, and all three lines
 	// that get past the API open with it: the two lines on stdout are
 	// fingerprints to compare, and without this half sentence each of the
@@ -101,22 +101,22 @@ const (
 	// The code no longer stands in the arguments. Whoever still gives the old
 	// flag is told where it goes now; the value behind it is never repeated,
 	// because that value is the code.
-	msgCodeFlag = "Der Kopplungscode wird nicht mehr in der Kommandozeile übergeben. Bitte ngc-controller pair ohne weitere Angaben aufrufen; das Programm fragt den Code dann ab."
+	msgCodeFlag = "Der Kopplungscode wird nicht mehr in der Kommandozeile übergeben. Bitte cd-controller pair ohne weitere Angaben aufrufen; das Programm fragt den Code dann ab."
 	// Nothing came in, or what came in is no pairing code. It names none of
 	// it: what was typed may be a code with one letter wrong. Where the code
 	// comes from is named the way the line below names it: whoever reads "die
 	// Shell" at a bash prompt takes it for the shell he is standing in.
-	msgBadCode = "Kein gültiger Kopplungscode. Bitte den Code aus NextGenCloud vollständig einfügen und es noch einmal versuchen."
+	msgBadCode = "Kein gültiger Kopplungscode. Bitte den Code aus CirroDesk vollständig einfügen und es noch einmal versuchen."
 	// Pairing makes a new key, so a server that was already listed is out of
 	// every trust list; it keeps the one API of the code and nothing else.
 	// Only an admin can put it back, and nothing else says so.
 	//
 	// "eintragen" fits both pairings, the first one and a later one: the first
 	// time the server stood in no list before either. Where that happens is
-	// said as far as it is settled - an admin signed in to NextGenCloud -
-	// because the contract knows the list (ngc.users/nodes) but no way through
+	// said as far as it is settled - an admin signed in to CirroDesk -
+	// because the contract knows the list (cd.users/nodes) but no way through
 	// a menu yet.
-	msgListAgain = msgWorked + ". Dieser Server steht jetzt in keiner Vertrauensliste. Bitte als Administrator bei NextGenCloud anmelden und diesen Server dort eintragen, sonst kann er seine Aufgaben nicht übernehmen."
+	msgListAgain = msgWorked + ". Dieser Server steht jetzt in keiner Vertrauensliste. Bitte als Administrator bei CirroDesk anmelden und diesen Server dort eintragen, sonst kann er seine Aufgaben nicht übernehmen."
 )
 
 var (
@@ -130,7 +130,7 @@ var (
 // 2 wrong use. stdin is where "pair" reads the pairing code. It never calls
 // os.Exit, so tests can drive it.
 func Main(version string, args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	fs := flag.NewFlagSet("ngc-controller", flag.ContinueOnError)
+	fs := flag.NewFlagSet("cd-controller", flag.ContinueOnError)
 	// The flag package prints the value it stumbled over, and a pairing code
 	// pasted onto a flag ("-version=<code>") is such a value. Every answer is
 	// written here instead, in German.
@@ -146,7 +146,7 @@ func Main(version string, args []string, stdin io.Reader, stdout, stderr io.Writ
 		return 2
 	}
 	if *showVersion {
-		fmt.Fprintf(stdout, "ngc-controller %s (contract %d)\n", version, tunnel.Contract)
+		fmt.Fprintf(stdout, "cd-controller %s (contract %d)\n", version, tunnel.Contract)
 		return 0
 	}
 	switch cmd := fs.Arg(0); cmd {
@@ -194,7 +194,7 @@ func commandLike(s string) bool {
 // writeUsage lists the commands. German, because an admin reads it, and it
 // never repeats what was typed.
 func writeUsage(w io.Writer) {
-	fmt.Fprintf(w, `Aufruf: ngc-controller [-config <Datei>] [<Kommando>]
+	fmt.Fprintf(w, `Aufruf: cd-controller [-config <Datei>] [<Kommando>]
 
 Kommandos:
   (ohne Kommando)                          den Controller laufen lassen
@@ -454,13 +454,13 @@ func isSeparator(r rune) bool { return r == '/' || r == '\\' }
 // the switch than as a line that answers politely.
 
 // usageBackup is the one answer a wrong call to backup gets. It names the
-// whole call, because an admin who typed "ngc-controller backup" has a backup
+// whole call, because an admin who typed "cd-controller backup" has a backup
 // plan in mind and the worst answer is a file under a default name they never
 // find again.
-const usageBackup = "Aufruf: ngc-controller backup <Datei>" + "\n" +
+const usageBackup = "Aufruf: cd-controller backup <Datei>" + "\n" +
 	"Die Datei ist der Name der Sicherung, die geschrieben wird - ein eigener Name, nicht der der Datenbank."
 
-// backup is ngc-controller backup <Datei>: it copies this server's own
+// backup is cd-controller backup <Datei>: it copies this server's own
 // database and then says the one sentence the copy cannot say about itself.
 //
 // Why the sentence is here and not only in the documentation: the file is
@@ -500,7 +500,7 @@ func backup(cfgPath string, args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "Die Sicherung liegt in %s.\n", args[0])
 	fmt.Fprintf(stdout, "WICHTIG: Diese Datei ist verschlüsselt, und der Schlüssel steht NICHT darin.\n"+
 		"Er steht in %s. Ohne diese Konfiguration lässt sich die Sicherung auf keinem\n"+
-		"Rechner mehr öffnen - von niemandem, auch nicht von NextGenCloud. Bewahren Sie\n"+
+		"Rechner mehr öffnen - von niemandem, auch nicht von CirroDesk. Bewahren Sie\n"+
 		"beide Dateien auf, und den Schlüssel an einem anderen Ort als die Sicherung.\n", cfgPath)
 	return 0
 }

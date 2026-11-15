@@ -6,9 +6,9 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/session"
 )
 
 // totpOpts are the parameters of RFC 6238 that authenticator apps expect.
@@ -21,7 +21,7 @@ var totpOpts = totp.ValidateOpts{Period: session.TOTPPeriod, Skew: 1,
 func timeOf(now int64) time.Time { return time.Unix(now, 0).UTC() }
 
 // BeginTOTP makes a new TOTP secret for the user of that login name and hands
-// it back twice: in core.TOTPBegin, the answer of ngc.desktop/totp-begin,
+// it back twice: in core.TOTPBegin, the answer of cd.desktop/totp-begin,
 // where the user reads or scans it, and sealed with the key every API of the
 // installation shares. The sealed one is the only form that belongs in
 // dbapi.User.TOTP, and it is the only one checkTOTP reads -- so a dump of the
@@ -36,7 +36,7 @@ func timeOf(now int64) time.Time { return time.Unix(now, 0).UTC() }
 // anybody's second factor.
 func (h *Handler) BeginTOTP(name string) (core.TOTPBegin, []byte, error) {
 	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer: "NGC", AccountName: name, Period: session.TOTPPeriod,
+		Issuer: "CirroDesk", AccountName: name, Period: session.TOTPPeriod,
 		Digits: otp.Digits(session.TOTPDigits), Algorithm: otp.AlgorithmSHA1,
 	})
 	if err != nil {
@@ -68,7 +68,7 @@ func (h *Handler) checkTOTP(row dbapi.User, code string, now int64) bool {
 }
 
 // CheckTOTP is checkTOTP for the dispatcher of the core actions
-// (ngc.desktop/totp-confirm and totp-off). It is a wrapper and no second
+// (cd.desktop/totp-confirm and totp-off). It is a wrapper and no second
 // implementation on purpose: two places that judge a code would be two places
 // that could judge it differently, and one of them would be the one that lets
 // somebody in.

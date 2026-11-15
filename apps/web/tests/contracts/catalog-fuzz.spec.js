@@ -12,7 +12,7 @@ import { vectors } from "../fixtures/vectors.js";
 //     or a RangeError from the engine is no answer a contract can give.
 //   - every document they answer with is one the contract describes, and the
 //     rules stand here in full rather than being asked of the module: an app
-//     id that is no NGC app, printable names, a version without leading
+//     id that is no CirroDesk app, printable names, a version without leading
 //     zeros, a window between 200 and 4000 or none, services whose first word
 //     is an absolute path and whose arguments carry no NUL, actions that name
 //     a service of this manifest, needs that are root and network and neither
@@ -35,10 +35,10 @@ import { vectors } from "../fixtures/vectors.js";
 // the algorithm is really there.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=50000 npm test -- contracts/catalog-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=50000 npm test -- contracts/catalog-fuzz
 const v = vectors("store.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 6000);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 6000);
 
 test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async ({ shell }) => {
   test.setTimeout(240_000);
@@ -73,7 +73,7 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
     // third time, so whole documents come out often enough for the rules
     // below to have something to hold.
     const goodIDs = ["org.sorglos.terminal", "com.example.app", "a.b", "x9.y-z"];
-    const oddIDs = ["ngc.desktop", "ngc.store", "terminal", ".a", "a.", "A.B", "a..b", "",
+    const oddIDs = ["cd.desktop", "cd.store", "terminal", ".a", "a.", "A.B", "a..b", "",
       "a." + "b".repeat(99), "a.b/c", "a b.c"];
     const goodNames = ["Terminal", "Ein Name", "x", "N".repeat(64)];
     const oddNames = ["", "N".repeat(65), "a\u0000b", "a\nb", "a­b", "‮"];
@@ -163,11 +163,11 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
         ["needs", s === 9 ? pick(oddNeeds) : pick(goodNeeds)],
         ["cpu", s === 16 ? pick([99, 64001, -1]) : pick([0, 100, 64000])],
         ["memory", s === 17 ? pick([15, 65537, -1]) : pick([0, 16, 65536])],
-        ["minNgc", upto(4) === 0 ? pick(goodVersions) : ""],
+        ["minCd", upto(4) === 0 ? pick(goodVersions) : ""],
       ]);
     };
 
-    const goodTargets = ["ngc-web", "ngc-api", "ngc-controller", "system", "org.sorglos.terminal"];
+    const goodTargets = ["cd-web", "cd-api", "cd-controller", "system", "org.sorglos.terminal"];
     const goodStates = ["available", "downloaded", "installing", "installed", "rolledback",
       "failed", "rejected", "needsgrants"];
     const report = () => members([
@@ -213,7 +213,7 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
       }
       return true;
     };
-    const app = (s) => typeof s === "string" && s.length <= 100 && APP_ID.test(s) && !s.startsWith("ngc.");
+    const app = (s) => typeof s === "string" && s.length <= 100 && APP_ID.test(s) && !s.startsWith("cd.");
     const version = (s) => typeof s === "string" && VERSION.test(s);
     const path = (s) => typeof s === "string" && s.length <= 200 && PATH.test(s);
     const window = (n) => n === 0 || (Number.isInteger(n) && n >= 200 && n <= 4000);
@@ -230,7 +230,7 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
       if (!version(m.version)) return say("a manifest at version " + m.version, src);
       if (bytesIn(m.description) > 1000) return say("a description of " + bytesIn(m.description) + " bytes", src);
       if (m.icon !== "" && !path(m.icon)) return say("an icon at " + m.icon, src);
-      if (m.minNgc !== "" && !version(m.minNgc)) return say("a minNgc of " + m.minNgc, src);
+      if (m.minCd !== "" && !version(m.minCd)) return say("a minCd of " + m.minCd, src);
       // An app is a window, a set of services, or both.
       if (m.ui === null && m.services.length === 0) return say("a manifest that is neither a window nor a service", src);
       if (m.ui !== null && (!path(m.ui.entry) || !window(m.ui.width) || !window(m.ui.height))) {
@@ -247,7 +247,7 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
         if (bytesIn(s.command[0]) < 2 || !s.command[0].startsWith("/")) return say("a program at " + s.command[0], src);
         for (const arg of s.command) {
           // A NUL would end the argument where the kernel reads it and leave
-          // the rest standing where NGC reads it: two different commands.
+          // the rest standing where CirroDesk reads it: two different commands.
           if (arg === "" || bytesIn(arg) > 256 || arg.includes("\u0000")) return say("an argument " + JSON.stringify(arg), src);
         }
       }
@@ -273,7 +273,7 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
 
     const checkReport = (r, src) => {
       if (!goodStates.includes(r.state)) return say("an update row in state " + r.state, src);
-      if (!(["ngc-web", "ngc-api", "ngc-controller", "system"].includes(r.target) || app(r.target))) {
+      if (!(["cd-web", "cd-api", "cd-controller", "system"].includes(r.target) || app(r.target))) {
         return say("an update row for " + r.target, src);
       }
       if (r.version !== "" && !version(r.version)) return say("an update row at version " + r.version, src);
@@ -308,7 +308,7 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
           // paid one in plain is the paid app handed out for nothing.
           if (p.encrypted !== (e.price !== null)) return say("a package encrypted " + p.encrypted + " at a price of " + e.price, src);
           if (!needs(p.needs)) return say("a package that needs " + JSON.stringify(p.needs), src);
-          if (p.minNgc !== "" && !version(p.minNgc)) return say("a package for NGC " + p.minNgc, src);
+          if (p.minCd !== "" && !version(p.minCd)) return say("a package for CirroDesk " + p.minCd, src);
         }
       }
     };
@@ -322,7 +322,7 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
 
     // ---- the run ---------------------------------------------------------
     const catalogs = [d.catalog, ...d.catalogRejects.map((r) => r.catalog)];
-    const store = { id: d.store, name: "NGC Store", url: "https://store.ngc.example", key: b64decode(d.storeKey) };
+    const store = { id: d.store, name: "CirroDesk Store", url: "https://store.cd.example", key: b64decode(d.storeKey) };
     for (let i = 0; i < rounds && found.length < 8; i++) {
       const src = manifest();
       const b = i % 4 === 0 ? mutate(encoder.encode(src)) : encoder.encode(src);
@@ -394,10 +394,10 @@ test(`fuzz: a document or BadCatalog, ${rounds} inputs from seed ${seed}`, async
     // promise and then reporting the module for not keeping it.
     const lists = [null, undefined, 0, "", [], {}, { auto: null }, { auto: [] },
       { auto: [null, 0, "x"] }, { auto: [{ target: "system" }] },
-      { auto: [{ target: "ngc-web", key: new Uint8Array(32) }] },
-      { auto: [{ target: "ngc-web" }] }, { auto: [{ target: "ngc-web", key: new Uint8Array(0) }] }];
+      { auto: [{ target: "cd-web", key: new Uint8Array(32) }] },
+      { auto: [{ target: "cd-web" }] }, { auto: [{ target: "cd-web", key: new Uint8Array(0) }] }];
     const keys = [null, undefined, new Uint8Array(0), new Uint8Array(32), "x", 7];
-    const targets = ["ngc-web", "system", "org.sorglos.terminal", "ngc.desktop", "", null, 7];
+    const targets = ["cd-web", "system", "org.sorglos.terminal", "cd.desktop", "", null, 7];
     let asked = 0;
     for (const l of lists) {
       for (const k of keys) {

@@ -179,7 +179,7 @@ test("every answer of the one entry point carries the headers", async ({ request
   // The five shapes of answer index.php can give: the desktop, the
   // configuration, an app window, a path that is not there, and a method that
   // is not allowed. An error page is the one that gets forgotten, and an
-  // error page is a document in NGC's own origin like any other.
+  // error page is a document in CirroDesk's own origin like any other.
   const answers = [
     ["GET", "/", 200],
     ["GET", "/config.json", 200],
@@ -240,7 +240,7 @@ const ASSET_NOT = [
 test("every file the web server hands out itself carries walls too", async ({ request }) => {
   // THE POINT OF THIS CASE. public/index.php says it: Apache "serves
   // everything below assets/ itself", so none of these answers ever reaches
-  // Page::headers. Every one of them is still an answer of NGC's origin.
+  // Page::headers. Every one of them is still an answer of CirroDesk's origin.
   //
   // The three shapes a file can have, and each is here for its own reason:
   //   a .js   - the shell's code, and the kind of file a worker is made of
@@ -250,7 +250,7 @@ test("every file the web server hands out itself carries walls too", async ({ re
   //             measures that it really has no type.
   //   a .woff2 - the fourth shape, and the first file here that is not text.
   //             The shell's font travels in the repository now
-  //             (assets/vendor/inter/, OFL 1.1), which means NGC's own origin
+  //             (assets/vendor/inter/, OFL 1.1), which means CirroDesk's own origin
   //             hands out a BINARY that the browser's font engine parses. A
   //             block written per type would be the thing that leaves it bare,
   //             and nothing above would have noticed: a font with no walls
@@ -431,7 +431,7 @@ test("another origin may not pull the shell's files into itself", async ({ page,
   // Cross-Origin-Resource-Policy, measured as a behaviour and not as a string.
   //
   // The foreign page AND its own script are served by routes of this test, so
-  // the only thing between the page and NGC's file is the header: not a name
+  // the only thing between the page and CirroDesk's file is the header: not a name
   // that does not resolve, and not a network that is not there. The foreign
   // page carries no policy of its own, so nothing on its side forbids the load
   // either.
@@ -456,7 +456,7 @@ test("another origin may not pull the shell's files into itself", async ({ page,
   expect(await page.evaluate(() => location.origin), "the page really is somewhere else")
     .toBe("https://fremd.test");
 
-  const got = await page.evaluate(async (ngc) => {
+  const got = await page.evaluate(async (cd) => {
     const load = (src) => new Promise((done) => {
       const s = document.createElement("script");
       s.src = src;
@@ -468,11 +468,11 @@ test("another origin may not pull the shell's files into itself", async ({ page,
     // script this page is allowed to have. If it does not load either, the
     // line below says nothing about the resource policy.
     const own = await load("https://fremd.test/eigen.js");
-    return { own, ran: window.__eigen ?? null, ngc: await load(`${ngc}/assets/js/shell/dom.js`) };
+    return { own, ran: window.__eigen ?? null, cd: await load(`${cd}/assets/js/shell/dom.js`) };
   }, baseURL);
   expect(got.own).toBe("load");
   expect(got.ran, "a script this page may have really ran").toBe(1);
-  expect(got.ngc, "Cross-Origin-Resource-Policy: same-origin").toBe("error");
+  expect(got.cd, "Cross-Origin-Resource-Policy: same-origin").toBe("error");
 });
 
 // ------------------------------------------------- what the engine refuses
@@ -628,12 +628,12 @@ test("an app window has an origin of its own however it is loaded", async ({ pag
   // and the case cannot fail.
   await page.goto("/");
   await page.evaluate(() => {
-    localStorage.setItem("ngc.probe", "geheim-aus-der-shell");
-    document.cookie = "ngc_probe=geheim-aus-der-shell; path=/";
+    localStorage.setItem("cd.probe", "geheim-aus-der-shell");
+    document.cookie = "cd_probe=geheim-aus-der-shell; path=/";
   });
   const atHome = await page.evaluate(() => ({
-    storage: localStorage.getItem("ngc.probe"),
-    cookie: document.cookie.includes("ngc_probe=geheim-aus-der-shell"),
+    storage: localStorage.getItem("cd.probe"),
+    cookie: document.cookie.includes("cd_probe=geheim-aus-der-shell"),
   }));
   expect(atHome, "the shell's own origin really holds both")
     .toEqual({ storage: "geheim-aus-der-shell", cookie: true });
@@ -646,7 +646,7 @@ test("an app window has an origin of its own however it is loaded", async ({ pag
     const read = (fn) => { try { const v = fn(); return v === null || v === "" ? "none" : v; } catch { return "threw"; } };
     return {
       origin: String(window.origin),
-      storage: read(() => localStorage.getItem("ngc.probe")),
+      storage: read(() => localStorage.getItem("cd.probe")),
       cookie: read(() => document.cookie),
     };
   });
@@ -659,7 +659,7 @@ test("an app window has an origin of its own however it is loaded", async ({ pag
     .not.toContain("geheim-aus-der-shell");
 });
 
-test("the one place that builds a document builds nothing in NGC's own origin", async ({ page }) => {
+test("the one place that builds a document builds nothing in CirroDesk's own origin", async ({ page }) => {
   // shell/frame-boot.js holds the ONE call of this interface that turns text
   // into a document - the single approved exception to the rule against it.
   // Its first line refuses to do anything where window.origin is not "null",
@@ -671,7 +671,7 @@ test("the one place that builds a document builds nothing in NGC's own origin", 
   await page.goto("/");
   const got = await page.evaluate(async () => {
     const mark = document.createElement("div");
-    mark.id = "ngc-marke";
+    mark.id = "cd-marke";
     document.body.append(mark);
 
     const s = document.createElement("script");
@@ -687,18 +687,18 @@ test("the one place that builds a document builds nothing in NGC's own origin", 
     // past its guard would be heard right here.
     const heard = [];
     window.addEventListener("message", (e) => { heard.push(e.data); });
-    window.postMessage({ ngc: 1, op: "doc", html: "<h1>fremd</h1>" }, "*");
+    window.postMessage({ cd: 1, op: "doc", html: "<h1>fremd</h1>" }, "*");
     await new Promise((r) => setTimeout(r, 200));
 
     return {
       loaded,
-      ready: heard.some((m) => m && m.ngc === 1 && m.op === "ready"),
-      marke: document.getElementById("ngc-marke") !== null,
+      ready: heard.some((m) => m && m.cd === 1 && m.op === "ready"),
+      marke: document.getElementById("cd-marke") !== null,
       body: document.body.textContent.includes("fremd"),
     };
   });
   expect(got.loaded, "the file really ran; otherwise this case measures nothing").toBe(true);
-  expect(got.ready, "no bootstrap announced itself in NGC's own origin").toBe(false);
+  expect(got.ready, "no bootstrap announced itself in CirroDesk's own origin").toBe(false);
   expect(got.marke, "the document is the one this case started with").toBe(true);
   expect(got.body, "nothing of the message reached the page").toBe(false);
 });
@@ -711,7 +711,7 @@ test("the web root holds nothing a browser would run as a document of this origi
   //
   // That policy is written for a FILE, though, and this case is the reason it
   // may be: a file a person can be sent to directly is something else. An
-  // .html or an .svg under this origin is a document of NGC's own origin, with
+  // .html or an .svg under this origin is a document of CirroDesk's own origin, with
   // scripts of its own - and an .svg is the quiet one, because it looks like a
   // picture until somebody opens it. Such a file would need the walls of a
   // document, which is what the one entry point sends and this block does not.

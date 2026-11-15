@@ -13,17 +13,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 var when = time.Unix(1790000000, 0).UTC()
 
 func TestHost(t *testing.T) {
-	got, err := Host("wss://api-1.ngc.test:7443/tunnel")
-	if err != nil || got != "api-1.ngc.test" {
+	got, err := Host("wss://api-1.cd.test:7443/tunnel")
+	if err != nil || got != "api-1.cd.test" {
 		t.Fatalf("host %q: %v", got, err)
 	}
-	for _, bad := range []string{"", "https://api-1.ngc.test:7443", "wss://api-1.ngc.test/tunnel"} {
+	for _, bad := range []string{"", "https://api-1.cd.test:7443", "wss://api-1.cd.test/tunnel"} {
 		if _, err := Host(bad); err == nil {
 			t.Fatalf("%q accepted", bad)
 		}
@@ -33,7 +33,7 @@ func TestHost(t *testing.T) {
 func TestEnsureCreatesAndKeepsTheKey(t *testing.T) {
 	dir := t.TempDir()
 	certFile, keyFile := filepath.Join(dir, "api.crt"), filepath.Join(dir, "api.key")
-	cert, pin, err := Ensure(certFile, keyFile, "api-1.ngc.test", when)
+	cert, pin, err := Ensure(certFile, keyFile, "api-1.cd.test", when)
 	if err != nil {
 		t.Fatalf("ensure: %v", err)
 	}
@@ -44,7 +44,7 @@ func TestEnsureCreatesAndKeepsTheKey(t *testing.T) {
 	if !bytes.Equal(pin, trust.TLSPin(leaf.RawSubjectPublicKeyInfo)) {
 		t.Fatal("pin does not belong to the certificate")
 	}
-	if len(leaf.DNSNames) != 1 || leaf.DNSNames[0] != "api-1.ngc.test" {
+	if len(leaf.DNSNames) != 1 || leaf.DNSNames[0] != "api-1.cd.test" {
 		t.Fatalf("names %v", leaf.DNSNames)
 	}
 	// 100 years, so no date ever shuts Apache out.
@@ -68,7 +68,7 @@ func TestEnsureCreatesAndKeepsTheKey(t *testing.T) {
 	if err := os.Remove(certFile); err != nil {
 		t.Fatalf("remove: %v", err)
 	}
-	_, pin2, err := Ensure(certFile, keyFile, "api-1.ngc.test", when.Add(24*time.Hour))
+	_, pin2, err := Ensure(certFile, keyFile, "api-1.cd.test", when.Add(24*time.Hour))
 	if err != nil || !bytes.Equal(pin, pin2) {
 		t.Fatalf("pin changed with the certificate: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestEnsureRejectsBrokenFiles(t *testing.T) {
 	if err := os.WriteFile(keyFile, []byte("not a key"), 0o600); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	if _, _, err := Ensure(certFile, keyFile, "api-1.ngc.test", when); err == nil {
+	if _, _, err := Ensure(certFile, keyFile, "api-1.cd.test", when); err == nil {
 		t.Fatal("broken key accepted")
 	}
 
@@ -89,7 +89,7 @@ func TestEnsureRejectsBrokenFiles(t *testing.T) {
 	if err := os.WriteFile(keyFile, bytes.Repeat([]byte{'x'}, maxFile+1), 0o600); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	if _, _, err := Ensure(certFile, keyFile, "api-1.ngc.test", when); !errors.Is(err, ErrTLS) {
+	if _, _, err := Ensure(certFile, keyFile, "api-1.cd.test", when); !errors.Is(err, ErrTLS) {
 		t.Fatalf("oversized key gave %v", err)
 	}
 
@@ -97,7 +97,7 @@ func TestEnsureRejectsBrokenFiles(t *testing.T) {
 	// so whatever stands in its file, the API comes up with the same pin.
 	dir = t.TempDir()
 	certFile, keyFile = filepath.Join(dir, "api.crt"), filepath.Join(dir, "api.key")
-	_, pin, err := Ensure(certFile, keyFile, "api-1.ngc.test", when)
+	_, pin, err := Ensure(certFile, keyFile, "api-1.cd.test", when)
 	if err != nil {
 		t.Fatalf("ensure: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestEnsureRejectsBrokenFiles(t *testing.T) {
 		if err := os.WriteFile(certFile, junk, 0o644); err != nil {
 			t.Fatalf("write: %v", err)
 		}
-		if _, again, err := Ensure(certFile, keyFile, "api-1.ngc.test", when); err != nil || !bytes.Equal(pin, again) {
+		if _, again, err := Ensure(certFile, keyFile, "api-1.cd.test", when); err != nil || !bytes.Equal(pin, again) {
 			t.Fatalf("certificate of %d bytes: %v", len(junk), err)
 		}
 	}
@@ -119,7 +119,7 @@ func TestEnsureRejectsBrokenFiles(t *testing.T) {
 func TestEnsureRejectsAForeignCertificate(t *testing.T) {
 	dir := t.TempDir()
 	certFile, keyFile := filepath.Join(dir, "api.crt"), filepath.Join(dir, "api.key")
-	_, pin, err := Ensure(certFile, keyFile, "api-1.ngc.test", when)
+	_, pin, err := Ensure(certFile, keyFile, "api-1.cd.test", when)
 	if err != nil {
 		t.Fatalf("ensure: %v", err)
 	}
@@ -131,7 +131,7 @@ func TestEnsureRejectsAForeignCertificate(t *testing.T) {
 	// A second API: its certificate is valid, carries the same name and the
 	// same time, and differs only in the key it belongs to.
 	other := t.TempDir()
-	foreign, foreignPin, err := Ensure(filepath.Join(other, "api.crt"), filepath.Join(other, "api.key"), "api-1.ngc.test", when)
+	foreign, foreignPin, err := Ensure(filepath.Join(other, "api.crt"), filepath.Join(other, "api.key"), "api-1.cd.test", when)
 	if err != nil {
 		t.Fatalf("second key: %v", err)
 	}
@@ -143,7 +143,7 @@ func TestEnsureRejectsAForeignCertificate(t *testing.T) {
 		t.Fatalf("write certificate: %v", err)
 	}
 
-	cert, again, err := Ensure(certFile, keyFile, "api-1.ngc.test", when)
+	cert, again, err := Ensure(certFile, keyFile, "api-1.cd.test", when)
 	if err != nil {
 		t.Fatalf("ensure: %v", err)
 	}
@@ -172,12 +172,12 @@ func TestEnsureRejectsAForeignCertificate(t *testing.T) {
 func TestEnsureRenewsForANewNameAndAfterTheEnd(t *testing.T) {
 	dir := t.TempDir()
 	certFile, keyFile := filepath.Join(dir, "api.crt"), filepath.Join(dir, "api.key")
-	_, pin, err := Ensure(certFile, keyFile, "api-1.ngc.test", when)
+	_, pin, err := Ensure(certFile, keyFile, "api-1.cd.test", when)
 	if err != nil {
 		t.Fatalf("ensure: %v", err)
 	}
 
-	cert, again, err := Ensure(certFile, keyFile, "api-2.ngc.test", when)
+	cert, again, err := Ensure(certFile, keyFile, "api-2.cd.test", when)
 	if err != nil {
 		t.Fatalf("new name: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestEnsureRenewsForANewNameAndAfterTheEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	if len(leaf.DNSNames) != 1 || leaf.DNSNames[0] != "api-2.ngc.test" {
+	if len(leaf.DNSNames) != 1 || leaf.DNSNames[0] != "api-2.cd.test" {
 		t.Fatalf("the certificate kept the old name %v", leaf.DNSNames)
 	}
 	if !bytes.Equal(pin, again) {
@@ -194,7 +194,7 @@ func TestEnsureRenewsForANewNameAndAfterTheEnd(t *testing.T) {
 
 	// Long past the end of the certificate on disk.
 	late := when.AddDate(101, 0, 0)
-	cert, again, err = Ensure(certFile, keyFile, "api-2.ngc.test", late)
+	cert, again, err = Ensure(certFile, keyFile, "api-2.cd.test", late)
 	if err != nil {
 		t.Fatalf("after the end: %v", err)
 	}
@@ -247,11 +247,11 @@ func TestEnsureNamesAnAddressAsAnAddress(t *testing.T) {
 func TestFilesWrittenWholeOrNotAtAll(t *testing.T) {
 	dir := t.TempDir()
 	certFile, keyFile := filepath.Join(dir, "api.crt"), filepath.Join(dir, "api.key")
-	if _, _, err := Ensure(certFile, keyFile, "api-1.ngc.test", when); err != nil {
+	if _, _, err := Ensure(certFile, keyFile, "api-1.cd.test", when); err != nil {
 		t.Fatalf("ensure: %v", err)
 	}
 	// A renewal, so the replacing path runs too.
-	if _, _, err := Ensure(certFile, keyFile, "api-2.ngc.test", when); err != nil {
+	if _, _, err := Ensure(certFile, keyFile, "api-2.cd.test", when); err != nil {
 		t.Fatalf("renew: %v", err)
 	}
 	entries, err := os.ReadDir(dir)
@@ -288,12 +288,12 @@ func TestFilesWrittenWholeOrNotAtAll(t *testing.T) {
 // pin would go into the trust list for a host nobody checked.
 func TestEnsureRefusesAHostThatIsNone(t *testing.T) {
 	for _, host := range []string{
-		"",                    // no host at all
-		"API-1.ngc.test",      // upper case: a second spelling of one name
-		"api-1.ngc.test:7443", // a port belongs to the address, not the host
-		"192.0.2.01",          // a leading zero: a second spelling of one address
-		"2001:db8::1",         // an IPv6 address without its brackets
-		"-bad.ngc.test",       // a label starting with '-'
+		"",                   // no host at all
+		"API-1.cd.test",      // upper case: a second spelling of one name
+		"api-1.cd.test:7443", // a port belongs to the address, not the host
+		"192.0.2.01",         // a leading zero: a second spelling of one address
+		"2001:db8::1",        // an IPv6 address without its brackets
+		"-bad.cd.test",       // a label starting with '-'
 	} {
 		if trust.ValidHost(host) {
 			t.Fatalf("%q is a host after all, the test proves nothing", host)

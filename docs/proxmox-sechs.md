@@ -10,12 +10,12 @@ bash tools/proxmox-sechs.sh anlegen          # die sechs klonen und starten
 bash tools/proxmox-sechs.sh namen --setzen   # Namen auflösen lassen
 bash tools/proxmox-sechs-grundlage.sh pakete
 bash tools/proxmox-sechs-grundlage.sh platte # die verschlüsselbare Apps-Platte
-bash tools/proxmox-sechs-ngc.sh laden        # das Release auf die fünf
-bash tools/proxmox-sechs-ngc.sh ulh
-bash tools/proxmox-sechs-ngc.sh store        # der Laden auf eigener Maschine
-bash tools/proxmox-sechs-ngc.sh db
-bash tools/proxmox-sechs-ngc.sh api1
-bash tools/proxmox-sechs-ngc.sh web
+bash tools/proxmox-sechs-cd.sh laden        # das Release auf die fünf
+bash tools/proxmox-sechs-cd.sh ulh
+bash tools/proxmox-sechs-cd.sh store        # der Laden auf eigener Maschine
+bash tools/proxmox-sechs-cd.sh db
+bash tools/proxmox-sechs-cd.sh api1
+bash tools/proxmox-sechs-cd.sh web
 bash tools/erstlauf-verteilt.sh              # der Erstlauf über die verteilte Anlage
 bash tools/proxmox-sechs.sh abbauen --vorlage  # alles wieder wegräumen
 ```
@@ -35,7 +35,7 @@ eigene Datei, Phase C neben deren Phase A und B.
 | 3 | `ngc-db-1` (303) | `db` | Erst getrennt zeigt sich, ob die Anlage ohne Datenbank auf derselben Maschine lebt. |
 | 4 | `ngc-svc-1` (304) | `services` | Trägt die Apps, podman und die verschlüsselten App-Ordner. |
 | 5 | `ngc-svc-2` (305) | `services` | Die Oberfläche lässt beim Einrichten einen Rechner **auswählen**, und die Update-Runde geht über mehrere Knoten. Mit einem einzigen ist beides nur behauptet. |
-| 6 | `ngc-store` (306) | — | **Der Laden gehört nicht zur Anlage.** Diese VM trägt kein NGC und keinen Controller: nur nginx und signierte Dateien. |
+| 6 | `cd-store` (306) | — | **Der Laden gehört nicht zur Anlage.** Diese VM trägt kein CirroDesk und keinen Controller: nur nginx und signierte Dateien. |
 
 ---
 
@@ -47,7 +47,7 @@ Herkunft darüber. Nichts ist erfunden.
 | Wert | genommen | woher |
 |---|---|---|
 | Knoten | `pve` | `hostname` auf 10.2.3.2 antwortet `pve` (der ssh-Eintrag heißt `pve-2`/`proxmox`, `qm` will den Knotennamen) |
-| Speicher | `ssd_2TB` | `pvesm status`; dort liegt auch die Platte der bestehenden NGC-VM (208), 1,03 TiB frei |
+| Speicher | `ssd_2TB` | `pvesm status`; dort liegt auch die Platte der bestehenden CirroDesk-VM (208), 1,03 TiB frei |
 | Brücke | `vmbr0`, `firewall=1` | `qm config 208`; `vmbr0` ist die einzige Brücke mit Carrier (`intern` hat NO-CARRIER) |
 | VMIDs | 300 Vorlage, 301–306 | `/etc/pve/.vmlist` hält 100–116 und 200–208; ab 300 ist frei (so von Thomas benannt) |
 | Netz | `10.2.3.210–215/8`, GW `10.0.0.1` | `vmbr0` trägt `10.2.3.2/**8**`, Standardroute über 10.0.0.1. Das `/8` ist ungewöhnlich und ist dieses Netz — ein `/24` schneidet die VMs vom Gateway ab. |
@@ -55,7 +55,7 @@ Herkunft darüber. Nichts ist erfunden.
 | Adressen frei | ja | 10.2.3.210–220 antworteten am 23.10.2026 auf keinen Ping |
 | CPU-Typ | `x86-64-v2-AES` | `qm config 208`. Das AES ist hier keine Zierde: MariaDB mit Verschlüsselung und das TLS von fünf Maschinen laufen darauf. |
 | Abbild | `debian-13-genericcloud-amd64.qcow2` | cloud.debian.org, mit `SHA512SUMS` daneben geprüft (OK) |
-| Schlüssel | `/root/.ssh/id_rsa.pub` des Wirts **und** der öffentliche Teil von `~/Documents/ssh/keys/id_ed25519_ngc` | damit du von deinem PC ohne neuen Schlüssel hineinkommst |
+| Schlüssel | `/root/.ssh/id_rsa.pub` des Wirts **und** der öffentliche Teil von `~/Documents/ssh/keys/id_ed25519_cd` | damit du von deinem PC ohne neuen Schlüssel hineinkommst |
 
 **Was du prüfen musst, weil ich es nicht wissen kann:**
 
@@ -63,7 +63,7 @@ Herkunft darüber. Nichts ist erfunden.
    kein DHCP-Bereich sie abdeckt. Deckt er sie ab, ändere die Tabelle
    `MASCHINEN` im Skriptkopf.
 2. **Die Zone `ngc.mein.lan`.** Frei gewählt. Soll die Anlage anders heißen,
-   ist `NGC_ZONE` der eine Ort dafür.
+   ist `CD_ZONE` der eine Ort dafür.
 3. **Der Name im DNS.** Ich habe die Namen über `/etc/hosts` auf den sechs
    gesetzt (siehe unten). Auf deinem PC fehlt der Eintrag noch.
 
@@ -72,15 +72,15 @@ Herkunft darüber. Nichts ist erfunden.
 ## Die Größen, und worauf sie beruhen
 
 Der Wirt hatte **21 GiB von 62 GiB RAM frei** (`free -g`) und 20 Kerne. Die
-sechs nehmen zusammen **13,5 GiB** — mit Luft, und ohne der bestehenden NGC-VM
+sechs nehmen zusammen **13,5 GiB** — mit Luft, und ohne der bestehenden CirroDesk-VM
 (8 GiB) etwas zu nehmen.
 
 | VM | RAM | Kerne | Platte | Grund |
 |---|---|---|---|---|
-| web-api-1 | 2048 MiB | 2 | 16 GB | Apache, php-fpm, `ngc-api` und `ngc-store`. Gemessen nach der Installation: 1,9 GB belegt. |
+| web-api-1 | 2048 MiB | 2 | 16 GB | Apache, php-fpm, `cd-api` und `cd-store`. Gemessen nach der Installation: 1,9 GB belegt. |
 | api-2 | 2048 MiB | 2 | 16 GB | wie oben ohne Apache |
 | db-1 | 2560 MiB | 2 | 24 GB | MariaDB 11.8 mit Galera; `innodb_buffer_pool_size` steht auf 128 MiB, der Rest ist Datei-Cache und Platz für `mariabackup` |
-| svc-1 | 3072 MiB | 2 | 24 GB **+ 16 GB** | Trägt podman-Abbilder und je App einen verschlüsselten Ordner. Maßstäbe: das Terminal-Abbild ist 108 MB, sein entpackter Datenordner 110 MB — und eine Aktivierung legt ein Paket von bis zu `store.MaxPackage` = **4 GiB** in den Spool. Die zweite Platte trägt `/var/lib/ngc/apps`. |
+| svc-1 | 3072 MiB | 2 | 24 GB **+ 16 GB** | Trägt podman-Abbilder und je App einen verschlüsselten Ordner. Maßstäbe: das Terminal-Abbild ist 108 MB, sein entpackter Datenordner 110 MB — und eine Aktivierung legt ein Paket von bis zu `store.MaxPackage` = **4 GiB** in den Spool. Die zweite Platte trägt `/var/lib/cd/apps`. |
 | svc-2 | 3072 MiB | 2 | 24 GB **+ 16 GB** | dito |
 | store | 1024 MiB | 1 | 16 GB | nginx und signierte Dateien. Ein Katalog ist Kilobytes; Pakete bis 4 GiB liegen hier, wenn du welche anbietest. |
 
@@ -90,8 +90,8 @@ Platte zusammen: 160 GB auf `ssd_2TB` (1,03 TiB frei).
 
 ## Fallstrick 1 — fscrypt. Ein frisches Debian bringt es NICHT mit
 
-Eine App von NGC lebt in einem verschlüsselten Ordner unter
-`config.AppDataDir` (`/var/lib/ngc/apps`). Der Controller macht das mit den
+Eine App von CirroDesk lebt in einem verschlüsselten Ordner unter
+`config.AppDataDir` (`/var/lib/cd/apps`). Der Controller macht das mit den
 ioctls des Kernels selbst (`FS_IOC_ADD_ENCRYPTION_KEY`,
 `FS_IOC_SET_ENCRYPTION_POLICY` in
 `apps/server-controller/classes/runtime/data_linux.go`). Auf einem
@@ -107,17 +107,17 @@ Drei Dinge, getrennt gemessen am 23./24.10.2026:
   für ext4 `has_journal,extent,huge_file,flex_bg,metadata_csum,metadata_csum_seed,64bit,dir_nlink,extra_isize,orphan_file`
   — **kein `encrypt`**. Zweimal gemessen: auf einem Loop-Abbild mit e2fsprogs
   1.47.2 (der Fassung von Debian 13) ließ `mkfs.ext4` das Merkmal weg und
-  `tune2fs -O encrypt` setzte es; und die laufende NGC-VM trägt `encrypt` auf
+  `tune2fs -O encrypt` setzte es; und die laufende CirroDesk-VM trägt `encrypt` auf
   `/`, weil es dort einmal von Hand gesetzt wurde.
-- **Das Paket `fscrypt` braucht NGC nicht.** Auf der laufenden VM ist es
-  installiert, NGC ruft es nie auf — der Controller macht die ioctls selbst.
+- **Das Paket `fscrypt` braucht CirroDesk nicht.** Auf der laufenden VM ist es
+  installiert, CirroDesk ruft es nie auf — der Controller macht die ioctls selbst.
   Nötig ist das Merkmal des Dateisystems, sonst nichts.
 
 **Darum eine zweite Platte und kein `tune2fs` auf der Wurzel.**
 `tune2fs -O encrypt` auf der **eingehängten** Wurzel einer laufenden Maschine
 ist das Einzige in diesem Aufbau, das ich **nicht** gemessen habe — und das
 Dateisystem, von dem die Maschine läuft, ist ein schlechter Ort dafür. Eine
-zweite Platte mit `mkfs.ext4 -O encrypt`, eingehängt auf `/var/lib/ngc/apps`,
+zweite Platte mit `mkfs.ext4 -O encrypt`, eingehängt auf `/var/lib/cd/apps`,
 beantwortet dieselbe Frage mit nichts im Risiko; die ioctls gehen je
 Dateisystem, also sitzt der Ordner genau dort, wo der Controller ihn braucht.
 
@@ -125,7 +125,7 @@ Willst du es doch auf der Wurzel: in der Rettungs-Shell des Installers, mit
 der Wurzel **nicht** eingehängt, `tune2fs -O encrypt /dev/sda1`, danach mit
 `dumpe2fs -h` nachsehen. Die Skripte hier tun es nicht.
 
-Gemessen nach `platte`: auf svc-1 und svc-2 liegt `/var/lib/ngc/apps` auf
+Gemessen nach `platte`: auf svc-1 und svc-2 liegt `/var/lib/cd/apps` auf
 `/dev/sdb`, ext4 **mit** `encrypt`, Modus `0711` (derselbe, den
 `runtime/data.go` selbst setzt — Hürde 5 vom Oktober), podman 5.4.2.
 
@@ -179,7 +179,7 @@ bash tools/proxmox-sechs.sh abbauen --vorlage  # auch die Vorlage 300
 ```
 
 Räumt `qm stop` + `qm destroy --purge --destroy-unreferenced-disks` über
-301–306 (und 300). Die bestehende NGC-VM **208** steht in keiner Tabelle
+301–306 (und 300). Die bestehende CirroDesk-VM **208** steht in keiner Tabelle
 dieser Skripte und wird von keinem Aufruf berührt.
 
 ---
@@ -187,23 +187,23 @@ dieser Skripte und wird von keinem Aufruf berührt.
 ## Was der verteilte Lauf gefunden hat
 
 Fünf Dinge standen zwischen einem frischen Debian und einer laufenden Anlage.
-Vier davon liegen in ulh (`origin/ngc-kette` bei `afb2ea4`), nicht in diesem
+Vier davon liegen in ulh (`origin/cd-kette` bei `afb2ea4`), nicht in diesem
 Repo — darum sind sie hier **gemeldet** und nicht behoben.
 
-**1. `ngc-db install` stirbt auf einem frischen Debian am ersten Schritt.**
+**1. `cd-db install` stirbt auf einem frischen Debian am ersten Schritt.**
 ```
-▶ NextGenCloud: MariaDB with Galera for db-1.ngc.mein.lan
+▶ CirroDesk: MariaDB with Galera for db-1.ngc.mein.lan
 chown: invalid group: 'root:mysql'
 ```
-`prepare()` ruft `ensure_dir "$NGC_TLS" root:mysql 0710`, und
-`install_ngc_db()` ruft `prepare` **vor** `ensure_packages` — die Gruppe
+`prepare()` ruft `ensure_dir "$CD_TLS" root:mysql 0710`, und
+`install_cd_db()` ruft `prepare` **vor** `ensure_packages` — die Gruppe
 `mysql` gibt es da noch nicht. Drei Anweisungen weiter steht „MariaDB has to be
 there before the keys: they belong to its user": die Reihenfolge war für die
 Schlüssel gesehen und für die Ordner übergangen.
 
 **2. Die Verschlüsselung im Ruhezustand lässt MariaDB nicht starten.**
 ```
-[ERROR] mariadbd: Cannot decrypt /etc/ngc/db-keys/keys.enc. Wrong key?
+[ERROR] mariadbd: Cannot decrypt /etc/cd/db-keys/keys.enc. Wrong key?
 [ERROR] Plugin 'file_key_management' init function returned error.
 ```
 `ensure_encryption_keys()` verschlüsselt mit
@@ -215,7 +215,7 @@ Passphrase:
 
 | Variante | Ableitung | Antwort des Plugins |
 |---|---|---|
-| a | `-pbkdf2 -md sha256 -salt` (so schreibt es ngc-db) | `Cannot decrypt … Wrong key?` |
+| a | `-pbkdf2 -md sha256 -salt` (so schreibt es cd-db) | `Cannot decrypt … Wrong key?` |
 | b | `-md sha1` | keine Entschlüsselungszeile — angenommen |
 | c | `-md sha1`, kurze Passphrase | angenommen |
 
@@ -241,21 +241,21 @@ also ist `mariadb_running` wahr und der erste Zweig greift
 Clusters findet so nie über den dafür gebauten Weg statt.
 
 **5. Niemand spielt die Migrationen ein — und der Weg dahin ist ein Kreis.**
-Nach `ngc-api install` dreht die API in einer Startschleife:
+Nach `cd-api install` dreht die API in einer Startschleife:
 ```
 ERROR die API kann nicht starten error="die Vertrauensliste dieser Anlage lässt
-sich nicht lesen; zuerst /etc/ngc/trust-anchor.json prüfen, dann die Datenbank"
+sich nicht lesen; zuerst /etc/cd/trust-anchor.json prüfen, dann die Datenbank"
 ```
-`ngc-api migrate` mit dem Konto aus `api.json` wird abgelehnt:
+`cd-api migrate` mit dem Konto aus `api.json` wird abgelehnt:
 ```
-Error 1142 (42000): CREATE command denied to user 'ngc'@'api-1.ngc.mein.lan'
-for table `ngc`.`ngc_schema`
+Error 1142 (42000): CREATE command denied to user 'cd'@'api-1.ngc.mein.lan'
+for table `cd`.`cd_schema`
 ```
 Der einzige dokumentierte Einspieler ist der **Controller mit der Rolle `db`**
 (`docs/migrationen-wer-spielt-sie-ein.md`, Weg (a)) — und der kann nicht
 gekoppelt werden, bevor die API läuft, weil der Kopplungscode aus der
-Oberfläche kommt. Ich habe den Kreis von Hand aufgeschnitten: `ngc-api migrate`
-mit dem Konto `ngc_migrate`, Passwort über die Standardeingabe, nie in einem
+Oberfläche kommt. Ich habe den Kreis von Hand aufgeschnitten: `cd-api migrate`
+mit dem Konto `cd_migrate`, Passwort über die Standardeingabe, nie in einem
 Aufruf. Danach: **„1 Migration eingespielt."**, API `active` und horchend.
 
 Zwei benannte Vorarbeiten tragen darum jede Zahl dieses Laufs: `mariadb-server`
@@ -271,15 +271,15 @@ Installation nicht**.
 
 Gemessen am 24.10.2026 auf der verteilten Anlage:
 
-- **Das echte Release, mit NGCs echtem Schlüssel.** `ngc-api.sh` meldet „The
+- **Das echte Release, mit CirroDesks echtem Schlüssel.** `cd-api.sh` meldet „The
   signature of the program files is good." gegen das veröffentlichte `v0.2.1`;
-  dessen `release-key.pem` ist Byte für Byte der `NGC_RELEASE_KEY` der
+  dessen `release-key.pem` ist Byte für Byte der `CD_RELEASE_KEY` der
   ulh-Skripte. **Nichts in diesem Lauf ersetzt einen Sicherheitsriegel** —
   `tools/erstlauf-maschine.sh` muss dafür eine Test-Wurzel einsetzen.
-- **Die Fassungen stimmen.** `ngc-api 0.2.1 (contract 1)`, `ngc-store 0.2.1` —
+- **Die Fassungen stimmen.** `cd-api 0.2.1 (contract 1)`, `cd-store 0.2.1` —
   nicht `0.0.0-dev`. Hürde 2 vom Oktober ist im Release weg.
-- **Hürde 1 ist weg.** `ngc-api.service` hat `ProtectSystem=strict` **und**
-  `ReadWritePaths=/var/lib/ngc /etc/ngc` — `/etc/ngc` ist dabei.
+- **Hürde 1 ist weg.** `cd-api.service` hat `ProtectSystem=strict` **und**
+  `ReadWritePaths=/var/lib/cd /etc/cd` — `/etc/cd` ist dabei.
 - **Die API lebt ohne Datenbank auf ihrer Maschine.** Auf api-1 ist
   `mariadb-server` nicht installiert, `api.json` nennt `db-1.ngc.mein.lan:3306`,
   und es steht eine Verbindung `10.2.3.210 → 10.2.3.212:3306`.
@@ -302,8 +302,8 @@ gekoppelt und api-2 beitreten lassen. Damit sind Station 3 und D3 gemessen
 **6. Der Anker außerhalb der Datenbank liegt auf den API-Servern gar nicht.**
 `advanceAnchor` in `apps/server-api/classes/state/trust.go` schreibt
 ausdrücklich nur **über eine Datei, die schon da ist** („Only over a file that
-is already there"), und auf einem API-Knoten legt sie niemand an — `ngc-api.sh`
-tut es nicht. Gemessen: auf api-1 und api-2 gibt es `/etc/ngc/trust-anchor.json`
+is already there"), und auf einem API-Knoten legt sie niemand an — `cd-api.sh`
+tut es nicht. Gemessen: auf api-1 und api-2 gibt es `/etc/cd/trust-anchor.json`
 nicht, während die Vertrauensliste schon auf Fassung 3 steht. Das Versprechen
 „der Anker liegt außerhalb der Datenbank" hält auf einer frischen Anlage also
 für die API niemand. Der Kommentar an der Stelle beschreibt genau diese Lage
@@ -314,15 +314,15 @@ selbst: ein Anker, den nur eine Kopplung setzt, „protects nobody".
 und seither nicht bewegt.
 
 **8. Ein selbst betriebener Laden muss die Kennung `global` tragen.**
-`ngc-api.sh` nimmt `store_url` und `store_key` und trägt den Laden unter der
-Kennung **`global`** ein (Zeile `store.global` in `ngc_blob`). `ngc-store
+`cd-api.sh` nimmt `store_url` und `store_key` und trägt den Laden unter der
+Kennung **`global`** ein (Zeile `store.global` in `cd_blob`). `cd-store
 catalog` nimmt die Kennung dagegen als Angabe. Wer dort etwas anderes schreibt
-— wir zuerst `ngc-sechs` —, bekommt den Katalog abgelehnt, und die Anlage sagt
+— wir zuerst `cd-sechs` —, bekommt den Katalog abgelehnt, und die Anlage sagt
 nur: „Der Katalog ist fehlerhaft oder gehört zu einem anderen Store."
 (`store.VerifyCatalog`, `c.Store != st.ID`). Welche der beiden Kennungen nicht
 passt, steht nirgends.
 
-**9. Umbenennen lässt `ngc-store catalog` mit einer falschen Meldung stehen.**
+**9. Umbenennen lässt `cd-store catalog` mit einer falschen Meldung stehen.**
 Nach dem Wechsel der Kennung antwortet es „the catalog needs a higher sequence
 number than the last one" — bei **jeder** Nummer. `lastSeq` prüft den Katalog,
 der schon im Ordner liegt, mit der **neuen** Kennung; das schlägt fehl, und der
@@ -402,9 +402,9 @@ Ausstieg 2**, keine `ok`-Zeile — **elf Stationen melden ok**:
 
 | Station | was sie misst |
 |---|---|
-| 1 | das veröffentlichte Release unter NGCs eigenem Schlüssel |
-| 2 | ngc-api 0.2.1 aktiv mit stehendem MainPID |
-| 2 (Controller) | ngc-controller 0.2.1 auf svc-1 |
+| 1 | das veröffentlichte Release unter CirroDesks eigenem Schlüssel |
+| 2 | cd-api 0.2.1 aktiv mit stehendem MainPID |
+| 2 (Controller) | cd-controller 0.2.1 auf svc-1 |
 | 3 | svc-1 gekoppelt: `controller.json`, Marke, Dienst hält |
 | 4 | Vertrauensliste **Fassung 6 mit sieben Knoten** |
 | 6 | **Katalog da** — 202 Bytes gespeichert, `{"checked":…}` |
@@ -418,7 +418,7 @@ Vier bleiben, und keine davon ist eine Lücke im Aufbau:
 - **Station 5 Systemrechte** — ein Klick eines angemeldeten Admins auf der
   Rechteseite; auf keiner Maschine liegt eine Datei, die ihn bezeugt.
 - **Station 7 (die App selbst)** und **Station 8** — der Katalog ist da, aber
-  **leer**: `ngc-store catalog` über einem leeren Ordner unterschreibt eine
+  **leer**: `cd-store catalog` über einem leeren Ordner unterschreibt eine
   leere Liste. Es fehlt ein gepacktes App-Paket, nicht ein Stück Anlage.
 - **D2 (Laden weg) und der Rückfall-Schutz** — jetzt endlich messbar, kosten
   aber je eine Stunde Wanduhr, weil die Ladenrunde stündlich schlägt. Das ist
@@ -428,7 +428,7 @@ Vor der Ersteinrichtung hing alles Übrige an **einem** Punkt, und der ist
 keine Lücke im Aufbau, sondern ein Mensch: die **Ersteinrichtung geschieht im
 Browser**. `GET`/`POST`
 auf `/api/v1/setup`, beide Seiten weisen mit einem MAC nach, dass sie den
-Einmal-Code aus `/var/lib/ngc/setup-code` haben
+Einmal-Code aus `/var/lib/cd/setup-code` haben
 (`apps/server-api/classes/setup/setup.go`). Vorher gibt es keinen Admin und
 keine Vertrauensliste — die API sagt es selbst: `catalogs could not be fetched
 error="state: no trust list yet"`. Daran hängen:
@@ -448,6 +448,6 @@ seine eigene Vorrichtung messen.
 
 **Der nächste Schritt gehört darum dir:** den hosts-Block oben setzen,
 `https://ngc.mein.lan` öffnen, den Code aus
-`/var/lib/ngc/setup-code` auf api-1 (`0600`, nur für root) eingeben und den
+`/var/lib/cd/setup-code` auf api-1 (`0600`, nur für root) eingeben und den
 ersten Admin anlegen. Danach laufen `api2`, `web` erneut und die Stationen 3
 bis 8.

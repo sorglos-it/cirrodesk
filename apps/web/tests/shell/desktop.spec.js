@@ -192,8 +192,8 @@ test("a name from outside is never HTML", async ({ shell }) => {
 });
 
 test("a notice from the API is shown as text", async ({ shell }) => {
-  await shell.evaluate(() => window.__ngcSendNotice("warn", "Update für ngc-web bereit."));
-  await expect(shell.getByRole("status")).toHaveText("Update für ngc-web bereit.");
+  await shell.evaluate(() => window.__cdSendNotice("warn", "Update für cd-web bereit."));
+  await expect(shell.getByRole("status")).toHaveText("Update für cd-web bereit.");
 });
 
 // docs/gestaltung.md point 4: a message that belongs to an app is a popup,
@@ -210,7 +210,7 @@ test("an app's message covers its own window and nothing else", async ({ shell }
   await expect(calc).toBeVisible();
   await expect(store).toBeVisible();
 
-  await shell.evaluate(() => window.__ngcSendNotice(
+  await shell.evaluate(() => window.__cdSendNotice(
     "error", "Das hat der Rechner nicht angenommen.", "org.sorglos.calculator"));
 
   // In the Rechner's window, and in no other.
@@ -258,8 +258,8 @@ test("a message that belongs to no app stays in the strip", async ({ shell }) =>
   await shell.getByRole("menuitem", { name: "Rechner", exact: true }).click();
   const calc = shell.locator(".win");
   await expect(calc).toBeVisible();
-  await shell.evaluate(() => window.__ngcSendNotice("warn", "Update für ngc-web bereit."));
-  await expect(shell.getByRole("status")).toHaveText("Update für ngc-web bereit.");
+  await shell.evaluate(() => window.__cdSendNotice("warn", "Update für cd-web bereit."));
+  await expect(shell.getByRole("status")).toHaveText("Update für cd-web bereit.");
   await expect(calc.locator(".winback")).toHaveCount(0);
 });
 
@@ -267,7 +267,7 @@ test("a message for an app with no window open stays in the strip", async ({ she
   // An app that is named but has no window is not a window to write into.
   // There would be nothing to show the message on, and dropping it would be
   // losing it.
-  await shell.evaluate(() => window.__ngcSendNotice(
+  await shell.evaluate(() => window.__cdSendNotice(
     "error", "Das hat der Rechner nicht angenommen.", "org.sorglos.calculator"));
   await expect(shell.getByRole("status")).toHaveText("Das hat der Rechner nicht angenommen.");
   await expect(shell.locator(".winback")).toHaveCount(0);
@@ -281,7 +281,7 @@ test("a minimized window comes back up for a message of its own", async ({ shell
   const calc = shell.locator(".win");
   await calc.getByRole("button", { name: "Minimieren" }).click();
   await expect(calc).toBeHidden();
-  await shell.evaluate(() => window.__ngcSendNotice(
+  await shell.evaluate(() => window.__cdSendNotice(
     "error", "Das hat der Rechner nicht angenommen.", "org.sorglos.calculator"));
   await expect(calc).toBeVisible();
   await expect(calc.locator("[role=alert]")).toHaveText("Das hat der Rechner nicht angenommen.");
@@ -294,7 +294,7 @@ test("a message that tries to be markup is text in the window too", async ({ she
   await shell.getByRole("button", { name: "Start" }).click();
   await shell.getByRole("menuitem", { name: "Rechner", exact: true }).click();
   const calc = shell.locator(".win");
-  await shell.evaluate(() => window.__ngcSendNotice(
+  await shell.evaluate(() => window.__cdSendNotice(
     "error", "<img src=x onerror=alert(9)><b>fett</b>", "org.sorglos.calculator"));
   await expect(calc.locator("[role=alert]")).toHaveText("<img src=x onerror=alert(9)><b>fett</b>");
   expect(await calc.locator(".winback img, .winback script, .winback b, .winback svg").count()).toBe(0);

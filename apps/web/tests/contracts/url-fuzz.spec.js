@@ -19,10 +19,10 @@ import { vectors } from "../fixtures/vectors.js";
 //     everything keeps every rule above and proves nothing.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=50000 npm test -- contracts/url-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=50000 npm test -- contracts/url-fuzz
 const v = vectors("url.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 20000);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 20000);
 
 test(`fuzz: nothing but addresses, ${rounds} inputs from seed ${seed}`, async ({ shell }) => {
   const known = Object.values(v).flat().map((c) => c.value);
@@ -102,7 +102,7 @@ test(`fuzz: nothing but addresses, ${rounds} inputs from seed ${seed}`, async ({
       }
     };
 
-    // The characters each form may carry. A host is lower case, because NGC
+    // The characters each form may carry. A host is lower case, because CirroDesk
     // compares addresses as text; only a store path knows upper case.
     const HOST_CHARS = /^[a-z0-9.:[\]-]+$/;
     const URL_CHARS = /^[a-z0-9.:[\]/-]+$/;

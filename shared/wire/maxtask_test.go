@@ -5,9 +5,9 @@ import (
 	"crypto/ed25519"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestMaxTaskIsTaskMaxTask pins wire's own bound on a task in an OPEN to

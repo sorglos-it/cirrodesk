@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // Migrator brings the schema of cfg to the state this release needs and
@@ -22,7 +22,7 @@ import (
 // nothing a caller could hand in earlier.
 type Migrator func(ctx context.Context, cfg config.DB, owner string, out io.Writer) error
 
-// ErrNoMigrator reports that no part registered a migrator, so ngc-api migrate
+// ErrNoMigrator reports that no part registered a migrator, so cd-api migrate
 // cannot run. It is its own value and not ErrNoOpener: a program may well be
 // able to open a database and still not carry the migrations.
 var ErrNoMigrator = errors.New("dbopen: no database migrations registered")
@@ -40,7 +40,7 @@ func RegisterMigrator(m Migrator) {
 }
 
 // Migrate runs the registered migrator. This is the whole of what
-// "ngc-api migrate" does, and the decision behind it is that there is exactly
+// "cd-api migrate" does, and the decision behind it is that there is exactly
 // one runner over one schema: the controller starts this program and gets no
 // runner of its own, because two runners over one schema is the finding W-1 of
 // the db part (Verträge V1.2, Punkt 28).

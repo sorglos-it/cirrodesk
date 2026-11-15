@@ -13,9 +13,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // MaxVersions bounds how many versions one keeper verifies and holds, counted
@@ -217,8 +217,8 @@ func (k *Keeper) List() *trust.List {
 //
 // WHY THE KEY AND NOT THE NAME. A controller is paired under a NAME it chose
 // itself (config.Controller.Name), and the admin who lists it may get another
-// ID than that name: a second server called "ngc" on an installation whose API
-// node is already "ngc" is listed as "ngc-2" (the shell's nodeID). The name
+// ID than that name: a second server called "cd" on an installation whose API
+// node is already "cd" is listed as "cd-2" (the shell's nodeID). The name
 // therefore says nothing about the ID, while the key says everything: it is
 // what the admin compared by fingerprint before listing, and it is what the
 // API reads the node off on the tunnel (controllers.peerKey). Reading the ID

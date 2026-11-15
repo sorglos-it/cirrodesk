@@ -3,11 +3,11 @@
 Für jede Claude-Sitzung, die in diesem oder einem anderen Projekt Code schreibt
 oder prüft.
 
-Alles hier ist **gemessen**, nicht ausgedacht. Jede Regel steht, weil sie in NGC
+Alles hier ist **gemessen**, nicht ausgedacht. Jede Regel steht, weil sie in CirroDesk
 Geld gekostet hat — Stand 24.09.2026: fünf Stränge, über dreißig Prüfrunden.
 Die Fälle daneben sind echte Funde, keine Beispiele.
 
-**Was hier nicht drinsteht:** wie eine NGC-App aufgebaut sein muss. Der
+**Was hier nicht drinsteht:** wie eine CirroDesk-App aufgebaut sein muss. Der
 App-Baustein ist noch nicht gebaut; dazu gäbe es nur Vermutungen.
 
 ---
@@ -987,7 +987,7 @@ Verbote sind erlaubt, Erkennung nicht.
 
 ## 8. Ein Fehler im Auftrag ist ein Fund, kein Hindernis
 
-**Acht** Auftragsfehler haben Umsetzer in NGC gefunden. Jedes Mal war die
+**Acht** Auftragsfehler haben Umsetzer in CirroDesk gefunden. Jedes Mal war die
 Meldung wertvoller als der Code. Darunter:
 
 - ein Testhelfer rief eine `async`-Funktion **ohne `await`** — der `catch` war
@@ -1072,7 +1072,7 @@ Commits.
 
 ## 12. Der Prüfer greift an, statt zu lesen
 
-Was in NGC funktioniert hat:
+Was in CirroDesk funktioniert hat:
 
 - **Am echten Paket angreifen, nicht an Testdaten.** Zwei Löcher kamen genau
   daran vorbei.
@@ -1976,7 +1976,7 @@ Konfiguration gefunden", sondern:
     Error: Project(s) "chromium", "webkit" not found. Available projects: ""
 
 Das sieht aus wie eine kaputte Konfiguration und ist ein falscher
-Arbeitsordner. Bei NGC liegen `playwright.config.js` und `package.json` in
+Arbeitsordner. Bei CirroDesk liegen `playwright.config.js` und `package.json` in
 `apps/web/tests/`, nicht in `apps/web/`. Das hat mich am 02.10.2026 einen
 Ausstiegscode 4 und einen ganzen Lauf gekostet, den ich fuer ein Messergebnis
 gehalten habe.
@@ -2106,13 +2106,13 @@ seine Meldung nannte.
 
 - Ein Fall sollte zeigen, dass **das Ausfuehrungsbit** fehlt. Vorgefuehrt
   wurde er, indem der Arbeitsordner gepackt wurde — er fiel mit
-  „ngc-probe is not in the archive". Richtiges Thema verfehlt.
+  „cd-probe is not in the archive". Richtiges Thema verfehlt.
 - Der Ersatz dafuer war `git archive --mode=0644`. Gemessen:
   `error: unknown option 'mode=0644'`, Ausstiegscode **129** — die Option
   gibt es nicht. Ein Fall, der an einem Tippfehler im Werkzeug faellt, ist
   gruen fuer sein Thema.
 - Der zweite Ersatz packte mit `tar -cf … -C dir .` und schrieb damit
-  `./ngc-probe`. Ein Namensvergleich auf `" ngc-probe"` haette wieder
+  `./cd-probe`. Ein Namensvergleich auf `" cd-probe"` haette wieder
   „not in the archive" gemeldet.
 
 **Also: nach jedem vorgefuehrten Rot die MELDUNG lesen, nicht nur den
@@ -2153,7 +2153,7 @@ und die beantwortet man am besten, indem ein Zweiter welche setzt.
 
 ## Eine Zeile, die nur in einem Bericht steht, verschwindet dort
 
-Zweimal am 02.10.2026: eine Anforderung (`/run/ngc/<name>` muss nach dem
+Zweimal am 02.10.2026: eine Anforderung (`/run/cd/<name>` muss nach dem
 Neustart existieren und dem App-Benutzer gehoeren) war in Aufgabe 11
 aufgefallen, stand im Bericht der Aufgabe 12 als „offen" — und **in keinem
 Auftrag**. Ebenso der Satz, dass `/etc/subuid` ohne Sperre gelesen-geaendert-
@@ -2294,13 +2294,13 @@ Wortgrenzen.
 In derselben Datei stehen
 
 ```js
-const NGC_JS     = "/assets/ngc.js";    // eine Datei, wird geholt
+const CD_JS     = "/assets/cd.js";    // eine Datei, wird geholt
 const FRAME_PAGE = "/frame.html";       // eine ROUTE, public/index.php:74
 ```
 
 Ein Verweisgraph, der beide gleich behandelt, meldet `/frame.html` als
 **fehlend** — und verhindert damit jedes Release. Ein Graph, der beide
-ignoriert, lässt `ngc.js` aus dem Archiv, und dann öffnet beim Nutzer **kein
+ignoriert, lässt `cd.js` aus dem Archiv, und dann öffnet beim Nutzer **kein
 einziges App-Fenster**.
 
 Es gibt hier keine Regel, die das von selbst löst: eine Zeichenkette mit `/`
@@ -2309,7 +2309,7 @@ der Router. **Also sagt der Graph diese Grenze ausdrücklich und listet solche
 Fälle von Hand** — mit dem Grund, nicht mit einer Behauptung. Ein Graph, der
 rät, ist schlimmer als einer, der seine Grenze nennt.
 
-Und die Lehre für das Zählen: der Prüfer hatte gemessen, dass auf `ngc.js`
+Und die Lehre für das Zählen: der Prüfer hatte gemessen, dass auf `cd.js`
 „kein realer Verweis" zeigt, und lag falsch — drei Zeilen in `appframe.js`
 holen sie per `fetch` und schreiben sie in jedes App-Fenster. Bei der
 Nachbardatei hatte er recht, und dort war die richtige Antwort nicht „in die
@@ -3392,11 +3392,11 @@ der Strang hat sie nachgefahren, statt sie stehen zu lassen. Die
 Uebersprungbehandlung einer Migration liest die Meldung `already exists`:
 
 ```sql
-CREATE INDEX ngc_blob_seq ON ngc_blob (id)
+CREATE INDEX cd_blob_seq ON cd_blob (id)
 ```
 
 Traegt die Datenbank einen Index **desselben Namens ueber andere Spalten**,
-antwortet SQLite `index ngc_blob_seq already exists`. Die Behandlung
+antwortet SQLite `index cd_blob_seq already exists`. Die Behandlung
 ueberspringt also, und die Version gilt danach als **erledigt** — mit dem
 falschen Index darunter.
 
@@ -3429,10 +3429,10 @@ Dass sie zusammentreffen, entscheidet eine Direktive, die gar nicht in dem
 Block steht, um den es geht:
 
 ```apache
-<Directory "/var/www/ngc/public">
+<Directory "/var/www/cd/public">
     FallbackResource /index.php     # <- hier
 </Directory>
-<Directory "/var/www/ngc/public/assets">   # erbt sie
+<Directory "/var/www/cd/public/assets">   # erbt sie
     Header always set Cross-Origin-Resource-Policy "same-origin"
 </Directory>
 ```

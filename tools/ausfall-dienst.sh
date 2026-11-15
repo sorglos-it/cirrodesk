@@ -26,7 +26,7 @@
 # Stopp als aktiv nachgewiesen und nachher wieder angeworfen und nachgewiesen.
 set -uo pipefail
 
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 A1=10.2.3.210
 A2=10.2.3.211
@@ -34,10 +34,10 @@ DB1=10.2.3.212
 
 # Fall -> Adresse, Dienst, Name des Knotens, Nachbardienst, der weiterlaufen MUSS
 case "${1:-}" in
-  B1) ADDR=$A2;          DIENST=ngc-api;        KNOTEN=api-2; NACHBAR="";          ;;
-  B2) ADDR=$A1;          DIENST=ngc-api;        KNOTEN=api-1; NACHBAR=apache2;     ;;
-  B3) ADDR=$DB1;         DIENST=mariadb;        KNOTEN=db-1;  NACHBAR=ngc-controller; ;;
-  B4) ADDR=10.2.3.213;   DIENST=ngc-controller; KNOTEN=svc-1; NACHBAR="";          ;;
+  B1) ADDR=$A2;          DIENST=cd-api;        KNOTEN=api-2; NACHBAR="";          ;;
+  B2) ADDR=$A1;          DIENST=cd-api;        KNOTEN=api-1; NACHBAR=apache2;     ;;
+  B3) ADDR=$DB1;         DIENST=mariadb;        KNOTEN=db-1;  NACHBAR=cd-controller; ;;
+  B4) ADDR=10.2.3.213;   DIENST=cd-controller; KNOTEN=svc-1; NACHBAR="";          ;;
   B5) ADDR=10.2.3.215;   DIENST=nginx;          KNOTEN=store; NACHBAR="";          ;;
   *) echo "Aufruf: $0 B1|B2|B3|B4|B5"; exit 2;;
 esac
@@ -83,7 +83,7 @@ tcp() {
 }
 sql() { $SSH "root@$DB1" "mysql -N -B -e \"$1\" 2>&1 | tr '\t' '=' | tr '\n' ' '" 2>&1 | tail -1; }
 verbund_von() { $SSH "root@$1" "mysql -N -B -e \"show status like 'wsrep_cluster_size'; show status like 'wsrep_cluster_status';\" 2>&1 | tr '\t' '=' | tr '\n' ' '" 2>&1 | tail -1; }
-katalog() { $SSH "root@$DB1" 'mysql ngc -N -e "select seq,length(data) from ngc_blob where kind=\"catalog\";" 2>&1' 2>&1 | tr -d '\r' | tr '\n' ' '; }
+katalog() { $SSH "root@$DB1" 'mysql cd -N -e "select seq,length(data) from cd_blob where kind=\"catalog\";" 2>&1' 2>&1 | tr -d '\r' | tr '\n' ' '; }
 container() {
   local n
   n=$($SSH "root@$1" 'pgrep -af "^/usr/bin/conmon" 2>/dev/null | grep -oE " -n [a-z0-9-]+" | sed "s/ -n //" | sort | tr "\n" " "' 2>&1)
@@ -142,7 +142,7 @@ echo
 echo "    Was die APIs sagen:"
 for a in $A1 $A2; do
   echo "      --- $a:"
-  $SSH "root@$a" "journalctl -u ngc-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
+  $SSH "root@$a" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
 done
 if [ "$KNOTEN" = api-1 ]; then
   echo "    Was der Apache sagt:"

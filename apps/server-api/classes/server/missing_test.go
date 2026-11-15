@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 func TestAbsenceSaysOnceGoneAndOnceBack(t *testing.T) {

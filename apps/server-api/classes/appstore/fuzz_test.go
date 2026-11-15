@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // FuzzCatalogAnswer feeds whatever a store may answer into the whole intake:

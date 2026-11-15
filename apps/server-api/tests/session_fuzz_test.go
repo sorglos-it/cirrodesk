@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // FuzzSessionParseLoginStart feeds the first message of a login. The browser
@@ -90,7 +90,7 @@ func FuzzSessionParseFrom(f *testing.F) {
 // exactly that, and every one of the three ends up in an address or a file
 // name.
 func FuzzStorePredicates(f *testing.F) {
-	f.Add("apps/mail/1.2.3.ngc")
+	f.Add("apps/mail/1.2.3.cd")
 	f.Add("apps/../mail")
 	f.Add("1.2.3")
 	f.Add("1.2.3.4")

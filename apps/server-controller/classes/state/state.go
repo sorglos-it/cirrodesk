@@ -1,6 +1,6 @@
 // Package state keeps what the server needs to carry on without an API: the
 // versions of the trust list, the apps it runs, their licences, the updates it
-// has laid ready, the NGC parts installed on it and the task IDs it has seen.
+// has laid ready, the CirroDesk parts installed on it and the task IDs it has seen.
 // Everything lives in dbapi.Local, so the same code runs on the controller's
 // own SQLite and on memstore in the tests.
 package state
@@ -15,22 +15,22 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Document IDs under dbapi.BlobSetting. dbapi knows fixed kinds of documents;
-// what only the controller has — the updates it laid ready and the NGC parts
+// what only the controller has — the updates it laid ready and the CirroDesk parts
 // installed on it — is a setting, so the contract needs no change for it.
 const (
 	stagedPrefix  = "staged."    // + the target of the update
-	componentsKey = "components" // the NGC parts installed on this server
+	componentsKey = "components" // the CirroDesk parts installed on this server
 )
 
 // Limits.
@@ -61,7 +61,7 @@ var (
 	licenseBudget = enc.Budget{Size: enc.B64.EncodedLen(store.MaxLicense) + 2<<10}
 )
 
-// components are the NGC parts a server reports; the same three keys
+// components are the CirroDesk parts a server reports; the same three keys
 // tunnel.ParseStatus takes, so what is kept here can always be reported.
 var components = []string{trust.AutoWeb, trust.AutoAPI, trust.AutoController}
 
@@ -399,7 +399,7 @@ func decodeStaged(data []byte) (Staged, error) {
 	return st, nil
 }
 
-// PutComponents keeps the versions of the NGC parts installed on this server.
+// PutComponents keeps the versions of the CirroDesk parts installed on this server.
 // An empty map clears them.
 func (s *Store) PutComponents(ctx context.Context, m map[string]string) error {
 	if err := validComponents(m); err != nil {
@@ -412,7 +412,7 @@ func (s *Store) PutComponents(ctx context.Context, m map[string]string) error {
 	return s.putJSON(ctx, dbapi.BlobSetting, componentsKey, 0, componentsBudget.Size, m)
 }
 
-// Components returns the versions of the NGC parts installed on this server,
+// Components returns the versions of the CirroDesk parts installed on this server,
 // or dbapi.ErrNotFound before the first write.
 func (s *Store) Components(ctx context.Context) (map[string]string, error) {
 	data, err := s.blob(ctx, dbapi.BlobSetting, componentsKey)
@@ -432,7 +432,7 @@ func decodeComponents(data []byte) (map[string]string, error) {
 }
 
 // validComponents checks the installed parts by the rule that lets them be
-// reported at all (tunnel.ParseStatus): only the three NGC parts, each with a
+// reported at all (tunnel.ParseStatus): only the three CirroDesk parts, each with a
 // release version. A development build is no release version and is therefore
 // not kept here.
 func validComponents(m map[string]string) error {

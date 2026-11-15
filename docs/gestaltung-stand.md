@@ -1,5 +1,7 @@
 # Gestaltung: was davon steht
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Stand 25.10.2026, Zweig `ngc-oberflaeche2`. Gemessen am Quelltext und an
 Playwright-Fällen, nicht angenommen.
 

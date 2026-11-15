@@ -31,7 +31,7 @@ import (
 func goodSpec() BuildSpec {
 	return BuildSpec{
 		Arch:    "amd64",
-		Ref:     "ngc/terminal:1.0.0",
+		Ref:     "cd/terminal:1.0.0",
 		File:    "apps/server-controller/templates/terminal/Containerfile",
 		Context: "build",
 		Out:     "services/amd64.tar",
@@ -67,7 +67,7 @@ func TestBuildIsTheWholeArgumentList(t *testing.T) {
 		"build",
 		"--arch", "amd64",
 		"--file", "apps/server-controller/templates/terminal/Containerfile",
-		"--tag", "ngc/terminal:1.0.0",
+		"--tag", "cd/terminal:1.0.0",
 		"--pull=always",
 		"build",
 	}
@@ -79,7 +79,7 @@ func TestBuildIsTheWholeArgumentList(t *testing.T) {
 // 2. The whole list of the save at once, same reason.
 func TestSaveIsTheWholeArgumentList(t *testing.T) {
 	want := []string{"save", "--format", "docker-archive",
-		"--output", "services/amd64.tar", "ngc/terminal:1.0.0"}
+		"--output", "services/amd64.tar", "cd/terminal:1.0.0"}
 	got, err := saveArgs(goodSpec())
 	if err != nil {
 		t.Fatalf("saveArgs: %v", err)
@@ -125,7 +125,7 @@ func TestBuildNamesTheContainerfile(t *testing.T) {
 // empty-handed error, or worse, saves an older image of that name.
 func TestBuildAndSaveNameOneImage(t *testing.T) {
 	s := goodSpec()
-	s.Ref = "ngc/terminal:2.3.4"
+	s.Ref = "cd/terminal:2.3.4"
 	build := buildOf(t, s)
 	save, err := saveArgs(s)
 	if err != nil {
@@ -187,7 +187,7 @@ func TestSaveWritesWhereItWasTold(t *testing.T) {
 	}
 }
 
-// 9. Only an architecture NGC is built for gets through, in both lists. The
+// 9. Only an architecture CirroDesk is built for gets through, in both lists. The
 // value becomes an argument of podman, and an unknown one would either build
 // an image nobody can run or be read as something else entirely.
 func TestBuildRefusesAnUnknownArchitecture(t *testing.T) {
@@ -208,8 +208,8 @@ func TestBuildRefusesAnUnknownArchitecture(t *testing.T) {
 // leading dash an option of podman, a second colon would move the tag into the
 // repository.
 func TestBuildRefusesANameThatIsNoReference(t *testing.T) {
-	for _, ref := range []string{"", "ngc/terminal", "ngc/terminal:1.0.0 --privileged",
-		"-ngc/terminal:1.0.0", "ngc/terminal:1.0.0:extra", "NGC/terminal:1.0.0"} {
+	for _, ref := range []string{"", "cd/terminal", "cd/terminal:1.0.0 --privileged",
+		"-cd/terminal:1.0.0", "cd/terminal:1.0.0:extra", "CirroDesk/terminal:1.0.0"} {
 		s := goodSpec()
 		s.Ref = ref
 		if _, err := buildArgs(s); !errors.Is(err, ErrImage) {
@@ -512,7 +512,7 @@ func TestBuildRefusesAnUnpinnedBaseBeforeItStartsTheBuilder(t *testing.T) {
 	if err := os.WriteFile(s.File, []byte("FROM debian:13-slim\n"), 0o600); err != nil {
 		t.Fatalf("the case could not write its own Containerfile: %v", err)
 	}
-	err := Build(context.Background(), "ngc-no-such-builder", s, io.Discard, io.Discard)
+	err := Build(context.Background(), "cd-no-such-builder", s, io.Discard, io.Discard)
 	if !errors.Is(err, ErrBase) {
 		t.Fatalf("Build = %v, want ErrBase", err)
 	}
@@ -524,7 +524,7 @@ func TestBuildRefusesAnUnpinnedBaseBeforeItStartsTheBuilder(t *testing.T) {
 	if err := os.WriteFile(s.File, []byte(pinned), 0o600); err != nil {
 		t.Fatalf("the case could not rewrite its own Containerfile: %v", err)
 	}
-	if err := Build(context.Background(), "ngc-no-such-builder", s, io.Discard, io.Discard); !errors.Is(err, ErrProgram) {
+	if err := Build(context.Background(), "cd-no-such-builder", s, io.Discard, io.Discard); !errors.Is(err, ErrProgram) {
 		t.Fatalf("with the base pinned Build = %v, want ErrProgram (the wall behind this one)", err)
 	}
 }

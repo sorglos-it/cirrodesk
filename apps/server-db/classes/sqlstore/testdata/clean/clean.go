@@ -22,12 +22,12 @@ func (conn) QueryContext(ctx any, stmt string, args ...any) (*row, error) { retu
 func (conn) QueryRowContext(ctx any, stmt string, args ...any) *row { return nil }
 
 const (
-	blobSelect = "SELECT seq, data FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobUpdate = "UPDATE ngc_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
-	blobInsert = "INSERT INTO ngc_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
-	blobFrom   = "SELECT id, seq FROM ngc_blob WHERE kind = ? AND seq >= ?"
-	blobDelete = "DELETE FROM ngc_blob WHERE kind = ? AND id = ?"
-	blobCount  = "SELECT count(*) FROM ngc_blob WHERE kind = ?"
+	blobSelect = "SELECT seq, data FROM cd_blob WHERE kind = ? AND id = ?"
+	blobUpdate = "UPDATE cd_blob SET seq = ?, data = ? WHERE kind = ? AND id = ?"
+	blobInsert = "INSERT INTO cd_blob (kind, id, seq, data) VALUES (?, ?, ?, ?)"
+	blobFrom   = "SELECT id, seq FROM cd_blob WHERE kind = ? AND seq >= ?"
+	blobDelete = "DELETE FROM cd_blob WHERE kind = ? AND id = ?"
+	blobCount  = "SELECT count(*) FROM cd_blob WHERE kind = ?"
 )
 
 type store struct {

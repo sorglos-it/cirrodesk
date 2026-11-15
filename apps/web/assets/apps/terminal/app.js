@@ -14,12 +14,12 @@
 // the cases in tests/shell/terminal.spec.js hold is that the bytes this file
 // sends are the bytes terminal.go reads.
 //
-// THE SIZE IN THE OPEN IS NOT WHAT THE SERVICE READS. ngc.open carries
+// THE SIZE IN THE OPEN IS NOT WHAT THE SERVICE READS. cd.open carries
 // {cols, rows} because the plan of this task says so, and the service reads no
 // parameters at all (terminal.go takes none, and the shell's environment is
 // built from nothing). The size that counts travels as a frame; see tellSize.
 //
-// THE CHANNEL IS A STREAM, NOT A QUESTION. ngc.open stays open: what is typed
+// THE CHANNEL IS A STREAM, NOT A QUESTION. cd.open stays open: what is typed
 // goes out with write, Strg+D says "no more input" with end, and what the
 // service writes arrives in onData, in as many pieces as the wire happened to
 // make. It counts as finished only when the close says "ok"; anything else is a
@@ -313,7 +313,7 @@
   // next, and a decoder per piece would turn those into question marks.
   const decoder = new TextDecoder();
 
-  ngc.open("terminal", "shell", size()).then((s) => {
+  cd.open("terminal", "shell", size()).then((s) => {
     stream = s;
     // The listeners stand before anything can arrive: the shell answers an
     // open it will not carry out with a close, and a close that nobody is
@@ -351,7 +351,7 @@
     say(READY);
     putCursor();
   }, () => {
-    // ngc.open does not reject today - it hands the stream over at once and
+    // cd.open does not reject today - it hands the stream over at once and
     // the shell's refusal arrives as a close. This is here for the day it
     // does, because a promise with no second hand is a window that stays on
     // "Verbindung wird aufgebaut …" for ever.
@@ -431,6 +431,6 @@
       document.documentElement.style.setProperty("--accent", accent);
     }
   };
-  paint(ngc.theme, ngc.accent);
-  ngc.onTheme(paint);
+  paint(cd.theme, cd.accent);
+  cd.onTheme(paint);
 })();

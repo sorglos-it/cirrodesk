@@ -25,12 +25,12 @@ import (
 
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Timeout bounds one pairing. The address comes from the code, so a server

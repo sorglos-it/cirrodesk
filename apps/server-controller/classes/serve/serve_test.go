@@ -21,22 +21,22 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/chain"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/chain"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 const (
@@ -178,13 +178,13 @@ func (w *world) next(t testing.TB) trust.Signed {
 }
 
 // chainOf wraps versions the way GET session.PathTrust answers them; that is
-// what the API sends on ngc.users/controller/trust.
+// what the API sends on cd.users/controller/trust.
 func chainOf(t testing.TB, v ...trust.Signed) []byte {
 	t.Helper()
 	return mustJSON(t, session.TrustChain{Versions: v})
 }
 
-// trustOpen is the OPEN of ngc.users/controller/trust, which the API opens on
+// trustOpen is the OPEN of cd.users/controller/trust, which the API opens on
 // its own: no client certificate and no proof (core.WithoutUser).
 func trustOpen(t testing.TB) []byte {
 	t.Helper()
@@ -596,7 +596,7 @@ func wantCode(t *testing.T, cl wire.Close, code wire.Code) {
 	}
 }
 
-// The API sends a chain on ngc.users/controller/trust; the controller verifies
+// The API sends a chain on cd.users/controller/trust; the controller verifies
 // it, keeps it and answers with the number of the newest version it now holds.
 func TestTrustChannelAnswersWithNewestSeq(t *testing.T) {
 	w := newWorld(t)
@@ -1158,7 +1158,7 @@ func TestAServerWiredWrongRefusesEveryChannel(t *testing.T) {
 	}
 }
 
-// stageOpen is the OPEN of ngc.store/controller/stage: a core action of this
+// stageOpen is the OPEN of cd.store/controller/stage: a core action of this
 // controller that the API opens without a user. It carries NO params, so it
 // serves the case below - a server built without an updater, which does not
 // carry the action out. A server that HAS one does (update.go), and the OPEN

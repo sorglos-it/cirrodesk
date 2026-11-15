@@ -1,4 +1,4 @@
-// Package classes holds the subcommands of ngc-store: packing apps,
+// Package classes holds the subcommands of cd-store: packing apps,
 // encrypting paid ones and signing catalogs, licences and test releases.
 package classes
 
@@ -14,11 +14,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // ErrPack reports a directory that is no app.
-var ErrPack = errors.New("ngc-store: the directory is no app")
+var ErrPack = errors.New("cd-store: the directory is no app")
 
 // images are the two names a package may carry an image under, in this order.
 var images = []string{"services/amd64.tar", "services/arm64.tar"}
@@ -40,7 +40,7 @@ var images = []string{"services/amd64.tar", "services/arm64.tar"}
 // name of more than 100 bytes goes into the prefix field, and one that does
 // not fit there either — store.ValidPath allows up to 200 bytes — is refused
 // instead of being written as a PAX entry: every header of a package of
-// ngc-store is a USTAR header. Measured with a name of 150 bytes: asking for
+// cd-store is a USTAR header. Measured with a name of 150 bytes: asking for
 // tar.FormatPAX instead gives the same bytes, so the form is pinned here for
 // what it refuses, not for what it writes.
 //

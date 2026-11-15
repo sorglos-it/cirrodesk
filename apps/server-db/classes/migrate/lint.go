@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
 )
 
 // maxStatement is the most one statement of a migration may hold, maxName the
@@ -26,7 +26,7 @@ const (
 )
 
 // who says whose statement is being measured. The two are not the same door.
-// A migration is a file of the release; ngc_schema and ngc_lock belong to the
+// A migration is a file of the release; cd_schema and cd_lock belong to the
 // runner, which makes them before the first migration can run, so a migration
 // may not name them - see takeTable.
 type who bool
@@ -37,7 +37,7 @@ const (
 )
 
 // runnerTables are the two tables the runner makes itself.
-var runnerTables = []string{"ngc_schema", "ngc_lock"}
+var runnerTables = []string{"cd_schema", "cd_lock"}
 
 // forbidden are words a migration may never carry. Some are not portable
 // (IF NOT EXISTS, AUTO_INCREMENT, ENGINE), the others would break the promise
@@ -520,7 +520,7 @@ func columnList(c *cursor, table, s string) error {
 
 // takeTable reads the name standing where the form says a table stands and
 // looks it up in the fixed list. The spelling has to be the one the list
-// carries: MariaDB on Linux tells ngc_blob and NGC_BLOB apart, so a name
+// carries: MariaDB on Linux tells cd_blob and CD_BLOB apart, so a name
 // written differently is a second table nobody knows about.
 //
 // The runner's own two tables are not for a migration. They are there before
@@ -583,7 +583,7 @@ type token struct {
 // That is why the forms above can be short - they never see anything they did
 // not expect. It is also why a name can never be glued to something else:
 // MariaDB takes a dollar sign and every letter above ASCII in a name that
-// stands without quotes, so ngc_blob$x is a table of its own, and one nobody
+// stands without quotes, so cd_blob$x is a table of its own, and one nobody
 // listed.
 func tokens(s string) ([]token, error) {
 	var out []token

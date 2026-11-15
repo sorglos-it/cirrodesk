@@ -29,14 +29,14 @@ import (
 	"slices"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/e2e"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/e2e"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // errCut says that the input of the shell ended before its E2EEnd. It is no
@@ -195,7 +195,7 @@ func (s *Server) plan(d access.Decision) (appPlan, *wire.Close) {
 // for a program that could not be started at all.
 func (s *Server) ensure(ctx context.Context, app, name string, l runtime.Limits) (*wire.Close, string) {
 	// THE RUNTIME DIRECTORY FIRST, AND BEFORE THE FIRST QUESTION TO THE
-	// ENGINE. /run/ngc/<name> is where rootless podman keeps what runs for
+	// ENGINE. /run/cd/<name> is where rootless podman keeps what runs for
 	// this container, it is a tmpfs, and nothing of it survives a boot
 	// (runtime, run.go). Until this call existed the one place that made it
 	// was the activation of the app (install/activate.go), so after every
@@ -204,9 +204,9 @@ func (s *Server) ensure(ctx context.Context, app, name string, l runtime.Limits)
 	// somebody activated it again.
 	//
 	// Measured on 22.10.2026 on the Debian machine, which had rebooted at
-	// 04:44: /run/ngc held nothing but itself, while the user and the data
+	// 04:44: /run/cd held nothing but itself, while the user and the data
 	// directory of org.sorglos.terminal were both there. podman as the app's
-	// user then says "lstat /run/ngc/ngc-terminal-439982dd: no such file or
+	// user then says "lstat /run/cd/cd-terminal-439982dd: no such file or
 	// directory" and ends with a status of its own, which is Running below
 	// answering an error, which was E_UNREACHABLE with no line anywhere.
 	if s.d.Prepare != nil {

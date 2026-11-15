@@ -8,24 +8,24 @@ import (
 	"strings"
 )
 
-// Tables are every table NGC uses, in the order 0001 creates them. Nothing
+// Tables are every table CirroDesk uses, in the order 0001 creates them. Nothing
 // outside this list is ever named in a statement.
 var Tables = []string{
-	"ngc_schema", "ngc_lock", "ngc_blob", "ngc_app", "ngc_once",
-	"ngc_user", "ngc_session", "ngc_pending", "ngc_log",
+	"cd_schema", "cd_lock", "cd_blob", "cd_app", "cd_once",
+	"cd_user", "cd_session", "cd_pending", "cd_log",
 }
 
 // Columns are the columns of each table, in the order of the CREATE TABLE.
 var Columns = map[string][]string{
-	"ngc_schema":  {"version", "step", "done", "applied"},
-	"ngc_lock":    {"name", "owner", "until"},
-	"ngc_blob":    {"kind", "id", "seq", "data", "updated"},
-	"ngc_app":     {"id", "version", "store", "node", "active", "manifest", "sha256", "grants", "kept_data", "updated"},
-	"ngc_once":    {"kind", "token", "data", "expires", "used"},
-	"ngc_user":    {"id", "name", "roles", "totp", "locked", "failures", "last_login"},
-	"ngc_session": {"token", "user_id", "cert", "proof", "api_key", "api_cert", "created", "expires", "seen"},
-	"ngc_pending": {"pubkey", "name", "since"},
-	"ngc_log":     {"id", "ts", "user_id", "kind", "app", "action", "node", "result_code", "detail"},
+	"cd_schema":  {"version", "step", "done", "applied"},
+	"cd_lock":    {"name", "owner", "until"},
+	"cd_blob":    {"kind", "id", "seq", "data", "updated"},
+	"cd_app":     {"id", "version", "store", "node", "active", "manifest", "sha256", "grants", "kept_data", "updated"},
+	"cd_once":    {"kind", "token", "data", "expires", "used"},
+	"cd_user":    {"id", "name", "roles", "totp", "locked", "failures", "last_login"},
+	"cd_session": {"token", "user_id", "cert", "proof", "api_key", "api_cert", "created", "expires", "seen"},
+	"cd_pending": {"pubkey", "name", "since"},
+	"cd_log":     {"id", "ts", "user_id", "kind", "app", "action", "node", "result_code", "detail"},
 }
 
 // Placeholders are the names a migration may use for a column type. A
@@ -42,7 +42,7 @@ var Placeholders = []string{"key", "text", "doc", "data", "int", "opts"}
 //
 // What it is FOR is a check against the real database: the type a column
 // really has, read back out of the database, against the one it was made with.
-// Measured on 30.10.2026 why that is worth having: ngc_blob.seq turned from
+// Measured on 30.10.2026 why that is worth having: cd_blob.seq turned from
 // the number type into the byte type lets both SQLite and MariaDB start
 // without a word, and BlobFrom then hands its rows back in the wrong order -
 // on SQLite it hands back rows that do not belong in the answer at all. No
@@ -53,18 +53,18 @@ var Placeholders = []string{"key", "text", "doc", "data", "int", "opts"}
 // migrate's TestColumnTypeIsWhatTheMigrationsWrite holds every entry against
 // the statements the migrations really carry, so neither half can drift.
 var ColumnType = map[string]map[string]string{
-	"ngc_schema": {"version": "int", "step": "int", "done": "int", "applied": "int"},
-	"ngc_lock":   {"name": "key", "owner": "text", "until": "int"},
-	"ngc_blob":   {"kind": "key", "id": "key", "seq": "int", "data": "data", "updated": "int"},
-	"ngc_app": {"id": "key", "version": "key", "store": "key", "node": "key", "active": "int",
+	"cd_schema": {"version": "int", "step": "int", "done": "int", "applied": "int"},
+	"cd_lock":   {"name": "key", "owner": "text", "until": "int"},
+	"cd_blob":   {"kind": "key", "id": "key", "seq": "int", "data": "data", "updated": "int"},
+	"cd_app": {"id": "key", "version": "key", "store": "key", "node": "key", "active": "int",
 		"manifest": "doc", "sha256": "key", "grants": "doc", "kept_data": "int", "updated": "int"},
-	"ngc_once": {"kind": "key", "token": "key", "data": "key", "expires": "int", "used": "int"},
-	"ngc_user": {"id": "key", "name": "key", "roles": "doc", "totp": "doc", "locked": "int",
+	"cd_once": {"kind": "key", "token": "key", "data": "key", "expires": "int", "used": "int"},
+	"cd_user": {"id": "key", "name": "key", "roles": "doc", "totp": "doc", "locked": "int",
 		"failures": "int", "last_login": "int"},
-	"ngc_session": {"token": "key", "user_id": "key", "cert": "doc", "proof": "doc",
+	"cd_session": {"token": "key", "user_id": "key", "cert": "doc", "proof": "doc",
 		"api_key": "doc", "api_cert": "doc", "created": "int", "expires": "int", "seen": "int"},
-	"ngc_pending": {"pubkey": "key", "name": "key", "since": "int"},
-	"ngc_log": {"id": "key", "ts": "int", "user_id": "key", "kind": "key", "app": "key",
+	"cd_pending": {"pubkey": "key", "name": "key", "since": "int"},
+	"cd_log": {"id": "key", "ts": "int", "user_id": "key", "kind": "key", "app": "key",
 		"action": "key", "node": "key", "result_code": "key", "detail": "text"},
 }
 

@@ -1,8 +1,8 @@
 #!/bin/sh
 # Reads the hardening switches off the container that is REALLY running, not
-# off the argument list NGC sends.
+# off the argument list CirroDesk sends.
 #
-# That difference is the whole point of points 51 and 72: measured is that NGC
+# That difference is the whole point of points 51 and 72: measured is that CirroDesk
 # sends the switches, NOT that podman honours them. This script reads podman's
 # own view and, below it, what the kernel actually holds in the cgroup and in
 # /proc. Where the two disagree, the kernel wins and the difference is the
@@ -48,7 +48,7 @@ if [ "$PID" != "0" ]; then
   echo "NoNewPrivs: $(sudo grep NoNewPrivs /proc/$PID/status 2>/dev/null)"
   echo "CapEff    : $(sudo grep CapEff /proc/$PID/status 2>/dev/null)"
   echo "mountinfo /data:"; sudo grep ' /data ' /proc/$PID/mountinfo 2>/dev/null
-  echo "mountinfo ngc-hold:"; sudo grep 'ngc-hold' /proc/$PID/mountinfo 2>/dev/null
+  echo "mountinfo cd-hold:"; sudo grep 'cd-hold' /proc/$PID/mountinfo 2>/dev/null
 else
   echo "(Behaelter laeuft nicht - der Kern haelt nichts, nur podmans Sicht oben gilt)"
 fi

@@ -9,7 +9,7 @@ import (
 )
 
 // A UI tar is how the API keeps an app's UI (dbapi.BlobUI) and sends it to
-// the shell (ngc.desktop/ui); PackageUI makes the one of an app package, and
+// the shell (cd.desktop/ui); PackageUI makes the one of an app package, and
 // its SHA-256 is the app's UI hash. UIWriter writes it and WalkUI reads it.
 // Both know exactly one form, the one below, so the shell's reader can follow
 // the same rules line by line (vectors: ui.json):
@@ -384,7 +384,7 @@ func pad512(b []byte) []byte {
 // below ui/ (Walk, Kind KindUI) in the order the package lists them, through
 // UIWriter, then the end marker; directory entries are not written. It
 // returns the manifest and SHA-256 of exactly what it wrote: the app's UI
-// hash (Package.UI, core.ActivateParams.UI). ngc-store, the API (which keeps
+// hash (Package.UI, core.ActivateParams.UI). cd-store, the API (which keeps
 // and serves these bytes, dbapi.BlobUI) and the controller compute it the
 // same way, and the shell does for a package an admin uploads (vectors:
 // packui.json). pkg is the plain package; an encrypted one is ErrPackage.

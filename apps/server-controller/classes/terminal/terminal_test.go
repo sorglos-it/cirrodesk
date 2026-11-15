@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // marker is the stand-in for what a user types into a terminal. It is SHORT on
@@ -380,18 +380,18 @@ func goodEnv(t *testing.T) {
 	t.Setenv(service.EnvUser, trusttest.ID(0x21))
 }
 
-// TestRunRefusesWithoutNGCData is the plan's case: without the environment of
+// TestRunRefusesWithoutCDData is the plan's case: without the environment of
 // a service this program is not in the container of its app.
-func TestRunRefusesWithoutNGCData(t *testing.T) {
+func TestRunRefusesWithoutCDData(t *testing.T) {
 	for _, data := range []string{"", "/tmp", service.DataDir + "/x"} {
 		var errOut bytes.Buffer
 		goodEnv(t)
 		t.Setenv(service.EnvData, data)
 		if code := run(context.Background(), strings.NewReader(""), io.Discard, &errOut, 0); code == 0 {
-			t.Fatalf("NGC_DATA=%q: exit 0, want a failure", data)
+			t.Fatalf("CD_DATA=%q: exit 0, want a failure", data)
 		}
 		if !strings.Contains(errOut.String(), msgNoData) {
-			t.Fatalf("NGC_DATA=%q said %q", data, errOut.String())
+			t.Fatalf("CD_DATA=%q said %q", data, errOut.String())
 		}
 	}
 }
@@ -825,15 +825,15 @@ func TestHoldEndsWithItsSignal(t *testing.T) {
 }
 
 // TestShellEnvCarriesNothing is the bolt under the decision that the
-// parameters of ngc.open are decoration (see the head of terminal.go): the
+// parameters of cd.open are decoration (see the head of terminal.go): the
 // environment of the shell is four fixed lines plus HOME, so neither a cols
-// nor a rows nor anything else of NGC_PARAMS has a way into this program.
+// nor a rows nor anything else of CD_PARAMS has a way into this program.
 //
 // It poisons EVERY variable a service gets - the whole list of
 // shared/service - with a value that would be visible if it travelled, and
 // then holds two things: the four lines are exactly the four lines, and no
 // poisoned value is anywhere in the result. A mutation that hands the process
-// environment on (append(..., os.Environ()...)), or that lets NGC_PARAMS
+// environment on (append(..., os.Environ()...)), or that lets CD_PARAMS
 // through, or that takes TERM out of the environment instead of fixing it,
 // dies on this.
 //

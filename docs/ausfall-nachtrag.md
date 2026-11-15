@@ -1,5 +1,7 @@
 # Die zwei Fälle, die am 24.10. offen geblieben sind
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 Am 24.10.2026 wurde jede der sechs Maschinen einmal abgeschaltet und gemessen
 (`docs/ausfall-je-maschine.md`). Zwei Fälle blieben ausdrücklich offen, und
 dieses Blatt holt sie nach:

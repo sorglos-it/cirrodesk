@@ -2,7 +2,7 @@
 # Phase B of the Erstlauf: the stations that only a MACHINE can answer.
 #
 # Runs ON a throwaway machine, as root, on Debian or Ubuntu with systemd. It
-# installs NGC the way a user does - with the ulh script, from a signed release -
+# installs CirroDesk the way a user does - with the ulh script, from a signed release -
 # and then asks the stations. tools/erstlauf.sh is phase A and decides nothing
 # here; docs/erstlauf.md holds the inventory and why the two phases are split.
 #
@@ -11,26 +11,26 @@
 #                        [--hostname <name>] [--name <node>]
 #
 #   --staged  a directory with release.json, release-key.pem and the tar of
-#             each part (ngc-api-<arch>.tar, ngc-controller-<arch>.tar). It is
-#             copied to /var/lib/ngc/staged, the way shared/ulh.md describes for
+#             each part (cd-api-<arch>.tar, cd-controller-<arch>.tar). It is
+#             copied to /var/lib/cd/staged, the way shared/ulh.md describes for
 #             an installation without internet.
-#   --ulh     a checkout of github.com/sorglos-it/ulh that CARRIES the NGC
+#   --ulh     a checkout of github.com/sorglos-it/ulh that CARRIES the CirroDesk
 #             scripts. They are not on ulh's main (measured 23.10.2026); they
-#             live on the branches ngc-kette / pruefsatz-ngc-kette.
+#             live on the branches cd-kette / pruefsatz-cd-kette.
 #   --test-release-key  see THE ONE BOLT THIS RUN REPLACES below.
 #
 # ============================================================
 # THE ONE BOLT THIS RUN REPLACES, AND WHAT THAT COSTS
 # ============================================================
-# ngc-all.sh carries the public release key of NGC in its text, and that key is
-# the whole trust in a release. Nobody but NGC can sign a release it accepts, so
+# cd-all.sh carries the public release key of CirroDesk in its text, and that key is
+# the whole trust in a release. Nobody but CirroDesk can sign a release it accepts, so
 # a run against a release built here has two choices: not run at all, or name a
 # test root. This script takes the second and says so at every turn - the station
 # message carries "test root", not "ok" alone.
 #
 # What still runs: the signature check itself, byte for byte, including the
 # checksums and the size (verify_release of the script). A tampered file fails
-# here exactly as it would in the field. What is NOT measured: that NGC's own
+# here exactly as it would in the field. What is NOT measured: that CirroDesk's own
 # key is in the script and correct. That stays a job for a real release.
 # The rule behind this is messen.md: a fixture that replaces a security bolt is
 # named at the line and in every report that carries a number from that path.
@@ -103,9 +103,9 @@ done
 	echo "erstlauf-maschine: --ulh <dir> is needed and has to be a directory" >&2
 	exit 1
 }
-script=$ulhdir/apps/cli/assets/scripts/ngc-all.sh
+script=$ulhdir/apps/cli/assets/scripts/cd-all.sh
 [ -f "$script" ] || {
-	echo "erstlauf-maschine: $script is missing - the NGC scripts are not on ulh's main, use a branch that carries them (ngc-kette)" >&2
+	echo "erstlauf-maschine: $script is missing - the CirroDesk scripts are not on ulh's main, use a branch that carries them (cd-kette)" >&2
 	exit 1
 }
 # The address of the interface the default route uses, not simply the first one
@@ -153,7 +153,7 @@ echo "erstlauf-maschine: $(sed -n 's/^PRETTY_NAME="\(.*\)"$/\1/p' /etc/os-releas
 [ "$(ps -p 1 -o comm=)" = systemd ] ||
 	broken 0 "voraussetzungen" "pid 1 is '$(ps -p 1 -o comm=)', not systemd - the ulh script installs services and this run asks systemd about them"
 # Only what NOBODY installs for this run. openssl, jq, curl, ca-certificates
-# and podman are NGC_PACKAGES of ngc-all.sh, and ensure_packages installs every
+# and podman are CD_PACKAGES of cd-all.sh, and ensure_packages installs every
 # one of them that is missing - so demanding them here refused to measure the
 # one machine this whole run is about: a fresh clone of the Proxmox template,
 # which carries no jq (measured 29.10.2026, VMID 310). A precondition the
@@ -165,21 +165,21 @@ done
 
 # ---------------------------------------------------------------------------
 # The installation, the way a user runs it: the staged release into
-# /var/lib/ngc/staged, then the ulh script with the answers in its environment.
+# /var/lib/cd/staged, then the ulh script with the answers in its environment.
 # ---------------------------------------------------------------------------
-mkdir -p /var/lib/ngc/staged
-cp -f -- "$staged"/* /var/lib/ngc/staged/
-[ -f /var/lib/ngc/staged/release.json ] ||
+mkdir -p /var/lib/cd/staged
+cp -f -- "$staged"/* /var/lib/cd/staged/
+[ -f /var/lib/cd/staged/release.json ] ||
 	broken 0 "installieren" "$staged carries no release.json, so fetch_release would go to the internet and this run would measure a download"
 
 run=$script
-# mit_testschluessel writes a copy of an ulh script whose NGC_RELEASE_KEY is
+# mit_testschluessel writes a copy of an ulh script whose CD_RELEASE_KEY is
 # the test root, and refuses to hand back a copy the replacement missed.
 #
 # IT TAKES A SCRIPT NAME, because the run needs TWO of them. Until 29.10.2026
-# only ngc-all.sh was swapped, and ngc-web.sh - which carries the very same
-# key and checks the very same release - was left with NGC's own. So
-# "ngc-web install" refused every release this run can build ("release wrong:
+# only cd-all.sh was swapped, and cd-web.sh - which carries the very same
+# key and checks the very same release - was left with CirroDesk's own. So
+# "cd-web install" refused every release this run can build ("release wrong:
 # signature does not verify"), the web interface was never installed, and
 # station 3 said the interface "has to be installed first" on every run there
 # has ever been. Six stations behind it were therefore unreachable not because
@@ -197,8 +197,8 @@ mit_testschluessel() {
 	# multi-line value and a sed over line boundaries is where a measurement
 	# dies at its own separator (messen.md, 10.10.2026).
 	awk -v keyfile="$testkey" '
-		/^NGC_RELEASE_KEY="-----BEGIN PUBLIC KEY-----$/ {
-			printf "NGC_RELEASE_KEY=\"";
+		/^CD_RELEASE_KEY="-----BEGIN PUBLIC KEY-----$/ {
+			printf "CD_RELEASE_KEY=\"";
 			while ((getline line < keyfile) > 0) {
 				if (n++) printf "\n";
 				printf "%s", line;
@@ -220,27 +220,27 @@ mit_testschluessel() {
 		broken 0 "installieren" "the copy of $(basename "$src") with the test key does not parse any more"
 }
 
-webscript=$ulhdir/apps/cli/assets/scripts/ngc-web.sh
+webscript=$ulhdir/apps/cli/assets/scripts/cd-web.sh
 webrun=$webscript
 if [ -n "$testkey" ]; then
 	[ -f "$testkey" ] ||
 		broken 0 "installieren" "--test-release-key names no readable file: $testkey"
 	grep -q 'BEGIN PUBLIC KEY' "$testkey" ||
 		broken 0 "installieren" "$testkey is no PEM public key"
-	run=$(dirname "$script")/ngc-all.erstlauf.sh
-	webrun=$(dirname "$script")/ngc-web.erstlauf.sh
+	run=$(dirname "$script")/cd-all.erstlauf.sh
+	webrun=$(dirname "$script")/cd-web.erstlauf.sh
 	trap 'rm -rf -- "$work"; rm -f -- "'"$run"'" "'"$webrun"'"' EXIT
 	mit_testschluessel "$script" "$run"
 	[ -f "$webscript" ] && mit_testschluessel "$webscript" "$webrun"
-	echo "erstlauf-maschine: TEST ROOT - the release key of ngc-all.sh and of ngc-web.sh was replaced by $testkey."
-	echo "erstlauf-maschine: the signature check itself runs unchanged; that NGC's OWN key is right is NOT measured here."
+	echo "erstlauf-maschine: TEST ROOT - the release key of cd-all.sh and of cd-web.sh was replaced by $testkey."
+	echo "erstlauf-maschine: the signature check itself runs unchanged; that CirroDesk's OWN key is right is NOT measured here."
 fi
 
 # A STORE HAS TO BE NAMED, AND THAT IS A FINDING OF THIS RUN, not a setting.
-# Measured 23.10.2026: with both store answers empty, ngc-all.sh install stops
-# with "NGC has no official app store yet, so this installation needs a store of
+# Measured 23.10.2026: with both store answers empty, cd-all.sh install stops
+# with "CirroDesk has no official app store yet, so this installation needs a store of
 # its own [...] Leaving them empty would write a placeholder into
-# /etc/ngc/api.json, and the API refuses that file." So an installation from a
+# /etc/cd/api.json, and the API refuses that file." So an installation from a
 # published release cannot be completed today unless the admin invents a store.
 # The run names one so that it gets PAST station 1 - the store is not running,
 # which is why station 6 stays unmeasurable and says so.
@@ -257,7 +257,7 @@ fi
 
 echo "erstlauf-maschine: installing with the ulh script ..."
 set +e
-env NGC_NAME="$node" NGC_HOSTNAME="$host" NGC_STORE_URL="$storeurl" NGC_STORE_KEY="$storekey" \
+env CD_NAME="$node" CD_HOSTNAME="$host" CD_STORE_URL="$storeurl" CD_STORE_KEY="$storekey" \
 	bash "$run" install >"$work/install.log" 2>&1
 installrc=$?
 set -e
@@ -267,9 +267,9 @@ tail -n 15 "$work/install.log" | sed 's/^/    /'
 # ---------------------------------------------------------------------------
 # station 1  installieren
 #
-# Obstacle 1 of October: ngc-api.service carried ProtectSystem=strict and
-# ReadWritePaths without /etc/ngc, so the API could never move the pin in
-# /etc/ngc/trust-anchor.json up. pinned=1 while the database stood at 2, and
+# Obstacle 1 of October: cd-api.service carried ProtectSystem=strict and
+# ReadWritePaths without /etc/cd, so the API could never move the pin in
+# /etc/cd/trust-anchor.json up. pinned=1 while the database stood at 2, and
 # nothing in the system named the cause.
 #
 # PHASE A ASKS THE TEXT OF THE SCRIPT. THIS ASKS THE SANDBOX. The difference is
@@ -282,22 +282,22 @@ if [ "$installrc" != 0 ]; then
 	fail 1 "$s1" "the ulh script ended with code $installrc, so nothing is installed: $(grep -iE 'error|fehler' "$work/install.log" | tail -3 | tr '\n' ' ')"
 else
 	missing=""
-	for p in /usr/lib/ngc/ngc-api /usr/lib/ngc/ngc-store /usr/lib/ngc/ngc-controller; do
+	for p in /usr/lib/cd/cd-api /usr/lib/cd/cd-store /usr/lib/cd/cd-controller; do
 		[ -x "$p" ] || missing="$missing$p "
 	done
-	[ -f /etc/systemd/system/ngc-api.service ] || missing="$missing/etc/systemd/system/ngc-api.service "
+	[ -f /etc/systemd/system/cd-api.service ] || missing="$missing/etc/systemd/system/cd-api.service "
 	if [ -n "$missing" ]; then
 		fail 1 "$s1" "the install said 0, but these are not there: $missing"
 	else
 		# What systemd really grants, not what the file says. systemctl show
 		# answers for the unit as loaded, including a drop-in nobody looked at.
-		rwp=$(systemctl show -p ReadWritePaths --value ngc-api.service 2>/dev/null || true)
-		prot=$(systemctl show -p ProtectSystem --value ngc-api.service 2>/dev/null || true)
-		anchor=/etc/ngc/trust-anchor.json
+		rwp=$(systemctl show -p ReadWritePaths --value cd-api.service 2>/dev/null || true)
+		prot=$(systemctl show -p ProtectSystem --value cd-api.service 2>/dev/null || true)
+		anchor=/etc/cd/trust-anchor.json
 		if [ "$prot" = "" ] || [ "$prot" = no ]; then
 			# No sandbox at all: then this station cannot fail for the October
 			# reason, and saying "ok" would hide that the bolt is gone.
-			fail 1 "$s1" "ngc-api.service has ProtectSystem='$prot', so the confinement obstacle 1 lived in is not there at all - the unit lost its sandbox"
+			fail 1 "$s1" "cd-api.service has ProtectSystem='$prot', so the confinement obstacle 1 lived in is not there at all - the unit lost its sandbox"
 		else
 			# The real question, put to systemd: can a process under THIS
 			# unit's sandbox write the anchor? systemd-run is given the same
@@ -306,14 +306,14 @@ else
 			# --pipe, or the reason is lost: without it systemd-run keeps the
 			# probe's stderr in the journal and the FAIL below promises a reason
 			# it cannot give. With it the line reads "touch: cannot touch
-			# '/etc/ngc/trust-anchor.json.erstlauf': Read-only file system",
+			# '/etc/cd/trust-anchor.json.erstlauf': Read-only file system",
 			# which is the whole finding in one sentence (measured 23.10.2026).
 			if systemd-run --quiet --wait --collect --pipe \
 				-p ProtectSystem="$prot" -p ReadWritePaths="$rwp" \
 				/bin/sh -c "touch $anchor.erstlauf && rm -f $anchor.erstlauf" >"$probe_out" 2>&1; then
-				pass 1 "$s1" "the install came off and the sandbox of ngc-api.service (ProtectSystem=$prot, ReadWritePaths=$rwp) really lets $anchor be written${testkey:+ -- measured with a TEST release root}"
+				pass 1 "$s1" "the install came off and the sandbox of cd-api.service (ProtectSystem=$prot, ReadWritePaths=$rwp) really lets $anchor be written${testkey:+ -- measured with a TEST release root}"
 			else
-				fail 1 "$s1" "ngc-api.service grants ProtectSystem=$prot with ReadWritePaths='$rwp', and a process in that sandbox CANNOT write $anchor: $(tr '\n' ' ' <"$probe_out") -- the pin outside the database can never be moved up, and the installation gets stuck without naming a cause"
+				fail 1 "$s1" "cd-api.service grants ProtectSystem=$prot with ReadWritePaths='$rwp', and a process in that sandbox CANNOT write $anchor: $(tr '\n' ' ' <"$probe_out") -- the pin outside the database can never be moved up, and the installation gets stuck without naming a cause"
 			fi
 		fi
 	fi
@@ -327,37 +327,37 @@ fi
 # is asked, not one built for the occasion - that is the difference to phase A.
 #
 # AND THE SERVICE HAS TO STAY UP. NRestarts is no restart counter: measured
-# 18.10.2026, ngc-api died four times, the journal counted to 3 and
+# 18.10.2026, cd-api died four times, the journal counted to 3 and
 # "systemctl show -p NRestarts" stood at 0 in every sample, because systemd
 # resets it as soon as the unit runs clean again. The proof is the MainPID over
 # time.
 # ---------------------------------------------------------------------------
 s2="API und Controller laufen"
-if [ ! -x /usr/lib/ngc/ngc-api ]; then
-	unmeasurable 2 "$s2" "there is no /usr/lib/ngc/ngc-api, so station 1 has to come off first"
+if [ ! -x /usr/lib/cd/cd-api ]; then
+	unmeasurable 2 "$s2" "there is no /usr/lib/cd/cd-api, so station 1 has to come off first"
 else
-	ver=$(/usr/lib/ngc/ngc-api -version 2>&1 | head -1 | awk '{print $2}')
+	ver=$(/usr/lib/cd/cd-api -version 2>&1 | head -1 | awk '{print $2}')
 	# The same pattern the interface uses, and nothing laxer: three numbers
 	# without a leading zero (contracts/text.js, store.ValidVersion).
 	vre='^(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})$'
 	bad=0
 	grep -Eq -- "$vre" <<<"$ver" || {
-		fail 2 "$s2" "the INSTALLED /usr/lib/ngc/ngc-api reports version '$ver', which the interface's validVersion refuses - it throws the whole machine list away for it"
+		fail 2 "$s2" "the INSTALLED /usr/lib/cd/cd-api reports version '$ver', which the interface's validVersion refuses - it throws the whole machine list away for it"
 		bad=1
 	}
-	if ! systemctl is-active --quiet ngc-api.service; then
-		fail 2 "$s2" "ngc-api.service is not active ($(systemctl is-active ngc-api.service 2>&1)): $(journalctl -u ngc-api.service -n 5 --no-pager 2>/dev/null | tr '\n' ' ')"
+	if ! systemctl is-active --quiet cd-api.service; then
+		fail 2 "$s2" "cd-api.service is not active ($(systemctl is-active cd-api.service 2>&1)): $(journalctl -u cd-api.service -n 5 --no-pager 2>/dev/null | tr '\n' ' ')"
 		bad=1
 	else
-		pid1=$(systemctl show -p MainPID --value ngc-api.service)
+		pid1=$(systemctl show -p MainPID --value cd-api.service)
 		sleep 10
-		pid2=$(systemctl show -p MainPID --value ngc-api.service)
+		pid2=$(systemctl show -p MainPID --value cd-api.service)
 		if [ "$pid1" != "$pid2" ]; then
-			fail 2 "$s2" "ngc-api.service restarted during this run (MainPID $pid1 -> $pid2), so it is crash-looping; NRestarts says $(systemctl show -p NRestarts --value ngc-api.service) and that number is not a restart counter"
+			fail 2 "$s2" "cd-api.service restarted during this run (MainPID $pid1 -> $pid2), so it is crash-looping; NRestarts says $(systemctl show -p NRestarts --value cd-api.service) and that number is not a restart counter"
 			bad=1
 		fi
 	fi
-	[ "$bad" = 0 ] && pass 2 "$s2" "the installed ngc-api reports $ver, ngc-api.service is active and kept one MainPID ($pid1) over 10 s"
+	[ "$bad" = 0 ] && pass 2 "$s2" "the installed cd-api reports $ver, cd-api.service is active and kept one MainPID ($pid1) over 10 s"
 fi
 
 # ---------------------------------------------------------------------------
@@ -371,34 +371,34 @@ fi
 # pushing eight numbers along.
 #
 # It was measured by hand on 29.10.2026 and nothing in this run asked it: the
-# page answers 200 with NGC's own <title>, and /api/v1/setup answers 200
+# page answers 200 with CirroDesk's own <title>, and /api/v1/setup answers 200
 # THROUGH APACHE, which is the only thing that proves the whole stretch
 # browser -> apache -> balancer -> api. A run that installs the API and stops
 # has measured half a machine.
 #
-# The pin is computed here and not typed: ngc-web.sh refuses a pin that does
+# The pin is computed here and not typed: cd-web.sh refuses a pin that does
 # not belong to the API's certificate, and a pin pasted from somewhere else
 # would make this station a measurement of the paste.
 # ---------------------------------------------------------------------------
 s2w="Oberflaeche installieren"
 if [ ! -f "$webscript" ]; then
-	unmeasurable 2w "$s2w" "$ulhdir carries no apps/cli/assets/scripts/ngc-web.sh - the NGC scripts are on their own branches of ulh (ngc-kette)"
-elif [ ! -f /etc/ngc/tls/api.crt ]; then
-	unmeasurable 2w "$s2w" "there is no /etc/ngc/tls/api.crt, so station 1 has to come off first"
+	unmeasurable 2w "$s2w" "$ulhdir carries no apps/cli/assets/scripts/cd-web.sh - the CirroDesk scripts are on their own branches of ulh (cd-kette)"
+elif [ ! -f /etc/cd/tls/api.crt ]; then
+	unmeasurable 2w "$s2w" "there is no /etc/cd/tls/api.crt, so station 1 has to come off first"
 else
-	pin=$(openssl x509 -in /etc/ngc/tls/api.crt -noout -pubkey 2>/dev/null |
+	pin=$(openssl x509 -in /etc/cd/tls/api.crt -noout -pubkey 2>/dev/null |
 		openssl pkey -pubin -outform der 2>/dev/null |
 		openssl dgst -sha256 -binary 2>/dev/null | base64 -w0 | tr '+/' '-_' | tr -d '=')
 	[ ${#pin} -eq 43 ] ||
-		broken 2w "$s2w" "the pin of /etc/ngc/tls/api.crt came out ${#pin} characters, not 43 - openssl did something else than expected"
+		broken 2w "$s2w" "the pin of /etc/cd/tls/api.crt came out ${#pin} characters, not 43 - openssl did something else than expected"
 	set +e
-	env NGC_HOSTNAME="$host" NGC_CERT_MODE=selfsigned \
-		NGC_APIS="https://$host:7443" NGC_API_PINS="$pin" \
+	env CD_HOSTNAME="$host" CD_CERT_MODE=selfsigned \
+		CD_APIS="https://$host:7443" CD_API_PINS="$pin" \
 		bash "$webrun" install >"$work/web.log" 2>&1
 	webrc=$?
 	set -e
 	if [ "$webrc" != 0 ]; then
-		fail 2w "$s2w" "ngc-web.sh install ended with code $webrc: $(grep -iE 'error|wrong|fehler|✗' "$work/web.log" | tail -3 | tr '\n' ' ')"
+		fail 2w "$s2w" "cd-web.sh install ended with code $webrc: $(grep -iE 'error|wrong|fehler|✗' "$work/web.log" | tail -3 | tr '\n' ' ')"
 	else
 		code=$(curl -sk -o "$work/index.html" -w '%{http_code}' "https://$host/" 2>/dev/null)
 		setup=$(curl -sk -o /dev/null -w '%{http_code}' "https://$host/api/v1/setup" 2>/dev/null)
@@ -406,8 +406,8 @@ else
 		wrong=""
 		systemctl is-active --quiet apache2 || wrong="apache2 is not active; "
 		[ "$code" = 200 ] || wrong="${wrong}GET / answered $code, not 200; "
-		grep -q '<title>NGC</title>' "$work/index.html" ||
-			wrong="${wrong}the page at / is not NGC's own (no <title>NGC</title>); "
+		grep -q '<title>CirroDesk</title>' "$work/index.html" ||
+			wrong="${wrong}the page at / is not CirroDesk's own (no <title>CirroDesk</title>); "
 		[ "$setup" = 200 ] || [ "$setup" = 404 ] ||
 			wrong="${wrong}/api/v1/setup answered $setup through apache, so the stretch browser -> apache -> balancer -> api does not carry; "
 		[ "$rp" = "$host" ] ||
@@ -415,7 +415,7 @@ else
 		if [ -n "$wrong" ]; then
 			fail 2w "$s2w" "${wrong%; }"
 		else
-			pass 2w "$s2w" "apache2 is active, / answers 200 with NGC's own page, /api/v1/setup answers $setup THROUGH apache, and /config.json names rp.id $host"
+			pass 2w "$s2w" "apache2 is active, / answers 200 with CirroDesk's own page, /api/v1/setup answers $setup THROUGH apache, and /config.json names rp.id $host"
 		fi
 	fi
 fi
@@ -429,10 +429,10 @@ fi
 # search and does not have to believe a sentence (messen.md: an absence is shown
 # with places, not with searchers).
 # ---------------------------------------------------------------------------
-unmeasurable 3 "Controller koppeln" "the pairing code comes out of the BROWSER: a person signs in on the page station 2w put up, makes the code there, and only then does ngc-all.sh take it as its answer 'pair_code'. Nothing on this machine can sign in, so this is the station where the run ends and a human carries on"
+unmeasurable 3 "Controller koppeln" "the pairing code comes out of the BROWSER: a person signs in on the page station 2w put up, makes the code there, and only then does cd-all.sh take it as its answer 'pair_code'. Nothing on this machine can sign in, so this is the station where the run ends and a human carries on"
 unmeasurable 4 "aufnehmen" "needs station 3, and then a click through the interface with a signed-in admin"
 unmeasurable 5 "Systemrechte setzen" "needs station 4"
-unmeasurable 6 "Katalog da" "needs a store with a signed catalog in the trust list; ngc-all.sh takes store_url and store_key, and NGC's own store key is still a placeholder in the script (NGC_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-...)"
+unmeasurable 6 "Katalog da" "needs a store with a signed catalog in the trust list; cd-all.sh takes store_url and store_key, and CirroDesk's own store key is still a placeholder in the script (CD_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-...)"
 # TWO QUESTIONS, NOT ONE, and the second is the one that decides.
 #
 # The kernel is asked from three places, because the first two answer on no
@@ -453,8 +453,8 @@ kern=nein
 zgrep -q '^CONFIG_FS_ENCRYPTION=y' /proc/config.gz 2>/dev/null && kern=ja
 grep -q '^CONFIG_FS_ENCRYPTION=y' "/boot/config-$(uname -r)" 2>/dev/null && kern=ja
 [ -e /sys/fs/ext4/features/encryption ] && kern=ja
-appdir=/var/lib/ngc/apps
-[ -d "$appdir" ] || appdir=/var/lib/ngc
+appdir=/var/lib/cd/apps
+[ -d "$appdir" ] || appdir=/var/lib/cd
 appdev=$(findmnt -no SOURCE --target "$appdir" 2>/dev/null)
 fs=nein
 [ -n "$appdev" ] && tune2fs -l "$appdev" 2>/dev/null |

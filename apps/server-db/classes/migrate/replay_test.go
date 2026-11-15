@@ -16,10 +16,10 @@ package migrate
 // answer 1060, which mariaDialect.Exists already reads, but NOTHING HERE HAS
 // MEASURED IT. Whoever has a server runs this and reports the number:
 //
-//	mysql -e 'CREATE DATABASE ngc_probe;
-//	  CREATE TABLE ngc_probe.ngc_blob (kind VARBINARY(255) NOT NULL);
-//	  ALTER TABLE ngc_probe.ngc_blob ADD COLUMN seq BIGINT;
-//	  ALTER TABLE ngc_probe.ngc_blob ADD COLUMN seq BIGINT;'
+//	mysql -e 'CREATE DATABASE cd_probe;
+//	  CREATE TABLE cd_probe.cd_blob (kind VARBINARY(255) NOT NULL);
+//	  ALTER TABLE cd_probe.cd_blob ADD COLUMN seq BIGINT;
+//	  ALTER TABLE cd_probe.cd_blob ADD COLUMN seq BIGINT;'
 //
 // The last statement has to report ERROR 1060, not 1050 or 1061 - any other
 // number is a finding, because the runner would then stop on the second run
@@ -32,14 +32,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // encryptedAt opens the real encrypted file at path, as often as a case
 // wants: two pools on one file are what an update really has - the previous
-// API version holds one, ngc-api migrate opens its own.
+// API version holds one, cd-api migrate opens its own.
 func encryptedAt(t *testing.T, path string) *sql.DB {
 	t.Helper()
 	if OpenEncrypted == nil {
@@ -59,7 +59,7 @@ func encryptedAt(t *testing.T, path string) *sql.DB {
 
 // TestSQLiteSaysAlreadyExistsAndTheDialectReadsIt is the measurement under
 // sqliteDialect.Exists. That one reads the message of the error, which
-// nothing else in NGC does, so the message has to be measured against the
+// nothing else in CirroDesk does, so the message has to be measured against the
 // real driver instead of written down: a CREATE TABLE that runs twice on the
 // file apps/server-db really opens.
 //
@@ -69,7 +69,7 @@ func encryptedAt(t *testing.T, path string) *sql.DB {
 // assumed.
 func TestSQLiteSaysAlreadyExistsAndTheDialectReadsIt(t *testing.T) {
 	db := encryptedAt(t, filepath.Join(t.TempDir(), "state.db"))
-	const create = "CREATE TABLE ngc_probe ( id INTEGER NOT NULL , PRIMARY KEY (id) )"
+	const create = "CREATE TABLE cd_probe ( id INTEGER NOT NULL , PRIMARY KEY (id) )"
 	if _, err := db.ExecContext(ctx, create); err != nil {
 		t.Fatalf("the first CREATE already failed: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestSQLiteSaysAlreadyExistsAndTheDialectReadsIt(t *testing.T) {
 	if sqlstore.SQLite.Retry(err) || sqlstore.SQLite.Duplicate(err) {
 		t.Errorf("another reader claimed %q as well", err)
 	}
-	if _, err := db.ExecContext(ctx, "CREATE TABLE ngc_probe2 ( this is not SQL )"); err == nil {
+	if _, err := db.ExecContext(ctx, "CREATE TABLE cd_probe2 ( this is not SQL )"); err == nil {
 		t.Fatal("the broken statement went through")
 	} else if sqlstore.SQLite.Exists(err) {
 		t.Errorf("a broken statement passes as \"already there\": %v", err)
@@ -100,7 +100,7 @@ func TestSQLiteSaysAlreadyExistsAndTheDialectReadsIt(t *testing.T) {
 // The record of the migrations is removed and every migration played again,
 // which is what an update does to a database that is being used - only
 // harder, because a real update plays migrations that are new, and this one
-// plays the whole schema of NGC onto itself.
+// plays the whole schema of CirroDesk onto itself.
 func TestAMigrationReplayedOnADatabaseInUseKeepsTheData(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "state.db")
 	old := encryptedAt(t, path)
@@ -115,9 +115,9 @@ func TestAMigrationReplayedOnADatabaseInUseKeepsTheData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The second pool is the one ngc-api migrate opens for itself.
+	// The second pool is the one cd-api migrate opens for itself.
 	fresh := encryptedAt(t, path)
-	if _, err := fresh.ExecContext(ctx, "DELETE FROM ngc_schema WHERE version > ?", int64(0)); err != nil {
+	if _, err := fresh.ExecContext(ctx, "DELETE FROM cd_schema WHERE version > ?", int64(0)); err != nil {
 		t.Fatal(err)
 	}
 	n, err := Apply(ctx, fresh, sqlstore.SQLite, "ctl-1", 1790000200)
@@ -145,8 +145,8 @@ func columnMigration(t *testing.T) File {
 	t.Helper()
 	var stmts []string
 	for _, s := range []string{
-		"CREATE TABLE ngc_blob ( kind {{key}} NOT NULL , PRIMARY KEY ( kind ) ) {{opts}}",
-		"ALTER TABLE ngc_blob ADD COLUMN seq {{int}}",
+		"CREATE TABLE cd_blob ( kind {{key}} NOT NULL , PRIMARY KEY ( kind ) ) {{opts}}",
+		"ALTER TABLE cd_blob ADD COLUMN seq {{int}}",
 	} {
 		form, err := checkStatement(s, fromMigration)
 		if err != nil {
@@ -181,7 +181,7 @@ func TestAColumnMigrationSurvivesASecondRun(t *testing.T) {
 	if _, err := applyOne(ctx, db, sqlstore.SQLite, f, owner, 1790000000); err != nil {
 		t.Fatalf("the first run already failed: %v", err)
 	}
-	if _, err := db.ExecContext(ctx, "DELETE FROM ngc_schema WHERE version = ?", f.Version); err != nil {
+	if _, err := db.ExecContext(ctx, "DELETE FROM cd_schema WHERE version = ?", f.Version); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := applyOne(ctx, db, sqlstore.SQLite, f, owner, 1790000000); err != nil {
@@ -194,7 +194,7 @@ func TestAColumnMigrationSurvivesASecondRun(t *testing.T) {
 	// only ever comes from somewhere else, and the branch replays from the
 	// first statement. That has to end well, and with the ADD COLUMN covered
 	// it does.
-	if _, err := db.ExecContext(ctx, "UPDATE ngc_schema SET step = ?, done = ? WHERE version = ?",
+	if _, err := db.ExecContext(ctx, "UPDATE cd_schema SET step = ?, done = ? WHERE version = ?",
 		int64(1), int64(0), f.Version); err != nil {
 		t.Fatal(err)
 	}
@@ -233,10 +233,10 @@ func TestAColumnMigrationSurvivesASecondRun(t *testing.T) {
 // wrong carries SQLITE_ERROR as well and must not pass as "already there".
 func TestSQLiteSaysDuplicateColumnNameAndTheDialectReadsIt(t *testing.T) {
 	db := encryptedAt(t, filepath.Join(t.TempDir(), "state.db"))
-	if _, err := db.ExecContext(ctx, "CREATE TABLE ngc_blob ( kind BLOB NOT NULL )"); err != nil {
+	if _, err := db.ExecContext(ctx, "CREATE TABLE cd_blob ( kind BLOB NOT NULL )"); err != nil {
 		t.Fatal(err)
 	}
-	const add = "ALTER TABLE ngc_blob ADD COLUMN seq INTEGER"
+	const add = "ALTER TABLE cd_blob ADD COLUMN seq INTEGER"
 	if _, err := db.ExecContext(ctx, add); err != nil {
 		t.Fatalf("the first ALTER already failed: %v", err)
 	}
@@ -250,7 +250,7 @@ func TestSQLiteSaysDuplicateColumnNameAndTheDialectReadsIt(t *testing.T) {
 	if sqlstore.SQLite.Retry(err) || sqlstore.SQLite.Duplicate(err) {
 		t.Errorf("another reader claimed %q as well", err)
 	}
-	if _, err := db.ExecContext(ctx, "ALTER TABLE ngc_blob ADD COLUMN this is not SQL"); err == nil {
+	if _, err := db.ExecContext(ctx, "ALTER TABLE cd_blob ADD COLUMN this is not SQL"); err == nil {
 		t.Fatal("the broken ALTER went through")
 	} else if sqlstore.SQLite.Exists(err) {
 		t.Errorf("a broken ALTER passes as \"already there\": %v", err)
@@ -263,7 +263,7 @@ func TestSQLiteSaysDuplicateColumnNameAndTheDialectReadsIt(t *testing.T) {
 	// standing as the name collision of CREATE INDEX. The comment at
 	// sqliteDialect.Exists says so; this is where it is measured.
 	other := encryptedAt(t, filepath.Join(t.TempDir(), "other.db"))
-	if _, err := other.ExecContext(ctx, "CREATE TABLE ngc_blob ( kind BLOB NOT NULL , seq BLOB )"); err != nil {
+	if _, err := other.ExecContext(ctx, "CREATE TABLE cd_blob ( kind BLOB NOT NULL , seq BLOB )"); err != nil {
 		t.Fatal(err)
 	}
 	_, typeErr := other.ExecContext(ctx, add)
@@ -282,8 +282,8 @@ func indexMigration(t *testing.T) File {
 	t.Helper()
 	var stmts []string
 	for _, s := range []string{
-		"CREATE TABLE ngc_blob ( kind {{key}} NOT NULL , seq {{int}} NOT NULL , id {{key}} NOT NULL , PRIMARY KEY ( kind ) ) {{opts}}",
-		"CREATE INDEX ngc_blob_seq ON ngc_blob ( kind , seq , id )",
+		"CREATE TABLE cd_blob ( kind {{key}} NOT NULL , seq {{int}} NOT NULL , id {{key}} NOT NULL , PRIMARY KEY ( kind ) ) {{opts}}",
+		"CREATE INDEX cd_blob_seq ON cd_blob ( kind , seq , id )",
 	} {
 		form, err := checkStatement(s, fromMigration)
 		if err != nil {
@@ -301,7 +301,7 @@ func indexMigration(t *testing.T) File {
 // and the collision stands between the file and a state of the DATABASE the
 // file never made. Neither sentence holds the case, and it was measured on
 // 10.10.2026: an index of the same name over other columns, with an empty
-// ngc_schema, made Run answer n=1, err=nil, write done=1, and Needed say "no"
+// cd_schema, made Run answer n=1, err=nil, write done=1, and Needed say "no"
 // from then on, forever, over a schema that is not the migration's.
 //
 // So what the step-over needs is not a reason, it is the question itself:
@@ -342,7 +342,7 @@ func TestAMigrationStopsAtAnObjectItWouldNotHaveMade(t *testing.T) {
 	if _, err := db.ExecContext(ctx, run(0)); err != nil {
 		t.Fatal(err)
 	}
-	const foreign = "CREATE INDEX ngc_blob_seq ON ngc_blob ( seq )"
+	const foreign = "CREATE INDEX cd_blob_seq ON cd_blob ( seq )"
 	if _, err := db.ExecContext(ctx, foreign); err != nil {
 		t.Fatal(err)
 	}
@@ -367,7 +367,7 @@ func TestAMigrationStopsAtAnObjectItWouldNotHaveMade(t *testing.T) {
 	}
 	// And the foreign index is untouched: the run stopped, it did not repair.
 	var stored string
-	if err := db.QueryRowContext(ctx, "SELECT sql FROM sqlite_master WHERE name = ?", "ngc_blob_seq").Scan(&stored); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT sql FROM sqlite_master WHERE name = ?", "cd_blob_seq").Scan(&stored); err != nil {
 		t.Fatal(err)
 	}
 	if stored != foreign {
@@ -377,7 +377,7 @@ func TestAMigrationStopsAtAnObjectItWouldNotHaveMade(t *testing.T) {
 	// The way to the question is open: with the migration's own index there
 	// instead of the foreign one, the very same run goes through. Without
 	// this the case would also pass if the run stopped for any other reason.
-	if _, err := db.ExecContext(ctx, "DROP INDEX ngc_blob_seq"); err != nil {
+	if _, err := db.ExecContext(ctx, "DROP INDEX cd_blob_seq"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := db.ExecContext(ctx, run(1)); err != nil {

@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // loopbackCert is what a certificate of a fake node on 127.0.0.1 is good for.
@@ -28,7 +28,7 @@ func cluster(ca *testAuthority, nodes ...*fakeNode) config.DB {
 		addrs[i] = n.addr
 	}
 	return config.DB{Driver: config.DriverMariaDB, Nodes: addrs,
-		Name: "ngc_other", User: "ngc_reader",
+		Name: "cd_other", User: "cd_reader",
 		Password: config.NewSecretText("not-the-real-one"), CA: ca.pem}
 }
 
@@ -76,8 +76,8 @@ func holdConns(t *testing.T, db *sql.DB, n int) func() {
 // that got a handshake response would have had the user name and the SHA1
 // scramble of the password.
 func TestNodeOverTLSWorksAndNothingElseDoes(t *testing.T) {
-	ca := newAuthority(t, "ngc-test-ca")
-	other := newAuthority(t, "ngc-foreign-ca")
+	ca := newAuthority(t, "cd-test-ca")
+	other := newAuthority(t, "cd-foreign-ca")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -96,7 +96,7 @@ func TestNodeOverTLSWorksAndNothingElseDoes(t *testing.T) {
 	// Every one of these three must end without the node ever seeing a
 	// handshake response. That packet carries the user name and the 20-byte
 	// SHA1 scramble of mysql_native_password - not the password itself, but
-	// enough for a listener to replay against this salt, and a name NGC does
+	// enough for a listener to replay against this salt, and a name CirroDesk does
 	// not hand to anyone who did not show the certificate of the installation.
 	for name, node := range map[string]func(*testing.T) *fakeNode{
 		// A server that does not offer CLIENT_SSL. With
@@ -111,7 +111,7 @@ func TestNodeOverTLSWorksAndNothingElseDoes(t *testing.T) {
 		// A certificate of the right CA, but for another address: the server
 		// name has to be checked, not only the signature.
 		"a certificate for another address": func(t *testing.T) *fakeNode {
-			return newFakeNode(t, ca, nodeGood, "127.0.0.1", nil, []string{"db-other.ngc.test"})
+			return newFakeNode(t, ca, nodeGood, "127.0.0.1", nil, []string{"db-other.cd.test"})
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -152,7 +152,7 @@ func TestNodeOverTLSWorksAndNothingElseDoes(t *testing.T) {
 // is the share itself: every node of a healthy cluster gets one connection.
 func TestEveryNodeGetsItsShareOfTheConnections(t *testing.T) {
 	const nodes = 13
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	list := make([]*fakeNode, nodes)
 	for i := range list {
 		list[i] = newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil)
@@ -174,7 +174,7 @@ func TestEveryNodeGetsItsShareOfTheConnections(t *testing.T) {
 // also checked on how far it got, so a case cannot pass because the node was
 // never tried.
 func TestTheClusterSurvivesEveryWayANodeCanFail(t *testing.T) {
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	for name, tc := range map[string]struct {
 		mode nodeMode
 		// dead closes the listener before anything connects: the node is not
@@ -237,7 +237,7 @@ func TestTheClusterSurvivesEveryWayANodeCanFail(t *testing.T) {
 // wsrep_sync_wait, sql_mode and time_zone needs a MariaDB, and there is none
 // on this machine.
 func TestTheNodeReceivesEverySessionVariable(t *testing.T) {
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	n := newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil)
 	cfg := cluster(ca, n)
 	db := openCluster(t, cfg)
@@ -290,7 +290,7 @@ func TestTheNodeReceivesEverySessionVariable(t *testing.T) {
 // What the server then does with it - report matched instead of changed rows -
 // is the server's semantics and is NOT measurable without a MariaDB.
 func TestTheNodeSeesTheFoundRowsCapability(t *testing.T) {
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	n := newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil)
 	db := openCluster(t, cluster(ca, n))
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -343,7 +343,7 @@ func TestThePoolClosesTheConnectionsAboveMaxIdle(t *testing.T) {
 	if held > maxOpenConns {
 		t.Fatalf("the case wants %d connections, the pool allows %d", held, maxOpenConns)
 	}
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	n := newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil)
 	db := openCluster(t, cluster(ca, n))
 	release := holdConns(t, db, held)
@@ -359,7 +359,7 @@ func TestThePoolClosesTheConnectionsAboveMaxIdle(t *testing.T) {
 // all the way through OpenDB, the driver and a real TLS handshake, against a
 // node on the IPv6 loopback.
 func TestAnIPv6NodeSurvivesTheWholeWayThroughOpenDB(t *testing.T) {
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	n := newFakeNode(t, ca, nodeGood, "::1", []string{"::1"}, nil)
 	if !strings.HasPrefix(n.addr, "[::1]:") {
 		t.Fatalf("the node is called %q, which is no bracketed IPv6 address", n.addr)
@@ -394,7 +394,7 @@ func TestAnIPv6NodeSurvivesTheWholeWayThroughOpenDB(t *testing.T) {
 // change that lets the call run on ends as a named failure instead of a
 // hanging package.
 func TestAMuteNodeIsCutOffByOurOwnDeadline(t *testing.T) {
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	mute := newFakeNode(t, ca, nodeSilent, "127.0.0.1", loopbackCert, nil)
 	healthy := []*fakeNode{
 		newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil),
@@ -500,7 +500,7 @@ func openShortCluster(t *testing.T, cfg config.DB, life lifetime, idle idleTime)
 // counter and the 1 is exact: whichever of the two connections the deadline
 // catches, it catches exactly one, and the node has to accept the replacement.
 func TestThePoolRetiresAConnectionAtItsLifetime(t *testing.T) {
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	n := newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil)
 	// The idle deadline is off, so nothing but the lifetime can close this
 	// connection and the counter below names one cause only.
@@ -540,7 +540,7 @@ func TestThePoolRetiresAConnectionAtItsLifetime(t *testing.T) {
 // a fixed time, and it names the counter when it gives up.
 func TestThePoolDropsAConnectionThatSatIdle(t *testing.T) {
 	const waitFor = 15 * time.Second
-	ca := newAuthority(t, "ngc-test-ca")
+	ca := newAuthority(t, "cd-test-ca")
 	n := newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil)
 	// The lifetime is off: MaxIdleTimeClosed is only ever raised by the idle
 	// deadline, and with the lifetime running too this case could not say

@@ -40,7 +40,7 @@ const SAID = {
   node: "Diese App sagt nicht, auf welchem Rechner ihr Dienst läuft.",
   "session-key": "Diese Anmeldung kann den eigenen Dienst einer App nicht erreichen. "
     + "Bitte die Seite neu laden.",
-  "trust-list": "NGC hat die Vertrauensliste dieser Anlage nicht geöffnet. "
+  "trust-list": "CirroDesk hat die Vertrauensliste dieser Anlage nicht geöffnet. "
     + "Bitte die Seite neu laden.",
   "controller-key": "Dieser Server steht nicht in der Vertrauensliste.",
 };
@@ -56,7 +56,7 @@ function caseOf(name) {
 const GOOD = "admin adds a user, user adds an own key, passkey admin re-signs";
 const INSTALLATION = "EREREREREREREREREREREQ";
 const ALARM = "Die Vertrauensliste dieser Anlage stimmt nicht. "
-  + "NGC hat Sie sicherheitshalber abgemeldet.";
+  + "CirroDesk hat Sie sicherheitshalber abgemeldet.";
 
 // plant puts the recording link into the page. It is a function handed to
 // page.evaluate, which playwright injects as its own source - never a string
@@ -69,7 +69,7 @@ const ALARM = "Die Vertrauensliste dieser Anlage stimmt nicht. "
 // is a measurement, and the adapter needs no hook of its own for it.
 async function plant(shell) {
   await shell.evaluate(() => {
-    window.__ngcRecorder = function recorder() {
+    window.__cdRecorder = function recorder() {
       const opens = [];
       const link = {
         opens,
@@ -124,7 +124,7 @@ async function plant(shell) {
 //     own rules are measured where they live (shell/trustlist.spec.js).
 async function plantService(shell, [user, password]) {
   await shell.evaluate(async ([who, pw]) => {
-    window.__ngcAppLink = async () => {
+    window.__cdAppLink = async () => {
       const trust = await import("/assets/js/contracts/trust.js");
       const http = await import("/assets/js/net/http.js");
       const { adapterFor } = await import("/assets/js/net/world.js");
@@ -168,14 +168,14 @@ async function plantService(shell, [user, password]) {
     // mock counts (refused for want of a task, opened with one, with a
     // confirmation). Asked of the mock and not of the page, so no case has to
     // believe a flag the page set about its own work.
-    window.__ngcMockState = async () => {
+    window.__cdMockState = async () => {
       const res = await fetch("/api/v1/mock?ask=task", { cache: "no-store", credentials: "same-origin" });
       const [taskAsked, taskSeen, confirmSeen] = (await res.text()).split(" ").map(Number);
       return { taskAsked, taskSeen, confirmSeen };
     };
     // What the API saw. It is asked and not read: the mock answers one
     // character, so there is nothing to parse.
-    window.__ngcSawPlaintext = async () => {
+    window.__cdSawPlaintext = async () => {
       const res = await fetch("/api/v1/mock", { cache: "no-store", credentials: "same-origin" });
       return (await res.text()) === "1";
     };
@@ -184,7 +184,7 @@ async function plantService(shell, [user, password]) {
     // before. Everything the service says lands in `pieces` IN ORDER, and the
     // one close it gets lands in `closed` - so "did the app hear it, and when"
     // is a measurement and not a guess.
-    window.__ngcCollect = {
+    window.__cdCollect = {
       collect(s) {
         const c = {
           pieces: [],
@@ -235,8 +235,8 @@ async function serve(shell, c, { visible = c.chain.length } = {}) {
     });
   });
   await shell.route(/\/api\/v1\/logout$/, (route) => route.fulfill({ status: 204 }));
-  await shell.exposeFunction("__ngcVisible", (n) => { state.visible = n; });
-  await shell.exposeFunction("__ngcAsked", () => state.from.slice());
+  await shell.exposeFunction("__cdVisible", (n) => { state.visible = n; });
+  await shell.exposeFunction("__cdAsked", () => state.from.slice());
   return state;
 }
 
@@ -257,15 +257,15 @@ test.describe("the adapter", () => {
         const calls = rows.filter((a) => a.flow !== "out");
         const outs = rows.filter((a) => a.flow === "out");
         const fake = (await fakeWorld()).link;
-        const rec = window.__ngcRecorder();
+        const rec = window.__cdRecorder();
         const mine = adapterFor(rec);
         // THE PARAMS NAME AN APP THAT HAS A USER INTERFACE, and that is not
         // decoration. Since Task 25 the stand-in ships the archives of SEVERAL
         // apps and reads `app` out of the params to know which one
-        // ngc.desktop/ui is about - so made-up params make the STAND-IN refuse
+        // cd.desktop/ui is about - so made-up params make the STAND-IN refuse
         // the one FlowOut row, and this comparison would then be measuring the
         // stand-in's own refusal instead of the two ways. The way itself did not
-        // change with 25: ngc.desktop/api/ui is FlowOut and goes through open()
+        // change with 25: cd.desktop/api/ui is FlowOut and goes through open()
         // on both sides, as it did before.
         //
         // Which app is asked is taken from the stand-in's OWN app list, the way
@@ -279,7 +279,7 @@ test.describe("the adapter", () => {
         const params = core.encodeParams(core.lookupByKey(core.APP_DESKTOP, core.ACT_UI), { app: withUI.id });
         // What the preparation above already wrote into the stand-in's record;
         // the comparison starts after it.
-        const base = window.__ngcSent.length;
+        const base = window.__cdSent.length;
         const body = () => new Blob([utf8("abc")]).stream();
         for (const a of calls) {
           // What either side ANSWERS is not the question here - the stand-in
@@ -308,7 +308,7 @@ test.describe("the adapter", () => {
         return {
           rows: rows.length,
           outs: outs.length,
-          theirs: window.__ngcSent.slice(base).map((s) => `${s.app}|${s.service}|${s.name}`),
+          theirs: window.__cdSent.slice(base).map((s) => `${s.app}|${s.service}|${s.name}`),
           ours: rec.opens.map((o) => `${o.app}|${o.service}|${o.action}`),
           wantedCalls: calls.map((a) => `${a.app}|${a.service}|${a.name}`),
           // The calls first and the FlowOut row after them, because that is
@@ -325,7 +325,7 @@ test.describe("the adapter", () => {
       // are asked the same thing and aim at the same place.
       expect(got.theirs).toEqual(got.wantedCalls);
       expect(got.ours).toEqual(got.wanted);
-      expect(got.fakeOut).toEqual(["ngc.desktop|api|ui"]);
+      expect(got.fakeOut).toEqual(["cd.desktop|api|ui"]);
       expect(got.fakeTookACall).toBe(false);
     });
 
@@ -338,7 +338,7 @@ test.describe("the adapter", () => {
         const uitar = await import("/assets/js/contracts/uitar.js");
         const { adapterFor } = await import("/assets/js/net/world.js");
         const utf8 = (s) => new TextEncoder().encode(s);
-        const rec = window.__ngcRecorder();
+        const rec = window.__cdRecorder();
         const link = adapterFor(rec);
         const refused = async (fn) => {
           try { await fn(); return false; } catch { return true; }
@@ -382,7 +382,7 @@ test.describe("the adapter", () => {
           maxArchive: uitar.MAX_UI_TOTAL + uitar.MAX_ENTRIES * uitar.BLOCK,
           // The ways that are not open: a FlowOut row as a call, a FlowCall
           // row as an open, a row the shell never opens at all
-          // (ngc.users/controller/trust), and an action that stands in no row
+          // (cd.users/controller/trust), and an action that stands in no row
           // - an app's own service, which has to be an end-to-end channel to
           // its controller and is none of this adapter's business.
           outAsCall: await refused(() =>
@@ -402,7 +402,7 @@ test.describe("the adapter", () => {
         data: [], ended: true, took: got.maxCallResult, params: '{"app":"de.example.fotos"}',
       });
       expect(got.bare).toEqual({
-        app: "ngc.desktop", service: "api", action: "apps",
+        app: "cd.desktop", service: "api", action: "apps",
         params: "", task: "", confirm: "", ended: true,
       });
       expect(got.flowIn).toEqual({
@@ -429,7 +429,7 @@ test.describe("the adapter", () => {
   // nothing on this side to show for it.
   //
   // WHY THE CASE ABOVE COULD NOT SEE IT: it sends the confirmation on
-  // ngc.store/controller/uninstall, a FlowCall row, which goes through
+  // cd.store/controller/uninstall, a FlowCall row, which goes through
   // callBytes. The FlowIn branch is a second piece of code, and a second piece
   // of code needs a second measurement.
   //
@@ -443,7 +443,7 @@ test.describe("the adapter", () => {
         const core = await import("/assets/js/contracts/core.js");
         const { adapterFor } = await import("/assets/js/net/world.js");
         const utf8 = (s) => new TextEncoder().encode(s);
-        const rec = window.__ngcRecorder();
+        const rec = window.__cdRecorder();
         const link = adapterFor(rec);
         const row = core.lookup(core.APP_STORE, core.SERVICE_API, core.ACT_UPLOAD);
         await link.call(core.APP_STORE, core.SERVICE_API, core.ACT_UPLOAD, null, {
@@ -479,7 +479,7 @@ test.describe("the adapter", () => {
       const got = await shell.evaluate(async () => {
         const { adapterFor } = await import("/assets/js/net/world.js");
         const utf8 = (s) => new TextEncoder().encode(s);
-        const rec = window.__ngcRecorder();
+        const rec = window.__cdRecorder();
         // ONE ARGUMENT, so this adapter has no world: no session key pair and
         // no trust list. That is not a hypothetical shape - every other case of
         // this file builds the adapter that way, and the shell builds it with
@@ -555,16 +555,16 @@ test.describe("the adapter", () => {
             return controller.publicRaw;
           },
         };
-        const rec = window.__ngcRecorder();
+        const rec = window.__cdRecorder();
         const link = adapterFor(rec, { trust, sessionDH });
         // The same adapter MINUS the list. A list that is not there is not the
         // same fact as a node a list does not carry, so it may not get the same
         // word and may not get the same sentence.
-        const listless = adapterFor(window.__ngcRecorder(), { sessionDH });
+        const listless = adapterFor(window.__cdRecorder(), { sessionDH });
         // And one whose list answers with something that is NOT NotTrusted: a
         // fault of this shell, which may not come out as a sentence about the
         // server. It has to travel on as what it is.
-        const broken = adapterFor(window.__ngcRecorder(), {
+        const broken = adapterFor(window.__cdRecorder(), {
           sessionDH,
           trust: { controllerKey: () => { throw new RangeError("world.spec: a fault of the shell"); } },
         });
@@ -601,7 +601,7 @@ test.describe("the adapter", () => {
           // No WorldError any more: what comes back is the CHANNEL's error,
           // which is what shell/appframe.js turns into E_UNREACHABLE for the
           // app. A refusal of this adapter would carry a `missing`; this does
-          // not, and that is the difference between "NGC cannot" and "the
+          // not, and that is the difference between "CirroDesk cannot" and "the
           // channel broke".
           wentOutName: wentOut.name, wentOutMissing: wentOut.missing,
           sent: {
@@ -649,7 +649,7 @@ test.describe("the adapter", () => {
         const wire = await import("/assets/js/contracts/wire.js");
         const { adapterFor } = await import("/assets/js/net/world.js");
         const utf8 = (s) => new TextEncoder().encode(s);
-        const rec = window.__ngcRecorder();
+        const rec = window.__cdRecorder();
         const link = adapterFor(rec);
         const params = utf8('{"app":"org.sorglos.terminal"}');
         const out = await link.open(core.APP_DESKTOP, core.SERVICE_API, core.ACT_UI, params);
@@ -657,7 +657,7 @@ test.describe("the adapter", () => {
         // By the time open() came back the channel was opened, its first grant
         // was there, the EOF had gone out AND the bound was set - Channel.result
         // is what sets it, and a bound set one turn later would let the first
-        // chunks past it. ngc.js hands an app its stream before any of that has
+        // chunks past it. cd.js hands an app its stream before any of that has
         // happened, because a postMessage bridge has nothing to wait for; here
         // there is, so we wait.
         const whenOpenReturned = ch.order.slice();
@@ -716,11 +716,11 @@ test.describe("the real session", () => {
         return out;
       });
       expect(got).toEqual([
-        { key: "ngc.desktop/me", bytes: true, read: true },
-        { key: "ngc.desktop/apps", bytes: true, read: true },
-        { key: "ngc.store/sources", bytes: true, read: true },
-        { key: "ngc.users/list", bytes: true, read: true },
-        { key: "ngc.users/nodes", bytes: true, read: true },
+        { key: "cd.desktop/me", bytes: true, read: true },
+        { key: "cd.desktop/apps", bytes: true, read: true },
+        { key: "cd.store/sources", bytes: true, read: true },
+        { key: "cd.users/list", bytes: true, read: true },
+        { key: "cd.users/nodes", bytes: true, read: true },
       ]);
     });
 
@@ -737,7 +737,7 @@ test.describe("the real session", () => {
         // stands here is a channel that stood on the login's own key pair and
         // on no other. A login that stopped carrying it through cannot make
         // this case green by accident.
-        const { h, link, node } = await window.__ngcAppLink();
+        const { h, link, node } = await window.__cdAppLink();
         const APP = "org.sorglos.terminal", SERVICE = "terminal", ACTION = "shell";
         // open() and not call(), because that is what an app's own service is:
         // shell/appframe.js gives the terminal a channel that stays open and
@@ -760,7 +760,7 @@ test.describe("the real session", () => {
         // The one question the API itself has to answer. The mock watches every
         // frame for the bytes the service was given: if the cleartext ever
         // stood in one, end to end bought nothing.
-        const sawPlaintext = await window.__ngcSawPlaintext();
+        const sawPlaintext = await window.__cdSawPlaintext();
         h.link.close();
         return {
           // What the login carried: an X25519 pair whose private half cannot be
@@ -785,8 +785,8 @@ test.describe("the real session", () => {
       await plantService(shell, [USER_NAME, PASSWORD]);
       const got = await shell.evaluate(async () => {
         const utf8 = (s) => new TextEncoder().encode(s);
-        const { h, link, node } = await window.__ngcAppLink();
-        const { collect } = window.__ngcCollect;
+        const { h, link, node } = await window.__cdAppLink();
+        const { collect } = window.__cdCollect;
         // The "greet" service of this world speaks the moment it has started -
         // which by the contract is the moment it has decrypted the shell's first
         // inner message, the one channel.openE2E sends by itself. So the app
@@ -805,7 +805,7 @@ test.describe("the real session", () => {
         await c.until(() => c.pieces.length >= 2);
         await s.end();
         await c.until(() => c.closed !== null);
-        const sawPlaintext = await window.__ngcSawPlaintext();
+        const sawPlaintext = await window.__cdSawPlaintext();
         h.link.close();
         return { greeting, pieces: c.pieces.slice(), closed: c.closed, sawPlaintext };
       });
@@ -820,8 +820,8 @@ test.describe("the real session", () => {
       await plantService(shell, [USER_NAME, PASSWORD]);
       const got = await shell.evaluate(async () => {
         const utf8 = (s) => new TextEncoder().encode(s);
-        const { h, link, node } = await window.__ngcAppLink();
-        const { collect } = window.__ngcCollect;
+        const { h, link, node } = await window.__cdAppLink();
+        const { collect } = window.__cdCollect;
         // The "over" service ends the channel the moment it has started and says
         // nothing at all. THE CHANNEL IS STILL HANDED OVER - the ending is the
         // answer to the shell's own first inner message, so it is a later frame -
@@ -850,7 +850,7 @@ test.describe("the real session", () => {
       await plantService(shell, [USER_NAME, PASSWORD]);
       const got = await shell.evaluate(async () => {
         const utf8 = (s) => new TextEncoder().encode(s);
-        const { h, link, node } = await window.__ngcAppLink();
+        const { h, link, node } = await window.__cdAppLink();
         // THE WAY shell/appframe.js's doCall GOES, and until this round no case
         // went down it: the question stands in the params of the OPEN, the inner
         // end and the EOF go out at once, and what comes back are the bytes of
@@ -866,7 +866,7 @@ test.describe("the real session", () => {
           await new Promise((ok) => setTimeout(ok, 10));
         }
         const count = h.link.channelCount();
-        const sawPlaintext = await window.__ngcSawPlaintext();
+        const sawPlaintext = await window.__cdSawPlaintext();
         h.link.close();
         return { bytes: bytes instanceof Uint8Array, length: bytes.length, count, sawPlaintext };
       });
@@ -879,8 +879,8 @@ test.describe("the real session", () => {
       const got = await shell.evaluate(async () => {
         const wire = await import("/assets/js/contracts/wire.js");
         const utf8 = (s) => new TextEncoder().encode(s);
-        const { h, link, node } = await window.__ngcAppLink();
-        const { collect } = window.__ngcCollect;
+        const { h, link, node } = await window.__cdAppLink();
+        const { collect } = window.__cdCollect;
         const open = () => link.open("org.sorglos.terminal", "terminal", "shell",
           utf8('{"cols":80}'), { node });
         const free = async () => {
@@ -926,7 +926,7 @@ test.describe("the real session", () => {
       const got = await shell.evaluate(async () => {
         const wire = await import("/assets/js/contracts/wire.js");
         const utf8 = (s) => new TextEncoder().encode(s);
-        const { h, link, node } = await window.__ngcAppLink();
+        const { h, link, node } = await window.__cdAppLink();
         // WHAT THE CONTROLLER REALLY ANSWERS for a step that wants confirming:
         // E_CONFIRM, as the answer to the OPEN, and no service is started
         // (measured on the controller side, plan 3 task 11: access.Check ->
@@ -992,16 +992,16 @@ test.describe("the real session", () => {
       // person: the window opens, the question comes, the service starts.
       await shell.evaluate(async () => {
         const utf8 = (t) => new TextEncoder().encode(t);
-        const { h, signing: link, node } = await window.__ngcAppLink();
-        window.__ngcHeld = h;
+        const { h, signing: link, node } = await window.__cdAppLink();
+        window.__cdHeld = h;
         // "needstask" is the action of this world that is refused WITHOUT a
         // task and runs WITH one - the real case of an app whose manifest says
         // needs:["root"] (tests/mock/api.js, ACT_TASK).
-        window.__ngcOpening = link.open("org.sorglos.terminal", "terminal", "needstask",
+        window.__cdOpening = link.open("org.sorglos.terminal", "terminal", "needstask",
           utf8('{"cols":80}'), { node });
         // A rejection nobody is waiting for yet is an unhandled rejection, and
         // the page fixture fails a case over one. It is taken up below.
-        window.__ngcOpening.catch(() => {});
+        window.__cdOpening.catch(() => {});
       });
       // The question, answered the way every other case of this suite answers
       // it: the password of this world, out of the world and not written here
@@ -1012,10 +1012,10 @@ test.describe("the real session", () => {
       await box.getByRole("button", { name: "Bestätigen", exact: true }).click();
       await expect(box).toHaveCount(0);
       const got = await shell.evaluate(async () => {
-        const c = window.__ngcCollect.collect(await window.__ngcOpening);
+        const c = window.__cdCollect.collect(await window.__cdOpening);
         await c.until(() => c.pieces.length > 0);
-        const asked = await window.__ngcMockState();
-        window.__ngcHeld.link.close();
+        const asked = await window.__cdMockState();
+        window.__cdHeld.link.close();
         return { pieces: c.pieces, asked };
       });
       // The service really started, so the SECOND open came off: nothing of
@@ -1037,12 +1037,12 @@ test.describe("the real session", () => {
       await plantService(shell, [USER_NAME, PASSWORD]);
       const got = await shell.evaluate(async () => {
         const utf8 = (s) => new TextEncoder().encode(s);
-        const { h, signing: link, node } = await window.__ngcAppLink();
-        const c = window.__ngcCollect.collect(
+        const { h, signing: link, node } = await window.__cdAppLink();
+        const c = window.__cdCollect.collect(
           await link.open("org.sorglos.terminal", "terminal", "greet", utf8('{"cols":80}'), { node }),
         );
         await c.until(() => c.pieces.length > 0);
-        const asked = await window.__ngcMockState();
+        const asked = await window.__cdMockState();
         h.link.close();
         return { pieces: c.pieces, asked };
       });
@@ -1130,7 +1130,7 @@ test.describe("the trust list of the world", () => {
     const got = await shell.evaluate(async ([raw, installation]) => {
       const { b64decode } = await import("/assets/js/contracts/b64.js");
       const { realWorld } = await import("/assets/js/net/world.js");
-      const rec = window.__ngcRecorder();
+      const rec = window.__cdRecorder();
       const world = await realWorld({
         config: null, anchor: { seq: raw.seq, hash: b64decode(raw.hash) },
         session: { inst: installation }, link: rec,
@@ -1141,13 +1141,13 @@ test.describe("the trust list of the world", () => {
       const first = world.trust.current().list.seq;
       // A hint that is not higher asks nobody and answers the NUMBER in
       // force - not a version, not an object.
-      const before = (await window.__ngcAsked()).length;
+      const before = (await window.__cdAsked()).length;
       const same = await world.trust.refresh(first);
-      const asked = (await window.__ngcAsked()).length;
+      const asked = (await window.__cdAsked()).length;
       // Now the API owns four versions, and the hint about it carries the
       // number. It is answered without anybody awaiting it, so the
       // measurement waits for the version it is about.
-      await window.__ngcVisible(4);
+      await window.__cdVisible(4);
       for (const fn of rec.hints) fn({ seq: 4 });
       for (let i = 0; i < 300 && world.trust.current().list.seq < 4; i++) {
         await new Promise((ok) => setTimeout(ok, 10));
@@ -1185,7 +1185,7 @@ test.describe("the trust list of the world", () => {
     const got = await shell.evaluate(async ([raw, installation]) => {
       const { b64decode } = await import("/assets/js/contracts/b64.js");
       const { realWorld } = await import("/assets/js/net/world.js");
-      const rec = window.__ngcRecorder();
+      const rec = window.__cdRecorder();
       let closed = 0;
       rec.close = () => { closed++; };
       // The anchor of this chain with one byte turned round: everything else

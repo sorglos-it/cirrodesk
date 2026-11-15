@@ -66,7 +66,7 @@ func aProc(t *testing.T, name string, ts ...task) *fakeProc {
 		// purpose: the code counts from the LAST closing bracket, and a case
 		// with a harmless name could not tell that apart from counting from
 		// the left.
-		line := strconv.Itoa(x.pid) + " (ngc hold (1)) S " + strconv.Itoa(x.ppid)
+		line := strconv.Itoa(x.pid) + " (cd hold (1)) S " + strconv.Itoa(x.ppid)
 		for i := 5; i <= 21; i++ {
 			line += " 0"
 		}
@@ -97,7 +97,7 @@ func (f *fakeProc) numbers() []int {
 	return n
 }
 
-const anAppName = "ngc-uhr-ad8c00e2"
+const anAppName = "cd-uhr-ad8c00e2"
 
 // 1. A healthy container alone: nothing is surplus, nothing is ended. This is
 // the case that runs on every start of every node, so it is the one that must
@@ -125,7 +125,7 @@ func TestEndSurplusLeavesAHealthyContainerAlone(t *testing.T) {
 func TestEndSurplusEndsTheSetOfAnEarlierLifeAndKeepsTheKnownOne(t *testing.T) {
 	f := aProc(t, anAppName,
 		task{pid: 100, ppid: 7, start: 500},   // old conmon
-		task{pid: 101, ppid: 100, start: 501}, // old ngc-hold
+		task{pid: 101, ppid: 100, start: 501}, // old cd-hold
 		task{pid: 200, ppid: 9, start: 900},   // conmon of the known container
 		task{pid: 201, ppid: 200, start: 901}) // the known container
 	n, err := endSurplus(anAppName, 201)
@@ -199,7 +199,7 @@ func TestEndSurplusNeverTakesNumberOneForTheWatchman(t *testing.T) {
 		task{pid: 1, ppid: 0, start: 1},       // the init of the machine
 		task{pid: 201, ppid: 1, start: 901},   // a container whose conmon died
 		task{pid: 100, ppid: 7, start: 500},   // an old conmon
-		task{pid: 101, ppid: 100, start: 501}) // its ngc-hold
+		task{pid: 101, ppid: 100, start: 501}) // its cd-hold
 	// It REPORTS the oddity - a 1 in the cgroup of an app is nothing that
 	// should be there - and it still does its job on the rest. Quietly
 	// skipping it would hide a state nobody has explained.

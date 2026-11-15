@@ -89,9 +89,9 @@ export async function signIn(page, { standIn = true } = {}) {
 // this function, the `standIn` argument above, standIn() in
 // shell/main.js and shell/fake-link.js go in one commit.
 export async function standInOn(page) {
-  await page.addInitScript(() => { window.__ngcStandIn = true; });
+  await page.addInitScript(() => { window.__cdStandIn = true; });
   try {
-    await page.evaluate(() => { window.__ngcStandIn = true; });
+    await page.evaluate(() => { window.__cdStandIn = true; });
   } catch {
     // No document on this page yet; the init script above is what sets it.
   }
@@ -189,7 +189,7 @@ export async function sessionKeyGaps(shell) {
     // Any 32 bytes are a seed for both curves. This one is the key of nothing:
     // it is made here, used here and dropped here.
     const seed = crypto.getRandomValues(new Uint8Array(32));
-    const message = new TextEncoder().encode("ngc: can this engine sign");
+    const message = new TextEncoder().encode("cd: can this engine sign");
 
     // The first step that throws, or answers anything but true, is the gap.
     const walk = async (steps) => {
@@ -476,7 +476,7 @@ export async function signatureGap(shell) {
   return (await sessionKeyGaps(shell)).ed25519;
 }
 
-// A handshake with FRESH keys - newKeypair() and HandshakeKK.of(), the path NGC
+// A handshake with FRESH keys - newKeypair() and HandshakeKK.of(), the path CirroDesk
 // takes at runtime. No signature, no key document: X25519 alone.
 export async function handshakeGap(shell) {
   return (await sessionKeyGaps(shell)).x25519;

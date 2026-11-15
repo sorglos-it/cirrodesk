@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migrate"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migrate"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // New wraps an open file as a store. It creates nothing. Reads and writes go
@@ -28,10 +28,10 @@ func NewSplit(write, read *sql.DB) dbapi.Store {
 // So "the migrations of an update from one place" - the heading of the commit
 // that built migraterun - holds for MariaDB and NOT here (Kl-5 of the review
 // of 10.10.2026). There, one controller with the role db runs them through
-// ngc_migrate; on SQLite EVERY caller of this function migrates at its own
+// cd_migrate; on SQLite EVERY caller of this function migrates at its own
 // start, with a context of its own. Decided and named: the file has no second
 // account to run them under and no second machine to run them from, the
-// migration lock (ngc_lock) is what keeps two callers of this function apart,
+// migration lock (cd_lock) is what keeps two callers of this function apart,
 // and owner is in it so that whoever looks can see which one held it.
 func Open(cfg config.DB, owner string, now int64) (dbapi.Store, error) {
 	write, read, err := OpenRW(cfg)

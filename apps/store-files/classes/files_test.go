@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/service"
 )
 
 const user = "AAAAAAAAAAAAAAAAAAAAAA" // 16 zero bytes, base64url: a trust.ValidID

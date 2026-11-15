@@ -298,7 +298,7 @@ test("the PKCS#8 copy of the seed does not stay behind", async ({ shell }) => {
       // still work: wiping the document after the import must not have taken
       // anything the key needed.
       const key = await p.privateFromSeed(seed);
-      const msg = new TextEncoder().encode("ngc");
+      const msg = new TextEncoder().encode("cd");
       const sig = await crypto.subtle.sign({ name: "Ed25519" }, key, msg);
       const half = await crypto.subtle.importKey("raw", b64decode(c.public), { name: "Ed25519" },
         false, ["verify"]);
@@ -668,7 +668,7 @@ test("the Argon2id parameters are decided as Go decides them", async ({ shell })
     const salt = new Uint8Array(16);
     const good = { alg: "argon2id", salt, m: 65536, t: 3, p: 1 };
     const cases = [
-      ["the parameters NGC uses", good, true],
+      ["the parameters CirroDesk uses", good, true],
       ["the smallest memory there is", { ...good, m: 19456 }, true],
       ["one KiB under it", { ...good, m: 19455 }, false],
       ["the largest memory there is", { ...good, m: 1048576 }, true],

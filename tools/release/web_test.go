@@ -10,11 +10,13 @@ import (
 	"testing"
 )
 
-// webRef is the ref the real tree is measured at. A name and not a commit on
-// purpose: this case is meant to follow the branch while it is still moving.
-// It SKIPS when the ref is absent, because apps/web is empty on main - a skip
-// says "not measured here", a green would lie.
-const webRef = "origin/web"
+// webRef is the ref the real tree is measured at: HEAD, the commit that is
+// being tested and built. It was "origin/web" until 15.11.2026, and then a
+// green said nothing about main or the change under test - the web branch had
+// stood still since the parts were merged, and ten language files main gained
+// were never seen (found by the web partner). It still SKIPS when the commit
+// carries no apps/web - a skip says "not measured here", a green would lie.
+const webRef = "HEAD"
 
 // refPresent answers whether webRef carries apps/web, and it keeps two causes
 // apart that the first draft of this case ran together - at the price of the
@@ -126,7 +128,7 @@ func TestRealArchiveIsClosed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh on %s: %v\n%s", webRef, err, log)
 	}
-	dir := unpack(t, filepath.Join(out, "ngc-web-all.tar"))
+	dir := unpack(t, filepath.Join(out, "cd-web-all.tar"))
 	got, err := Closure(dir, lines(t, "entrypoints-web.txt"))
 	if err != nil {
 		t.Fatalf("Closure: %v", err)

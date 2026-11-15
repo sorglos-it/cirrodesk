@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
 )
 
 // columnsOf reads the columns and their placeholders out of one statement of a
@@ -95,7 +95,7 @@ func TestColumnTypeIsWhatTheMigrationsWrite(t *testing.T) {
 	}
 
 	// The reading above has to have worked, or this test is green over
-	// nothing. 0001 is the whole schema of NGC, so every column of every
+	// nothing. 0001 is the whole schema of CirroDesk, so every column of every
 	// listed table has to have been met.
 	if len(seen) == 0 {
 		t.Fatal("no column was read out of any statement: the reading above is broken, not the data")

@@ -46,11 +46,11 @@ test("the shell either brings the desktop up or says why it cannot", async ({ sh
     // THE SENTENCE IS NOT WRITTEN OUT HERE, and that is the whole repair of
     // this branch. Until 03.11.2026 it read
     //
-    //   toContainText("Dieser Browser ist zu alt für NGC.")
+    //   toContainText("Dieser Browser ist zu alt für CirroDesk.")
     //
     // and it had been RED on WebKit since 18.10.2026 - sixteen days, seen by
     // nobody, because the shell's wording was rewritten in 95a95476 while
-    // this copy of it stayed behind. Measured then: "zu alt für NGC" existed
+    // this copy of it stayed behind. Measured then: "zu alt für CirroDesk" existed
     // in this file and in no line of the shipped shell.
     //
     // It was not found by a case failing. The whole web suite runs in no CI
@@ -88,13 +88,13 @@ test("the shell either brings the desktop up or says why it cannot", async ({ sh
   if (askGap !== "") {
     await expect(shell.locator(".msg"))
       .toContainText("In diesem Browser ist keine Anmeldung möglich");
-    await expect(shell.getByRole("heading", { name: "Bei NGC anmelden" })).toHaveCount(0);
+    await expect(shell.getByRole("heading", { name: "Bei CirroDesk anmelden" })).toHaveCount(0);
     await expect(shell.locator("#taskbar")).toHaveCount(0);
     return;
   }
   // Ending 3. The mask is there, it names the reason, and the one route that
   // cannot work is shut - not merely unlabelled.
-  await expect(shell.getByRole("heading", { name: "Bei NGC anmelden" })).toBeVisible();
+  await expect(shell.getByRole("heading", { name: "Bei CirroDesk anmelden" })).toBeVisible();
   await expect(shell.locator(".note.warn"))
     .toContainText("Dieser Browser kann die Passwort-Anmeldung nicht ausführen.");
   await expect(shell.getByRole("button", { name: "Anmelden", exact: true })).toBeDisabled();

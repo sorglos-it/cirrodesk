@@ -20,7 +20,7 @@
 // What this file does NOT do, named rather than hidden:
 //
 //   - It does not run the migrations of an UPDATE. A controller with the role
-//     db starts those as a program ("ngc-api migrate",
+//     db starts those as a program ("cd-api migrate",
 //     docs/vertraege-v1.2.md point 28), and that subcommand is task 24 of the
 //     API plan and does not exist yet (apps/server-api/main.go knows -version
 //     and -config). There is no migrate.go here, and that is the decision: a
@@ -50,26 +50,26 @@ import (
 	"github.com/flynn/noise"
 	"golang.org/x/crypto/curve25519"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
 	// Named catch here and guard everywhere else: this package already has a
 	// function guard (ask.go), which gives the terminal its echo back when a
 	// signal ends the pairing question. Renaming that one for an import would
 	// be the tail wagging the dog.
-	catch "github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/apache"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/chain"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/install"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/license"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	ctrlrt "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/serve"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/update"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	catch "github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/apache"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/chain"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/install"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/license"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	ctrlrt "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/serve"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/update"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // The intervals of continuous operation. Every one of them is a DECISION of
@@ -78,7 +78,7 @@ const (
 	// StatusEvery is how often this controller tells its APIs what it is
 	// doing (the plan: "Statusmeldungen alle 60 s"). A status is cheap - one
 	// control message built out of rows this server has anyway - and it is
-	// the only thing that makes a server visible in NextGenCloud between two
+	// the only thing that makes a server visible in CirroDesk between two
 	// actions.
 	StatusEvery = 60 * time.Second
 	// PurgeEvery is how often the one-time task IDs that have expired are
@@ -111,9 +111,9 @@ const (
 // the one of the configuration, which config.LoadController never lets
 // through empty (wire.ValidName), and the node is added when there is one.
 //
-// It is not "ngc": a lock that says "ngc" says nothing, and the one thing an
+// It is not "cd": a lock that says "cd" says nothing, and the one thing an
 // admin wants from that row is WHICH program is migrating.
-const Owner = "ngc-controller"
+const Owner = "cd-controller"
 
 // owner is that name for this configuration.
 func owner(cfg *config.Controller) string {
@@ -130,7 +130,7 @@ const msgNoState = "Die lokale Datenbank dieses Servers lässt sich nicht öffne
 // msgRunning is the answer to a second start beside a controller that runs on
 // the same database (E32): two of them would hold the same Noise key, open two
 // tunnels as one node and both drive the containers of the apps.
-const msgRunning = "Auf diesem Server läuft schon ein ngc-controller. Ein zweiter startet nicht."
+const msgRunning = "Auf diesem Server läuft schon ein cd-controller. Ein zweiter startet nicht."
 
 // msgNoDB is the answer to a database that is gone while its directory is
 // there (A2): pair creates the store, so on a paired server a missing file is a
@@ -158,7 +158,7 @@ var createState = func(cfg *config.Controller) error {
 }
 
 // errRunning says another process holds the lock of this controller's database.
-var errRunning = errors.New("node: another ngc-controller runs on this database")
+var errRunning = errors.New("node: another cd-controller runs on this database")
 
 // msgStopped is the one line a clean end writes. An admin who stopped the
 // service reads it and knows the containers were left alone.
@@ -901,13 +901,13 @@ func (i installer) nodeOf() string {
 // nodeOf, every case of the pieces stayed green.
 func (i installer) deps(ctx context.Context, list *trust.List) install.Deps {
 	return install.Deps{
-		State:  i.state,
-		Engine: i.engine,
-		Sys:    install.Host{ServerKey: i.cfg.DBKey.Bytes()},
-		List:   list,
-		Roles:  i.cfg.Roles,
-		Node:   i.nodeOf(),
-		NGC:    i.version,
+		State:     i.state,
+		Engine:    i.engine,
+		Sys:       install.Host{ServerKey: i.cfg.DBKey.Bytes()},
+		List:      list,
+		Roles:     i.cfg.Roles,
+		Node:      i.nodeOf(),
+		CirroDesk: i.version,
 		// An activation never takes a release; install.Accept asks for the
 		// key all the same (install.Deps.ReleaseKey).
 		ReleaseKey: i.cfg.ReleaseKey,
@@ -963,10 +963,10 @@ func (u updater) deps(list *trust.List) update.Deps {
 		Max:    store.MaxPackage,
 		Report: u.report,
 		Now:    func() int64 { return time.Now().Unix() },
-		// The roles of THIS server. An install of an NGC part is refused
+		// The roles of THIS server. An install of a CirroDesk part is refused
 		// unless these roles run that part, which is the whole reason the
 		// field exists (update.Deps.Roles) - so a db server handed the
-		// ngc-api file lays it ready and installs nothing, which is exactly
+		// cd-api file lays it ready and installs nothing, which is exactly
 		// what the migration step of a rollout wants.
 		Roles:    u.cfg.Roles,
 		BinDir:   config.BinDir,
@@ -976,7 +976,7 @@ func (u updater) deps(list *trust.List) update.Deps {
 		// Apps stays nil, and it is named rather than left silent: it is what
 		// an update of an APP would be carried out through, and that path
 		// goes through the activation (install.Manager) on this controller.
-		// An NGC part needs none of it, and update.wired does not ask for it.
+		// A CirroDesk part needs none of it, and update.wired does not ask for it.
 		Apps: nil,
 	}
 }

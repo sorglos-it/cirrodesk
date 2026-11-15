@@ -8,16 +8,16 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
 )
 
 // THE PACKAGE OF AN UPLOAD IS KEPT UNTIL AN ACTIVATION FETCHES IT, and where
 // it is kept is this file's whole subject. Punkt 30 named the hole and left
-// the decision open on purpose: ngc.store/upload keeps only the ui-tar, and
+// the decision open on purpose: cd.store/upload keeps only the ui-tar, and
 // ActivateRequest.File belongs to the CALLER, so until now an activation of an
 // uploaded app (core.LocalStore) found no file and ended E_UNREACHABLE.
 // Measured on a running installation on 17.10.2026, after the upload itself
-// was fixed: the package arrived, the node was offered as "ngc-2", the admin
+// was fixed: the package arrived, the node was offered as "cd-2", the admin
 // had the right -- and activating it answered "Dienst nicht erreichbar."
 //
 // WHAT IS DECIDED HERE, and the questions Punkt 30 asked are answered in order:
@@ -71,7 +71,7 @@ const DefaultHoldFor = time.Hour
 // puts digits behind it, so such a name is longer than a finished one -- a
 // finished name is base64url of a SHA-256, 43 characters -- and a sweep needs
 // no stat to tell the two apart. It does not have to: both go by age.
-const holdPrefix = "ngc-upload-"
+const holdPrefix = "cd-upload-"
 
 // errNoHold reports that this server keeps no uploaded packages at all
 // (Stores.Hold empty). It never leaves this package: spoolPackage turns it

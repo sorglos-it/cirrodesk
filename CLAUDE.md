@@ -1,6 +1,6 @@
-# NGC – Anweisungen für alle Sitzungen
+# CirroDesk – Anweisungen für alle Sitzungen
 
-NGC (NextGenCloud) ist eine offene Alternative zu Synologys DSM: ein Arbeitsplatz im Browser mit
+CirroDesk ist eine offene Alternative zu Synologys DSM: ein Arbeitsplatz im Browser mit
 App-Store. Entwurf: `docs/superpowers/specs/2026-09-19-ngc-kern-design.md`. Stand und nächster
 Schritt: `docs/STAND.md`. Verträge: `shared/README.md`. Wie Kanäle laufen: dort, Abschnitt
 „Kanäle“; was vor dem WebSocket läuft: Abschnitt „Vor dem WebSocket“; wie JSON von außen geprüft
@@ -13,15 +13,15 @@ Installation oder Boot gearbeitet wird.
 
 | Teil | Ordner | ulh-Skript | Sitzung auf Server |
 |---|---|---|---|
-| Webinterface | `apps/web/` | `scripts/ngc-web.sh` | Web |
-| API | `apps/server-api/`, Werkzeug `ngc-store` in `apps/cli/` | `scripts/ngc-api.sh` | API 1 |
-| Controller | `apps/server-controller/` | `scripts/ngc-controller.sh` | Dienste |
-| Datenbank | `apps/server-db/` | `scripts/ngc-db.sh` | DB 1 |
+| Webinterface | `apps/web/` | `scripts/cd-web.sh` | Web |
+| API | `apps/server-api/`, Werkzeug `cd-store` in `apps/cli/` | `scripts/cd-api.sh` | API 1 |
+| Controller | `apps/server-controller/` | `scripts/cd-controller.sh` | Dienste |
+| Datenbank | `apps/server-db/` | `scripts/cd-db.sh` | DB 1 |
 | Recovery-Modus (`docs/recovery-modus.md`): `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/`, `lib/rust/`, Images in `tools/` | – | – | Recovery |
 | Verträge (`shared/`), `tools/`, `docs/`, Zusammenführen | – | – | Koordinator (Thomas' Rechner) |
 
 Die ulh-Skripte liegen im öffentlichen ulh-Repo (`sorglos-it/ulh`), nicht hier; Regeln dafür in
-`shared/ulh.md`. `scripts/ngc-all.sh` (alles auf einem Pi) kommt mit dem Plan für den Pi.
+`shared/ulh.md`. `scripts/cd-all.sh` (alles auf einem Pi) kommt mit dem Plan für den Pi.
 
 Fremde Ordner sind tabu. `shared/` ändert nur der Koordinator: Wer eine Änderung braucht, fragt
 ihn und wartet auf die neue Fassung. Fragen an einen Nachbarn gehen direkt an dessen Sitzung.
@@ -37,8 +37,8 @@ Das Repo folgt dem Projektstruktur-Standard: Teilprogramme unter `apps/`, die Ve
 - Dazu, wenn nötig: `sql/` (Migrationen), `config/` (nur `*.example`), `templates/`, `lang/`.
 - Go ist ein Modul im Stamm (`go.mod`). Deshalb liegt `vendor/` im Stamm: Go verlangt es neben
   `go.mod`, als einzige Ausnahme vom Standard.
-- Programme heißen nach ihrem Softwareteil: `go build -o ngc-api ./apps/server-api`, ebenso
-  `ngc-controller` und `ngc-store`. Die Version steht in `VERSION` des Teils und kommt beim Bauen
+- Programme heißen nach ihrem Softwareteil: `go build -o cd-api ./apps/server-api`, ebenso
+  `cd-controller` und `cd-store`. Die Version steht in `VERSION` des Teils und kommt beim Bauen
   mit `-ldflags "-X main.Version=…"` ins Programm.
 
 ## Regeln für sicheres Programmieren (Entwurf 4.6, verbindlich)
@@ -54,7 +54,7 @@ Das Repo folgt dem Projektstruktur-Standard: Teilprogramme unter `apps/`, die Ve
 - Überall Obergrenzen: Nachrichtengröße, Kanäle je Sitzung und je Tunnel, Freigabe je Kanal,
   Anmeldeversuche.
 - Kryptografie nur aus der Standardbibliothek oder aus `vendor/`, nichts selbst gebaut.
-- TLS zwischen NGC-Teilen nie ungeprüft: API-Server über ihren Fingerabdruck (`tunnel.PinnedTLS`),
+- TLS zwischen CirroDesk-Teilen nie ungeprüft: API-Server über ihren Fingerabdruck (`tunnel.PinnedTLS`),
   MariaDB über die CA der Installation (`config.DB.TLSConfig`).
 - Adressen nur nach der Grammatik in `trust` (`trust.ValidHost`, `trust.ValidTunnelURL`,
   `trust.ValidWebURL`, `trust.ValidStoreURL`, `trust.ValidHostPort`, `trust.ValidOrigin`);
@@ -109,7 +109,7 @@ Das Repo folgt dem Projektstruktur-Standard: Teilprogramme unter `apps/`, die Ve
 
 - Ein Branch je Teil (`web`, `api`, `controller`, `db`, `recovery`), Pull Request nach `main`. Der Koordinator
   prüft jeden Pull Request auf Vertrag und Sicherheit und führt ihn zusammen.
-- Im ulh-Repo genauso: Branch `ngc-<teil>`, Pull Request nach dessen `main`. Nur geprüfte Skripte,
+- Im ulh-Repo genauso: Branch `cd-<teil>`, Pull Request nach dessen `main`. Nur geprüfte Skripte,
   denn jede ulh-Installation holt beim Start `main`.
 - Kleine Commits, englische Nachricht in der Befehlsform, Trailer
   `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.

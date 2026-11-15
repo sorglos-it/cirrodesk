@@ -1,5 +1,7 @@
 # Recovery-Modus, Arbeitspaket 0: Testumgebung
 
+> NGC heißt seit dem 15.11.2026 CirroDesk (Kürzel cd); dieses Dokument gibt den Stand von damals wieder und behält die alten Namen.
+
 > **Für Agenten:** PFLICHT-SUBSKILL: `superpowers:subagent-driven-development` (empfohlen) oder
 > `superpowers:executing-plans`, Aufgabe für Aufgabe. Die Schritte sind Kästchen (`- [ ]`).
 

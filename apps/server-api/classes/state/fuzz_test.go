@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // FuzzRefresh feeds Refresh with rows a damaged or foreign database could

@@ -33,8 +33,8 @@ test("the rp of a passkey version comes from the list, or from this page where n
   async ({ shell }) => {
   const got = await shell.evaluate(async () => {
     const { passkeyRP } = await import("/assets/js/apps/users.js");
-    const at = { hostname: "ngc.example.org", origin: "https://ngc.example.org" };
-    const set = { id: "example.org", origins: ["https://ngc.example.org"] };
+    const at = { hostname: "cd.example.org", origin: "https://cd.example.org" };
+    const set = { id: "example.org", origins: ["https://cd.example.org"] };
     return [
       passkeyRP({ id: "", origins: [] }, at),
       passkeyRP(set, at),
@@ -43,8 +43,8 @@ test("the rp of a passkey version comes from the list, or from this page where n
     ];
   });
   expect(got).toEqual([
-    { id: "ngc.example.org", origins: ["https://ngc.example.org"] },
-    { id: "example.org", origins: ["https://ngc.example.org"] },
+    { id: "cd.example.org", origins: ["https://cd.example.org"] },
+    { id: "example.org", origins: ["https://cd.example.org"] },
     null,
     null,
   ]);

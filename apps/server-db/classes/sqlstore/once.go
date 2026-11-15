@@ -6,31 +6,31 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // Every statement of this file, as a constant. Nothing is ever put together
 // at run time: the table and column names are the ones the fixed lists in
 // names.go carry, everything a caller brings goes in through a placeholder.
 const (
-	onceInsert = "INSERT INTO ngc_once (kind, token, data, expires, used) VALUES (?, ?, ?, ?, ?)"
-	onceUse    = "UPDATE ngc_once SET used = ? WHERE kind = ? AND token = ? AND used = ? AND expires > ?"
+	onceInsert = "INSERT INTO cd_once (kind, token, data, expires, used) VALUES (?, ?, ?, ?, ?)"
+	onceUse    = "UPDATE cd_once SET used = ? WHERE kind = ? AND token = ? AND used = ? AND expires > ?"
 	// onceRead reads the data AND the time it was good until, in one
 	// statement, because OnceUse checks that time a second time in Go after
 	// the UPDATE has decided. See the bolt there for why.
-	onceRead  = "SELECT data, expires FROM ngc_once WHERE kind = ? AND token = ?"
-	onceState = "SELECT expires FROM ngc_once WHERE kind = ? AND token = ?"
-	oncePeek  = "SELECT data, expires, used FROM ngc_once WHERE kind = ? AND token = ?"
-	oncePurge = "DELETE FROM ngc_once WHERE expires <= ?"
+	onceRead  = "SELECT data, expires FROM cd_once WHERE kind = ? AND token = ?"
+	onceState = "SELECT expires FROM cd_once WHERE kind = ? AND token = ?"
+	oncePeek  = "SELECT data, expires, used FROM cd_once WHERE kind = ? AND token = ?"
+	oncePurge = "DELETE FROM cd_once WHERE expires <= ?"
 
-	lockTake = "UPDATE ngc_lock SET owner = ?, until = ? WHERE name = ? AND (owner = ? OR until <= ?)"
-	lockRow  = "SELECT owner, until FROM ngc_lock WHERE name = ?"
+	lockTake = "UPDATE cd_lock SET owner = ?, until = ? WHERE name = ? AND (owner = ? OR until <= ?)"
+	lockRow  = "SELECT owner, until FROM cd_lock WHERE name = ?"
 	// The same read for a database that wants the row held for the write
 	// behind it, see Dialect.RowLock. Two constants and not one put
 	// together: a statement in this package is always readable off the file.
-	lockRowLocked = "SELECT owner, until FROM ngc_lock WHERE name = ? FOR UPDATE"
-	lockInsert    = "INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)"
-	lockFree      = "DELETE FROM ngc_lock WHERE name = ? AND owner = ?"
+	lockRowLocked = "SELECT owner, until FROM cd_lock WHERE name = ? FOR UPDATE"
+	lockInsert    = "INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)"
+	lockFree      = "DELETE FROM cd_lock WHERE name = ? AND owner = ?"
 )
 
 // The two answers of the second bolt of LockTake. errLockHeld is no mistake:
@@ -145,7 +145,7 @@ func (s *store) OnceUse(ctx context.Context, kind string, value []byte, now int6
 			// So the time is asked a second time HERE, in Go, where a wrong
 			// column type cannot turn a comparison around: Scan reads the
 			// text back into an int64 losslessly, and the three other places
-			// that compare a time in Go (ngc_user.locked, ngc_session.expires
+			// that compare a time in Go (cd_user.locked, cd_session.expires
 			// and the branch below) all held in the same measurement. A bolt
 			// in SQL can be inverted by the schema; a bolt in Go cannot.
 			//

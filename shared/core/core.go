@@ -10,19 +10,19 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Core apps, services, rights.
 const (
-	AppDesktop = "ngc.desktop"
-	AppUsers   = "ngc.users"
-	AppStore   = "ngc.store"
+	AppDesktop = "cd.desktop"
+	AppUsers   = "cd.users"
+	AppStore   = "cd.store"
 
 	ServiceAPI        = "api"
 	ServiceController = "controller"
@@ -72,8 +72,8 @@ const (
 
 // What the opener of a FlowIn channel may send (Action.MaxIn).
 const (
-	MaxTrustIn   = 6 << 20  // ngc.users/api/trust: one trust.Signed as JSON
-	MaxLicenseIn = 16 << 10 // ngc.store/api/license and ngc.store/controller/license: one signed license (sign.Envelope) as JSON
+	MaxTrustIn   = 6 << 20  // cd.users/api/trust: one trust.Signed as JSON
+	MaxLicenseIn = 16 << 10 // cd.store/api/license and cd.store/controller/license: one signed license (sign.Envelope) as JSON
 )
 
 // maxTransferIn is what the API sends on a FlowTransfer channel: the length
@@ -191,7 +191,7 @@ func Lookup(app, service, name string) (Action, bool) {
 // action of service api, with a signed task only where task.Check asks for
 // one, and the root tasks of service controller (activate, deactivate,
 // uninstall, delete-data, install), always with a signed task. The API alone
-// opens stage, license and ngc.users/controller/trust, without a user
+// opens stage, license and cd.users/controller/trust, without a user
 // (WithoutUser), and refuses a shell's OPEN for them with E_FORBIDDEN. On a
 // transfer action the shell opened (activate) it sends EOF at once; the API
 // writes the Transfer header and the file on the tunnel hop (package wire,
@@ -199,10 +199,10 @@ func Lookup(app, service, name string) (Action, bool) {
 func ShellOpens(a Action) bool { return a.Service == ServiceAPI || a.Root }
 
 // WithoutUser reports whether the API may open a channel for action a without
-// a user (tunnel.Open without client certificate): ngc.users/controller/trust
-// (the versions carry their own signatures), ngc.store/controller/stage
-// (nothing is installed), ngc.store/controller/install (see Unattended) and
-// ngc.store/controller/license (the license carries the store's signature,
+// a user (tunnel.Open without client certificate): cd.users/controller/trust
+// (the versions carry their own signatures), cd.store/controller/stage
+// (nothing is installed), cd.store/controller/install (see Unattended) and
+// cd.store/controller/license (the license carries the store's signature,
 // which the controller checks with store.VerifyLicenseFor).
 func WithoutUser(a Action) bool {
 	if a.Service != ServiceController {
@@ -216,7 +216,7 @@ func WithoutUser(a Action) bool {
 // approval in l covers p.Target for signer (the key that signed the staged
 // file's release or catalog; nil for trust.AutoSystem), and p.Version is
 // newer than installed (not checked for trust.AutoSystem; "" never is older).
-// For an NGC part the signer is the controller's own release key
+// For a CirroDesk part the signer is the controller's own release key
 // (config.Controller.ReleaseKey): it verifies releases with no other key.
 // Nothing but the signed files counts: the controller takes Version and
 // SHA256 from the staged file's verified release or catalog entry, whose seq

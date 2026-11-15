@@ -11,12 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/migrate"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/migrate"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 var ctx = context.Background()
@@ -458,7 +458,7 @@ func TestWhatStandsInTheDatabase(t *testing.T) {
 	}
 	var version, grants []byte
 	var active, kept int64
-	if err := db.QueryRowContext(ctx, "SELECT version, active, grants, kept_data FROM ngc_app WHERE id = ?",
+	if err := db.QueryRowContext(ctx, "SELECT version, active, grants, kept_data FROM cd_app WHERE id = ?",
 		[]byte(full.ID)).Scan(&version, &active, &grants, &kept); err != nil {
 		t.Fatal(err)
 	}
@@ -468,7 +468,7 @@ func TestWhatStandsInTheDatabase(t *testing.T) {
 		t.Errorf("the row carries %q, %d, %q, %d", version, active, grants, kept)
 	}
 	var nulls int64
-	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM ngc_app WHERE version IS NULL OR store IS NULL "+
+	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM cd_app WHERE version IS NULL OR store IS NULL "+
 		"OR node IS NULL OR manifest IS NULL OR sha256 IS NULL OR grants IS NULL").Scan(&nulls); err != nil {
 		t.Fatal(err)
 	}
@@ -482,7 +482,7 @@ func TestWhatStandsInTheDatabase(t *testing.T) {
 		}
 	}
 	var rows int64
-	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM ngc_blob").Scan(&rows); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM cd_blob").Scan(&rows); err != nil {
 		t.Fatal(err)
 	}
 	if rows != 1 {
@@ -505,7 +505,7 @@ func TestWhatStandsInTheDatabase(t *testing.T) {
 // one.
 func TestARowNobodyOfOursWrote(t *testing.T) {
 	s, db := openDB(t)
-	if _, err := db.ExecContext(ctx, "INSERT INTO ngc_blob (kind, id, seq, data, updated) VALUES (?, ?, ?, ?, ?)",
+	if _, err := db.ExecContext(ctx, "INSERT INTO cd_blob (kind, id, seq, data, updated) VALUES (?, ?, ?, ?, ?)",
 		[]byte(dbapi.BlobTrust), []byte("1"), int64(-1), []byte("v1"), int64(1790000000)); err != nil {
 		t.Fatal(err)
 	}
@@ -519,7 +519,7 @@ func TestARowNobodyOfOursWrote(t *testing.T) {
 		t.Errorf("BlobFrom: %+v, %v", list, err)
 	}
 	grants := strings.Repeat("root\n", sqlstore.MaxList+1) + "root"
-	if _, err := db.ExecContext(ctx, "INSERT INTO ngc_app (id, version, store, node, active, manifest, "+
+	if _, err := db.ExecContext(ctx, "INSERT INTO cd_app (id, version, store, node, active, manifest, "+
 		"sha256, grants, kept_data, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		[]byte("org.sorglos.terminal"), []byte(""), []byte(""), []byte(""), int64(0), []byte(""),
 		[]byte(""), []byte(grants), int64(0), int64(0)); err != nil {
@@ -544,7 +544,7 @@ func TestAGrantNobodyKnowsDoesNotComeBackOut(t *testing.T) {
 	if err := s.AppPut(ctx, bad); !errors.Is(err, dbapi.ErrInvalid) {
 		t.Fatalf("writing it: %v, want ErrInvalid", err)
 	}
-	if _, err := db.ExecContext(ctx, "INSERT INTO ngc_app (id, version, store, node, active, manifest, "+
+	if _, err := db.ExecContext(ctx, "INSERT INTO cd_app (id, version, store, node, active, manifest, "+
 		"sha256, grants, kept_data, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		[]byte(bad.ID), []byte(""), []byte(""), []byte(""), int64(0), []byte(""),
 		[]byte(""), []byte("\x00"), int64(0), int64(0)); err != nil {

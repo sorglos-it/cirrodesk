@@ -285,10 +285,10 @@ test("a chunk that lies about its size decides nothing", async ({ shell }) => {
 
 // Being STRICTER than Go is not the safe side here, and this case is the fence
 // around that. store.Walk decides which entries a package may hold, but what a
-// header IS archive/tar decides, and it reads more shapes than ngc-store pack
+// header IS archive/tar decides, and it reads more shapes than cd-store pack
 // writes. A reader that only understood the one shape in packui.json would
 // refuse packages the API takes, and an admin would be told his package is
-// broken by one half of NGC and fine by the other.
+// broken by one half of CirroDesk and fine by the other.
 //
 // The four below are the ones with a second spelling. The USTAR prefix field
 // is already covered by the vectors ("long file name"), so it is not repeated.

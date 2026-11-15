@@ -36,11 +36,11 @@ import { vectors } from "../fixtures/vectors.js";
 //     ones a step backwards stays green.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=50000 npm test -- contracts/core-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=50000 npm test -- contracts/core-fuzz
 const v = vectors("core.json");
 const ui = vectors("uiproof.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 6000);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 6000);
 
 test(`fuzz: a document or core's own error, ${rounds} inputs from seed ${seed}`, async ({ shell }) => {
   test.setTimeout(240_000);
@@ -115,10 +115,10 @@ test(`fuzz: a document or core's own error, ${rounds} inputs from seed ${seed}`,
     // grammars, and the shapes that are no value of that member at all.
     const edges = [0, 1, -1, 1.5, 4294967296, 9007199254740991, 9007199254740992,
       "", " ", "x", "ok", "info", "auto", "amd64", "critical", "local", "global",
-      "ngc.desktop", "ngc-web", "system", "org.sorglos.terminal", "A.b", "a..b",
+      "cd.desktop", "cd-web", "system", "org.sorglos.terminal", "A.b", "a..b",
       "1.0.0", "01.0.0", "1.0", "admin", "Admin", "a".repeat(300), "\u0000x", "‮x",
       "\ud800", "x­", "AQID", "AQI=", "AAAAAAAAAAAAAAAAAAAAAA", "0123456789abcdef".repeat(2),
-      "wss://a.b:1/tunnel", "https://a.b", "otpauth://totp/NGC:a?secret=JBSWY3DP",
+      "wss://a.b:1/tunnel", "https://a.b", "otpauth://totp/CirroDesk:a?secret=JBSWY3DP",
       "08:00-09:00", "24:00-09:00", true, false, null, [], {}];
     // twist rewrites a document a member at a time: a value swapped for an
     // edge, a list made longer or shorter, a row repeated, a member added or
@@ -211,7 +211,7 @@ test(`fuzz: a document or core's own error, ${rounds} inputs from seed ${seed}`,
     }
     // An action nobody wrote gets no result read for it at all.
     for (const a of [null, undefined, {}, { app: "x", service: "api", name: "me" },
-      { app: "ngc.desktop", service: "api", name: "nosuch" }, 7, "ngc.desktop/me"]) {
+      { app: "cd.desktop", service: "api", name: "nosuch" }, 7, "cd.desktop/me"]) {
       try {
         c.parseResult(a, encoder.encode("{}"));
         say("a result was read for an action of no table", JSON.stringify(a));
@@ -226,7 +226,7 @@ test(`fuzz: a document or core's own error, ${rounds} inputs from seed ${seed}`,
     const texts = ["Alles gut", "x", "x".repeat(256)];
     const oddTexts = ["", "x".repeat(257), "a\u0000b", "a\nb", "‮"];
     const apps = ["", "org.sorglos.terminal", "a.b"];
-    const oddApps = ["ngc.desktop", "terminal", "A.b", "a."];
+    const oddApps = ["cd.desktop", "terminal", "A.b", "a."];
     for (let i = 0; i < rounds && found.length < 8; i++) {
       // ONE thing at a time, as everywhere here: a notice written whole, then
       // one of its three members from the edges, in two documents out of three.
@@ -249,7 +249,7 @@ test(`fuzz: a document or core's own error, ${rounds} inputs from seed ${seed}`,
       if (!levels.includes(n.level)) say(`a notice at level ${n.level}`, src);
       else if (n.text === "" || !printable(n.text) || encoder.encode(n.text).length > 256) {
         say("a notice whose text nobody can show", src);
-      } else if (n.app !== "" && !(/^[a-z0-9]+(\.[a-z0-9-]+)+$/.test(n.app) && !n.app.startsWith("ngc."))) {
+      } else if (n.app !== "" && !(/^[a-z0-9]+(\.[a-z0-9-]+)+$/.test(n.app) && !n.app.startsWith("cd."))) {
         say(`a notice about app ${n.app}`, src);
       }
     }
@@ -283,7 +283,7 @@ test(`fuzz: a document or core's own error, ${rounds} inputs from seed ${seed}`,
         continue;
       }
       count.proof++;
-      const app = typeof p.app === "string" && /^[a-z0-9]+(\.[a-z0-9-]+)+$/.test(p.app) && !p.app.startsWith("ngc.");
+      const app = typeof p.app === "string" && /^[a-z0-9]+(\.[a-z0-9-]+)+$/.test(p.app) && !p.app.startsWith("cd.");
       const version = typeof p.version === "string" && /^(0|[1-9][0-9]{0,5})(\.(0|[1-9][0-9]{0,5})){2}$/.test(p.version);
       const store = typeof p.store === "string" && /^[a-z][a-z0-9-]{0,31}$/.test(p.store);
       if (!app || !version || !store) { say(`a UI proof for ${p.app} at ${p.version} of ${p.store}`, src.slice(0, 200)); continue; }
@@ -335,7 +335,7 @@ test(`fuzz: a document or core's own error, ${rounds} inputs from seed ${seed}`,
       ["org.sorglos.terminal/use"], [""], 500, 501, "08:00-09:00"];
     const members = ["app", "version", "sha256", "ui", "store", "grants", "keepData", "target",
       "role", "rights", "code", "id", "limit", "kind", "user", "before", "mode", "window", "extra"];
-    const rows = [...c.ACTIONS, null, undefined, {}, { app: "ngc.store", service: "controller", name: "activate" },
+    const rows = [...c.ACTIONS, null, undefined, {}, { app: "cd.store", service: "controller", name: "activate" },
       { app: "x", service: "y", name: "z" }];
     for (let i = 0; i < Math.ceil(rounds / 2) && found.length < 8; i++) {
       const a = pick(rows);

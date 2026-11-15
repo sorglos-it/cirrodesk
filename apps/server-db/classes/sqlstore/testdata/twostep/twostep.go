@@ -29,16 +29,16 @@ func (result) RowsAffected() (int64, error) { return 0, nil }
 func (r *row) Scan(dest ...any) error { return nil }
 
 const (
-	onceInsert = "INSERT INTO ngc_once (kind, token, data, expires, used) VALUES (?, ?, ?, ?, ?)"
-	onceCheck  = "SELECT used, expires, data FROM ngc_once WHERE kind = ? AND token = ?"
-	onceMark   = "UPDATE ngc_once SET used = ? WHERE kind = ? AND token = ?"
-	oncePurge  = "DELETE FROM ngc_once WHERE expires <= ?"
+	onceInsert = "INSERT INTO cd_once (kind, token, data, expires, used) VALUES (?, ?, ?, ?, ?)"
+	onceCheck  = "SELECT used, expires, data FROM cd_once WHERE kind = ? AND token = ?"
+	onceMark   = "UPDATE cd_once SET used = ? WHERE kind = ? AND token = ?"
+	oncePurge  = "DELETE FROM cd_once WHERE expires <= ?"
 
-	lockTake   = "UPDATE ngc_lock SET owner = ?, until = ? WHERE name = ? AND (owner = ? OR until <= ?)"
-	lockInsert = "INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)"
-	lockFree   = "DELETE FROM ngc_lock WHERE name = ? AND owner = ?"
-	lockList   = "SELECT name, owner FROM ngc_lock WHERE until > ?"
-	onceCount  = "SELECT count(*) FROM ngc_once WHERE kind = ?"
+	lockTake   = "UPDATE cd_lock SET owner = ?, until = ? WHERE name = ? AND (owner = ? OR until <= ?)"
+	lockInsert = "INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)"
+	lockFree   = "DELETE FROM cd_lock WHERE name = ? AND owner = ?"
+	lockList   = "SELECT name, owner FROM cd_lock WHERE until > ?"
+	onceCount  = "SELECT count(*) FROM cd_once WHERE kind = ?"
 )
 
 type store struct {

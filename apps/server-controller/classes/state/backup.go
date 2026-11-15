@@ -3,8 +3,8 @@ package state
 import (
 	"fmt"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // Backup writes a copy of this controller's own database to target.
@@ -43,7 +43,7 @@ func Backup(cfg config.DB, target string) error {
 	// And the driver, for the reason Open refuses another one: a controller's
 	// own database is this file format. A MariaDB configuration must not be
 	// copied as though its data lay in a file of this machine - they lie on
-	// the database servers, and ngc-db copies them there.
+	// the database servers, and cd-db copies them there.
 	//
 	// What this check is really FOR, measured and not supposed: the copier
 	// underneath refuses a wrong driver by itself with
@@ -57,7 +57,7 @@ func Backup(cfg config.DB, target string) error {
 	if cfg.Driver != config.DriverSQLite {
 		return fmt.Errorf("state: die eigene Datenbank dieses Controllers ist eine SQLite-Datei, "+
 			"die Konfiguration nennt aber %q - gesichert wird ein MariaDB-Verbund auf den "+
-			"Datenbankservern mit \"ngc-db backup\"", cfg.Driver)
+			"Datenbankservern mit \"cd-db backup\"", cfg.Driver)
 	}
 	if err := sqlite.Backup(cfg, target); err != nil {
 		// Wrapped for the reason Open wraps: whoever reads this knows which

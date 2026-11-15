@@ -15,7 +15,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")

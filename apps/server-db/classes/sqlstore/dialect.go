@@ -40,7 +40,7 @@ type Dialect interface {
 	// UPDATE when a write to the same row follows it in that transaction.
 	// MariaDB does: measured on 03.11.2026 against 11.8.6, a plain read in
 	// front of the write of LockTake answers "Error 1020: Record has changed
-	// since last read in table 'ngc_lock'" under concurrent takers, and
+	// since last read in table 'cd_lock'" under concurrent takers, and
 	// shared/dbapi/dbtest caught it. SQLite does not, and knows no such
 	// clause: one connection writes, and the transaction keeps its place.
 	RowLock() bool
@@ -143,7 +143,7 @@ func (sqliteDialect) Duplicate(err error) bool {
 	return errors.Is(err, sqlite3.CONSTRAINT_PRIMARYKEY) || errors.Is(err, sqlite3.CONSTRAINT_UNIQUE)
 }
 
-// Exists reads the message, and it is the only place in NGC that does: SQLite
+// Exists reads the message, and it is the only place in CirroDesk that does: SQLite
 // has no error code of its own for "it is already there". A CREATE of a table,
 // an index or a view that exists reports the generic SQLITE_ERROR, the same
 // code a syntax error carries, so the code alone would step over every broken
@@ -166,9 +166,9 @@ func (sqliteDialect) Duplicate(err error) bool {
 // the first table instead of stepping over it.
 //
 // The real error this swallows is a NAME COLLISION, one for each wording, and
-// both are measured, not feared. "CREATE INDEX ngc_blob_seq ON ngc_blob (id)"
+// both are measured, not feared. "CREATE INDEX cd_blob_seq ON cd_blob (id)"
 // on a database that already carries that index over other columns answers
-// "index ngc_blob_seq already exists", so it is stepped over and the migration
+// "index cd_blob_seq already exists", so it is stepped over and the migration
 // is recorded as done. SQLite says nothing about the content in that message,
 // so no reading of it could tell the two apart. What keeps it out is the rule
 // that a migration only ever adds and the lint of task 3, which refuses a name

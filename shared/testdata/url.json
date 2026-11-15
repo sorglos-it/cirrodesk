@@ -164,7 +164,7 @@
   "hostPort": [
     {
       "name": "host name",
-      "value": "db-1.ngc.test:3306",
+      "value": "db-1.cd.test:3306",
       "valid": true
     },
     {
@@ -189,32 +189,32 @@
     },
     {
       "name": "no port",
-      "value": "db-1.ngc.test",
+      "value": "db-1.cd.test",
       "valid": false
     },
     {
       "name": "port 0",
-      "value": "db-1.ngc.test:0",
+      "value": "db-1.cd.test:0",
       "valid": false
     },
     {
       "name": "port 65536",
-      "value": "db-1.ngc.test:65536",
+      "value": "db-1.cd.test:65536",
       "valid": false
     },
     {
       "name": "port with a leading zero",
-      "value": "db-1.ngc.test:03306",
+      "value": "db-1.cd.test:03306",
       "valid": false
     },
     {
       "name": "DSN parameters",
-      "value": "db-1.ngc.test:3306)/ngc?allowAllFiles=true",
+      "value": "db-1.cd.test:3306)/cd?allowAllFiles=true",
       "valid": false
     },
     {
       "name": "upper case",
-      "value": "DB-1.ngc.test:3306",
+      "value": "DB-1.cd.test:3306",
       "valid": false
     },
     {
@@ -406,12 +406,12 @@
   "origins": [
     {
       "name": "host only",
-      "value": "https://ngc.example.org",
+      "value": "https://cd.example.org",
       "valid": true
     },
     {
       "name": "port",
-      "value": "https://ngc.example.org:8443",
+      "value": "https://cd.example.org:8443",
       "valid": true
     },
     {
@@ -431,7 +431,7 @@
     },
     {
       "name": "default port",
-      "value": "https://ngc.example.org:443",
+      "value": "https://cd.example.org:443",
       "valid": false
     },
     {
@@ -441,57 +441,57 @@
     },
     {
       "name": "plain http",
-      "value": "http://ngc.example.org",
+      "value": "http://cd.example.org",
       "valid": false
     },
     {
       "name": "trailing slash",
-      "value": "https://ngc.example.org/",
+      "value": "https://cd.example.org/",
       "valid": false
     },
     {
       "name": "path",
-      "value": "https://ngc.example.org/x",
+      "value": "https://cd.example.org/x",
       "valid": false
     },
     {
       "name": "query",
-      "value": "https://ngc.example.org?y=1",
+      "value": "https://cd.example.org?y=1",
       "valid": false
     },
     {
       "name": "fragment",
-      "value": "https://ngc.example.org#z",
+      "value": "https://cd.example.org#z",
       "valid": false
     },
     {
       "name": "user info",
-      "value": "https://user@ngc.example.org",
+      "value": "https://user@cd.example.org",
       "valid": false
     },
     {
       "name": "host in upper case",
-      "value": "https://NGC.example.org",
+      "value": "https://CirroDesk.example.org",
       "valid": false
     },
     {
       "name": "trailing space",
-      "value": "https://ngc.example.org ",
+      "value": "https://cd.example.org ",
       "valid": false
     },
     {
       "name": "line feed",
-      "value": "https://ngc.example.org\n",
+      "value": "https://cd.example.org\n",
       "valid": false
     },
     {
       "name": "quote",
-      "value": "https://ngc.example.org\"",
+      "value": "https://cd.example.org\"",
       "valid": false
     },
     {
       "name": "port 0",
-      "value": "https://ngc.example.org:0",
+      "value": "https://cd.example.org:0",
       "valid": false
     },
     {
@@ -503,17 +503,17 @@
   "store": [
     {
       "name": "host only",
-      "value": "https://store.ngc.example",
+      "value": "https://store.cd.example",
       "valid": true
     },
     {
       "name": "port",
-      "value": "https://store.ngc.example:8443",
+      "value": "https://store.cd.example:8443",
       "valid": true
     },
     {
       "name": "path",
-      "value": "https://example.org/ngc/store",
+      "value": "https://example.org/cd/store",
       "valid": true
     },
     {
@@ -523,7 +523,7 @@
     },
     {
       "name": "IPv6",
-      "value": "https://[2001:db8::1]:8443/ngc",
+      "value": "https://[2001:db8::1]:8443/cd",
       "valid": true
     },
     {
@@ -533,12 +533,12 @@
     },
     {
       "name": "plain http",
-      "value": "http://store.ngc.example",
+      "value": "http://store.cd.example",
       "valid": false
     },
     {
       "name": "trailing slash",
-      "value": "https://store.ngc.example/",
+      "value": "https://store.cd.example/",
       "valid": false
     },
     {
@@ -558,17 +558,17 @@
     },
     {
       "name": "query",
-      "value": "https://store.ngc.example?x=1",
+      "value": "https://store.cd.example?x=1",
       "valid": false
     },
     {
       "name": "fragment",
-      "value": "https://store.ngc.example#x",
+      "value": "https://store.cd.example#x",
       "valid": false
     },
     {
       "name": "user info",
-      "value": "https://user@store.ngc.example",
+      "value": "https://user@store.cd.example",
       "valid": false
     },
     {
@@ -583,12 +583,12 @@
     },
     {
       "name": "host in upper case",
-      "value": "https://Store.ngc.example",
+      "value": "https://Store.cd.example",
       "valid": false
     },
     {
       "name": "port 0",
-      "value": "https://store.ngc.example:0",
+      "value": "https://store.cd.example:0",
       "valid": false
     },
     {
