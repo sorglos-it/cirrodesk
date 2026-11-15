@@ -47,3 +47,27 @@ public/assets/vendor/noble-hashes/SOURCE.md
 # same rule"), and README.md is what the vhost's own head points a human at.
 README.md
 CLAUDE.md
+
+# The language files. lang.js (shell/lang.js, PARTS) builds each name at run
+# time - "/assets/lang/" + language + part + ".json" - so the graph, which
+# follows no string it has to put together, reaches none of them. Without them
+# the interface falls back to English everywhere (S12). Added 15.11.2026, when
+# this case began to measure HEAD instead of the old web branch.
+public/assets/lang/de.json
+public/assets/lang/en.json
+public/assets/lang/es.json
+public/assets/lang/fr.json
+public/assets/lang/it.json
+public/assets/lang/de-desk.json
+public/assets/lang/en-desk.json
+public/assets/lang/es-desk.json
+public/assets/lang/fr-desk.json
+public/assets/lang/it-desk.json
+
+# The licence of the vendored Inter font. It must travel with the font it
+# covers, and a LICENSE is named by nothing.
+public/assets/vendor/inter/LICENSE
+
+# Where the vendored font comes from and at which version (THIRD-PARTY.md),
+# named by nothing.
+public/assets/vendor/inter/SOURCE.md
