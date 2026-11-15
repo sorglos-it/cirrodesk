@@ -202,6 +202,22 @@ func TestAcceptRefusesAForeignMAC(t *testing.T) {
 			if len(rows) != 0 {
 				t.Fatalf("%d rows waiting, want 0", len(rows))
 			}
+			// A13: the wrong attempt did not burn the code. The server that
+			// holds the secret still gets in with it, exactly once.
+			goodBody, err := json.Marshal(good)
+			if err != nil {
+				t.Fatalf("good body: %v", err)
+			}
+			w = httptest.NewRecorder()
+			j.Accept(w, post(enc.B64.EncodeToString(h[:]), goodBody))
+			if w.Code != http.StatusNoContent {
+				t.Fatalf("the right request after a wrong one: %d %s", w.Code, w.Body)
+			}
+			w = httptest.NewRecorder()
+			j.Accept(w, post(enc.B64.EncodeToString(h[:]), goodBody))
+			if w.Code == http.StatusNoContent {
+				t.Fatal("the code was taken twice")
+			}
 		})
 	}
 }
@@ -367,7 +383,7 @@ func joinLog(t *testing.T, j *Join) []core.LogEntry {
 	return got
 }
 
-func TestABurntJoinCodeLeavesOneLineThatNamesTheCheck(t *testing.T) {
+func TestAWrongProofLeavesOneLineThatNamesTheCheck(t *testing.T) {
 	j, fx := newJoin(t)
 	code, _, err := j.NewJoinCode(ctx)
 	if err != nil {
@@ -388,7 +404,7 @@ func TestABurntJoinCodeLeavesOneLineThatNamesTheCheck(t *testing.T) {
 	}
 	got := joinLog(t, j)
 	if len(got) != 1 {
-		t.Fatalf("a burnt code left %d lines, want 1: %+v", len(got), got)
+		t.Fatalf("a wrong proof left %d lines, want 1: %+v", len(got), got)
 	}
 	e := got[0]
 	if e.Kind != core.LogTrust || e.Action != audit.ActionJoin ||
