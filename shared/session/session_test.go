@@ -730,6 +730,7 @@ func TestHTTPStatus(t *testing.T) {
 		wire.CodeLocked:      429,
 		wire.CodeInternal:    500,
 		wire.CodeUnreachable: 503,
+		wire.CodeNotSetUp:    503,
 		// Codes of channels, which have no answer of their own before the
 		// WebSocket, and codes no one defined.
 		wire.CodeExit:    500,

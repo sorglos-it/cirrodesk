@@ -24,6 +24,8 @@
 // Every path may also answer 400 E_PROTOCOL (a malformed request, or a from
 // that ParseFrom refuses), 413 E_TOOLARGE (a body over MaxRequest), 500
 // E_INTERNAL and 503 E_UNREACHABLE (the database cannot be reached).
+// PathLoginStart and PathLoginFinish answer 503 E_NOT_SET_UP on an
+// installation that was never set up.
 //
 // E_LOGIN stands for every failed login alike (an unknown name, a wrong proof
 // or TOTP code, a missing password proof, a used or expired nonce) and for a
@@ -735,7 +737,7 @@ func ParseFrom(s string) (uint64, error) {
 // HTTPStatus is the HTTP status of an error answer before the WebSocket; its
 // body is the CLOSE payload wire.Error(c): E_PROTOCOL 400, E_LOGIN 401,
 // E_FORBIDDEN and E_VERIFY 403, E_NOTFOUND 404, E_TOOLARGE 413, E_LOCKED 429,
-// E_INTERNAL 500, E_UNREACHABLE 503; any other code 500.
+// E_INTERNAL 500, E_UNREACHABLE and E_NOT_SET_UP 503; any other code 500.
 func HTTPStatus(c wire.Code) int {
 	switch c {
 	case wire.CodeProtocol:
@@ -750,7 +752,7 @@ func HTTPStatus(c wire.Code) int {
 		return 413
 	case wire.CodeLocked:
 		return 429
-	case wire.CodeUnreachable:
+	case wire.CodeUnreachable, wire.CodeNotSetUp:
 		return 503
 	}
 	return 500

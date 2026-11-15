@@ -13,6 +13,7 @@ import (
 	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/httpapi"
 	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/lock"
 	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
 	"github.com/sorglos-it/nextgencloud/shared/dbapi"
 	"github.com/sorglos-it/nextgencloud/shared/enc"
 	"github.com/sorglos-it/nextgencloud/shared/noisep"
@@ -98,10 +99,14 @@ func (h *Handler) Finish(w http.ResponseWriter, r *http.Request) {
 		httpapi.Fail(w, wire.CodeProtocol)
 		return
 	}
-	// Before the setup has run there is no list and no login. E_UNREACHABLE
-	// and not E_NOTFOUND, for the reason login/start gives: the contract's
-	// table has no 404 for this path at all.
+	// Before the setup has run there is no list, and then no login: the
+	// contract answers E_NOT_SET_UP (A3, Thomas' decision (a)). The list is
+	// read before any name, so the answer is alike for every name.
 	v, err := h.S.Trust(ctx)
+	if errors.Is(err, state.ErrNoTrust) {
+		httpapi.Fail(w, wire.CodeNotSetUp)
+		return
+	}
 	if err != nil {
 		// FailCoded and not Fail at all five of this path's E_UNREACHABLE:
 		// the code is the one written here and is not recomputed, and the

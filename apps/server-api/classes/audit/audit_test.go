@@ -487,3 +487,13 @@ func TestEveryPairingReasonSurvivesAsADetail(t *testing.T) {
 		}
 	}
 }
+
+// TestEveryLoginCodeIsAResult holds A3: a login refused with E_NOT_SET_UP is
+// logged under its own code and not as Dropped.
+func TestEveryLoginCodeIsAResult(t *testing.T) {
+	for _, c := range []wire.Code{wire.CodeLogin, wire.CodeLocked, wire.CodeNotSetUp} {
+		if !slicesContains(results, string(c)) {
+			t.Errorf("%s is not a result the log keeps", c)
+		}
+	}
+}

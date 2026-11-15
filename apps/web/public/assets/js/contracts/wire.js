@@ -490,11 +490,11 @@ export const CODES = Object.freeze({
   FORBIDDEN: "E_FORBIDDEN", UNREACHABLE: "E_UNREACHABLE", EXIT: "E_EXIT", TIMEOUT: "E_TIMEOUT",
   LIMIT: "E_LIMIT", PROTOCOL: "E_PROTOCOL", CONFIRM: "E_CONFIRM", LICENSE: "E_LICENSE",
   NOTFOUND: "E_NOTFOUND", VERIFY: "E_VERIFY", INTERNAL: "E_INTERNAL", TOOLARGE: "E_TOOLARGE",
-  LOGIN: "E_LOGIN", LOCKED: "E_LOCKED",
+  LOGIN: "E_LOGIN", LOCKED: "E_LOCKED", NOT_SET_UP: "E_NOT_SET_UP",
 });
 
 // The messages are a Map and not an object. Go's messages is a map[Code]string
-// and holds these fourteen names and nothing else; an object holds everything
+// and holds these fifteen names and nothing else; an object holds everything
 // Object.prototype holds as well, and both places that ask it would answer
 // wrongly: message("constructor") would give back a function instead of "",
 // and the check of a CLOSE below, which asks whether the code is in the table
@@ -515,6 +515,7 @@ const MESSAGES = new Map([
   ["E_TOOLARGE", "Zu viele Daten."],
   ["E_LOGIN", "Anmeldung fehlgeschlagen."],
   ["E_LOCKED", "Zu viele Fehlversuche. Bitte später erneut versuchen."],
+  ["E_NOT_SET_UP", "NGC ist noch nicht eingerichtet."],
 ]);
 
 // message returns the German text shown to users, and "" for a code that is
