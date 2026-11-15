@@ -57,8 +57,8 @@ func TestFill(t *testing.T) {
 	// The ending carries no space of its own: a statement runs with one
 	// between every two of its pieces, so the space stands in front of the
 	// {{opts}} and not inside it.
-	got, err := Fill(MariaDB, "CREATE TABLE ngc_lock (name {{key}} NOT NULL, until {{int}} NOT NULL) {{opts}}")
-	want := "CREATE TABLE ngc_lock (name VARBINARY(255) NOT NULL, until BIGINT NOT NULL) ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+	got, err := Fill(MariaDB, "CREATE TABLE cd_lock (name {{key}} NOT NULL, until {{int}} NOT NULL) {{opts}}")
+	want := "CREATE TABLE cd_lock (name VARBINARY(255) NOT NULL, until BIGINT NOT NULL) ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
 	if err != nil || got != want {
 		t.Errorf("MariaDB: %q, %v; want %q", got, err, want)
 	}

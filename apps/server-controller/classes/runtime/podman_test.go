@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // fake stands in for podman. Its program writes down everything a case here
@@ -66,7 +66,7 @@ func fakePodman(t *testing.T) *fake {
 		}
 	}
 	// A variable of this process that must not reach podman.
-	t.Setenv("NGC_LEAK", "this must not reach podman")
+	t.Setenv("CD_LEAK", "this must not reach podman")
 	return f
 }
 
@@ -213,21 +213,21 @@ func TestCreateBuildsTheArgumentList(t *testing.T) {
 	uid, gid := app.uid, app.gid
 	p := NewPodman(f.bin)
 	err := p.Create(context.Background(), Container{
-		Name: "ngc-terminal-1a2b3c4d", Image: "ngc/terminal:1.0.0",
-		UID: uid, GID: gid, DataDir: "/var/lib/ngc/apps/org.sorglos.terminal",
-		Hold: "/usr/lib/ngc/ngc-controller", CPU: 1000, Memory: 256,
+		Name: "cd-terminal-1a2b3c4d", Image: "cd/terminal:1.0.0",
+		UID: uid, GID: gid, DataDir: "/var/lib/cd/apps/org.sorglos.terminal",
+		Hold: "/usr/lib/cd/cd-controller", CPU: 1000, Memory: 256,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	args := f.args(t)
-	want := []string{"create", "--name", "ngc-terminal-1a2b3c4d", "--network", "none",
+	want := []string{"create", "--name", "cd-terminal-1a2b3c4d", "--network", "none",
 		"--cpus", "1.000", "--memory", "256m", "--pids-limit", "512",
 		"--read-only", "--cap-drop", "ALL",
 		"--security-opt", "no-new-privileges",
-		"--volume", "/var/lib/ngc/apps/org.sorglos.terminal:/data:rw,nosuid,nodev",
-		"--volume", "/usr/lib/ngc/ngc-controller:/ngc/ngc-hold:ro,nosuid,nodev",
-		"--user", "0:0", "ngc/terminal:1.0.0", "/ngc/ngc-hold", "hold"}
+		"--volume", "/var/lib/cd/apps/org.sorglos.terminal:/data:rw,nosuid,nodev",
+		"--volume", "/usr/lib/cd/cd-controller:/cd/cd-hold:ro,nosuid,nodev",
+		"--user", "0:0", "cd/terminal:1.0.0", "/cd/cd-hold", "hold"}
 	if !slices.Equal(args, want) {
 		t.Fatalf("args =\n%q\nwant\n%q", args, want)
 	}
@@ -251,8 +251,8 @@ func TestCreateTakesTheLimitsApartInThousandths(t *testing.T) {
 		uid, gid := app.uid, app.gid
 		p := NewPodman(f.bin)
 		if err := p.Create(context.Background(), Container{
-			Name: "ngc-a-00000000", Image: "ngc/a:1.0.0", UID: uid, GID: gid,
-			DataDir: "/var/lib/ngc/apps/a", Hold: "/usr/lib/ngc/ngc-controller",
+			Name: "cd-a-00000000", Image: "cd/a:1.0.0", UID: uid, GID: gid,
+			DataDir: "/var/lib/cd/apps/a", Hold: "/usr/lib/cd/cd-controller",
 			CPU: c.cpu, Memory: c.mem,
 		}); err != nil {
 			t.Fatal(err)
@@ -285,9 +285,9 @@ func TestCreateWithNetworkAndRoot(t *testing.T) {
 	uid, gid := app.uid, app.gid
 	p := NewPodman(f.bin)
 	if err := p.Create(context.Background(), Container{
-		Name: "ngc-terminal-1a2b3c4d", Image: "ngc/terminal:1.0.0",
-		UID: uid, GID: gid, DataDir: "/var/lib/ngc/apps/org.sorglos.terminal",
-		Hold: "/usr/lib/ngc/ngc-controller", Network: true, Root: true,
+		Name: "cd-terminal-1a2b3c4d", Image: "cd/terminal:1.0.0",
+		UID: uid, GID: gid, DataDir: "/var/lib/cd/apps/org.sorglos.terminal",
+		Hold: "/usr/lib/cd/cd-controller", Network: true, Root: true,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -324,8 +324,8 @@ func TestEachGrantChangesOnlyItsOwnOption(t *testing.T) {
 		app := anApp(t)
 		uid, gid := app.uid, app.gid
 		c := Container{
-			Name: "ngc-a-00000000", Image: "ngc/a:1.0.0", UID: uid, GID: gid,
-			DataDir: "/var/lib/ngc/apps/a", Hold: "/usr/lib/ngc/ngc-controller",
+			Name: "cd-a-00000000", Image: "cd/a:1.0.0", UID: uid, GID: gid,
+			DataDir: "/var/lib/cd/apps/a", Hold: "/usr/lib/cd/cd-controller",
 		}
 		bend(&c)
 		if err := NewPodman(f.bin).Create(context.Background(), c); err != nil {
@@ -358,8 +358,8 @@ func TestEachGrantChangesOnlyItsOwnOption(t *testing.T) {
 // volume specification in another place, which mounts another directory.
 func TestCreateRefusesWhatWouldChangeTheArgumentList(t *testing.T) {
 	good := Container{
-		Name: "ngc-a-00000000", Image: "ngc/a:1.0.0",
-		DataDir: "/var/lib/ngc/apps/a", Hold: "/usr/lib/ngc/ngc-controller",
+		Name: "cd-a-00000000", Image: "cd/a:1.0.0",
+		DataDir: "/var/lib/cd/apps/a", Hold: "/usr/lib/cd/cd-controller",
 	}
 	good.UID, good.GID = anApp(t).uid, anApp(t).gid
 	cases := map[string]func(c *Container){
@@ -367,12 +367,12 @@ func TestCreateRefusesWhatWouldChangeTheArgumentList(t *testing.T) {
 		"name with a colon":          func(c *Container) { c.Name = "a:b" },
 		"empty name":                 func(c *Container) { c.Name = "" },
 		"image with a dash in front": func(c *Container) { c.Image = "-v" },
-		"image without a tag":        func(c *Container) { c.Image = "ngc/a" },
+		"image without a tag":        func(c *Container) { c.Image = "cd/a" },
 		"data directory relative":    func(c *Container) { c.DataDir = "apps/a" },
-		"data directory with colon":  func(c *Container) { c.DataDir = "/var/lib/ngc/apps/a:/etc:ro" },
-		"hold relative":              func(c *Container) { c.Hold = "ngc-controller" },
-		"hold with colon":            func(c *Container) { c.Hold = "/usr/lib/ngc:x" },
-		"hold not clean":             func(c *Container) { c.Hold = "/usr/lib/ngc/../../ngc-controller" },
+		"data directory with colon":  func(c *Container) { c.DataDir = "/var/lib/cd/apps/a:/etc:ro" },
+		"hold relative":              func(c *Container) { c.Hold = "cd-controller" },
+		"hold with colon":            func(c *Container) { c.Hold = "/usr/lib/cd:x" },
+		"hold not clean":             func(c *Container) { c.Hold = "/usr/lib/cd/../../cd-controller" },
 		"negative cpu":               func(c *Container) { c.CPU = -1 },
 		"negative memory":            func(c *Container) { c.Memory = -1 },
 		// What is mounted into a container is what the container can read, and
@@ -380,7 +380,7 @@ func TestCreateRefusesWhatWouldChangeTheArgumentList(t *testing.T) {
 		"hold outside the program directory": func(c *Container) { c.Hold = "/etc/shadow" },
 		"hold is the program directory":      func(c *Container) { c.Hold = config.BinDir },
 		"data directory is the root":         func(c *Container) { c.DataDir = "/" },
-		"data directory elsewhere":           func(c *Container) { c.DataDir = "/var/lib/ngc/staged" },
+		"data directory elsewhere":           func(c *Container) { c.DataDir = "/var/lib/cd/staged" },
 	}
 	for name, bend := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -408,15 +408,15 @@ func TestCreatePassesFourVariablesAndNothingElse(t *testing.T) {
 	uid, gid := app.uid, app.gid
 	p := NewPodman(f.bin)
 	if err := p.Create(context.Background(), Container{
-		Name: "ngc-terminal-1a2b3c4d", Image: "ngc/terminal:1.0.0", UID: uid, GID: gid,
-		DataDir: "/var/lib/ngc/apps/org.sorglos.terminal", Hold: "/usr/lib/ngc/ngc-controller",
+		Name: "cd-terminal-1a2b3c4d", Image: "cd/terminal:1.0.0", UID: uid, GID: gid,
+		DataDir: "/var/lib/cd/apps/org.sorglos.terminal", Hold: "/usr/lib/cd/cd-controller",
 	}); err != nil {
 		t.Fatal(err)
 	}
 	env := f.env(t)
 	want := map[string]string{
-		"HOME":            "/var/lib/ngc/apps/org.sorglos.terminal",
-		"XDG_RUNTIME_DIR": "/run/ngc/ngc-terminal-1a2b3c4d",
+		"HOME":            "/var/lib/cd/apps/org.sorglos.terminal",
+		"XDG_RUNTIME_DIR": "/run/cd/cd-terminal-1a2b3c4d",
 		"PATH":            "/usr/bin:/bin",
 		"LANG":            "C.UTF-8",
 	}
@@ -478,9 +478,9 @@ func TestWithoutRootNoContainerStartsForAnotherUser(t *testing.T) {
 		t.Skip("this case is about a controller without root")
 	}
 	err := NewPodman(f.bin).Create(context.Background(), Container{
-		Name: "ngc-terminal-1a2b3c4d", Image: "ngc/terminal:1.0.0",
-		UID: 900, GID: 900, DataDir: "/var/lib/ngc/apps/org.sorglos.terminal",
-		Hold: "/usr/lib/ngc/ngc-controller",
+		Name: "cd-terminal-1a2b3c4d", Image: "cd/terminal:1.0.0",
+		UID: 900, GID: 900, DataDir: "/var/lib/cd/apps/org.sorglos.terminal",
+		Hold: "/usr/lib/cd/cd-controller",
 	})
 	if !errors.Is(err, ErrNotRoot) {
 		t.Fatalf("err = %v, want ErrNotRoot", err)
@@ -525,7 +525,7 @@ func TestExecNeverUsesAShell(t *testing.T) {
 	}
 }
 
-// NGC_PARAMS of a call must stand in no command line and in no log, so the
+// CD_PARAMS of a call must stand in no command line and in no log, so the
 // environment of the service travels in a file. The file is gone when the call
 // is over: it is the only copy that was on the machine.
 func TestExecTakesTheEnvironmentFromAFileAndRemovesIt(t *testing.T) {
@@ -565,7 +565,7 @@ func runDirFile(t *testing.T, name string) string {
 		t.Skip("cannot make " + dir + ", so no case about that file can run here: " + err.Error())
 	}
 	path := filepath.Join(dir, "env")
-	if err := os.WriteFile(path, []byte("NGC_PARAMS={}\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("CD_PARAMS={}\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { os.Remove(path) })
@@ -607,7 +607,7 @@ func TestExecRefusesAnEnvironmentFileThatIsNoPath(t *testing.T) {
 	// refused because they are not under config.RunDir, and the engine removes
 	// what it is handed: a path from anywhere would make this call a way to
 	// delete any file of this server.
-	for _, bad := range []string{"-v", "env", "/run/ngc/../etc/shadow",
+	for _, bad := range []string{"-v", "env", "/run/cd/../etc/shadow",
 		filepath.Join(t.TempDir(), "env"), "/etc/shadow", config.RunDir} {
 		if _, err := NewPodman(f.bin).Exec(context.Background(), Exec{
 			Name: name, Command: []string{"/usr/bin/greet"}, EnvFile: bad,
@@ -940,12 +940,12 @@ func TestLoadImageAnswersWithTheTagOfTheTar(t *testing.T) {
 	f := fakePodman(t)
 	name := anApp(t).name
 	tarPath := filepath.Join(t.TempDir(), "amd64.tar")
-	writeTar(t, tarPath, archive(`[{"Config":"c.json","RepoTags":["ngc/terminal:1.0.0"],"Layers":["l/layer.tar"]}]`))
+	writeTar(t, tarPath, archive(`[{"Config":"c.json","RepoTags":["cd/terminal:1.0.0"],"Layers":["l/layer.tar"]}]`))
 	ref, err := NewPodman(f.bin).LoadImage(context.Background(), name, tarPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ref != "ngc/terminal:1.0.0" {
+	if ref != "cd/terminal:1.0.0" {
 		t.Fatalf("ref = %q", ref)
 	}
 	want := []string{"load", "--input", tarPath}
@@ -964,7 +964,7 @@ func TestLoadImageUsesTheStoreOfTheApp(t *testing.T) {
 	app := anApp(t)
 	name := app.name
 	tarPath := filepath.Join(t.TempDir(), "amd64.tar")
-	writeTar(t, tarPath, archive(`[{"RepoTags":["ngc/terminal:1.0.0"]}]`))
+	writeTar(t, tarPath, archive(`[{"RepoTags":["cd/terminal:1.0.0"]}]`))
 	if _, err := NewPodman(f.bin).LoadImage(context.Background(), name, tarPath); err != nil {
 		t.Fatal(err)
 	}
@@ -982,7 +982,7 @@ func TestLoadImageUsesTheStoreOfTheApp(t *testing.T) {
 
 	// The same for taking it away again.
 	f = fakePodman(t)
-	if err := NewPodman(f.bin).RemoveImage(context.Background(), name, "ngc/terminal:1.0.0"); err != nil {
+	if err := NewPodman(f.bin).RemoveImage(context.Background(), name, "cd/terminal:1.0.0"); err != nil {
 		t.Fatal(err)
 	}
 	if env = f.env(t); env["HOME"] != app.home || env["XDG_RUNTIME_DIR"] != config.RunDir+"/"+name {
@@ -1006,14 +1006,14 @@ func TestLoadImageRefusesATarWithoutOneTag(t *testing.T) {
 
 func TestRemoveImageBuildsTheArgumentListAndRefusesNonsense(t *testing.T) {
 	f := fakePodman(t)
-	if err := NewPodman(f.bin).RemoveImage(context.Background(), anApp(t).name, "ngc/terminal:1.0.0"); err != nil {
+	if err := NewPodman(f.bin).RemoveImage(context.Background(), anApp(t).name, "cd/terminal:1.0.0"); err != nil {
 		t.Fatal(err)
 	}
-	if args := f.args(t); !slices.Equal(args, []string{"rmi", "ngc/terminal:1.0.0"}) {
+	if args := f.args(t); !slices.Equal(args, []string{"rmi", "cd/terminal:1.0.0"}) {
 		t.Fatalf("args = %q", args)
 	}
 
-	for _, bad := range []string{"-a", "ngc/terminal", "", "ngc/terminal:1.0.0 --all"} {
+	for _, bad := range []string{"-a", "cd/terminal", "", "cd/terminal:1.0.0 --all"} {
 		f = fakePodman(t)
 		if err := NewPodman(f.bin).RemoveImage(context.Background(), anApp(t).name, bad); err == nil {
 			t.Fatalf("ref %q was taken", bad)
@@ -1055,14 +1055,14 @@ func TestACancelledCallStartsNothing(t *testing.T) {
 func TestCreateRefusesAUserWhoseHomeIsNotTheDataDirectory(t *testing.T) {
 	f := fakePodman(t)
 	app := anApp(t)
-	c := Container{Name: app.name, Image: "ngc/a:1.0.0", UID: app.uid, GID: app.gid,
-		DataDir: app.home, Hold: config.BinDir + "/ngc-controller"}
+	c := Container{Name: app.name, Image: "cd/a:1.0.0", UID: app.uid, GID: app.gid,
+		DataDir: app.home, Hold: config.BinDir + "/cd-controller"}
 	if err := NewPodman(f.bin).Create(context.Background(), c); err != nil {
 		t.Fatalf("a user whose home is its data directory was refused: %v", err)
 	}
 
 	f = fakePodman(t)
-	c.DataDir = "/var/lib/ngc/apps/org.sorglos.terminal"
+	c.DataDir = "/var/lib/cd/apps/org.sorglos.terminal"
 	if err := NewPodman(f.bin).Create(context.Background(), c); !errors.Is(err, ErrHome) {
 		t.Fatalf("err = %v, want ErrHome", err)
 	}
@@ -1082,8 +1082,8 @@ func TestCreateRefusesAUidOrGidThatIsNotTheUsers(t *testing.T) {
 		func(c *Container) { c.GID = app.gid + 1 },
 	} {
 		f := fakePodman(t)
-		c := Container{Name: app.name, Image: "ngc/a:1.0.0", UID: app.uid, GID: app.gid,
-			DataDir: app.home, Hold: config.BinDir + "/ngc-controller"}
+		c := Container{Name: app.name, Image: "cd/a:1.0.0", UID: app.uid, GID: app.gid,
+			DataDir: app.home, Hold: config.BinDir + "/cd-controller"}
 		bend(&c)
 		if err := NewPodman(f.bin).Create(context.Background(), c); !errors.Is(err, ErrIdentity) {
 			t.Fatalf("err = %v, want ErrIdentity", err)
@@ -1101,8 +1101,8 @@ func TestCreateRefusesAUidOrGidThatIsNotTheUsers(t *testing.T) {
 // because the calls after Create read the user back out of the database.
 func TestNoContainerOfAnAppIsRoot(t *testing.T) {
 	app := anApp(t)
-	good := Container{Name: app.name, Image: "ngc/a:1.0.0", UID: app.uid, GID: app.gid,
-		DataDir: app.home, Hold: config.BinDir + "/ngc-controller"}
+	good := Container{Name: app.name, Image: "cd/a:1.0.0", UID: app.uid, GID: app.gid,
+		DataDir: app.home, Hold: config.BinDir + "/cd-controller"}
 	cases := map[string]func(c *Container){
 		"uid 0":  func(c *Container) { c.UID = 0 },
 		"gid 0":  func(c *Container) { c.GID = 0 },
@@ -1142,7 +1142,7 @@ func TestNoContainerOfAnAppIsRoot(t *testing.T) {
 			return err
 		},
 		"RemoveImage": func(p *Podman) error {
-			return p.RemoveImage(context.Background(), "root", "ngc/a:1.0.0")
+			return p.RemoveImage(context.Background(), "root", "cd/a:1.0.0")
 		},
 	}
 	for name, call := range calls {
@@ -1185,8 +1185,8 @@ func TestPodmanRunsUnderTheUserOfTheApp(t *testing.T) {
 	if err := validPath(db.HomeDir); err != nil {
 		t.Skip("the home of " + app + " is no data directory: " + db.HomeDir)
 	}
-	c := Container{Name: app, Image: "ngc/a:1.0.0", UID: uint32(uid), GID: uint32(gid),
-		DataDir: db.HomeDir, Hold: config.BinDir + "/ngc-controller"}
+	c := Container{Name: app, Image: "cd/a:1.0.0", UID: uint32(uid), GID: uint32(gid),
+		DataDir: db.HomeDir, Hold: config.BinDir + "/cd-controller"}
 
 	if os.Geteuid() != 0 {
 		// Everything Create can check agreed - otherwise this would be ErrHome
@@ -1221,7 +1221,7 @@ func TestTheCallsAfterCreateNeedTheUserOfTheirName(t *testing.T) {
 	// One fake per subtest: with a shared one, a call that did start podman would
 	// colour every later subtest red as well, and which of them held the promise
 	// would not be readable from the result.
-	gone := "ngc-nobody-00000000"
+	gone := "cd-nobody-00000000"
 	if _, err := user.Lookup(gone); err == nil {
 		t.Skip("there is a user called " + gone + " on this machine")
 	}
@@ -1238,11 +1238,11 @@ func TestTheCallsAfterCreateNeedTheUserOfTheirName(t *testing.T) {
 			return err
 		},
 		"LoadImage": func(p *Podman) error {
-			_, err := p.LoadImage(context.Background(), gone, "/var/lib/ngc/staged/amd64.tar")
+			_, err := p.LoadImage(context.Background(), gone, "/var/lib/cd/staged/amd64.tar")
 			return err
 		},
 		"RemoveImage": func(p *Podman) error {
-			return p.RemoveImage(context.Background(), gone, "ngc/terminal:1.0.0")
+			return p.RemoveImage(context.Background(), gone, "cd/terminal:1.0.0")
 		},
 	}
 	for name, call := range calls {

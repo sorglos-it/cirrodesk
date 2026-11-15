@@ -8,13 +8,13 @@ import { defineConfig, devices } from "@playwright/test";
 // does NOT do is put Apache's headers on those files; the mock in front of it
 // does that, out of templates/apache-vhost.conf (mock/api.js, withAssetWalls).
 //
-// NGC_WEB_TEST_PORT moves it. Two runs of this suite at once - two sessions on
+// CD_WEB_TEST_PORT moves it. Two runs of this suite at once - two sessions on
 // one machine, or a measurement beside the run it is measured against - both
 // bind the same socket, and the second one does not fail cleanly: it finds a
 // server already answering on that port and tests the OTHER working tree
 // without saying so. A port per run is the cheapest way to make that
 // impossible. 8099 stays the default, so nothing that does not set it changes.
-const port = Number(process.env.NGC_WEB_TEST_PORT) || 8099;
+const port = Number(process.env.CD_WEB_TEST_PORT) || 8099;
 
 // The mock API (mock/api.js) is the server the BROWSER talks to, and the PHP
 // server sits behind it on the next port: everything that is not /api/ is
@@ -30,18 +30,18 @@ const port = Number(process.env.NGC_WEB_TEST_PORT) || 8099;
 // public/index.php keeps its production shape with no test branch in it.
 const phpPort = port + 1;
 
-// Where php is, in the same four steps as tools/check.sh: NGC_PHP, then
-// tools/local.env (not in git, one NGC_PHP=<path> line), then php from the
-// PATH, and otherwise stop with an error that names NGC_PHP. No machine's own
+// Where php is, in the same four steps as tools/check.sh: CD_PHP, then
+// tools/local.env (not in git, one CD_PHP=<path> line), then php from the
+// PATH, and otherwise stop with an error that names CD_PHP. No machine's own
 // path stands in a file of the repository, and a test run without a server
 // never looks like a test run that passed.
 function phpCommand() {
-  let named = process.env.NGC_PHP || "";
-  let where = "NGC_PHP";
+  let named = process.env.CD_PHP || "";
+  let where = "CD_PHP";
   if (!named) {
     const file = fileURLToPath(new URL("../../../tools/local.env", import.meta.url));
     try {
-      const line = /^[ \t]*(?:export[ \t]+)?NGC_PHP[ \t]*=[ \t]*(.*?)[ \t]*$/m.exec(readFileSync(file, "utf8"));
+      const line = /^[ \t]*(?:export[ \t]+)?CD_PHP[ \t]*=[ \t]*(.*?)[ \t]*$/m.exec(readFileSync(file, "utf8"));
       if (line) {
         named = line[1].replace(/^(["'])(.*)\1$/, "$2");
         where = "tools/local.env";
@@ -58,7 +58,7 @@ function phpCommand() {
     execFileSync("php", ["-v"], { stdio: "ignore" });
   } catch {
     throw new Error(
-      "no php for the test server: set NGC_PHP to its path, or write NGC_PHP=<path> into tools/local.env",
+      "no php for the test server: set CD_PHP to its path, or write CD_PHP=<path> into tools/local.env",
     );
   }
   return "php";
@@ -140,13 +140,13 @@ export default defineConfig({
       // der Arbeiter, sondern WELCHE Anfrage 30 s offen bleibt: der
       // Zeitablauf trifft page.goto, also die erste Navigation eines Falls -
       // was haelt den Server dort auf?
-      env: { NGC_WEB_CONFIG: "../tests/web.json", NGC_WEB_ANCHOR: "../tests/trust-anchor.json" },
+      env: { CD_WEB_CONFIG: "../tests/web.json", CD_WEB_ANCHOR: "../tests/trust-anchor.json" },
     },
     {
       command: "node mock/api.js",
       url: `http://127.0.0.1:${port}/ready`,
       reuseExistingServer: false,
-      env: { NGC_MOCK_PORT: String(port), NGC_PHP_PORT: String(phpPort) },
+      env: { CD_MOCK_PORT: String(port), CD_PHP_PORT: String(phpPort) },
       stdout: "pipe", stderr: "pipe",
     },
   ],

@@ -10,12 +10,12 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Limits.
@@ -153,7 +153,7 @@ type Input struct {
 	// Node is the controller the channel runs on. A controller passes its
 	// own node ID. The API passes "" for core actions it carries out itself
 	// (service "api"); when it checks a task before forwarding it, it passes
-	// the node it forwards to: for ngc.store/controller actions the task's
+	// the node it forwards to: for cd.store/controller actions the task's
 	// node (task.Verify first), for an app the node the app runs on.
 	Node                 string
 	App, Service, Action string

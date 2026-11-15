@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
-// readWeb walks ar the way the controller walks an ngc-web release file
+// readWeb walks ar the way the controller walks a cd-web release file
 // (install.go, unpack: store.WalkUI, then the one prefix "ui/" stripped) and
 // gives what would land under the document root.
 func readWeb(ar []byte) (map[string]string, error) {
@@ -62,7 +62,7 @@ func TestTheRealWebFileIsOneTheControllerCanUnpack(t *testing.T) {
 // The file is found by its place in the repository and a missing one is a
 // Fatalf, never a skip (messen.md).
 func TestTheDecoyIsNotAWebFile(t *testing.T) {
-	path := filepath.Join("..", "..", "shared", "testdata", "release", "ngc-web-all.tar")
+	path := filepath.Join("..", "..", "shared", "testdata", "release", "cd-web-all.tar")
 	b, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("the decoy is not there: %v", err)
@@ -77,7 +77,7 @@ func TestTheDecoyIsNotAWebFile(t *testing.T) {
 	// checksum, and release.json is signed. Measured here so the sentence in
 	// webfile.go cannot go stale without something going red.
 	sum := sha256.Sum256(b)
-	if hex.EncodeToString(sum[:]) != "b15225b711e0700e6876d784c6ef561375ab17948a2bc89a49f8deccfb50f3e0" {
+	if hex.EncodeToString(sum[:]) != "8d765f03ed67e58d843ed6f13af332c158f978b687cf873833bad657633c4864" {
 		t.Errorf("the decoy's checksum changed to %s; release.json in shared/testdata names the old one", hex.EncodeToString(sum[:]))
 	}
 }
@@ -90,12 +90,12 @@ func TestTheWebFileOnDiskIsTheOneWebFileWrites(t *testing.T) {
 	if err != nil {
 		t.Fatalf("WebFile: %v", err)
 	}
-	got, err := os.ReadFile(filepath.Join("testdata", "ngc-web-all.tar"))
+	got, err := os.ReadFile(filepath.Join("testdata", "cd-web-all.tar"))
 	if err != nil {
 		t.Fatalf("the real web release file is not there: %v", err)
 	}
 	if !bytes.Equal(got, want) {
-		t.Errorf("testdata/ngc-web-all.tar is %d bytes, WebFile writes %d; regenerate it", len(got), len(want))
+		t.Errorf("testdata/cd-web-all.tar is %d bytes, WebFile writes %d; regenerate it", len(got), len(want))
 	}
 }
 

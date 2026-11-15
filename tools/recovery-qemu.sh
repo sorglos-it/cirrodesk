@@ -45,7 +45,7 @@ is_our_qemu() {          # $1 = PID
 # One cat and one ps, and -ww for the same reason as above. No fixed length is
 # claimed for that line: it carries the state directory three times over, so its
 # length moves with the project path - measured 215 characters for a check-out
-# in ~/ngc, and more for every path deeper than that. Far past 80 in any case,
+# in ~/cd, and more for every path deeper than that. Far past 80 in any case,
 # and COLUMNS=80 cuts it to 80.
 qemu_swtpm_alive() {
 	local pid args

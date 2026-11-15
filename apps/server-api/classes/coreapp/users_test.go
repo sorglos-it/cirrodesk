@@ -10,18 +10,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/rights"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/rights"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The non-admin of the cases below: a role "user" and a user "bob" that
@@ -68,7 +68,7 @@ func (f *fakeJoin) NewJoinCode(ctx context.Context) (tunnel.JoinCode, int64, err
 	return f.code, f.expires, f.err
 }
 
-// usersFx is the shared fixture with the three dependencies of ngc.users
+// usersFx is the shared fixture with the three dependencies of cd.users
 // wired: the pair codes of the controller server, the tunnels a case fills
 // itself, and a stand-in for the join codes of task 18.
 type usersFx struct {
@@ -92,14 +92,14 @@ func usersFixture(t *testing.T) *usersFx {
 	return fx
 }
 
-// userCall opens a core channel of ngc.users and returns its result.
+// userCall opens a core channel of cd.users and returns its result.
 func (h *harness) userCall(t *testing.T, action string, params any) ([]byte, []uint64) {
 	t.Helper()
 	c := h.Open(t, usersOpen(t, action, params))
 	return h.finish(t, c)
 }
 
-// usersOpen builds the OPEN of one action of ngc.users.
+// usersOpen builds the OPEN of one action of cd.users.
 func usersOpen(t *testing.T, action string, params any) wire.Open {
 	t.Helper()
 	o := wire.Open{App: core.AppUsers, Service: core.ServiceAPI, Action: action, Window: wire.MinWindow}
@@ -165,7 +165,7 @@ func (h *harness) refuse(t *testing.T, action string, params any) wire.Code {
 	}
 }
 
-// sendTrust opens ngc.users/api/trust, sends one signed version and returns
+// sendTrust opens cd.users/api/trust, sends one signed version and returns
 // the result, the hints that arrived and the code the channel closed with --
 // "" when it answered.
 func (h *harness) sendTrust(t *testing.T, sg trust.Signed) ([]byte, []uint64, wire.Code) {
@@ -314,7 +314,7 @@ func nonAdmin(t *testing.T, fx *usersFx) *usersFx {
 
 // --- list and rights ------------------------------------------------------
 
-// TestListAndRights holds ngc.users/list and /rights: the users come out of
+// TestListAndRights holds cd.users/list and /rights: the users come out of
 // the trust list, what the database adds comes out of the row, and every role
 // of the list appears in the rights -- one without a row with no rights at
 // all, which the result leaves out rather than writing null.
@@ -383,13 +383,13 @@ func TestListAndRights(t *testing.T) {
 }
 
 // TestEmptyListsAreArrays holds the promise of the "empty" section of
-// shared/testdata/core.json for the two results of ngc.users that really are
+// shared/testdata/core.json for the two results of cd.users that really are
 // empty in a fresh installation: [] and never null.
 func TestEmptyListsAreArrays(t *testing.T) {
 	fx := usersFixture(t)
 	for _, c := range []struct{ action, name string }{
-		{core.ActPending, "ngc.users/pending"},
-		{core.ActPendingAPI, "ngc.users/pending-api"},
+		{core.ActPending, "cd.users/pending"},
+		{core.ActPendingAPI, "cd.users/pending-api"},
 	} {
 		body, _ := fx.userCall(t, c.action, nil)
 		if want := emptyResult(t, c.name); !bytes.Equal(body, want) {
@@ -538,7 +538,7 @@ func rightsHold(t *testing.T, fx *usersFx, right string) bool {
 
 // --- the trust list -------------------------------------------------------
 
-// TestTrustTakesTheNextVersionOnly holds that ngc.users/api/trust takes
+// TestTrustTakesTheNextVersionOnly holds that cd.users/api/trust takes
 // exactly the version after the newest: the next one is stored and answered
 // with its seq, the same one again is refused. What is noted is the RESOLVED
 // number -- the one trust.Advance verified -- and not what the payload claims.
@@ -595,7 +595,7 @@ func TestTrustRefusesAForeignSignature(t *testing.T) {
 
 // TestTrustPushesTheChainAndHintsTheShells holds what pushTrust does: every
 // controller of the trust list that has a tunnel gets the chain on
-// ngc.users/controller/trust, and every open shell is told the new number.
+// cd.users/controller/trust, and every open shell is told the new number.
 func TestTrustPushesTheChainAndHintsTheShells(t *testing.T) {
 	fx := usersFixture(t)
 	fx.Tunnels.by[ctlNode] = &controllers.Tunnel{Node: ctlNode}
@@ -753,7 +753,7 @@ func TestAOneTimeCodeReachesNoLog(t *testing.T) {
 
 // --- pending, nodes, log --------------------------------------------------
 
-// TestPendingShowsWaitingControllers holds ngc.users/pending: the rows of the
+// TestPendingShowsWaitingControllers holds cd.users/pending: the rows of the
 // database with the Noise key, and no fingerprint -- the shell computes that
 // itself (shared/README.md, "Selbst rechnen").
 func TestPendingShowsWaitingControllers(t *testing.T) {
@@ -776,7 +776,7 @@ func TestPendingShowsWaitingControllers(t *testing.T) {
 	}
 }
 
-// TestPendingAPIShowsWaitingServers holds ngc.users/pending-api: the join
+// TestPendingAPIShowsWaitingServers holds cd.users/pending-api: the join
 // requests of dbapi.BlobJoin, read with the contract's parser, without the
 // MAC -- that is the proof the API checked and nothing the shell may see.
 func TestPendingAPIShowsWaitingServers(t *testing.T) {
@@ -820,7 +820,7 @@ func TestPendingAPIShowsWaitingServers(t *testing.T) {
 	}
 }
 
-// TestNodesShowsOnlineAndVersion holds ngc.users/nodes: one row per
+// TestNodesShowsOnlineAndVersion holds cd.users/nodes: one row per
 // CONTROLLER of the trust list -- the API node of the list is none -- and
 // Online out of the tunnels this API has right now.
 //
@@ -854,7 +854,7 @@ func TestNodesShowsOnlineAndVersion(t *testing.T) {
 	}
 }
 
-// TestLogPages holds ngc.users/log: the newest entries first, at most Limit of
+// TestLogPages holds cd.users/log: the newest entries first, at most Limit of
 // them, and the next page starting after the last entry of the one before.
 func TestLogPages(t *testing.T) {
 	fx := usersFixture(t)
@@ -904,14 +904,14 @@ func TestLogPages(t *testing.T) {
 	// A user nobody logged under gives an empty page, and it is [] and not
 	// null (shared/testdata/core.json, "empty").
 	body, _ = fx.userCall(t, core.ActLog, core.LogQuery{Limit: 2, User: bobID})
-	if want := emptyResult(t, "ngc.users/log"); !bytes.Equal(body, want) {
+	if want := emptyResult(t, "cd.users/log"); !bytes.Equal(body, want) {
 		t.Fatalf("the log of an unknown user is %s", body)
 	}
 }
 
 // --- the admin wall -------------------------------------------------------
 
-// TestOnlyAdminsGetThese holds that every action of ngc.users is refused for a
+// TestOnlyAdminsGetThese holds that every action of cd.users is refused for a
 // user who is no admin, with the one code that tells them nothing: E_FORBIDDEN.
 //
 // The open-way check of each case stands beside it: the same action on the
@@ -999,7 +999,7 @@ func withNodes(t *testing.T, l *trust.List, nodes ...trust.Node) *trust.List {
 	return l
 }
 
-// waitingAPIs is how many servers ngc.users/pending-api offers right now.
+// waitingAPIs is how many servers cd.users/pending-api offers right now.
 func waitingAPIs(t *testing.T, fx *usersFx) []core.PendingAPI {
 	t.Helper()
 	body, _ := fx.userCall(t, core.ActPendingAPI, nil)

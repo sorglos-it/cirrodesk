@@ -27,17 +27,17 @@ import (
 
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -116,7 +116,7 @@ func TestPairRequest(t *testing.T) {
 	for name, mutate := range map[string]func(*PairRequest){
 		"name with a space":     func(r *PairRequest) { r.Name = "a b" },
 		"host name, upper case": func(r *PairRequest) { r.Name = "Dienste" },
-		"host name with a dot":  func(r *PairRequest) { r.Name = "dienste.ngc.test" },
+		"host name with a dot":  func(r *PairRequest) { r.Name = "dienste.cd.test" },
 		"name of 33 characters": func(r *PairRequest) { r.Name = "d" + strings.Repeat("x", 32) },
 		"noise of 31 bytes":     func(r *PairRequest) { r.Noise = r.Noise[:31] },
 		"mac of 31 bytes":       func(r *PairRequest) { r.MAC = r.MAC[:31] },
@@ -542,7 +542,7 @@ func TestHello(t *testing.T) {
 	for name, mutate := range map[string]func(*Hello){
 		"unknown arch":     func(h *Hello) { h.Arch = "riscv64" },
 		"unknown role":     func(h *Hello) { h.Roles = []string{"mail"} },
-		"old part name":    func(h *Hello) { h.Roles = []string{"ngc-controller"} },
+		"old part name":    func(h *Hello) { h.Roles = []string{"cd-controller"} },
 		"duplicate role":   func(h *Hello) { h.Roles = []string{RoleServices, RoleServices} },
 		"contract 0":       func(h *Hello) { h.Contract = 0 },
 		"no version":       func(h *Hello) { h.Version = "" },
@@ -629,12 +629,12 @@ func TestParseStatus(t *testing.T) {
 		t.Errorf("%d apps: %v", MaxStatusApps, err)
 	}
 	for name, mutate := range map[string]func(*Status){
-		"core app":              func(s *Status) { s.Apps[0].App = "ngc.store" },
+		"core app":              func(s *Status) { s.Apps[0].App = "cd.store" },
 		"invalid app id":        func(s *Status) { s.Apps[0].App = "Terminal" },
 		"duplicate app":         func(s *Status) { s.Apps[1].App = s.Apps[0].App },
 		"bad version":           func(s *Status) { s.Apps[0].Version = "1.0" },
 		"unknown state":         func(s *Status) { s.Apps[0].State = "paused" },
-		"unknown component":     func(s *Status) { s.Components["ngc-mail"] = "1.0.0" },
+		"unknown component":     func(s *Status) { s.Components["cd-mail"] = "1.0.0" },
 		"old part name":         func(s *Status) { s.Components = map[string]string{"controller": "1.0.0"} },
 		"bad component version": func(s *Status) { s.Components[trust.AutoWeb] = "v1" },
 		"negative diskFree":     func(s *Status) { s.DiskFree = -1 },
@@ -712,8 +712,8 @@ func testOpen() Open {
 
 // stageOpen is the OPEN of a channel without a user: the API's own.
 func stageOpen(t testing.TB) Open {
-	inner := wire.Open{App: "ngc.store", Service: "controller", Action: "stage",
-		Params: json.RawMessage(`{"target":"ngc-controller","version":"1.1.0"}`), Window: wire.DefaultWindow}
+	inner := wire.Open{App: "cd.store", Service: "controller", Action: "stage",
+		Params: json.RawMessage(`{"target":"cd-controller","version":"1.1.0"}`), Window: wire.DefaultWindow}
 	return Open{Open: mustJSON(t, inner), Window: wire.DefaultWindow}
 }
 

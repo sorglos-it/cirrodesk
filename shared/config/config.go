@@ -1,4 +1,4 @@
-// Package config defines the configuration files, paths and ports of NGC
+// Package config defines the configuration files, paths and ports of CirroDesk
 // (contract V6). The ulh scripts write them, the parts read them.
 package config
 
@@ -17,43 +17,43 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Files, directories, services and ports.
 const (
-	Dir            = "/etc/ngc"
-	WebFile        = "/etc/ngc/web.json"
-	AnchorFile     = "/etc/ngc/trust-anchor.json"
-	APIFile        = "/etc/ngc/api.json"
-	ControllerFile = "/etc/ngc/controller.json"
-	WebRoot        = "/var/www/ngc"
-	BinDir         = "/usr/lib/ngc"
-	DataDir        = "/var/lib/ngc"
-	AppDataDir     = "/var/lib/ngc/apps"   // <app>/ per app, encrypted, mounted as /data
-	StageDir       = "/var/lib/ngc/staged" // checked update files
-	RunDir         = "/run/ngc"
+	Dir            = "/etc/cd"
+	WebFile        = "/etc/cd/web.json"
+	AnchorFile     = "/etc/cd/trust-anchor.json"
+	APIFile        = "/etc/cd/api.json"
+	ControllerFile = "/etc/cd/controller.json"
+	WebRoot        = "/var/www/cd"
+	BinDir         = "/usr/lib/cd"
+	DataDir        = "/var/lib/cd"
+	AppDataDir     = "/var/lib/cd/apps"   // <app>/ per app, encrypted, mounted as /data
+	StageDir       = "/var/lib/cd/staged" // checked update files
+	RunDir         = "/run/cd"
 	APIPort        = 7443
 
 	// APITrustFile holds the certificates of the API servers that Apache's
 	// proxy trusts, each checked against its pin (Web.APIs[i].TLS, later
-	// trust.Node.TLS) before it is written: by ngc-web, then by the controller
+	// trust.Node.TLS) before it is written: by cd-web, then by the controller
 	// with role web.
-	APITrustFile = "/etc/ngc/tls/api-trust.pem"
+	APITrustFile = "/etc/cd/tls/api-trust.pem"
 	// BalancerFile is Apache's balancer for /api/ with its proxy TLS settings
-	// (shared/ulh.md, "Lastverteilung in Apache"): written only by ngc-web at
+	// (shared/ulh.md, "Lastverteilung in Apache"): written only by cd-web at
 	// install and afterwards by the controller with role web, both from web.json,
-	// whose addresses pass trust.ValidWebURL; ngc-web's virtual host includes it.
-	BalancerFile = "/etc/ngc/apache-apis.conf"
+	// whose addresses pass trust.ValidWebURL; cd-web's virtual host includes it.
+	BalancerFile = "/etc/cd/apache-apis.conf"
 	MaxCA        = 16 << 10 // DB.CA
 
-	ServiceAPI        = "ngc-api.service"
-	ServiceController = "ngc-controller.service"
+	ServiceAPI        = "cd-api.service"
+	ServiceController = "cd-controller.service"
 
 	MaxConfig = 1 << 20
 	// MaxField bounds these strings: WebAPI.URL and each of Web.RP.Origins;
@@ -209,7 +209,7 @@ func shown(set bool) string {
 	return ""
 }
 
-// Web is /etc/ngc/web.json; the PHP of the web interface reads it too.
+// Web is /etc/cd/web.json; the PHP of the web interface reads it too.
 type Web struct {
 	APIs []WebAPI `json:"apis"` // Apache balances over them
 	RP   proof.RP `json:"rp"`   // ID and origins for passkeys: both set, or both empty without passkeys
@@ -231,12 +231,12 @@ type DB struct {
 	Path     string     `json:"path,omitempty"` // SQLite: file
 	Key      Secret     `json:"key,omitzero"`   // SQLite: 64 bytes for AES-256-XTS
 	// CA is the certificate of the installation's database CA in PEM, which
-	// ngc-db made (MariaDB only). A client verifies every node's certificate
+	// cd-db made (MariaDB only). A client verifies every node's certificate
 	// against it and the node's host name (TLSConfig), never without.
 	CA string `json:"ca,omitempty"`
 }
 
-// API is /etc/ngc/api.json. It holds keys, so the file belongs to root with mode 0600.
+// API is /etc/cd/api.json. It holds keys, so the file belongs to root with mode 0600.
 type API struct {
 	Node string `json:"node"` // node ID in the trust list
 	// URL is this API's tunnel address exactly as its node in the trust list
@@ -258,7 +258,7 @@ type API struct {
 	// answer afresh while real ones stayed put, and whoever asked before
 	// and after would have every name sorted.
 	ChallengeKey Secret    `json:"challengeKey"`
-	ReleaseKey   enc.Bytes `json:"releaseKey"` // public key of NGC releases
+	ReleaseKey   enc.Bytes `json:"releaseKey"` // public key of CirroDesk releases
 	// StoreKey and StoreURL name the global store (ID trust.StoreGlobal); the
 	// API hands it to the shell in session.SetupInfo.Store. StoreURL follows
 	// trust.ValidStoreURL, as trust.Store.URL does.
@@ -277,7 +277,7 @@ type APIRef struct {
 	TLS enc.Bytes `json:"tls"`
 }
 
-// Controller is /etc/ngc/controller.json, also root and 0600.
+// Controller is /etc/cd/controller.json, also root and 0600.
 type Controller struct {
 	Node       string       `json:"node,omitempty"` // empty until an admin put it in the trust list
 	Name       string       `json:"name"`
@@ -291,7 +291,7 @@ type Controller struct {
 	Podman     string       `json:"podman,omitempty"`
 	WebConfig  string       `json:"webConfig,omitempty"` // web server: path of web.json for the balancer
 	// Migrate is the database access for the migrations of an update: the
-	// ngc_migrate account (MariaDB) or the SQLite file and key. Only a server
+	// cd_migrate account (MariaDB) or the SQLite file and key. Only a server
 	// with tunnel.RoleDB has it.
 	Migrate *DB `json:"migrate,omitempty"`
 }

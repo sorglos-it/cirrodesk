@@ -19,7 +19,7 @@
 set -uo pipefail
 
 PVE=root@10.2.3.2
-K=$HOME/Documents/ssh/keys/id_ed25519_ngc
+K=$HOME/Documents/ssh/keys/id_ed25519_cd
 SSH="ssh -i $K -o StrictHostKeyChecking=no -o ConnectTimeout=8 -o BatchMode=yes"
 VMID=303
 DB=10.2.3.212
@@ -109,10 +109,10 @@ echo
 echo "    Was die APIs dazu ins Journal schreiben:"
 for a in $A1 $A2; do
   echo "      --- $a:"
-  $SSH "root@$a" "journalctl -u ngc-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
+  $SSH "root@$a" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
 done
 echo "    Was die Controller sagen:"
-$SSH "root@10.2.3.213" "journalctl -u ngc-controller --since '$VOR' --no-pager 2>/dev/null | tail -4 | sed 's/^/        /'" 2>&1
+$SSH "root@10.2.3.213" "journalctl -u cd-controller --since '$VOR' --no-pager 2>/dev/null | tail -4 | sed 's/^/        /'" 2>&1
 
 echo
 echo ">>> qm start $VMID   -- und jetzt die eigentliche Frage: kommt er ALLEIN?"

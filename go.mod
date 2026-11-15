@@ -1,4 +1,4 @@
-module github.com/sorglos-it/nextgencloud
+module github.com/sorglos-it/cirrodesk
 
 go 1.27
 

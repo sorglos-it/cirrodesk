@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
 )
 
 // The handover, read off the DISK and not off a recorder - with the real
@@ -84,7 +84,7 @@ func TestTheStagedImageIsHandedToTheAppOnDisk(t *testing.T) {
 	}
 
 	if err := handImage(stage, tarPath, runtime.User{
-		Name: "ngc-a-00000000", UID: uint32(uid), GID: uint32(gid),
+		Name: "cd-a-00000000", UID: uint32(uid), GID: uint32(gid),
 	}); err != nil {
 		t.Fatalf("handImage: %v", err)
 	}

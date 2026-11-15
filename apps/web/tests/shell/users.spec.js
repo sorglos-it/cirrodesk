@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { signIn, expectDesktop, skipWithoutLogin } from "../fixtures/page.js";
 
 // "Benutzer und Rechte": the surface where an admin hands out rights and lets
-// a new server into the installation. It is the most dangerous window NGC
+// a new server into the installation. It is the most dangerous window CirroDesk
 // has, and these cases are written for that: what is on screen, what goes on
 // the wire, and what the person is asked before either happens.
 //
@@ -10,7 +10,7 @@ import { signIn, expectDesktop, skipWithoutLogin } from "../fixtures/page.js";
 // them goes through core.parseResult inside the app - the same reading the
 // real API's answer will get. The stand-in in shell/fake-link.js is replaced
 // here by a world of this file's own (serveWorld), because the stand-in
-// answers ngc.desktop/apps and nothing of ngc.users. The shape is the
+// answers cd.desktop/apps and nothing of cd.users. The shape is the
 // stand-in's own - call() and open() hand back bytes, onNotice() takes a
 // listener, current() answers with the version in force - so nothing here
 // invents a second interface for Task 17 to find.
@@ -49,22 +49,22 @@ const DETAILS = null;
 
 
 export const DEFAULTS = {
-  "ngc.users/list": [
+  "cd.users/list": [
     { id: "ICAgICAgICAgICAgICAgIA", name: "admin2", roles: ["admin"], totp: true, locked: false, lastLogin: 1790000000 },
     { id: "ISEhISEhISEhISEhISEhIQ", name: "admin", roles: ["admin"], totp: false, locked: false, lastLogin: 0 },
     { id: "IiIiIiIiIiIiIiIiIiIiIg", name: "anna", roles: ["technik"], totp: false, locked: true, lastLogin: 1790003600 },
   ],
-  "ngc.users/rights": [
+  "cd.users/rights": [
     { role: "technik", rights: ["de.example.fotos/use"] },
     { role: "user", rights: [] },
   ],
-  "ngc.users/pending": [
+  "cd.users/pending": [
     { name: "dienste", key: KEY_A, since: 1790000000 },
     // A name that tries to be markup. It is a legal name by the contract, so
     // nothing refuses it and the surface has to put it on screen as text.
     { name: "<img src=x onerror=alert(1)>B\\u00f6se", key: KEY_B, since: 1790003600 },
   ],
-  "ngc.users/pending-api": [
+  "cd.users/pending-api": [
     {
       node: "api-2",
       noise: "PFxs4t2Z4Q0sPeBddzqhXj5tlx7U5BOJyTtLvdoXchI",
@@ -74,27 +74,27 @@ export const DEFAULTS = {
       since: 1790000000,
     },
   ],
-  "ngc.users/nodes": [
+  "cd.users/nodes": [
     { node: "ctl-1", online: true, roles: ["services"], version: "1.0.0", arch: "amd64" },
   ],
   // A FULL page (the app asks for 50) and then one more, so that "Mehr laden"
   // has something to fetch and the end of the log is reached on the second
   // page. A short first page would mean the button is never drawn at all.
-  "ngc.users/log": logPageOne(),
-  "ngc.users/log/2": [
+  "cd.users/log": logPageOne(),
+  "cd.users/log/2": [
     { id: "aaaaaaaabbbbbbbbccccccccdddddddd", time: 1789990000, user: "", kind: "login",
       app: "", action: "", node: "", result: "ok", detail: "" },
   ],
-  "ngc.users/log/3": [],
-  "ngc.users/pair-code": null, // filled in by world(), it needs the version
-  "ngc.users/join-code": null, // the same, under the other prefix
-  "ngc.users/set-rights": {},
-  "ngc.users/trust": { seq: 2 },
+  "cd.users/log/3": [],
+  "cd.users/pair-code": null, // filled in by world(), it needs the version
+  "cd.users/join-code": null, // the same, under the other prefix
+  "cd.users/set-rights": {},
+  "cd.users/trust": { seq: 2 },
 };
 
 function logPageOne() {
   const rows = [{ id: "00000000000000000000000000000000", time: 1790003600,
-    user: "ISEhISEhISEhISEhISEhIQ", kind: "task", app: "ngc.store", action: "activate",
+    user: "ISEhISEhISEhISEhISEhIQ", kind: "task", app: "cd.store", action: "activate",
     node: "ctl-1", result: "ok", detail: DETAILS.signature }];
   for (let i = 1; i < 50; i++) {
     rows.push({ id: String(i).padStart(32, "0"), time: 1790003600 - i,
@@ -112,10 +112,10 @@ function logPageOne() {
   return rows;
 }
 
-// The apps of the desktop. ngc.users is in it so the start menu has the
+// The apps of the desktop. cd.users is in it so the start menu has the
 // entry; the rest is what the rights of a role can be about.
 export const APPS = [
-  { id: "ngc.users", name: "Benutzer und Rechte", version: "1.0.0", icon: "", entry: "",
+  { id: "cd.users", name: "Benutzer und Rechte", version: "1.0.0", icon: "", entry: "",
     width: 860, height: 600, actions: [], state: "ok", core: true, node: "" },
   { id: "de.example.fotos", name: "Fotos", version: "2.1.0", icon: "", entry: "",
     width: 640, height: 480, actions: ["teilen"], state: "ok", core: false, node: "pi-1" },
@@ -156,7 +156,7 @@ export async function decodeList(payload) {
 const GENESIS_PAYLOAD = ${JSON.stringify(null)}; // replaced by serveWorld
 
 // A pairing code for one version: what tunnel.ParsePairCode reads.
-export async function pairCode(version, prefix = "ngc-pair:") {
+export async function pairCode(version, prefix = "cd-pair:") {
   const { b64encode } = await import("/assets/js/contracts/b64.js");
   const api = version.list.nodes.find((n) => n.kind === "api");
   const doc = {
@@ -197,8 +197,8 @@ export async function world(cfg = {}) {
   if (cfg.apiAhead === true && version !== null) {
     kept.push(signedOf((await nextVersion(version)).payload));
   }
-  if (answers["ngc.users/pair-code"] === null && version !== null) {
-    answers["ngc.users/pair-code"] = {
+  if (answers["cd.users/pair-code"] === null && version !== null) {
+    answers["cd.users/pair-code"] = {
       code: await pairCode(cfg.codeFor === "next" ? await nextVersion(version) : version),
       expires: 1790086400,
     };
@@ -206,17 +206,17 @@ export async function world(cfg = {}) {
   // The join code of the same installation, and cfg.codeFor reaches it too:
   // the two codes differ in their prefix and in nothing else, so one world
   // measures both ways through showCode.
-  if (answers["ngc.users/join-code"] === null && version !== null) {
-    answers["ngc.users/join-code"] = {
+  if (answers["cd.users/join-code"] === null && version !== null) {
+    answers["cd.users/join-code"] = {
       code: await pairCode(cfg.codeFor === "next" ? await nextVersion(version) : version,
-        "ngc-join:"),
+        "cd-join:"),
       expires: 1790086400,
     };
   }
-  // ngc.users/api/trust is flow "in": the body travels as opts.stream, and
+  // cd.users/api/trust is flow "in": the body travels as opts.stream, and
   // the API answers with the number of the version that now stands. It KEEPS
   // it; nothing here moves what this browser has in force.
-  answers["ngc.users/trust"] = async (body) => {
+  answers["cd.users/trust"] = async (body) => {
     const t = await import("/assets/js/contracts/trust.js");
     const sg = t.parseSigned(body);
     const list = await decodeList(sg.payload);
@@ -226,9 +226,9 @@ export async function world(cfg = {}) {
 
   // What the remote received. The cases read these instead of guessing from
   // the screen: the bytes are the contract, the screen is only its face.
-  window.__ngcCalls = [];
-  window.__ngcSent = [];
-  window.__ngcHints = [];
+  window.__cdCalls = [];
+  window.__cdSent = [];
+  window.__cdHints = [];
 
   let logPage = 0;
   const link = {
@@ -237,15 +237,15 @@ export async function world(cfg = {}) {
     // stream is the body of a flow-"in" action.
     async call(app, service, name, params, opts) {
       const body = await collect(opts?.stream);
-      window.__ngcCalls.push({
+      window.__cdCalls.push({
         app, service, name, params: params ? new Uint8Array(params) : null, body,
       });
-      if (body.length > 0) window.__ngcSent.push({ app, service, name, bytes: body });
-      if (app === "ngc.desktop" && name === "apps") return enc.encode(JSON.stringify(APPS));
+      if (body.length > 0) window.__cdSent.push({ app, service, name, bytes: body });
+      if (app === "cd.desktop" && name === "apps") return enc.encode(JSON.stringify(APPS));
       let key = app + "/" + name;
-      if (key === "ngc.users/log") {
+      if (key === "cd.users/log") {
         logPage++;
-        if (logPage > 1) key = "ngc.users/log/" + logPage;
+        if (logPage > 1) key = "cd.users/log/" + logPage;
       }
       const a = answers[key];
       if (a === undefined) throw new Error("world: nothing for " + key);
@@ -261,7 +261,7 @@ export async function world(cfg = {}) {
     // A NUMBER in, a NUMBER out - and a hint that is not higher than the
     // version in force asks nobody.
     async refresh(hintSeq) {
-      window.__ngcHints.push(hintSeq);
+      window.__cdHints.push(hintSeq);
       if (inForce === null) throw new Error("world: no list in force");
       const want = Number.isSafeInteger(hintSeq) && hintSeq >= 1 ? hintSeq : 0;
       if (want <= inForce.list.seq) return inForce.list.seq;
@@ -375,7 +375,7 @@ async function nextVersion(version) {
 // stands in for, plus the session, which main.js passes straight on.
 export async function fakeWorld() {
   const w = await world({});
-  window.__ngcWorld = w;
+  window.__cdWorld = w;
   return w;
 }
 `;
@@ -391,7 +391,7 @@ const LOG_DETAILS = {
   reason: "Für diese Aktion fehlt dir das Recht.",
   // No API writes this one. It stands for an API that was taken over, and it
   // has to arrive on screen as its own characters.
-  markup: "<img src=x onerror=\"window.__ngcXss = true\">",
+  markup: "<img src=x onerror=\"window.__cdXss = true\">",
 };
 
 // The genesis payload of shared/testdata/trust.json, read out of the
@@ -461,7 +461,7 @@ async function mount(page, cfg = {}) {
   // app and takes the focus out of it.
   //
   // A probe caught it in the act under four workers: `activeElement` was
-  // "BUTTON/tab/ngc-users-tab-users" right after focus() and "INPUT" one
+  // "BUTTON/tab/cd-users-tab-users" right after focus() and "INPUT" one
   // ArrowRight later, with form.loginbox going from 0 to 1 in between - and
   // in one run of eight the input already held the focus before the first
   // key. The rate, chromium, --repeat-each=30 --workers=4: 10 of 30 red
@@ -493,8 +493,8 @@ async function mount(page, cfg = {}) {
     Object.assign(host.style, { position: "fixed", inset: "0", zIndex: "99999", overflow: "auto" });
     host.className = "body";
     document.body.append(host);
-    window.__ngcCtx = ctx;
-    window.__ngcClose = usersApp({ body: host }, ctx);
+    window.__cdCtx = ctx;
+    window.__cdClose = usersApp({ body: host }, ctx);
   }, cfg);
   await expect(page.getByRole("tab", { name: "Benutzer", exact: true })).toBeVisible();
 }
@@ -570,7 +570,7 @@ test("an address that is no tunnel address is never offered", async ({ page }) =
   // carries an address the grammar does not know (checkPendingAPI runs
   // trust.validTunnelURL), so "nothing is offered" says nothing about the
   // app's own rule. joinable is that rule, and it is asked directly.
-  await mount(page, { answers: { "ngc.users/pending-api": [{
+  await mount(page, { answers: { "cd.users/pending-api": [{
     node: "api-3", noise: "PFxs4t2Z4Q0sPeBddzqhXj5tlx7U5BOJyTtLvdoXchI",
     sign: "Zej5sLxurhJBafBXb5c2LSlajPX3cLReFDV85kfTPuw",
     tls: "0yeBC6i9XzXXJCoODo_Q7qxV74LKjC1p0rR1cXxkldo",
@@ -696,7 +696,7 @@ test("a change the trust list would refuse is never signed and never sent", asyn
   expect(out.signed).toBe(0);
 });
 
-test("the trust list goes over ngc.users/api/trust as one signed version", async ({ page }) => {
+test("the trust list goes over cd.users/api/trust as one signed version", async ({ page }) => {
   await skipWithoutLogin(page);
   await mount(page, { signable: true });
   await openTab(page, "Server");
@@ -712,20 +712,20 @@ test("the trust list goes over ngc.users/api/trust as one signed version", async
 
   const sent = await page.evaluate(async () => {
     const trust = await import("/assets/js/contracts/trust.js");
-    const one = window.__ngcSent[0];
+    const one = window.__cdSent[0];
     const s = trust.parseSigned(one.bytes);
     const l = await trust.parseList(s.payload);
     return {
       where: one.app + "/" + one.service + "/" + one.name,
-      count: window.__ngcSent.length,
+      count: window.__cdSent.length,
       seq: l.seq,
       nodes: l.nodes.map((n) => n.id),
       kind: s.proof.kind,
-      hints: window.__ngcHints,
+      hints: window.__cdHints,
     };
   });
   expect(sent.count).toBe(1);
-  expect(sent.where).toBe("ngc.users/api/trust");
+  expect(sent.where).toBe("cd.users/api/trust");
   expect(sent.seq).toBe(2);
   expect(sent.nodes).toEqual(["api-1", "ctl-1", "dienste"]);
   expect(sent.kind).toBe("password");
@@ -743,7 +743,7 @@ test("two servers taken in one after the other give n+1 and n+2, not two at one 
     await skipWithoutLogin(page);
     await mount(page, { signable: true });
     const start = await page.evaluate(() => {
-      const c = window.__ngcStart = window.__ngcCtx.trust.current();
+      const c = window.__cdStart = window.__cdCtx.trust.current();
       return c.list.seq;
     });
     expect(start).toBe(1);
@@ -765,19 +765,19 @@ test("two servers taken in one after the other give n+1 and n+2, not two at one 
     const out = await page.evaluate(async () => {
       const trust = await import("/assets/js/contracts/trust.js");
       const chain = [];
-      for (const one of window.__ngcSent) chain.push(trust.parseSigned(one.bytes));
+      for (const one of window.__cdSent) chain.push(trust.parseSigned(one.bytes));
       const seqs = [];
       for (const v of chain) seqs.push((await trust.parseList(v.payload)).seq);
       let together = "";
       try {
         // BOTH TOGETHER, from the version the shell started on. A fork does
         // not pass this: the second version would not chain to the first.
-        together = String((await trust.advance(window.__ngcStart, chain)).list.seq);
+        together = String((await trust.advance(window.__cdStart, chain)).list.seq);
       } catch (e) {
         together = "refused: " + e.message;
       }
-      return { sent: chain.length, seqs, together, hints: window.__ngcHints,
-        inForce: window.__ngcCtx.trust.current().list.seq };
+      return { sent: chain.length, seqs, together, hints: window.__cdHints,
+        inForce: window.__cdCtx.trust.current().list.seq };
     });
     expect(out.sent).toBe(2);
     expect(out.seqs).toEqual([2, 3]);
@@ -798,10 +798,10 @@ test("a version this browser did not follow to stops the surface instead of fork
     await page.getByRole("dialog").getByRole("button", { name: "Server aufnehmen" }).click();
     await sign(page);
     await expect(app(page).locator(".pending .note")).toHaveText(
-      "Der Server ist eingetragen. Bitte die Seite neu laden, damit NGC hier auf dem "
+      "Der Server ist eingetragen. Bitte die Seite neu laden, damit CirroDesk hier auf dem "
       + "neuen Stand ist.");
     const out = await page.evaluate(() => ({
-      sent: window.__ngcSent.length, inForce: window.__ngcCtx.trust.current().list.seq,
+      sent: window.__cdSent.length, inForce: window.__cdCtx.trust.current().list.seq,
     }));
     expect(out.sent).toBe(1);
     expect(out.inForce).toBe(1);
@@ -817,7 +817,7 @@ test("Abbrechen at the question for the key sends nothing", async ({ page }) => 
   await expect(q).toBeVisible();
   await q.getByRole("button", { name: "Abbrechen" }).click();
   await expect(app(page).locator(".pending .note")).toHaveText("Nichts geändert.");
-  expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+  expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
 });
 
 // ------------------------------------------------------------------ 4 pair code
@@ -902,10 +902,10 @@ test("a pairing code is shown only when it fits the version the shell verified",
     await openTab(page, "Server");
     await app(page).getByRole("button", { name: "Kopplungscode zeigen" }).click();
     const code = app(page).locator(".paircode .code");
-    await expect(code).toContainText("ngc-pair:");
+    await expect(code).toContainText("cd-pair:");
     // No round trip to the trust list was needed: the code names the version
     // the shell already holds.
-    expect(await page.evaluate(() => window.__ngcHints)).toEqual([]);
+    expect(await page.evaluate(() => window.__cdHints)).toEqual([]);
   });
 
 test("a pairing code that names a newer version makes the shell fetch the chain first",
@@ -913,11 +913,11 @@ test("a pairing code that names a newer version makes the shell fetch the chain 
     await mount(page, { codeFor: "next", apiAhead: true });
     await openTab(page, "Server");
     await app(page).getByRole("button", { name: "Kopplungscode zeigen" }).click();
-    await expect(app(page).locator(".paircode .code")).toContainText("ngc-pair:");
+    await expect(app(page).locator(".paircode .code")).toContainText("cd-pair:");
     // The number asked for is the one the CODE names, not nothing: a refresh
     // without it counts as 0 and asks nobody.
-    expect(await page.evaluate(() => window.__ngcHints)).toEqual([2]);
-    expect(await page.evaluate(() => window.__ngcCtx.trust.current().list.seq)).toBe(2);
+    expect(await page.evaluate(() => window.__cdHints)).toEqual([2]);
+    expect(await page.evaluate(() => window.__cdCtx.trust.current().list.seq)).toBe(2);
   });
 
 test("a pairing code that fits no version of this installation is not shown", async ({ page }) => {
@@ -929,7 +929,7 @@ test("a pairing code that fits no version of this installation is not shown", as
   await expect(app(page).locator(".paircode .note")).toHaveText(
     "Dieser Code passt nicht zu dieser Anlage.");
   expect(await app(page).locator(".paircode .code").count()).toBe(0);
-  expect(await page.evaluate(() => window.__ngcHints)).toEqual([2]);
+  expect(await page.evaluate(() => window.__cdHints)).toEqual([2]);
 });
 
 // MEASURED on 17.10.2026 against a running installation: a second machine
@@ -942,7 +942,7 @@ test("a pairing code that fits no version of this installation is not shown", as
 // signed; the trust list stayed at its version.
 test("a waiting API server whose name is already listed is not offered, and the row says why",
   async ({ page }) => {
-    await mount(page, { answers: { "ngc.users/pending-api": [{
+    await mount(page, { answers: { "cd.users/pending-api": [{
       node: "api-1", // the API node the genesis of this installation carries
       noise: "PFxs4t2Z4Q0sPeBddzqhXj5tlx7U5BOJyTtLvdoXchI",
       sign: "Zej5sLxurhJBafBXb5c2LSlajPX3cLReFDV85kfTPuw",
@@ -971,8 +971,8 @@ test("a waiting API server with a free name is still offered", async ({ page }) 
   expect(await row.locator(".note").count()).toBe(0);
 });
 
-// A join code is what ngc-api.sh asks for in its answer join_code, and until
-// this there was no way in the interface to get one: ngc.users/join-code
+// A join code is what cd-api.sh asks for in its answer join_code, and until
+// this there was no way in the interface to get one: cd.users/join-code
 // stood in contracts/core.js and nothing called it, so a second API server
 // could not be set up at all. The cases below are the three of the pairing
 // code, under the other prefix.
@@ -982,13 +982,13 @@ test("a join code is shown only when it fits the version the shell verified",
     await openTab(page, "Server");
     await app(page).getByRole("button", { name: "Beitrittscode zeigen" }).click();
     const code = app(page).locator(".joincode .code");
-    await expect(code).toContainText("ngc-join:");
+    await expect(code).toContainText("cd-join:");
     // The action really asked for is join-code and not pair-code: a button
     // wired to the neighbouring action would show a code that works and
     // spend the wrong one-time value on the API.
-    expect(await page.evaluate(() => window.__ngcCalls.map((c) => c.name)))
+    expect(await page.evaluate(() => window.__cdCalls.map((c) => c.name)))
       .toContain("join-code");
-    expect(await page.evaluate(() => window.__ngcHints)).toEqual([]);
+    expect(await page.evaluate(() => window.__cdHints)).toEqual([]);
   });
 
 test("a join code that names a newer version makes the shell fetch the chain first",
@@ -996,8 +996,8 @@ test("a join code that names a newer version makes the shell fetch the chain fir
     await mount(page, { codeFor: "next", apiAhead: true });
     await openTab(page, "Server");
     await app(page).getByRole("button", { name: "Beitrittscode zeigen" }).click();
-    await expect(app(page).locator(".joincode .code")).toContainText("ngc-join:");
-    expect(await page.evaluate(() => window.__ngcHints)).toEqual([2]);
+    await expect(app(page).locator(".joincode .code")).toContainText("cd-join:");
+    expect(await page.evaluate(() => window.__cdHints)).toEqual([2]);
   });
 
 test("a join code that fits no version of this installation is not shown", async ({ page }) => {
@@ -1016,8 +1016,8 @@ test("the pairing button refuses a join code and the join button a pairing code"
     // on screen that the other script cannot use, after the API has already
     // spent the one-time value behind it.
     await mount(page, { answers: {
-      "ngc.users/pair-code": { code: "ngc-join:AAAA", expires: 1790086400 },
-      "ngc.users/join-code": { code: "ngc-pair:AAAA", expires: 1790086400 },
+      "cd.users/pair-code": { code: "cd-join:AAAA", expires: 1790086400 },
+      "cd.users/join-code": { code: "cd-pair:AAAA", expires: 1790086400 },
     } });
     await openTab(page, "Server");
     await app(page).getByRole("button", { name: "Kopplungscode zeigen" }).click();
@@ -1047,12 +1047,12 @@ test("a right that is handed out is asked for first, and the question says what 
     await expect(dialog.locator(".who")).toHaveText(
       "Das gilt sofort für 1 Person mit dieser Rolle: anna.");
     // Nothing has gone out while the question stands.
-    expect(await page.evaluate(() => window.__ngcCalls
+    expect(await page.evaluate(() => window.__cdCalls
       .filter((c) => c.name === "set-rights").length)).toBe(0);
 
     await dialog.getByRole("button", { name: "Rechte vergeben" }).click();
     const sent = await page.evaluate(() => {
-      const c = window.__ngcCalls.filter((x) => x.name === "set-rights");
+      const c = window.__cdCalls.filter((x) => x.name === "set-rights");
       return c.map((x) => new TextDecoder().decode(x.params));
     });
     expect(sent).toEqual(['{"role":"technik","rights":["de.example.fotos/teilen","de.example.fotos/use"]}']);
@@ -1067,7 +1067,7 @@ test("a right that is handed out is asked for first, and the question says what 
 const BOESE = "<img src=x onerror=alert(1)>Böse";
 
 const ROLES_WITH_ADMIN = {
-  "ngc.users/rights": [
+  "cd.users/rights": [
     { role: "admin", rights: [] },
     { role: "technik", rights: ["de.example.fotos/use"] },
     { role: "user", rights: [] },
@@ -1132,7 +1132,7 @@ test("Abbrechen sends nothing and leaves the boxes as they were", async ({ page 
   await app(page).getByRole("button", { name: "Rechte der Rolle technik speichern" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Abbrechen" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect(await page.evaluate(() => window.__ngcCalls
+  expect(await page.evaluate(() => window.__cdCalls
     .filter((c) => c.name === "set-rights").length)).toBe(0);
   await expect(box).toBeChecked();
 });
@@ -1146,15 +1146,15 @@ test("a role left without any right sends no rights at all", async ({ page }) =>
   await expect(dialog.locator(".gone li")).toHaveText(["Fotos · benutzen"]);
   await dialog.getByRole("button", { name: "Rechte vergeben" }).click();
   const sent = await page.evaluate(() => new TextDecoder()
-    .decode(window.__ngcCalls.filter((x) => x.name === "set-rights")[0].params));
+    .decode(window.__cdCalls.filter((x) => x.name === "set-rights")[0].params));
   // Go writes RoleRights.Rights with omitempty, and so does core.encodeParams.
   expect(sent).toBe('{"role":"technik"}');
 });
 
-test("no action of ngc.users is critical by the contract, so the surface asks on its own",
+test("no action of cd.users is critical by the contract, so the surface asks on its own",
   async ({ page }) => {
     // THE MEASUREMENT BEHIND THE RULE. core.critical names only actions of
-    // the app store; for every action of ngc.users it answers false. A
+    // the app store; for every action of cd.users it answers false. A
     // surface that asked core.critical and nothing else would hand out admin
     // rights on one click, without a word. The day the contract changes, this
     // case goes red and the rule above it is looked at again.
@@ -1177,7 +1177,7 @@ test("the log pages with the time and the id of its last row", async ({ page }) 
   const first = rows.first();
   await expect(first.locator(".user")).toHaveText("admin");
   await expect(first.locator(".kind")).toHaveText("Aufgabe");
-  await expect(first.locator(".app")).toHaveText("ngc.store");
+  await expect(first.locator(".app")).toHaveText("cd.store");
   await expect(first.locator(".action")).toHaveText("activate");
   await expect(first.locator(".node")).toHaveText("ctl-1");
   await expect(first.locator(".result")).toHaveText("ok");
@@ -1185,7 +1185,7 @@ test("the log pages with the time and the id of its last row", async ({ page }) 
 
   await app(page).getByRole("button", { name: "Mehr laden" }).click();
   await expect(rows).toHaveCount(51);
-  const asked = await page.evaluate(() => window.__ngcCalls
+  const asked = await page.evaluate(() => window.__cdCalls
     .filter((c) => c.name === "log").map((c) => new TextDecoder().decode(c.params)));
   expect(asked[0]).toBe('{"limit":50}');
   // The second page starts below the LAST row of the first, by time AND by
@@ -1244,7 +1244,7 @@ test("a detail that is markup arrives as its own characters", async ({ page }) =
   expect(await cell.evaluate((e) => e.childNodes.length === 1
     && e.childNodes[0].nodeType === 3)).toBe(true);
   // And the handler never ran.
-  expect(await page.evaluate(() => window.__ngcXss === undefined)).toBe(true);
+  expect(await page.evaluate(() => window.__cdXss === undefined)).toBe(true);
 });
 
 // ------------------------------------------------------------ users and tabs
@@ -1303,7 +1303,7 @@ test("the question can be worked and left with the keyboard alone", async ({ pag
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(await app(page).locator(".panels[inert], .tabs[inert]").count()).toBe(0);
-  expect(await page.evaluate(() => window.__ngcCalls
+  expect(await page.evaluate(() => window.__cdCalls
     .filter((c) => c.name === "set-rights").length)).toBe(0);
   // And the focus is back where it came from.
   await expect(app(page).getByRole("button", { name: "Rechte der Rolle technik speichern" }))
@@ -1321,7 +1321,7 @@ test("every button of the surface has a name a screen reader can read", async ({
 });
 
 test("an answer the contract refuses leaves the surface standing and says so", async ({ page }) => {
-  await mount(page, { answers: { "ngc.users/list": [{ id: "zu-kurz", name: "admin",
+  await mount(page, { answers: { "cd.users/list": [{ id: "zu-kurz", name: "admin",
     roles: ["admin"], totp: false, locked: false, lastLogin: 0 }] } });
   await expect(app(page).locator(".users .note")).toHaveText(
     "Die Antwort der Anlage war nicht in Ordnung. Es wird nichts angezeigt.");
@@ -1361,7 +1361,7 @@ test("a question belongs to its window and goes with it", async ({ page }) => {
   await expect(win).toHaveCount(0);
   expect(await page.getByRole("dialog").count()).toBe(0);
   // And nothing went out while the question was still open.
-  expect(await page.evaluate(() => window.__ngcCalls
+  expect(await page.evaluate(() => window.__cdCalls
     .filter((c) => c.name === "set-rights").length)).toBe(0);
 });
 
@@ -1372,7 +1372,7 @@ test("a question belongs to its window and goes with it", async ({ page }) => {
 // them. What that cost was measured on 18.10.2026 at a two-machine
 // installation whose servers had got new addresses: Apache went on proxying to
 // the old ones and answered the client 500 on a share of the requests, and
-// nothing in NextGenCloud could put it right.
+// nothing in CirroDesk could put it right.
 test("the address of a listed API server can be changed, and only the address changes",
   async ({ page }) => {
     await skipWithoutLogin(page);
@@ -1381,7 +1381,7 @@ test("the address of a listed API server can be changed, and only the address ch
     const row = app(page).locator(".listed .row", { hasText: "api-1" });
     await expect(row).toBeVisible();
     const before = await page.evaluate(() => {
-      const api = window.__ngcCtx.trust.current().list.nodes.find((n) => n.id === "api-1");
+      const api = window.__cdCtx.trust.current().list.nodes.find((n) => n.id === "api-1");
       const b64 = (u) => btoa(String.fromCharCode(...u));
       return { noise: b64(api.noise), sign: b64(api.sign), tls: b64(api.tls) };
     });
@@ -1406,13 +1406,13 @@ test("the address of a listed API server can be changed, and only the address ch
 
     const sent = await page.evaluate(async () => {
       const trust = await import("/assets/js/contracts/trust.js");
-      const one = window.__ngcSent[0];
+      const one = window.__cdSent[0];
       const s = trust.parseSigned(one.bytes);
       const l = await trust.parseList(s.payload);
       const api = l.nodes.find((n) => n.id === "api-1");
       const b64 = (u) => btoa(String.fromCharCode(...u));
       return {
-        count: window.__ngcSent.length,
+        count: window.__cdSent.length,
         where: one.app + "/" + one.service + "/" + one.name,
         seq: l.seq,
         nodes: l.nodes.map((n) => n.id),
@@ -1421,7 +1421,7 @@ test("the address of a listed API server can be changed, and only the address ch
       };
     });
     expect(sent.count).toBe(1);
-    expect(sent.where).toBe("ngc.users/api/trust");
+    expect(sent.where).toBe("cd.users/api/trust");
     expect(sent.seq).toBe(2);
     // The new address, and NOTHING else about the server: the keys are the
     // ones it had, which is what makes an address change a small change.
@@ -1451,7 +1451,7 @@ test("an address that is no tunnel address is refused before anything is signed"
       + "Sie muss so aussehen: wss://name-des-servers:7443/tunnel");
     // Nothing was asked of the person and nothing left the browser.
     expect(await page.locator(".confirmbox").count()).toBe(0);
-    expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+    expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
   });
 
 test("the same address again changes nothing and says so", async ({ page }) => {
@@ -1464,7 +1464,7 @@ test("the same address again changes nothing and says so", async ({ page }) => {
   await dlg.getByRole("button", { name: "Adresse ändern" }).click();
   await expect(app(page).locator(".listed .note")).toHaveText(
     "Das ist die Adresse, die schon eingetragen ist. Es wurde nichts geändert.");
-  expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+  expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
 });
 
 test("a listed server can be retired, and it is the only way back from a take-up",
@@ -1486,9 +1486,9 @@ test("a listed server can be retired, and it is the only way back from a take-up
       .toHaveText("Der Server »ctl-1« ist stillgelegt.");
     const sent = await page.evaluate(async () => {
       const trust = await import("/assets/js/contracts/trust.js");
-      const s = trust.parseSigned(window.__ngcSent[0].bytes);
+      const s = trust.parseSigned(window.__cdSent[0].bytes);
       const l = await trust.parseList(s.payload);
-      return { count: window.__ngcSent.length, seq: l.seq, nodes: l.nodes.map((n) => n.id) };
+      return { count: window.__cdSent.length, seq: l.seq, nodes: l.nodes.map((n) => n.id) };
     });
     expect(sent.count).toBe(1);
     expect(sent.seq).toBe(2);
@@ -1544,7 +1544,7 @@ test("without a session nothing about a listed server is offered", async ({ page
 // every(v, checkNodeInfo), so that ONE row threw away the WHOLE machine list
 // and the window could say nothing but that it got nothing.
 test("a version the contract cannot read empties the column and keeps the row", async ({ page }) => {
-  await mount(page, { answers: { "ngc.users/nodes": [
+  await mount(page, { answers: { "cd.users/nodes": [
     { node: "ctl-1", online: true, roles: ["services"], version: "1.0.0", arch: "amd64" },
     // The row that used to take the other two with it. arch is wrong as well,
     // so both fields that are only shown are measured in one row.
@@ -1574,7 +1574,7 @@ test("a key of the wrong length still throws the whole answer away, and the sent
     // noise is 31 bytes where the contract wants 32. It is not a field that is
     // shown: it is hashed into the fingerprint an admin compares by eye before
     // letting a server in, so a short one is no answer at all.
-    await mount(page, { answers: { "ngc.users/pending-api": [
+    await mount(page, { answers: { "cd.users/pending-api": [
       {
         node: "api-2", noise: "PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PA",
         sign: "Zej5sLxurhJBafBXb5c2LSlajPX3cLReFDV85kfTPuw",
@@ -1600,7 +1600,7 @@ test("a key of the wrong length still throws the whole answer away, and the sent
 //
 // WHO MAY RUN ROOT TASKS ON A CONTROLLER. Measured on 19.10.2026 at a full
 // installation out of a published release: a paired and taken-in controller
-// ("ngc-2") was offered by the app store, and "Aktivieren" answered "Das hat
+// ("cd-2") was offered by the app store, and "Aktivieren" answered "Das hat
 // der Rechner nicht angenommen." with no sentence of the server and no log
 // line on either side - the refusal happens in the rights check.
 // trust.MayRoot lets a root task through only where the user stands in the
@@ -1614,27 +1614,27 @@ test("a key of the wrong length still throws the whole answer away, and the sent
 // about it.
 
 // sentRoot reads the root lists of one node out of the version that went over
-// ngc.users/api/trust, plus what the version in force had - so "unchanged" is
+// cd.users/api/trust, plus what the version in force had - so "unchanged" is
 // held against the list and never against a value written down here.
 async function sentRoot(page, id) {
   return page.evaluate(async (want) => {
     const trust = await import("/assets/js/contracts/trust.js");
-    const one = window.__ngcSent[window.__ngcSent.length - 1];
+    const one = window.__cdSent[window.__cdSent.length - 1];
     const s = trust.parseSigned(one.bytes);
     const l = await trust.parseList(s.payload);
     const node = l.nodes.find((n) => n.id === want);
     const b64 = (u) => btoa(String.fromCharCode(...u));
     return {
-      count: window.__ngcSent.length,
+      count: window.__cdSent.length,
       seq: l.seq,
-      me: window.__ngcCtx.session.user,
+      me: window.__cdCtx.session.user,
       users: node.rootUsers ?? [], roles: node.rootRoles ?? [],
       noise: b64(node.noise),
       // Every OTHER node as it was: taking one server on, or changing one,
       // says nothing about another.
       others: l.nodes.filter((n) => n.id !== want)
         .map((n) => ({ id: n.id, users: n.rootUsers ?? [], roles: n.rootRoles ?? [] })),
-      before: window.__ngcCtx.trust.current().list.nodes
+      before: window.__cdCtx.trust.current().list.nodes
         .map((n) => ({ id: n.id, users: n.rootUsers ?? [], roles: n.rootRoles ?? [],
           noise: b64(n.noise) })),
     };
@@ -1794,7 +1794,7 @@ test("the row of a listed controller says who may run root tasks on it", async (
   // row reads out of the verified list.
   await expect(row.locator(".root")).toHaveText("Mit Systemrechten: Rolle admin");
   const what = await page.evaluate(() => {
-    const n = window.__ngcCtx.trust.current().list.nodes.find((x) => x.id === "ctl-1");
+    const n = window.__cdCtx.trust.current().list.nodes.find((x) => x.id === "ctl-1");
     return { users: n.rootUsers ?? [], roles: n.rootRoles ?? [] };
   });
   expect(what.roles, "and that is what the list in force says").toEqual(["admin"]);
@@ -1858,7 +1858,7 @@ test("the same choice again writes nothing and says so", async ({ page }) => {
     .toHaveText("Daran hat sich nichts geändert. Es wurde nichts geschrieben.");
   // Nothing was asked of the person and nothing left the browser.
   expect(await page.locator(".confirmbox").count()).toBe(0);
-  expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+  expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
 });
 
 test("the boxes of the question can be reached with the keyboard alone", async ({ page }) => {
@@ -1944,10 +1944,10 @@ test("a new role goes out as version N+1 and touches nothing but the roles",
 
     const sent = await page.evaluate(async () => {
       const trust = await import("/assets/js/contracts/trust.js");
-      const one = window.__ngcSent[0];
+      const one = window.__cdSent[0];
       const l = await trust.parseList(trust.parseSigned(one.bytes).payload);
       return {
-        count: window.__ngcSent.length,
+        count: window.__cdSent.length,
         where: one.app + "/" + one.service + "/" + one.name,
         seq: l.seq,
         roles: l.roles.map((r) => r.name + ":" + r.level),
@@ -1956,7 +1956,7 @@ test("a new role goes out as version N+1 and touches nothing but the roles",
       };
     });
     expect(sent.count).toBe(1);
-    expect(sent.where).toBe("ngc.users/api/trust");
+    expect(sent.where).toBe("cd.users/api/trust");
     expect(sent.seq).toBe(2);
     // Sorted by name, which is what the list demands, and the level is the
     // one the admin role carries - not off.
@@ -1978,7 +1978,7 @@ test("a role that is already there is refused before anybody is asked to sign",
     // No question, no signature, nothing on the wire: the refusal happened
     // in front of all three.
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+    expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
   });
 
 test("a new role reaches the form of the users tab without a reload", async ({ page }) => {
@@ -2038,11 +2038,11 @@ test("a second user goes out as one version with one password key, and the first
 
     const sent = await page.evaluate(async () => {
       const trust = await import("/assets/js/contracts/trust.js");
-      const one = window.__ngcSent[window.__ngcSent.length - 1];
+      const one = window.__cdSent[window.__cdSent.length - 1];
       const l = await trust.parseList(trust.parseSigned(one.bytes).payload);
       const b = l.users.find((u) => u.name === "berta");
       return {
-        count: window.__ngcSent.length,
+        count: window.__cdSent.length,
         seq: l.seq,
         // SORTED BY NAME HERE AND NOT AS THEY STAND, because a list is
         // sorted by ID and the ID of a new user is 16 random bytes: the
@@ -2061,8 +2061,8 @@ test("a second user goes out as one version with one password key, and the first
         // search of the envelope would ever see it. A mutant that carried
         // the password in the key's salt lived through the first version of
         // this case for exactly that reason. So both layers are searched.
-        wire: window.__ngcSent.map((x) => new TextDecoder().decode(x.bytes)).join("\n"),
-        payloads: await Promise.all(window.__ngcSent.map(async (x) => {
+        wire: window.__cdSent.map((x) => new TextDecoder().decode(x.bytes)).join("\n"),
+        payloads: await Promise.all(window.__cdSent.map(async (x) => {
           const t = await import("/assets/js/contracts/trust.js");
           return JSON.stringify(await t.parseList(t.parseSigned(x.bytes).payload),
             (k, v) => (v instanceof Uint8Array ? [...v] : v));
@@ -2112,7 +2112,7 @@ test("a user without a role is refused, and the sentence says a role is missing"
     await expect(app(page).locator(".panel.users .note"))
       .toHaveText("W\u00e4hlen Sie mindestens eine Rolle. Ohne Rolle kann niemand angelegt werden.");
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+    expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
   });
 
 test("two first passwords that differ are refused before a key is derived",
@@ -2124,7 +2124,7 @@ test("two first passwords that differ are refused before a key is derived",
     await expect(app(page).locator(".panel.users .note"))
       .toHaveText("Die beiden Passw\u00f6rter sind nicht gleich.");
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+    expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
   });
 
 test("a login name that is already taken is refused by name", async ({ page }) => {
@@ -2134,7 +2134,7 @@ test("a login name that is already taken is refused by name", async ({ page }) =
   await newUser(page, { login: "admin", roles: ["admin"], pass: "Erstpasswort-2026" });
   await expect(app(page).locator(".panel.users .note"))
     .toHaveText("Den Anmeldenamen \u00bbadmin\u00ab gibt es schon.");
-  expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+  expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
 });
 
 test("Abbrechen at the question for the key creates nobody", async ({ page }) => {
@@ -2146,7 +2146,7 @@ test("Abbrechen at the question for the key creates nobody", async ({ page }) =>
   await expect(page.locator(".confirmbox")).toBeVisible();
   await page.locator(".confirmbox").getByRole("button", { name: "Abbrechen" }).click();
   await expect(app(page).locator(".panel.users .note")).toHaveText("Nichts ge\u00e4ndert.");
-  expect(await page.evaluate(() => window.__ngcSent.length)).toBe(0);
+  expect(await page.evaluate(() => window.__cdSent.length)).toBe(0);
 });
 
 test("without a session the two forms say what is missing, not that something broke",
@@ -2208,11 +2208,11 @@ test("a passkey made by a click goes out as one version with one passkey key", a
   await expect(app(page).locator(".panel.users .note")).toHaveText("Der Passkey ist eingetragen.");
   const sent = await page.evaluate(async () => {
     const trust = await import("/assets/js/contracts/trust.js");
-    const one = window.__ngcSent[window.__ngcSent.length - 1];
+    const one = window.__cdSent[window.__cdSent.length - 1];
     const l = await trust.parseList(trust.parseSigned(one.bytes).payload);
     const me = l.users.find((u) => u.name === "admin");
     return {
-      count: window.__ngcSent.length, rp: l.rp,
+      count: window.__cdSent.length, rp: l.rp,
       keys: me.keys.map((k) => k.kind + "/" + k.alg + "/" + (k.credId.length > 0)),
     };
   });

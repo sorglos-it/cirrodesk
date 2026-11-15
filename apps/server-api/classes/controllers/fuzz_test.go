@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // FuzzPair feeds the pairing with everything; no body may ever make a pending

@@ -22,10 +22,10 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // ErrLink reports a message that breaks the rules of the link. Accept answers
@@ -110,7 +110,7 @@ type Options struct {
 	// carries is the bare host form: the library matches a value without "://"
 	// against the host alone and documents that as its normal case, while
 	// ValidOrigin takes nothing but "https://" and a host — measured, it says
-	// false to "ngc.example" and to "ngc.example:8443". It also refuses
+	// false to "cd.example" and to "cd.example:8443". It also refuses
 	// http://localhost:8101, which would take a development machine with it,
 	// although no contract path can carry that value here today: config.API has
 	// no field for origins, the API never reads web.json, and the only source

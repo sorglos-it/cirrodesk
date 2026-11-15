@@ -1,7 +1,7 @@
 // sicherung-probe answers one question about a backup, and it is the question
 // the backup itself cannot answer: does this file still open, and with WHAT.
 //
-// It takes the copy a "ngc-controller backup" wrote and a file holding the
+// It takes the copy a "cd-controller backup" wrote and a file holding the
 // dbKey of controller.json (base64url, the one line, with or without quotes),
 // and opens the copy three times: with that key, with one bit of that key
 // changed, and with no key at all. The second and third answers are the point
@@ -24,8 +24,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 func try(name, path string, key []byte) {

@@ -3,7 +3,7 @@ package server
 import (
 	"log/slog"
 
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // missingAfter is how many minute rounds in a row a controller of the trust

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // The three quantity limits of an app - how many tasks, how much memory, how
@@ -22,7 +22,7 @@ import (
 // cgroup of its own. Measured on 24.10.2026 (single VM 208) and on 25.10.2026
 // (svc-1, svc-2), repeated here on 30.10.2026 on svc-1 and svc-2:
 //
-//	/proc/<container pid>/cgroup  ->  0::/system.slice/ngc-controller.service
+//	/proc/<container pid>/cgroup  ->  0::/system.slice/cd-controller.service
 //	pids.max of that cgroup       ->  3466   (TasksMax of the unit, not 512)
 //	memory.max of that cgroup     ->  max    (not 256M)
 //	cpu.max of that cgroup        ->  the file does not exist
@@ -33,7 +33,7 @@ import (
 // THE CAUSE, in three layers, each one measured on svc-1 and svc-2 on
 // 30.10.2026 and each one enough on its own:
 //
-//  1. ngc-controller.service has Delegate=no, so systemd hands the unit no
+//  1. cd-controller.service has Delegate=no, so systemd hands the unit no
 //     subtree of the cgroup tree. Its directory is root's, 0755, and the app's
 //     user cannot write in it.
 //  2. The unit's own cgroup.subtree_control is EMPTY and its cgroup.type is
@@ -113,7 +113,7 @@ import (
 // reads as a unit of its own, and this is not one. That systemd leaves it alone
 // is measured, not assumed: on svc-1 on 30.10.2026 the directory and its
 // numbers survived a systemctl daemon-reload.
-const cgroupParent = "ngc.apps"
+const cgroupParent = "cd.apps"
 
 // cpuPeriod is the window the cpu controller counts in, in microseconds, and
 // podman's own default. The quota is written against it: Limits.CPU is
@@ -369,7 +369,7 @@ func HasCgroup(name string) bool {
 // kill a healthy container. What the measurement gives is the EXISTENCE of the
 // window, not its length: the probe image had a sleep as process 1 with no
 // SIGTERM handler, and the kernel drops signals to process 1 without one, so
-// it died at the SIGKILL after the deadline. ngc-hold handles SIGTERM and goes
+// it died at the SIGKILL after the deadline. cd-hold handles SIGTERM and goes
 // at once. The length is therefore unknown - but its CEILING is not: no stop
 // takes longer than the deadline Stop hands podman, because after it the
 // container is killed.

@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // The six reading statements are constants of their own instead of one with
@@ -21,9 +21,9 @@ import (
 // logInsert the write. The plan of this task wrote "four" over the same six,
 // and a count in a comment is read by whoever comes after and not recounted.
 const (
-	logInsert = "INSERT INTO ngc_log (id, ts, user_id, kind, app, action, node, result_code, detail) " +
+	logInsert = "INSERT INTO cd_log (id, ts, user_id, kind, app, action, node, result_code, detail) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	logCols       = "SELECT id, ts, user_id, kind, app, action, node, result_code, detail FROM ngc_log "
+	logCols       = "SELECT id, ts, user_id, kind, app, action, node, result_code, detail FROM cd_log "
 	logAll        = logCols + "ORDER BY ts DESC, id DESC LIMIT ?"
 	logBefore     = logCols + "WHERE ts < ? OR (ts = ? AND id < ?) ORDER BY ts DESC, id DESC LIMIT ?"
 	logTime       = logCols + "WHERE ts < ? ORDER BY ts DESC, id DESC LIMIT ?"
@@ -35,8 +35,8 @@ const (
 
 // LogAdd keeps one entry. The ID comes from the API and is the primary key,
 // so the same ID twice is ErrUsed and nothing is written twice. That one
-// translation covers the whole statement because ngc_log carries no unique
-// index besides that key - ngc_log_ts and ngc_log_user are plain ones - so a
+// translation covers the whole statement because cd_log carries no unique
+// index besides that key - cd_log_ts and cd_log_user are plain ones - so a
 // duplicate here can only be the ID, and unlike UserPut this method has no
 // second index its answer would have to tell apart.
 //
@@ -75,7 +75,7 @@ func (s *store) LogAdd(ctx context.Context, e core.LogEntry) error {
 // The line is drawn twice on purpose, and neither copy is spare. The contract
 // draws it at the API border - core.LogQuery.Validate refuses a Limit above
 // 500, which is where a number from outside is stopped - and this store draws
-// it again for the callers that never pass that border: everything inside NGC
+// it again for the callers that never pass that border: everything inside CirroDesk
 // that holds a dbapi.Store and builds a core.LogQuery itself. What the number
 // reaches here is "LIMIT ?" and, on the way back, one slice holding the whole
 // answer; a layer that takes its caller's word for that size is one mistake

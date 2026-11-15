@@ -263,7 +263,7 @@ export function socketURL() {
   u.protocol = "wss:";
   // An address goes on only after the grammar of trust has seen it. This one
   // comes from the page's own location, which is as trustworthy as it gets,
-  // but a host no part of NGC can spell would fail much later and much less
+  // but a host no part of CirroDesk can spell would fail much later and much less
   // clearly than here.
   if (!validHost(u.host) && !validHostPort(u.host)) throw new ApiError(wire.CODES.PROTOCOL);
   return u.toString();

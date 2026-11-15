@@ -1,7 +1,7 @@
 // Package join lets a further API server join a running installation: this
-// API hands out a one-time code (ngc.users/join-code), takes the new server's
+// API hands out a one-time code (cd.users/join-code), takes the new server's
 // request under that code's secret and keeps it for an admin to compare and
-// sign (ngc.users/pending-api). Nothing here puts a node into the trust list;
+// sign (cd.users/pending-api). Nothing here puts a node into the trust list;
 // only a signed version of the list does that. Once the admin has signed, the
 // new server fetches the keys every API shares over PathKeys (keys.go), and
 // Run (run.go) is the other side of the same way, the one the new server
@@ -16,17 +16,17 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/httpapi"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/httpapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Join is the issuing side: the API an admin asks for a join code and the one
@@ -169,7 +169,7 @@ func (j *Join) Accept(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := j.keep(ctx, req); err != nil {
 		// The code is gone and nothing was kept: the admin waits for a
-		// request that will never show up in ngc.users/pending-api.
+		// request that will never show up in cd.users/pending-api.
 		j.note(ctx, wire.CodeUnreachable, reason.DB)
 		httpapi.Fail(w, wire.CodeUnreachable)
 		return
@@ -201,7 +201,7 @@ func (j *Join) keep(ctx context.Context, req tunnel.JoinRequest) error {
 		Updated: j.S.Now()})
 }
 
-// Waiting answers ngc.users/pending-api.
+// Waiting answers cd.users/pending-api.
 func (j *Join) Waiting(ctx context.Context) ([]core.PendingAPI, error) {
 	blobs, err := j.S.DB.BlobFrom(ctx, dbapi.BlobJoin, 0)
 	if err != nil {

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // storeFixture is one test store that holds: a free app, a paid app with its
@@ -44,7 +44,7 @@ func newStore(t testing.TB) storeFixture {
 	f.free = packApp(t, dir, "org.sorglos.calculator", "1.0.0")
 	f.paid = packApp(t, dir, "org.sorglos.terminal", "1.0.0")
 	encryptPaid(t, dir, f.paid)
-	write(t, strings.TrimSuffix(f.paid, ".ngc")+PriceSuffix, []byte(paidPrice))
+	write(t, strings.TrimSuffix(f.paid, ".cd")+PriceSuffix, []byte(paidPrice))
 	f.sign(t, 1)
 	return f
 }
@@ -69,7 +69,7 @@ func (f storeFixture) sign(t testing.TB, seq uint64) {
 }
 
 // packApp lays down an app and packs it into dir, like packInto but with the
-// name a store serves: "<id>-<version>.ngc".
+// name a store serves: "<id>-<version>.cd".
 func packApp(t testing.TB, dir, id, version string) string {
 	t.Helper()
 	src := t.TempDir()
@@ -77,7 +77,7 @@ func packApp(t testing.TB, dir, id, version string) string {
 		`"publisher":"Sorglos IT","description":"Eine Test-App","ui":{"entry":"index.html"}}`
 	write(t, filepath.Join(src, "manifest.json"), []byte(manifest))
 	write(t, filepath.Join(src, "ui", "index.html"), []byte("<!doctype html><title>"+id+" "+version+"</title>"))
-	out := filepath.Join(dir, id+"-"+version+".ngc")
+	out := filepath.Join(dir, id+"-"+version+".cd")
 	if _, _, err := Pack(src, out); err != nil {
 		t.Fatalf("pack %s %s: %v", id, version, err)
 	}
@@ -165,20 +165,20 @@ func TestCheckStoreNamesTheReason(t *testing.T) {
 		break_ func(t *testing.T, dir string)
 		want   string
 	}{
-		{name: "a file of the catalog is gone", want: "org.sorglos.calculator 1.0.0: file missing: org.sorglos.calculator-1.0.0.ngc",
-			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.calculator-1.0.0.ngc") }},
-		{name: "a file was changed", want: "org.sorglos.calculator 1.0.0: checksum wrong: org.sorglos.calculator-1.0.0.ngc",
+		{name: "a file of the catalog is gone", want: "org.sorglos.calculator 1.0.0: file missing: org.sorglos.calculator-1.0.0.cd",
+			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.calculator-1.0.0.cd") }},
+		{name: "a file was changed", want: "org.sorglos.calculator 1.0.0: checksum wrong: org.sorglos.calculator-1.0.0.cd",
 			break_: func(t *testing.T, dir string) {
-				write(t, filepath.Join(dir, "org.sorglos.calculator-1.0.0.ngc"), []byte("das ist kein Paket mehr\n"))
+				write(t, filepath.Join(dir, "org.sorglos.calculator-1.0.0.cd"), []byte("das ist kein Paket mehr\n"))
 			}},
 		{name: "the catalog names a version that is not there", from: twoVersions.dir,
-			want:   "org.sorglos.calculator 1.1.0: file missing: org.sorglos.calculator-1.1.0.ngc",
-			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.calculator-1.1.0.ngc") }},
-		{name: "the encrypted version is gone", want: "org.sorglos.terminal 1.0.0: encrypted version missing: org.sorglos.terminal-1.0.0.ngc.enc",
-			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.terminal-1.0.0.ngc.enc") }},
+			want:   "org.sorglos.calculator 1.1.0: file missing: org.sorglos.calculator-1.1.0.cd",
+			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.calculator-1.1.0.cd") }},
+		{name: "the encrypted version is gone", want: "org.sorglos.terminal 1.0.0: encrypted version missing: org.sorglos.terminal-1.0.0.cd.enc",
+			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.terminal-1.0.0.cd.enc") }},
 		{name: "the plain package behind a paid app is gone",
-			want:   "org.sorglos.terminal 1.0.0: plain package missing: org.sorglos.terminal-1.0.0.ngc",
-			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.terminal-1.0.0.ngc") }},
+			want:   "org.sorglos.terminal 1.0.0: plain package missing: org.sorglos.terminal-1.0.0.cd",
+			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.terminal-1.0.0.cd") }},
 		{name: "the price is gone", want: "org.sorglos.terminal 1.0.0: price missing: org.sorglos.terminal-1.0.0.price.json",
 			break_: func(t *testing.T, dir string) { remove(t, dir, "org.sorglos.terminal-1.0.0.price.json") }},
 		{name: "the price is no price", want: "org.sorglos.terminal 1.0.0: price unreadable: org.sorglos.terminal-1.0.0.price.json",
@@ -226,10 +226,10 @@ func TestCheckStoreNamesTheReason(t *testing.T) {
 			break_: func(t *testing.T, dir string) {
 				write(t, filepath.Join(dir, StoreKeyFile), []byte("kein PEM\n"))
 			}},
-		{name: "a package was packed after the catalog was signed", want: "package not in the catalog: org.sorglos.editor-1.0.0.ngc",
+		{name: "a package was packed after the catalog was signed", want: "package not in the catalog: org.sorglos.editor-1.0.0.cd",
 			break_: func(t *testing.T, dir string) { packApp(t, dir, "org.sorglos.editor", "1.0.0") }},
 		{name: "the plain package behind a paid app was replaced",
-			want: "org.sorglos.terminal 1.0.0: ui hash wrong: org.sorglos.terminal-1.0.0.ngc",
+			want: "org.sorglos.terminal 1.0.0: ui hash wrong: org.sorglos.terminal-1.0.0.cd",
 			break_: func(t *testing.T, dir string) {
 				// Another valid package of the same app and version, with
 				// another UI: the encrypted form still matches its checksum,
@@ -239,7 +239,7 @@ func TestCheckStoreNamesTheReason(t *testing.T) {
 					`"name":"App org.sorglos.terminal","version":"1.0.0","publisher":"Sorglos IT",`+
 					`"description":"Eine Test-App","ui":{"entry":"index.html"}}`))
 				write(t, filepath.Join(src, "ui", "index.html"), []byte("<!doctype html><title>etwas anderes</title>"))
-				if _, _, err := Pack(src, filepath.Join(dir, "org.sorglos.terminal-1.0.0.ngc")); err != nil {
+				if _, _, err := Pack(src, filepath.Join(dir, "org.sorglos.terminal-1.0.0.cd")); err != nil {
 					t.Fatalf("pack: %v", err)
 				}
 			}},
@@ -371,11 +371,11 @@ func TestCheckStoreTellsTheEncryptedFormFromThePlainOne(t *testing.T) {
 		want   string
 	}{
 		{"encrypted but names the plain package", func(c *store.Catalog) {
-			c.Apps[1].Versions[0].URL = "org.sorglos.terminal-1.0.0.ngc"
-		}, "org.sorglos.terminal 1.0.0: entry says encrypted but names a plain package: org.sorglos.terminal-1.0.0.ngc"},
+			c.Apps[1].Versions[0].URL = "org.sorglos.terminal-1.0.0.cd"
+		}, "org.sorglos.terminal 1.0.0: entry says encrypted but names a plain package: org.sorglos.terminal-1.0.0.cd"},
 		{"free but names the encrypted package", func(c *store.Catalog) {
-			c.Apps[0].Versions[0].URL = "org.sorglos.terminal-1.0.0.ngc.enc"
-		}, "org.sorglos.calculator 1.0.0: entry says free but names an encrypted package: org.sorglos.terminal-1.0.0.ngc.enc"},
+			c.Apps[0].Versions[0].URL = "org.sorglos.terminal-1.0.0.cd.enc"
+		}, "org.sorglos.calculator 1.0.0: entry says free but names an encrypted package: org.sorglos.terminal-1.0.0.cd.enc"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()

@@ -9,8 +9,8 @@ import (
 	"os/exec"
 	"path"
 
-	ctrlrt "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	ctrlrt "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // This file is the command "image": it writes the image of the terminal app
@@ -67,7 +67,7 @@ const (
 	// The tag half is the version out of the manifest, never a version of its
 	// own: an image whose tag differs from the version in the manifest beside
 	// it is an image no package can name.
-	imageRepo = "ngc/terminal"
+	imageRepo = "cd/terminal"
 	// builder is what is looked for in PATH. Only the name, so a build machine
 	// decides where its podman is - config.DefaultPodman is the path of a
 	// SERVER and has nothing to say here.
@@ -79,8 +79,8 @@ const (
 const (
 	msgNoBuilder = "podman ist auf diesem Rechner nicht zu finden. Das Abbild entsteht auf einem Baurechner mit podman, nie auf dem Zielserver."
 	msgNoApp     = "Die Vorlagen der Terminal-App sind nicht lesbar. Bitte den Befehl im Stamm des Repos aufrufen."
-	msgNoProgram = "Das übersetzte Programm fehlt in build/ngc-controller. Bitte den Controller zuerst für diese Architektur dorthin übersetzen."
-	msgWrongArch = "Das Programm in build/ngc-controller ist für eine andere Architektur übersetzt. Bitte mit GOARCH für diese Architektur neu übersetzen."
+	msgNoProgram = "Das übersetzte Programm fehlt in build/cd-controller. Bitte den Controller zuerst für diese Architektur dorthin übersetzen."
+	msgWrongArch = "Das Programm in build/cd-controller ist für eine andere Architektur übersetzt. Bitte mit GOARCH für diese Architektur neu übersetzen."
 	msgNoImage   = "Das Abbild ließ sich nicht bauen. Die Ausgabe von podman darüber sagt, woran."
 )
 
@@ -111,7 +111,7 @@ func buildImage(version string, args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, imageMessage(err))
 		return 1
 	}
-	fmt.Fprintf(stdout, "Abbild %s für %s geschrieben: %s (ngc-controller %s)\n",
+	fmt.Fprintf(stdout, "Abbild %s für %s geschrieben: %s (cd-controller %s)\n",
 		spec.Ref, spec.Arch, spec.Out, version)
 	return 0
 }

@@ -186,11 +186,11 @@ test("the message of every purpose carries its purpose and nothing else", async 
     const payload = utf8("payload");
     for (const p of purposes) {
       const m = s.message(p, payload);
-      const want = new Uint8Array([...utf8("ngc/" + p), 0, ...payload]);
+      const want = new Uint8Array([...utf8("cd/" + p), 0, ...payload]);
       if (b64encode(m) !== b64encode(want)) wrong.push(p);
     }
     // A purpose that is not text is refused instead of turned into one: a
-    // misspelled import would otherwise sign for the purpose "ngc/undefined".
+    // misspelled import would otherwise sign for the purpose "cd/undefined".
     const refused = [];
     for (const bad of [undefined, null, 7, ["task/v1"], { toString: () => "task/v1" }]) {
       try {
@@ -212,7 +212,7 @@ test("the message of every purpose carries its purpose and nothing else", async 
     return {
       wrong, refused,
       purposes,
-      empty: b64encode(s.message("task/v1", new Uint8Array(0))) === b64encode(utf8("ngc/task/v1\0")),
+      empty: b64encode(s.message("task/v1", new Uint8Array(0))) === b64encode(utf8("cd/task/v1\0")),
       maxPayload: s.MAX_PAYLOAD,
     };
   }, v);

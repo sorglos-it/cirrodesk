@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	appstore "github.com/sorglos-it/nextgencloud/shared/store" // store is the type of this package
+	appstore "github.com/sorglos-it/cirrodesk/shared/store" // store is the type of this package
 )
 
 // TestBounds pins every column bound at its edge. One byte more has to be

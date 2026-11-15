@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/join"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/join"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // TestRunKnowsFourWaysAndNoMore nails the command line down: what exists,
@@ -41,7 +41,7 @@ func TestRunKnowsFourWaysAndNoMore(t *testing.T) {
 		// reaches a default path: the admin would not see which file they got.
 		{"backup without a target", []string{"backup"}, 2},
 		{"backup with two targets", []string{"backup", "/tmp/a.db", "/tmp/b.db"}, 2},
-		{"join", []string{"-join", "NGCJOIN-xyz"}, 1},
+		{"join", []string{"-join", "CDJOIN-xyz"}, 1},
 		{"an unknown subcommand", []string{"zerstoere-alles"}, 2},
 		{"a subcommand with an argument too many", []string{"migrate", "now"}, 2},
 		{"an unknown flag", []string{"-wipe"}, 2},
@@ -58,7 +58,7 @@ func TestRunKnowsFourWaysAndNoMore(t *testing.T) {
 
 // TestMigrateTakesTheConfigurationBehindIt is the reason subcommand exists:
 // flag.FlagSet stops at the first argument that is no flag, so with the
-// subcommand left to it "ngc-api migrate -config other.json" would migrate
+// subcommand left to it "cd-api migrate -config other.json" would migrate
 // the DEFAULT database and say nothing about it.
 func TestMigrateTakesTheConfigurationBehindIt(t *testing.T) {
 	named := filepath.Join(t.TempDir(), "other.json")
@@ -164,7 +164,7 @@ func TestJoinNamesNoValueWhateverGoesWrong(t *testing.T) {
 
 // TestBackupTakesItsTargetAndTheConfigurationBehindIt is the same measured
 // reason TestMigrateTakesTheConfigurationBehindIt names, with one more thing
-// to lose: the target. "ngc-api backup /mnt/stick/a.db -config other.json"
+// to lose: the target. "cd-api backup /mnt/stick/a.db -config other.json"
 // has to reach backupRun with BOTH, or it copies the wrong database or writes
 // to the wrong file -- and either way it reports success.
 func TestBackupTakesItsTargetAndTheConfigurationBehindIt(t *testing.T) {

@@ -42,10 +42,10 @@ import (
 // up, that is Create's own line - they only have to be neither 0.
 func hardApp() Container {
 	return Container{
-		Name: "ngc-terminal-1a2b3c4d", Image: "ngc/terminal:1.0.0",
+		Name: "cd-terminal-1a2b3c4d", Image: "cd/terminal:1.0.0",
 		UID: 1234, GID: 1234,
-		DataDir: "/var/lib/ngc/apps/org.sorglos.terminal",
-		Hold:    "/usr/lib/ngc/ngc-controller",
+		DataDir: "/var/lib/cd/apps/org.sorglos.terminal",
+		Hold:    "/usr/lib/cd/cd-controller",
 	}
 }
 
@@ -121,7 +121,7 @@ func TestHardeningIsTheWholeArgumentList(t *testing.T) {
 	c := hardApp()
 	c.CPU, c.Memory = 1000, 256
 	want := []string{
-		"create", "--name", "ngc-terminal-1a2b3c4d",
+		"create", "--name", "cd-terminal-1a2b3c4d",
 		"--network", "none",
 		"--cpus", "1.000",
 		"--memory", "256m",
@@ -129,10 +129,10 @@ func TestHardeningIsTheWholeArgumentList(t *testing.T) {
 		"--read-only",
 		"--cap-drop", "ALL",
 		"--security-opt", "no-new-privileges",
-		"--volume", "/var/lib/ngc/apps/org.sorglos.terminal:/data:rw,nosuid,nodev",
-		"--volume", "/usr/lib/ngc/ngc-controller:/ngc/ngc-hold:ro,nosuid,nodev",
+		"--volume", "/var/lib/cd/apps/org.sorglos.terminal:/data:rw,nosuid,nodev",
+		"--volume", "/usr/lib/cd/cd-controller:/cd/cd-hold:ro,nosuid,nodev",
 		"--user", "0:0",
-		"ngc/terminal:1.0.0", "/ngc/ngc-hold", "hold",
+		"cd/terminal:1.0.0", "/cd/cd-hold", "hold",
 	}
 	if got := argsOf(t, c); !slices.Equal(got, want) {
 		t.Fatalf("createArgs =\n%q\nwant\n%q", got, want)
@@ -208,7 +208,7 @@ func TestHardeningGivesNoNetworkWithoutTheGrant(t *testing.T) {
 }
 
 // 6. The program that holds the container open is mounted read-only. It is
-// ngc-controller itself: a container that could write into it would be writing
+// cd-controller itself: a container that could write into it would be writing
 // a program of this server, and the next start of any app would run what it
 // wrote.
 func TestHardeningMountsTheHoldProgramReadOnly(t *testing.T) {
@@ -218,7 +218,7 @@ func TestHardeningMountsTheHoldProgramReadOnly(t *testing.T) {
 		// nodev came, and what this case is about is "ro" being among them.
 		found := false
 		for _, v := range volumesOf(args) {
-			if strings.HasPrefix(v, g.container.Hold+":/ngc/ngc-hold:") &&
+			if strings.HasPrefix(v, g.container.Hold+":/cd/cd-hold:") &&
 				slices.Contains(optsOf(v), "ro") {
 				found = true
 			}
@@ -291,7 +291,7 @@ func TestHardeningAlwaysGivesBothLimits(t *testing.T) {
 // was decided once, at Create.
 func TestHardeningExecGrantsNothingBeyondTheContainer(t *testing.T) {
 	for _, root := range []bool{false, true} {
-		e := Exec{Name: "ngc-terminal-1a2b3c4d", Command: []string{"/bin/busy", "-n"}, Root: root}
+		e := Exec{Name: "cd-terminal-1a2b3c4d", Command: []string{"/bin/busy", "-n"}, Root: root}
 		args, err := execArgs(e)
 		if err != nil {
 			t.Fatalf("execArgs: %v", err)
@@ -310,7 +310,7 @@ func TestHardeningExecGrantsNothingBeyondTheContainer(t *testing.T) {
 		// Everything behind -- is the container and its command, so a command
 		// of a manifest that begins with a dash stays its argument.
 		i := slices.Index(args, "--")
-		if i < 0 || !slices.Equal(args[i+1:], []string{"ngc-terminal-1a2b3c4d", "/bin/busy", "-n"}) {
+		if i < 0 || !slices.Equal(args[i+1:], []string{"cd-terminal-1a2b3c4d", "/bin/busy", "-n"}) {
 			t.Fatalf("args = %q, want the container and its command behind --", args)
 		}
 	}
@@ -361,7 +361,7 @@ func bendModes(t *testing.T) *modeLog {
 // that user is a door standing open, and no tightening afterwards closes it for
 // the moment in between.
 func TestHardeningEnsureRunAsksForTheTightModes(t *testing.T) {
-	root := filepath.ToSlash(filepath.Join(t.TempDir(), "run", "ngc"))
+	root := filepath.ToSlash(filepath.Join(t.TempDir(), "run", "cd"))
 	oldRun, oldChown := paths.runDir, paths.chown
 	t.Cleanup(func() { paths.runDir, paths.chown = oldRun, oldChown })
 	paths.runDir = root
@@ -369,7 +369,7 @@ func TestHardeningEnsureRunAsksForTheTightModes(t *testing.T) {
 	chownAt := -1
 	paths.chown = func(string, int, int) error { chownAt = len(m.calls); return nil }
 
-	dir, err := EnsureRun(context.Background(), User{Name: "ngc-a-00000000", UID: 1234, GID: 1234})
+	dir, err := EnsureRun(context.Background(), User{Name: "cd-a-00000000", UID: 1234, GID: 1234})
 	if err != nil {
 		t.Fatalf("EnsureRun: %v", err)
 	}
@@ -394,7 +394,7 @@ func TestHardeningEnsureRunAsksForTheTightModes(t *testing.T) {
 	}
 	m.calls = nil
 	if _, err := EnsureRun(context.Background(),
-		User{Name: "ngc-a-00000000", UID: 1234, GID: 1234}); err != nil {
+		User{Name: "cd-a-00000000", UID: 1234, GID: 1234}); err != nil {
 		t.Fatalf("EnsureRun again: %v", err)
 	}
 	if !slices.Contains(m.calls, "chmod "+filepath.ToSlash(dir)+" -rwx------") {
@@ -410,7 +410,7 @@ func TestHardeningEnsureRunAsksForTheTightModes(t *testing.T) {
 // the image store of the app in there - so 0700 there stops podman at the
 // first look at its own directory and the activation is taken back whole
 // (measured on 20.10.2026 on the Debian machine: EACCES on
-// newfstatat("/var/lib/ngc/apps/org.sorglos.terminal")). Below it nobody but
+// newfstatat("/var/lib/cd/apps/org.sorglos.terminal")). Below it nobody but
 // the app's user may enter at all: that is where everything the app keeps
 // lies, and the encryption under it protects a stolen disk, not a neighbour on
 // this machine.
@@ -431,7 +431,7 @@ func TestHardeningEnsureDataAsksForTheTightMode(t *testing.T) {
 	m := bendModes(t)
 
 	dir, err := EnsureData(context.Background(), "org.sorglos.terminal",
-		User{Name: "ngc-a-00000000", UID: 1234, GID: 1234}, make([]byte, 32))
+		User{Name: "cd-a-00000000", UID: 1234, GID: 1234}, make([]byte, 32))
 	// The chown of EnsureData is os.Chown, which Windows does not have. What
 	// this case is about happens before it, so an error from there is noted and
 	// not a failure - but the calls before it have to have happened, and the

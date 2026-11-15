@@ -32,12 +32,12 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // ErrVerify says the licence that came in is not one this installation can
@@ -59,7 +59,7 @@ var ErrVerify = errors.New("license: this licence is not for this installation")
 // make the answer depend on the order they arrive in.
 //
 // installation is the one the task was signed for, never one out of the
-// licence: otherwise a licence of another NGC would serve every installation
+// licence: otherwise a licence of another CirroDesk would serve every installation
 // that gets hold of it. storeID is the store of the app as this controller's
 // own row has it (dbapi.App.Store), and it has to be one of the stores of the
 // trust list l.
@@ -111,7 +111,7 @@ func Keep(ctx context.Context, st *state.Store, l *trust.List, installation, app
 // A licence that is there and says LicenseExpired - run out past its grace
 // period - is a no. The caller then stops the services of the app, starts none,
 // refuses its channels with E_LICENSE and reports tunnel.StateUnlicensed.
-// LicenseGrace is a yes: it runs and NGC warns.
+// LicenseGrace is a yes: it runs and CirroDesk warns.
 //
 // Two cases answer no without an error, and both are the safer side of a
 // question that cannot be answered: there is no trust list (l nil), or the

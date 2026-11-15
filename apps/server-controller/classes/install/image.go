@@ -11,7 +11,7 @@
 //
 // Measured on 20.10.2026 on the Debian machine: the same package loads when it
 // lies where the app's user can read it ("Loaded image:
-// localhost/ngc/terminal:1.0.0") and answers
+// localhost/cd/terminal:1.0.0") and answers
 // "Error: faccessat …/services/amd64.tar: permission denied", exit 125, when it
 // lies in a root:root 0700 copy of the staged layout. Before that the
 // activation never got this far - it died one step earlier, on the directory
@@ -31,7 +31,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
 )
 
 // files are the two calls of this file: the mode of a directory and the owner

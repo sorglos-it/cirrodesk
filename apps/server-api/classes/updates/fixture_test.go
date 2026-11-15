@@ -14,22 +14,22 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()
@@ -45,16 +45,16 @@ const (
 	webNode   = "ctl-w"  // a third controller, role web
 	theApp    = "org.sorglos.calculator"
 	otherApp  = "org.sorglos.terminal"
-	pkgFile   = "pkg.ngc"
-	partFile  = "ngc-api-amd64.tar"
-	partFile2 = "ngc-controller-amd64.tar"
-	partFile3 = "ngc-controller-arm64.tar"
-	webFile   = "ngc-web-all.tar"
+	pkgFile   = "pkg.cd"
+	partFile  = "cd-api-amd64.tar"
+	partFile2 = "cd-controller-amd64.tar"
+	partFile3 = "cd-controller-arm64.tar"
+	webFile   = "cd-web-all.tar"
 )
 
 // The keys these cases sign with. They are the fixed seeds of trusttest and of
 // the vectors of shared/testdata, not keys made up here: relPriv is the key
-// trusttest.Genesis names in its standing approval for ngc-controller, so a
+// trusttest.Genesis names in its standing approval for cd-controller, so a
 // release signed with it is one this installation really approves, and a
 // release signed with anything else is really a stranger's.
 var (
@@ -79,7 +79,7 @@ type fakeFleet struct {
 
 func newFleet() *fakeFleet { return &fakeFleet{nodes: map[string]seenNode{}} }
 
-// put makes node online with these roles, this architecture, this NGC version
+// put makes node online with these roles, this architecture, this CirroDesk version
 // and these installed components.
 func (f *fakeFleet) put(node, arch, version string, roles []string, comp map[string]string) {
 	f.mu.Lock()
@@ -325,7 +325,7 @@ func newFixture(t *testing.T) fixture {
 	if _, err := s.AddVersion(ctx, signed); err != nil {
 		t.Fatalf("version 1: %v", err)
 	}
-	// The standing approval of Genesis for ngc-controller names
+	// The standing approval of Genesis for cd-controller names
 	// NodeKeys(trusttest.ReleaseFill); the configuration has to carry that
 	// same key, or every case below would measure a mismatch instead of what
 	// it says it measures.
@@ -337,7 +337,7 @@ func newFixture(t *testing.T) fixture {
 	dbDH, _ := trusttest.NodeKeys(0xC2)
 	webDH, _ := trusttest.NodeKeys(0xC3)
 	l2 := trusttest.Next(t, signed)
-	l2.Stores = []trust.Store{{ID: store.GlobalID, Name: "NGC Store", URL: srv.URL,
+	l2.Stores = []trust.Store{{ID: store.GlobalID, Name: "CirroDesk Store", URL: srv.URL,
 		Key: enc.Bytes(storePriv.Public().(ed25519.PublicKey))}}
 	l2.Nodes = append(l2.Nodes,
 		trust.Node{ID: dbNode, Kind: trust.NodeController, Name: "Datenbank", Noise: dbDH.Public},
@@ -480,13 +480,13 @@ func (fx fixture) listCatalog(t *testing.T, priv ed25519.PrivateKey, seq uint64,
 }
 
 // entry is one app of a catalog with one version.
-func entry(app, version string, needs []string, minNGC string) store.Entry {
+func entry(app, version string, needs []string, minCD string) store.Entry {
 	body := []byte("package of " + app + " " + version)
 	sum := sha256.Sum256(body)
 	ui := sha256.Sum256([]byte("ui of " + app + " " + version))
 	return store.Entry{ID: app, Name: "Testapp", Publisher: "Sorglos IT",
 		Versions: []store.Package{{Version: version, URL: pkgFile, Size: int64(len(body)),
-			SHA256: sum[:], UI: ui[:], Needs: needs, MinNGC: minNGC}}}
+			SHA256: sum[:], UI: ui[:], Needs: needs, MinCD: minCD}}}
 }
 
 // putApp writes the row of an installed app.

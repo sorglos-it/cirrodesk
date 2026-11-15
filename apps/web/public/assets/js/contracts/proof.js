@@ -65,7 +65,7 @@ export const MAX_CLIENT_DATA = 4096;
 // The longest credential ID an authenticator may hand out (WebAuthn, CTAP2).
 export const MAX_CRED_ID = 1023;
 
-// The smallest RSA key NGC takes for RS256 (Go: parsePublic).
+// The smallest RSA key CirroDesk takes for RS256 (Go: parsePublic).
 const MIN_RSA_BITS = 2048;
 // The fixed start of WebAuthn authenticator data: SHA-256 of the RP ID, one
 // byte of flags and the 4-byte signature counter (Go: minAuthData).
@@ -643,7 +643,7 @@ async function verifyAssertion(a, rp, ch) {
   if (typeof rpID !== "string") return false;
   const rpHash = new Uint8Array(await crypto.subtle.digest("SHA-256", utf8(rpID)));
   if (!equal(auth.subarray(0, 32), rpHash)) return false;
-  // NGC always asks for user verification: a PIN or biometrics, never a tap
+  // CirroDesk always asks for user verification: a PIN or biometrics, never a tap
   // alone.
   const flags = auth[32];
   if ((flags & FLAG_UP) === 0 || (flags & FLAG_UV) === 0) return false;

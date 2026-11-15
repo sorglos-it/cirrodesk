@@ -327,11 +327,11 @@ function results() {
   // The one answer that is changed: the tests log in as anna, so "who am I"
   // has to say anna. Everything else in the record stays core.json's.
   put(core.APP_DESKTOP, core.ACT_ME, {
-    ...data["ngc.desktop/me"], id: USER_ID, name: USER_NAME,
+    ...data["cd.desktop/me"], id: USER_ID, name: USER_NAME,
   });
-  put(core.APP_DESKTOP, core.ACT_APPS, data["ngc.desktop/apps"]);
-  put(core.APP_STORE, core.ACT_SOURCES, data["ngc.store/sources"]);
-  put(core.APP_USERS, core.ACT_LIST, data["ngc.users/list"]);
-  put(core.APP_USERS, core.ACT_NODES, data["ngc.users/nodes"]);
+  put(core.APP_DESKTOP, core.ACT_APPS, data["cd.desktop/apps"]);
+  put(core.APP_STORE, core.ACT_SOURCES, data["cd.store/sources"]);
+  put(core.APP_USERS, core.ACT_LIST, data["cd.users/list"]);
+  put(core.APP_USERS, core.ACT_NODES, data["cd.users/nodes"]);
   return out;
 }

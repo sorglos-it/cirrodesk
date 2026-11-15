@@ -10,7 +10,7 @@
 //   - The needs of a CATALOGUE ENTRY (store.Package.Needs) are not the needs
 //     of the MANIFEST. Nothing holds the two against each other - not
 //     store.VerifyCatalog, not store.Walk, and not Accept, which holds the
-//     manifest against the entry's id, version and minNgc and against nothing
+//     manifest against the entry's id, version and minCd and against nothing
 //     else. The container is built out of the manifest (activate.go: Network
 //     and Root out of store.Manifest.Needs), so a check against the catalogue
 //     copy would be a wall in front of a door: a package whose manifest asks
@@ -45,9 +45,9 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // AppUpdate is one staged app update to set up. App, Version and SHA256 are
@@ -109,7 +109,7 @@ func (m *Manager) Needs(ctx context.Context, file string) ([]string, error) {
 //	2 the bytes of the staged file against the SHA-256 the signed catalogue
 //	  entry named (state.Staged)
 //	3 the package unpacked, and its manifest held against app, version and
-//	  this NGC (unpackApp, the same code an acceptance walks)
+//	  this CirroDesk (unpackApp, the same code an acceptance walks)
 //	4 the needs of that manifest against the needs the caller checked the
 //	  grants with
 //	5 services only with the role services
@@ -179,7 +179,7 @@ func (m *Manager) Update(ctx context.Context, in AppUpdate) error {
 	}
 	files := filepath.Join(dir, FilesDir)
 	mf, _, err := unpackApp(ctx, unpack{Pkg: in.File, Files: files,
-		App: in.App, Version: in.Version, NGC: m.d.NGC})
+		App: in.App, Version: in.Version, CirroDesk: m.d.CirroDesk})
 	if err != nil {
 		return err
 	}

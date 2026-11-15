@@ -12,7 +12,7 @@
 
    WHO DECIDES WHICH SET: the shell writes data-theme on <html> before the
    first paint (appframe.buildDocument), and app.js keeps it and --accent
-   current from what ngc.js reports. Dark is the one without the attribute,
+   current from what cd.js reports. Dark is the one without the attribute,
    because that is the shell's own default. */
 :root{
   --win-bg:#1e2430; --win-fg:#e8ecf3; --win-border:#38414f; --title-bg:#2a3240;

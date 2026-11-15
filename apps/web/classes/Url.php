@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Ngc;
+namespace CirroDesk;
 
 // Url is the address grammar of shared/trust/url.go, rule for rule. A regular
 // expression cannot carry it: the canonical spelling of an IPv6 address, the
@@ -55,7 +55,7 @@ final class Url
 
     // validHost mirrors trust.ValidHost: a DNS name in lower case, an IPv4
     // address in dotted decimal, or an IPv6 address in brackets. Each address
-    // has exactly one spelling, because NGC compares addresses as text.
+    // has exactly one spelling, because CirroDesk compares addresses as text.
     public static function validHost(string $h): bool
     {
         // Nothing longer can be a host, and the bound keeps every step below

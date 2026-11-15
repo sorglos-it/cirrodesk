@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
 )
 
 // rowsQuerier is what the question below needs of a database or of a
@@ -37,7 +37,7 @@ type knowsItsSchema interface {
 // a migration only ever adds. But "whatever is already there is what this run
 // would have made" is a SENTENCE, and W-1 of the review of 10.10.2026
 // measured what it is worth: an index of the migration's name over another
-// column, with an empty ngc_schema, made the run answer err=nil, write
+// column, with an empty cd_schema, made the run answer err=nil, write
 // done=1, and report "nothing to do" from then on, over a schema no migration
 // of this release ever made. The linter that was named as the thing holding
 // this reads the TEXT OF THE FILE; the collision stands between the file and
@@ -103,7 +103,7 @@ func stepOver(ctx context.Context, q rowsQuerier, d sqlstore.Dialect, stmt strin
 // chosen: SQLite keeps the text of a CREATE TABLE as it was given and
 // REWRITES it when a later ALTER TABLE adds a column, so a replayed CREATE
 // TABLE meets its own table carrying columns it does not name (measured
-// 12.10.2026: the stored text of ngc_blob after one added column reads
+// 12.10.2026: the stored text of cd_blob after one added column reads
 // "... kind BLOB NOT NULL , seq INTEGER, PRIMARY KEY ( kind ) )"). A table is
 // therefore the one this run would have made when every piece the statement
 // names stands in it, columns the statement does not name being the ones a

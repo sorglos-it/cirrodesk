@@ -26,10 +26,10 @@ import { vectors } from "../fixtures/vectors.js";
 //     ones a step backwards stays green.
 //
 // Seed and rounds come from the environment, so a failure can be run again:
-// NGC_FUZZ_SEED=123 NGC_FUZZ_ROUNDS=50000 npm test -- contracts/sign-fuzz
+// CD_FUZZ_SEED=123 CD_FUZZ_ROUNDS=50000 npm test -- contracts/sign-fuzz
 const v = vectors("sign.json");
-const seed = Number(process.env.NGC_FUZZ_SEED || 20260923) >>> 0;
-const rounds = Number(process.env.NGC_FUZZ_ROUNDS || 4000);
+const seed = Number(process.env.CD_FUZZ_SEED || 20260923) >>> 0;
+const rounds = Number(process.env.CD_FUZZ_ROUNDS || 4000);
 
 test(`fuzz: an envelope or BadEnvelope, ${rounds} inputs from seed ${seed}`, async ({ shell }) => {
   const out = await shell.evaluate(async ([d, seed, rounds]) => {
@@ -176,7 +176,7 @@ test(`fuzz: an envelope or BadEnvelope, ${rounds} inputs from seed ${seed}`, asy
       // The message covers the purpose and then exactly the payload.
       const purpose = pick(purposes);
       const m = s.message(purpose, env.payload);
-      const head = utf8("ngc/" + purpose);
+      const head = utf8("cd/" + purpose);
       if (m.length !== head.length + 1 + env.payload.length) say(b, "a message of the wrong length");
       else {
         let same = m[head.length] === 0;

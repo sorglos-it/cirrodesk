@@ -15,9 +15,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Every app gets a system user of its own and an encrypted data directory of
@@ -151,12 +151,12 @@ var paths = struct {
 	sleep:       time.Sleep,
 }
 
-// procRootDefault is where the kernel mounts proc on every system NGC runs on.
+// procRootDefault is where the kernel mounts proc on every system CirroDesk runs on.
 // It stands apart from the field above only so that a case can say what it
 // replaced.
 const procRootDefault = "/proc"
 
-// cgroupRootDefault is where a cgroup v2 tree is mounted on every system NGC
+// cgroupRootDefault is where a cgroup v2 tree is mounted on every system CirroDesk
 // runs on. It stands apart from the field above only so that a case can say
 // what it replaced.
 const cgroupRootDefault = "/sys/fs/cgroup"
@@ -259,9 +259,9 @@ func UserName(app string) string {
 	// A label of nothing usable leaves the name without that part rather than
 	// with a dash hanging in the air.
 	if b.Len() == 0 {
-		return "ngc-" + id
+		return "cd-" + id
 	}
-	return "ngc-" + b.String() + "-" + id
+	return "cd-" + b.String() + "-" + id
 }
 
 // DataDirOf is the data directory of the app: the home of its user and what the
@@ -535,7 +535,7 @@ func freeSubIDStart(rs []subIDRange) (uint64, error) {
 // the file and put in its place in one step.
 func writeWhole(file, body string) error {
 	dir := filepath.Dir(file)
-	tmp, err := os.CreateTemp(dir, "."+filepath.Base(file)+".ngc-")
+	tmp, err := os.CreateTemp(dir, "."+filepath.Base(file)+".cd-")
 	if err != nil {
 		return errors.Join(ErrSubID, err)
 	}

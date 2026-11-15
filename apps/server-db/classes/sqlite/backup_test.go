@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // backupCtx is the context of the tests in this file. The package's other
@@ -288,7 +288,7 @@ func TestBackupRefusesTheDatabaseItself(t *testing.T) {
 //
 // This is the guard against the obvious rewrite: whoever reaches for
 // sqlite.Open or for SQLite's own backup API instead of the bytes brings the
-// migrations with it, and ngc_schema appears in both files.
+// migrations with it, and cd_schema appears in both files.
 func TestBackupBringsNoSchema(t *testing.T) {
 	dir := t.TempDir()
 	cfg := backupConfig(dir, "state.db")
@@ -416,7 +416,7 @@ func seeded(t *testing.T, cfg config.DB) []byte {
 // through validPath, the target went through nothing, so another spelling of
 // the same path ("/dir/./state.db", "/dir/sub/../state.db") was not equal to
 // it and ran all the way to os.Rename ON THE DATABASE. What refused it there
-// was Windows. On linux/amd64 and linux/arm64, the only targets NGC builds
+// was Windows. On linux/amd64 and linux/arm64, the only targets CirroDesk builds
 // for, os.Rename would have replaced the running database.
 //
 // Every case therefore asks for the refusal of this package, named by its own
@@ -736,7 +736,7 @@ func TestBackupRefusesATargetTooLongForTheNameItWrites(t *testing.T) {
 // TestBackupSaysWhoHoldsTheFile measures the sentence an admin reads when a
 // backup cannot start because ANOTHER PROGRAM is writing to the file.
 //
-// Measured on 13.10.2026 with two real ngc-api on one file and a third pool
+// Measured on 13.10.2026 with two real cd-api on one file and a third pool
 // for the backup: the copy gave up after 10,005 s and what came out was the
 // driver's bare "sqlite3: database is locked" -- in English, with no step, no
 // word that busy_timeout had already waited its ten seconds and nothing that
@@ -752,7 +752,7 @@ func TestBackupRefusesATargetTooLongForTheNameItWrites(t *testing.T) {
 // copy really runs into it, and what is asserted is the sentence and the
 // refusal. The LENGTH of the production wait is asserted where it belongs,
 // against sqlite.DefaultBusyTimeout in TestPragmas and
-// TestTheZeroOptionsIsWhatNGCOpensWith - and that the number in Options is
+// TestTheZeroOptionsIsWhatCDOpensWith - and that the number in Options is
 // really the one SQLite waits with is asserted in
 // TestTheBusyDeadlineOfTheOptionsReachesTheFile. Measured on D:: 12,51 s
 // before, 0,32 s after, same assertions.

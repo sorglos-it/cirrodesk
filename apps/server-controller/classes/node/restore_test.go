@@ -11,13 +11,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/serve"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/serve"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The two apps every case below works with.
@@ -362,7 +362,7 @@ func TestRestoreUnlocksTheDataBeforeTheContainerStarts(t *testing.T) {
 // app's own is gone - and rootless podman reads its configuration out of
 // XDG_RUNTIME_DIR, so Running cannot answer without it. Measured on the Debian
 // VM on 23.10.2026, as the app's user and with the arguments Podman.Running
-// passes: "lstat /run/ngc/<user>: permission denied", exit 1.
+// passes: "lstat /run/cd/<user>: permission denied", exit 1.
 //
 // That closed a circle: Running fell over the missing directory, one() gave up
 // at its error one line later, and Start was never reached - while the only
@@ -532,7 +532,7 @@ func TestRestoreLeavesTheseAlone(t *testing.T) {
 // It is asked and not assumed, so a change to that rule shows up here.
 func coreAppID(t *testing.T) string {
 	t.Helper()
-	const id = "ngc.store"
+	const id = "cd.store"
 	if !wire.CoreApp(id) {
 		t.Fatalf("%q is no core app any more", id)
 	}
@@ -683,7 +683,7 @@ func TestRestoreGivesBackABrokenDatabase(t *testing.T) {
 // looked at twice, with a wait in between.
 //
 // This is the state a hard death of the controller leaves behind (point 102):
-// systemd deletes /run/ngc with the unit, podman refreshes its own state and
+// systemd deletes /run/cd with the unit, podman refreshes its own state and
 // then says nothing runs, while the processes live on - since the limits are
 // real they no longer sit in the cgroup of the unit, so the death of the
 // service does not take them. One surplus set per start of the controller,

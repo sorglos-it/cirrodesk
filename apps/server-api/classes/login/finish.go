@@ -10,17 +10,17 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/httpapi"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/lock"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/httpapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/lock"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // lockWarnTTL is how seldom a failed login that could not be counted is said
@@ -40,7 +40,7 @@ const lockWarnTTL = 300
 // on one machine before this was here.
 //
 // The key is this package's own, from a fixed seed that is worth nothing --
-// nothing of NGC is signed with it, and the answer of the verification is
+// nothing of CirroDesk is signed with it, and the answer of the verification is
 // thrown away. blindSig really is a signature, so the verification runs to its
 // end instead of stopping at one that is malformed.
 var blindKey, blindSig = blindPair()
@@ -286,7 +286,7 @@ func (h *Handler) Finish(w http.ResponseWriter, r *http.Request) {
 	//
 	// Failures and Locked are the row's own two numbers and not that counting;
 	// nothing maintains them today, so a login sets them where a login leaves
-	// them. LastLogin is what ngc.users/list shows (core.UserInfo).
+	// them. LastLogin is what cd.users/list shows (core.UserInfo).
 	row.ID, row.Name, row.Roles = owner.ID, owner.Name, owner.Roles
 	row.Failures, row.Locked, row.LastLogin = 0, 0, now
 	if err := h.S.DB.UserPut(ctx, row); err != nil {

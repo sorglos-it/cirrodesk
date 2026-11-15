@@ -12,20 +12,20 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 const (
@@ -137,7 +137,7 @@ func (f fixture) task(t testing.TB, seed []byte, on, app, service, action string
 	return &env
 }
 
-// activateParams are valid parameters of ngc.store/controller/activate for
+// activateParams are valid parameters of cd.store/controller/activate for
 // the app the fixture has installed, without grants: nothing that makes the
 // action critical.
 func activateParams() core.ActivateParams {
@@ -397,7 +397,7 @@ func TestCheckWithoutUserIgnoresTheTask(t *testing.T) {
 
 // TestCheckOpensUnattendedInstall covers the only action of the contract that
 // is both a root task and one the API may open without a user:
-// ngc.store/controller/install. Without a certificate no task is checked at
+// cd.store/controller/install. Without a certificate no task is checked at
 // all, so nothing here asks for the signature a root task otherwise costs —
 // what pays for this channel is the standing approval, which the controller
 // will check afterwards (core.Unattended). A guard that turned every root
@@ -604,14 +604,14 @@ func TestCheckRefusesDeactivatedApp(t *testing.T) {
 // (wire.CoreApp), not the three names, so every one of them is asked.
 func TestCheckRefusesAppChannelForCoreApp(t *testing.T) {
 	f := newFixture(t)
-	// ngc.other is no app of this installation and no core app of the
+	// cd.other is no app of this installation and no core app of the
 	// contract either: the prefix alone has to be enough.
-	for _, app := range []string{core.AppDesktop, core.AppUsers, core.AppStore, "ngc.other"} {
+	for _, app := range []string{core.AppDesktop, core.AppUsers, core.AppStore, "cd.other"} {
 		t.Run(app, func(t *testing.T) {
 			r := f.request(f.withUser(t, wire.Open{App: app, Service: testService, Action: testAction,
 				Window: wire.DefaultWindow}))
 			// The row is there, and its manifest is the one of a real app:
-			// only the key it is filed under says ngc.
+			// only the key it is filed under says cd.
 			rows := installed()
 			rows[app] = dbapi.App{ID: app, Version: "1.0.0", Store: trust.StoreGlobal, Node: node,
 				Active: true, Manifest: manifestFor(testApp), SHA256: bytes.Repeat([]byte{0x01}, 32)}
@@ -634,7 +634,7 @@ func TestCheckRefusesAppChannelForCoreApp(t *testing.T) {
 // instead — with every other test of the repo still green.
 func TestCheckRefusesCoreAppIDWithoutACertificate(t *testing.T) {
 	f := newFixture(t)
-	// ngc.users/controller/trust is the channel the API really does open
+	// cd.users/controller/trust is the channel the API really does open
 	// without a user; the same ID on any other service is no app of this
 	// controller.
 	r := f.request(withoutUser(t, wire.Open{App: core.AppUsers, Service: testService, Action: testAction,
@@ -696,7 +696,7 @@ func TestCheckWithoutTrustListTakesOnlyTheFirstChain(t *testing.T) {
 		}
 		if !d.Core || d.Action.App != core.AppUsers || d.Action.Service != core.ServiceController ||
 			d.Action.Name != core.ActTrust {
-			t.Errorf("action %+v, core %v, want ngc.users/controller/trust", d.Action, d.Core)
+			t.Errorf("action %+v, core %v, want cd.users/controller/trust", d.Action, d.Core)
 		}
 		if d.Opened.Session != nil || d.User != "" || d.UserName != "" {
 			t.Errorf("the channel names user %q (%q) and carries a session %v, want none of the three",

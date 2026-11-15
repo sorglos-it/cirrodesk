@@ -14,13 +14,13 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // aptStubSource is the stand-in for apt-get: a real program, built for the
@@ -187,7 +187,7 @@ func aptStubProgram() (string, string, error) {
 			aptStubOnce.skip = fmt.Sprintf("LOUD SKIP: no go toolchain to build the apt stand-in with: %v", err)
 			return
 		}
-		dir, err := os.MkdirTemp("", "ngc-aptstub-")
+		dir, err := os.MkdirTemp("", "cd-aptstub-")
 		if err != nil {
 			aptStubOnce.err = err
 			return

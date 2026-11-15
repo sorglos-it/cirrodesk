@@ -5,13 +5,13 @@
 #
 # IT IS A FILE OF ITS OWN AND tools/erstlauf.sh IS NOT TOUCHED. That one is
 # phase A (the sources of this repository and of ulh) and phase B
-# (tools/erstlauf-maschine.sh, ONE machine installed with ngc-all.sh). Another
+# (tools/erstlauf-maschine.sh, ONE machine installed with cd-all.sh). Another
 # session is working on both. This is phase C: the same station numbers, asked
 # where the parts stand apart.
 #
 # WHAT PHASE B CANNOT ASK, AND WHY, so the gap is visible as places and not as
 # a sentence (messen.md):
-#   - ngc-all.sh puts api, store and SQLite on ONE machine. "Does the API live
+#   - cd-all.sh puts api, store and SQLite on ONE machine. "Does the API live
 #     without a database on its own host" cannot be asked there at all, and
 #     neither can "does it fetch the catalog over the network and check the
 #     certificate": a store on localhost answers both questions wrongly.
@@ -22,7 +22,7 @@
 #
 # WHAT THIS RUN STILL CANNOT ASK, and it says so for every one of them: the
 # first setup of an installation happens in a BROWSER - GET/POST /api/v1/setup
-# with a MAC over the one-time code in /var/lib/ngc/setup-code. Everything
+# with a MAC over the one-time code in /var/lib/cd/setup-code. Everything
 # behind it (pairing, adopting, system rights, the catalog round, an app, the
 # menu) hangs on a signed-in admin. A script cannot be that admin, and a run
 # that pretended to be would measure its own fixture.
@@ -32,8 +32,8 @@
 #                        [--svc1 <ip>] [--svc2 <ip>] [--store <ip>]
 #                        [--laden-weg]
 #
-# Machines that are not in ~/.ssh/config are reached with NGC_SSH_OPTS, for
-# example NGC_SSH_OPTS="-i ~/Documents/ssh/keys/id_ed25519_ngc -o IdentitiesOnly=yes".
+# Machines that are not in ~/.ssh/config are reached with CD_SSH_OPTS, for
+# example CD_SSH_OPTS="-i ~/Documents/ssh/keys/id_ed25519_cd -o IdentitiesOnly=yes".
 #
 # --laden-weg adds station D2b, which takes the SECOND API off the store with
 # a blackhole route and restarts it twice to make the catalog round come round
@@ -64,28 +64,28 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 grep -q "^[[:space:]]*AnchorFile[[:space:]]*= " "$root/shared/config/config.go" 2>/dev/null ||
 	root=""
 
-ZONE=${NGC_ZONE:-ngc.mein.lan}
-WEB=${NGC_WEB_IP:-10.2.3.210}
-API1=${NGC_API1_IP:-10.2.3.210}
-API2=${NGC_API2_IP:-10.2.3.211}
-DB=${NGC_DB_IP:-10.2.3.212}
-SVC1=${NGC_SVC1_IP:-10.2.3.213}
-SVC2=${NGC_SVC2_IP:-10.2.3.214}
-STORE=${NGC_STORE_IP:-10.2.3.215}
-NUTZER=${NGC_CIUSER:-root}
+ZONE=${CD_ZONE:-ngc.mein.lan}
+WEB=${CD_WEB_IP:-10.2.3.210}
+API1=${CD_API1_IP:-10.2.3.210}
+API2=${CD_API2_IP:-10.2.3.211}
+DB=${CD_DB_IP:-10.2.3.212}
+SVC1=${CD_SVC1_IP:-10.2.3.213}
+SVC2=${CD_SVC2_IP:-10.2.3.214}
+STORE=${CD_STORE_IP:-10.2.3.215}
+NUTZER=${CD_CIUSER:-root}
 # Extra options for ssh, for machines that are not in ~/.ssh/config - a port,
 # an identity, another config file. tools/erstlauf.sh has carried this since
 # PR 99 for the same reason, and this file did not: measured 24.10.2026, the six
-# machines of this installation answer only to ~/Documents/ssh/keys/id_ed25519_ngc,
+# machines of this installation answer only to ~/Documents/ssh/keys/id_ed25519_cd,
 # which is not a default identity, so every `auf` call answered "Permission
 # denied (publickey)" and the run died at the reachability check with "the six
 # have to be up" - a sentence about the machines for a fault in this script.
-SSHOPTS=${NGC_SSH_OPTS:-}
+SSHOPTS=${CD_SSH_OPTS:-}
 # Station D2b switches a machine off the store and restarts an API to make the
 # round come round again. That CHANGES the installation for two minutes, so it
 # is not part of a plain run: a measuring run that restarts services nobody
 # asked it to restart is not a measurement, it is an outage.
-LADENWEG=${NGC_LADEN_WEG:-}
+LADENWEG=${CD_LADEN_WEG:-}
 
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -141,7 +141,7 @@ fail() {
 	printf 'station %s %s: FAIL -- %s\n' "$1" "$2" "$3"
 	fails=$((fails + 1))
 }
-# A fault of this script is not a finding about NGC, and the two must never be
+# A fault of this script is not a finding about CirroDesk, and the two must never be
 # confused: a preparation that did not take leaves the run measuring nothing.
 broken() {
 	printf 'erstlauf-verteilt: the run cannot measure station %s (%s): %s\n' "$1" "$2" "$3" >&2
@@ -163,7 +163,7 @@ auf() {
 }
 
 command -v ssh >/dev/null 2>&1 || broken 0 "voraussetzungen" "no ssh on this machine"
-auf "$API1" true || broken 0 "voraussetzungen" "api-1 ($API1) cannot be reached by ssh as $NUTZER with ssh options '$SSHOPTS' - either the machine is down or this run holds the wrong key; pass NGC_SSH_OPTS='-i <key> -o IdentitiesOnly=yes'"
+auf "$API1" true || broken 0 "voraussetzungen" "api-1 ($API1) cannot be reached by ssh as $NUTZER with ssh options '$SSHOPTS' - either the machine is down or this run holds the wrong key; pass CD_SSH_OPTS='-i <key> -o IdentitiesOnly=yes'"
 
 echo "erstlauf-verteilt: web=$WEB api-1=$API1 api-2=$API2 db=$DB svc=$SVC1,$SVC2 store=$STORE zone=$ZONE"
 
@@ -171,7 +171,7 @@ echo "erstlauf-verteilt: web=$WEB api-1=$API1 api-2=$API2 db=$DB svc=$SVC1,$SVC2
 # station D0  die Namen zeigen dorthin, wo die Teile stehen
 #
 # NOT one of the eight, and it stands FIRST because every station behind it
-# reads as a fault of NGC when this one is red. A one-machine installation
+# reads as a fault of CirroDesk when this one is red. A one-machine installation
 # cannot put the question at all: there everything is localhost, and a name
 # that points at the wrong machine still lands on the right one.
 #
@@ -182,7 +182,7 @@ echo "erstlauf-verteilt: web=$WEB api-1=$API1 api-2=$API2 db=$DB svc=$SVC1,$SVC2
 # machine - and land on whatever listens on 443 there. On api-1 that is
 # apache, so "does api-1 fetch the catalog from the store" answered
 # "self-signed certificate, 404" while the store was healthy and five metres
-# away. Go dials the addresses in turn and falls past the bogus one, so NGC
+# away. Go dials the addresses in turn and falls past the bogus one, so CirroDesk
 # itself works; every tool a person reaches for does not.
 #
 # THE CONTROL IS IN THE STATION, and it is what makes the two tellable apart:
@@ -214,7 +214,7 @@ for paar in "api-1|$API1" "api-2|$API2" "db-1|$DB" "svc-1|$SVC1" "svc-2|$SVC2" "
 	elif [ "$arec" != "$ip" ]; then
 		fail D0 "$sd0 ($name)" "the A record of $fqdn is '$arec' and this run was told the machine is $ip - one of the two is wrong, and every station that reads this name is measuring the wrong machine"
 	elif printf '%s' "$alle" | grep -qE '(^| )::( |$)'; then
-		fail D0 "$sd0 ($name)" "the A record of $fqdn is right ($arec) but the system resolver hands out '$alle' - the '::' comes first, so getent, curl and every other NSS client dial the LOCAL machine instead of $ip and land on whatever listens on 443 there. Go falls past it and NGC works; no tool a person reaches for does. The AAAA record for $fqdn has to go"
+		fail D0 "$sd0 ($name)" "the A record of $fqdn is right ($arec) but the system resolver hands out '$alle' - the '::' comes first, so getent, curl and every other NSS client dial the LOCAL machine instead of $ip and land on whatever listens on 443 there. Go falls past it and CirroDesk works; no tool a person reaches for does. The AAAA record for $fqdn has to go"
 	elif [ "$erst" != "$ip" ] && [ -n "$erst" ]; then
 		fail D0 "$sd0 ($name)" "$fqdn resolves to '$alle' and the FIRST address a program dials is '$erst', not $ip"
 	else
@@ -225,17 +225,17 @@ done
 # ---------------------------------------------------------------------------
 # station 1  installieren
 #
-# PHASE B REPLACES THE RELEASE KEY OF ngc-all.sh WITH A TEST ROOT, because it
+# PHASE B REPLACES THE RELEASE KEY OF cd-all.sh WITH A TEST ROOT, because it
 # measures a release it built itself. Here the published release is installed
-# and NGC's own key checks it, so this station asks the one thing phase B says
-# it cannot: is the key in the script NGC's, and does a published release pass
+# and CirroDesk's own key checks it, so this station asks the one thing phase B says
+# it cannot: is the key in the script CirroDesk's, and does a published release pass
 # under it.
 # ---------------------------------------------------------------------------
 s1="installieren"
-seq_api=$(auf "$API1" "cat /var/lib/ngc/release.seq 2>/dev/null")
-ver=$(auf "$API1" "/usr/lib/ngc/ngc-api -version 2>/dev/null | awk '{print \$2}'")
+seq_api=$(auf "$API1" "cat /var/lib/cd/release.seq 2>/dev/null")
+ver=$(auf "$API1" "/usr/lib/cd/cd-api -version 2>/dev/null | awk '{print \$2}'")
 if [ -z "$ver" ]; then
-	fail 1 "$s1" "there is no working /usr/lib/ngc/ngc-api on api-1 - nothing is installed"
+	fail 1 "$s1" "there is no working /usr/lib/cd/cd-api on api-1 - nothing is installed"
 else
 	# The release key in the installation's own answer, against the key of the
 	# published release. The setup offer carries it as releaseKey, which is the
@@ -244,9 +244,9 @@ else
 	rkey=$(printf '%s' "$offer" | sed -n 's/.*"info":"\([^"]*\)".*/\1/p' |
 		tr '_-' '/+' | base64 -d 2>/dev/null | sed -n 's/.*"releaseKey":"\([^"]*\)".*/\1/p')
 	if [ -n "$rkey" ]; then
-		pass 1 "$s1" "the published release is installed (seq ${seq_api:-?}, ngc-api $ver) and the installation names release key $rkey - NGC's own, not a test root"
+		pass 1 "$s1" "the published release is installed (seq ${seq_api:-?}, cd-api $ver) and the installation names release key $rkey - CirroDesk's own, not a test root"
 	else
-		pass 1 "$s1" "the published release is installed (seq ${seq_api:-?}, ngc-api $ver); the release key could not be read out of the setup offer, so only the install is said here"
+		pass 1 "$s1" "the published release is installed (seq ${seq_api:-?}, cd-api $ver); the release key could not be read out of the setup offer, so only the install is said here"
 	fi
 fi
 
@@ -261,35 +261,35 @@ s2="API und Controller laufen"
 vre='^(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})$'
 bad=0
 grep -Eq -- "$vre" <<<"$ver" || {
-	fail 2 "$s2" "the installed ngc-api reports '$ver', which the interface's validVersion refuses - it throws the WHOLE machine list away for it"
+	fail 2 "$s2" "the installed cd-api reports '$ver', which the interface's validVersion refuses - it throws the WHOLE machine list away for it"
 	bad=1
 }
-if [ "$(auf "$API1" "systemctl is-active ngc-api")" != active ]; then
-	fail 2 "$s2" "ngc-api.service on api-1 is not active: $(auf "$API1" "journalctl -u ngc-api -n 3 --no-pager | tr '\n' ' '")"
+if [ "$(auf "$API1" "systemctl is-active cd-api")" != active ]; then
+	fail 2 "$s2" "cd-api.service on api-1 is not active: $(auf "$API1" "journalctl -u cd-api -n 3 --no-pager | tr '\n' ' '")"
 	bad=1
 else
-	p1=$(auf "$API1" "systemctl show -p MainPID --value ngc-api")
+	p1=$(auf "$API1" "systemctl show -p MainPID --value cd-api")
 	sleep 10
-	p2=$(auf "$API1" "systemctl show -p MainPID --value ngc-api")
+	p2=$(auf "$API1" "systemctl show -p MainPID --value cd-api")
 	if [ "$p1" != "$p2" ]; then
-		fail 2 "$s2" "ngc-api restarted during this run (MainPID $p1 -> $p2), so it is crash-looping"
+		fail 2 "$s2" "cd-api restarted during this run (MainPID $p1 -> $p2), so it is crash-looping"
 		bad=1
 	fi
 fi
-[ "$bad" = 0 ] && pass 2 "$s2" "the installed ngc-api reports $ver, the service is active and kept one MainPID ($p1) over 10 s"
+[ "$bad" = 0 ] && pass 2 "$s2" "the installed cd-api reports $ver, the service is active and kept one MainPID ($p1) over 10 s"
 
 # The controller is a station of its own here, and it is honest about why it
 # is not there: it cannot be installed before it is paired, and the pairing
 # code comes out of the browser.
-if auf "$SVC1" "test -x /usr/lib/ngc/ngc-controller"; then
-	ctlver=$(auf "$SVC1" "/usr/lib/ngc/ngc-controller -version 2>/dev/null | awk '{print \$2}'")
+if auf "$SVC1" "test -x /usr/lib/cd/cd-controller"; then
+	ctlver=$(auf "$SVC1" "/usr/lib/cd/cd-controller -version 2>/dev/null | awk '{print \$2}'")
 	if grep -Eq -- "$vre" <<<"$ctlver"; then
-		pass 2 "$s2 (controller)" "ngc-controller on svc-1 reports $ctlver"
+		pass 2 "$s2 (controller)" "cd-controller on svc-1 reports $ctlver"
 	else
-		fail 2 "$s2 (controller)" "ngc-controller on svc-1 reports '$ctlver'"
+		fail 2 "$s2 (controller)" "cd-controller on svc-1 reports '$ctlver'"
 	fi
 else
-	unmeasurable 2 "$s2 (controller)" "no ngc-controller on svc-1: ngc-controller.sh pairs while it installs, and the pairing code comes out of the BROWSER (answer pair_code) - so station 3 has to come off first"
+	unmeasurable 2 "$s2 (controller)" "no cd-controller on svc-1: cd-controller.sh pairs while it installs, and the pairing code comes out of the BROWSER (answer pair_code) - so station 3 has to come off first"
 fi
 
 # ---------------------------------------------------------------------------
@@ -304,7 +304,7 @@ if auf "$API1" "dpkg-query -W -f='\${Status}' mariadb-server 2>/dev/null | grep 
 	fail D1 "$sd1" "api-1 has mariadb-server installed itself, so this run does not put the question at all"
 else
 	verb=$(auf "$API1" "ss -tn 2>/dev/null | awk '\$5 ~ /:3306\$/ {print \$4 \" -> \" \$5}' | head -1")
-	nodes=$(auf "$API1" "jq -r '.db.nodes[]?' /etc/ngc/api.json 2>/dev/null | tr '\n' ' '")
+	nodes=$(auf "$API1" "jq -r '.db.nodes[]?' /etc/cd/api.json 2>/dev/null | tr '\n' ' '")
 	if [ -n "$verb" ]; then
 		pass D1 "$sd1" "api-1 carries no mariadb-server, api.json names $nodes, and there is a live connection $verb"
 	else
@@ -320,7 +320,7 @@ fi
 # or the third answer means nothing.
 # ---------------------------------------------------------------------------
 sd2="Laden auf eigener Maschine"
-surl=$(auf "$API1" "jq -r '.storeUrl // empty' /etc/ngc/api.json 2>/dev/null")
+surl=$(auf "$API1" "jq -r '.storeUrl // empty' /etc/cd/api.json 2>/dev/null")
 case $surl in
 https://*)
 	if printf '%s' "$surl" | grep -qE "127\.0\.0\.1|localhost|://$API1(:|/|\$)"; then
@@ -362,7 +362,7 @@ https://*)
 				if [ "$ueber" = "http=200 verify=0" ]; then
 					pass D2 "$sd2" "the store is $surl on its own machine; api-1 fetches the catalog over the network under its own NAME and the certificate verifies ($ueber), and a machine without the store's CA is refused ($gegen) - so the check is real"
 				else
-					fail D2 "$sd2" "the store at $surl is healthy and its certificate verifies when the name is pinned to $STORE ($holt), and a machine without its CA is refused ($gegen) - but the same fetch under the NAME answers '$ueber'. That is station D0's fault and not the store's: a program on api-1 that uses the name does not reach the store. NGC itself still gets there because Go dials the addresses in turn; nothing else on these machines does"
+					fail D2 "$sd2" "the store at $surl is healthy and its certificate verifies when the name is pinned to $STORE ($holt), and a machine without its CA is refused ($gegen) - but the same fetch under the NAME answers '$ueber'. That is station D0's fault and not the store's: a program on api-1 that uses the name does not reach the store. CirroDesk itself still gets there because Go dials the addresses in turn; nothing else on these machines does"
 				fi
 				;;
 			esac
@@ -386,7 +386,7 @@ esac
 # hour of wall clock: the store round first beats an hour after the start and
 # then hourly (server.go says why)". server.go says the opposite - it sets
 # FirstCatalog = time.Minute and spends six lines on why it is a minute and
-# not an hour (V1.2 point 66: "every restart of ngc-api pushed that first
+# not an hour (V1.2 point 66: "every restart of cd-api pushed that first
 # fetch out by another full hour -- so an installation somebody is working on
 # never fetched one at all"). The station costs a restart and two minutes, and
 # it was marked unmeasurable for an hour that does not exist.
@@ -400,7 +400,7 @@ esac
 #
 # WHAT IS ASSERTED, and the second half is the one that matters to a person:
 #   a) the installation RECORDS the failure where an admin can see it (the
-#      store's own row, which ngc.store/sources reads), and
+#      store's own row, which cd.store/sources reads), and
 #   b) the last good catalog is STILL THERE afterwards - appstore.Refresh
 #      promises "a store that fails leaves the last good catalog in place",
 #      and an installation that threw its catalog away because one machine was
@@ -422,35 +422,35 @@ esac
 # ---------------------------------------------------------------------------
 sd2b="$sd2 (Laden weg)"
 if [ -z "$LADENWEG" ]; then
-	unmeasurable D2 "$sd2b" "this station takes an API off the store with a blackhole route and restarts it TWICE, which changes the installation for about four minutes - so it does not run in a plain run. Pass --laden-weg (or NGC_LADEN_WEG=ja) when nobody else is working on this installation. It is NOT an hour of wall clock: server.go sets FirstCatalog = time.Minute"
+	unmeasurable D2 "$sd2b" "this station takes an API off the store with a blackhole route and restarts it TWICE, which changes the installation for about four minutes - so it does not run in a plain run. Pass --laden-weg (or CD_LADEN_WEG=ja) when nobody else is working on this installation. It is NOT an hour of wall clock: server.go sets FirstCatalog = time.Minute"
 elif [ "$API2" = "$API1" ]; then
 	unmeasurable D2 "$sd2b" "--laden-weg takes the SECOND API off the store so that the first one, the web app and the browser never notice; here --api2 and --api1 name the same machine ($API1), and this run will not black-hole the store on the machine the installation is served from"
 else
-	vorher=$(auf "$DB" "mariadb -Nse 'select char_length(data) from ngc.ngc_blob where id=\"global\" and kind=\"catalog\"'" || true)
+	vorher=$(auf "$DB" "mariadb -Nse 'select char_length(data) from cd.cd_blob where id=\"global\" and kind=\"catalog\"'" || true)
 	if [ -z "$vorher" ] || [ "$vorher" = 0 ]; then
 		unmeasurable D2 "$sd2b" "there is no stored catalog to lose, so the half of this station that matters - 'the last good catalog is still there afterwards' - cannot be asked at all. Station 6 has to come off first"
 	else
 		# A net for the route, in case this run is killed between the two
 		# halves: a measuring script that leaves a machine cut off is worse
 		# than one that measures nothing.
-		auf "$API2" "systemd-run --unit=ngc-erstlauf-netz --on-active=900 --collect /sbin/ip route del blackhole $STORE/32 >/dev/null 2>&1" >/dev/null || true
+		auf "$API2" "systemd-run --unit=cd-erstlauf-netz --on-active=900 --collect /sbin/ip route del blackhole $STORE/32 >/dev/null 2>&1" >/dev/null || true
 		if ! auf "$API2" "ip route add blackhole $STORE/32"; then
 			unmeasurable D2 "$sd2b" "a blackhole route to $STORE could not be set on api-2, so the store was never taken away and nothing below would mean anything"
 		else
-			auf "$API2" "systemctl restart ngc-api" || true
+			auf "$API2" "systemctl restart cd-api" || true
 			# FirstCatalog is a minute; the slack is for a round that is still
 			# running when the timer fires, because Server.once drops that tick.
 			auf "$API2" "sleep 115" >/dev/null || true
-			zeile=$(auf "$DB" "mariadb -Nse 'select data from ngc.ngc_blob where id=\"store.global\"'" || true)
-			nachher=$(auf "$DB" "mariadb -Nse 'select char_length(data) from ngc.ngc_blob where id=\"global\" and kind=\"catalog\"'" || true)
-			buch=$(auf "$API2" "journalctl -u ngc-api --since '-3min' --no-pager | grep -c 'catalogs could not be fetched'" || true)
+			zeile=$(auf "$DB" "mariadb -Nse 'select data from cd.cd_blob where id=\"store.global\"'" || true)
+			nachher=$(auf "$DB" "mariadb -Nse 'select char_length(data) from cd.cd_blob where id=\"global\" and kind=\"catalog\"'" || true)
+			buch=$(auf "$API2" "journalctl -u cd-api --since '-3min' --no-pager | grep -c 'catalogs could not be fetched'" || true)
 			# The route goes back BEFORE anything is concluded, so that a red
 			# station does not leave the machine cut off either.
 			auf "$API2" "ip route del blackhole $STORE/32" || true
-			auf "$API2" "systemctl stop ngc-erstlauf-netz.timer >/dev/null 2>&1; systemctl reset-failed ngc-erstlauf-netz.timer >/dev/null 2>&1; :" >/dev/null || true
-			auf "$API2" "systemctl restart ngc-api" || true
+			auf "$API2" "systemctl stop cd-erstlauf-netz.timer >/dev/null 2>&1; systemctl reset-failed cd-erstlauf-netz.timer >/dev/null 2>&1; :" >/dev/null || true
+			auf "$API2" "systemctl restart cd-api" || true
 			auf "$API2" "sleep 115" >/dev/null || true
-			kontrolle=$(auf "$DB" "mariadb -Nse 'select data from ngc.ngc_blob where id=\"store.global\"'" || true)
+			kontrolle=$(auf "$DB" "mariadb -Nse 'select data from cd.cd_blob where id=\"store.global\"'" || true)
 			noch=$(auf "$API2" "ip route show | grep -c blackhole" || true)
 			case $zeile in
 			*'"error"'*)
@@ -480,14 +480,14 @@ unmeasurable D2 "$sd2 (Rueckdreh)" "store.ErrRollback refuses a catalog whose se
 # station D3  zwei API-Server
 # ---------------------------------------------------------------------------
 sd3="zweiter API-Server"
-if auf "$API2" "test -s /etc/ngc/api.json" 2>/dev/null; then
-	if [ "$(auf "$API2" "systemctl is-active ngc-api")" = active ]; then
+if auf "$API2" "test -s /etc/cd/api.json" 2>/dev/null; then
+	if [ "$(auf "$API2" "systemctl is-active cd-api")" = active ]; then
 		pass D3 "$sd3" "api-2 is installed and active, so the joining path and the bolt about the only API of an installation are reachable"
 	else
-		fail D3 "$sd3" "api-2 is installed but not active: $(auf "$API2" "systemctl is-active ngc-api")"
+		fail D3 "$sd3" "api-2 is installed but not active: $(auf "$API2" "systemctl is-active cd-api")"
 	fi
 else
-	unmeasurable D3 "$sd3" "api-2 carries no api.json: ngc-api takes a join_code for the second API, and that code is minted by a SIGNED-IN admin - so it hangs on the first setup in the browser, like stations 3 to 8"
+	unmeasurable D3 "$sd3" "api-2 carries no api.json: cd-api takes a join_code for the second API, and that code is minted by a SIGNED-IN admin - so it hangs on the first setup in the browser, like stations 3 to 8"
 fi
 
 # ---------------------------------------------------------------------------
@@ -495,7 +495,7 @@ fi
 #
 # WHAT THE STATION ABOVE DOES NOT ASK. D3 asks whether api-2 is installed and
 # its service is active. That is a different question from the one a person
-# has: the browser picks ONE api out of /etc/ngc/web.json for every call, so
+# has: the browser picks ONE api out of /etc/cd/web.json for every call, so
 # half the sign-ins of this installation land on api-2 - and a second API that
 # is up but answers sign-ins differently locks half the people out while every
 # status line stays green.
@@ -524,12 +524,12 @@ sd3b="eine Anmeldung landet auf api-2"
 if [ "$API2" = "$API1" ]; then
 	unmeasurable D3 "$sd3b" "--api1 and --api2 name the same machine ($API1), so there is no second API for a sign-in to land on"
 else
-	webjson=$(auf "$WEB" "cat /etc/ngc/web.json 2>/dev/null" || true)
+	webjson=$(auf "$WEB" "cat /etc/cd/web.json 2>/dev/null" || true)
 	pin2=$(printf '%s' "$webjson" | tr ',' '\n' | grep -A1 -- "$API2\|api-2" | sed -n 's/.*"tls"[^"]*"\([^"]*\)".*/\1/p' | head -1)
-	[ -n "$pin2" ] || pin2=$(auf "$WEB" "jq -r '.apis[] | select(.url|test(\"api-2\")) | .tls' /etc/ngc/web.json 2>/dev/null" || true)
+	[ -n "$pin2" ] || pin2=$(auf "$WEB" "jq -r '.apis[] | select(.url|test(\"api-2\")) | .tls' /etc/cd/web.json 2>/dev/null" || true)
 	# The key the machine really serves, hashed the way apitls pins it.
 	spki() {
-		auf "$1" "openssl x509 -in /etc/ngc/tls/api.crt -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform der 2>/dev/null | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='" || true
+		auf "$1" "openssl x509 -in /etc/cd/tls/api.crt -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform der 2>/dev/null | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='" || true
 	}
 	ist2=$(spki "$API2")
 	ist1=$(spki "$API1")
@@ -566,30 +566,30 @@ unmeasurable D3 "$sd3b (der Ausweis)" "that somebody really gets IN on api-2 is 
 # All five hang on one thing, and it is named once with its place rather than
 # five times: the first setup of an installation is a browser step. GET
 # /api/v1/setup answers an offer, POST takes version 1 of the trust list, and
-# both sides prove they hold the one-time code of /var/lib/ngc/setup-code with
+# both sides prove they hold the one-time code of /var/lib/cd/setup-code with
 # a MAC (apps/server-api/classes/setup/setup.go). Until that has happened there
 # is no admin, no trust list, and the API itself says so.
 # ---------------------------------------------------------------------------
-offen=$(auf "$API1" "test -s /var/lib/ngc/setup-code && echo offen || echo getan")
+offen=$(auf "$API1" "test -s /var/lib/cd/setup-code && echo offen || echo getan")
 
 # Station 3 has a half that IS decidable from a machine once a controller
 # stands there: a pairing leaves controller.json (config.SaveController, 0600
-# and root's) and the marker /var/lib/ngc/controller/paired behind, and the
+# and root's) and the marker /var/lib/cd/controller/paired behind, and the
 # service has to carry it. That is asked first, so a paired controller is not
 # reported as unmeasurable just because the code came from a browser.
 s3="Controller koppeln"
-if auf "$SVC1" "test -s /etc/ngc/controller.json && test -e /var/lib/ngc/controller/paired"; then
-	if [ "$(auf "$SVC1" "systemctl is-active ngc-controller")" = active ]; then
-		cp1=$(auf "$SVC1" "systemctl show -p MainPID --value ngc-controller")
+if auf "$SVC1" "test -s /etc/cd/controller.json && test -e /var/lib/cd/controller/paired"; then
+	if [ "$(auf "$SVC1" "systemctl is-active cd-controller")" = active ]; then
+		cp1=$(auf "$SVC1" "systemctl show -p MainPID --value cd-controller")
 		sleep 10
-		cp2=$(auf "$SVC1" "systemctl show -p MainPID --value ngc-controller")
+		cp2=$(auf "$SVC1" "systemctl show -p MainPID --value cd-controller")
 		if [ "$cp1" != "$cp2" ]; then
-			fail 3 "$s3" "ngc-controller on svc-1 restarted during this run (MainPID $cp1 -> $cp2), so it is crash-looping"
+			fail 3 "$s3" "cd-controller on svc-1 restarted during this run (MainPID $cp1 -> $cp2), so it is crash-looping"
 		else
-			pass 3 "$s3" "svc-1 is paired: controller.json and the paired marker are there, ngc-controller.service is active and kept one MainPID ($cp1) over 10 s"
+			pass 3 "$s3" "svc-1 is paired: controller.json and the paired marker are there, cd-controller.service is active and kept one MainPID ($cp1) over 10 s"
 		fi
 	else
-		fail 3 "$s3" "svc-1 is paired (controller.json and the marker are there) but ngc-controller.service is $(auf "$SVC1" "systemctl is-active ngc-controller"): $(auf "$SVC1" "journalctl -u ngc-controller -n 3 --no-pager | tr '\n' ' '")"
+		fail 3 "$s3" "svc-1 is paired (controller.json and the marker are there) but cd-controller.service is $(auf "$SVC1" "systemctl is-active cd-controller"): $(auf "$SVC1" "journalctl -u cd-controller -n 3 --no-pager | tr '\n' ' '")"
 	fi
 	drei=getan
 else
@@ -601,7 +601,7 @@ fi
 #
 # Both are read from the DATABASE NODE, and that is said rather than hidden:
 # the trust list and the catalogs live in the database (dbapi.BlobTrust,
-# dbapi.BlobCatalog), and NGC exposes neither to anybody who is not signed in -
+# dbapi.BlobCatalog), and CirroDesk exposes neither to anybody who is not signed in -
 # which is right, and leaves a run like this one no other place to look. What
 # is asked here is therefore the RESULT of the two clicks, not the clicks.
 s4="aufnehmen"
@@ -620,7 +620,7 @@ entpacke() {
 	esac
 	printf '%s' "$b" | tr '_-' '/+' | base64 -d 2>/dev/null || true
 }
-roh=$(auf "$DB" "mariadb -Nse 'select data from ngc.ngc_blob where kind=\"trust\" order by cast(id as unsigned) desc limit 1'" |
+roh=$(auf "$DB" "mariadb -Nse 'select data from cd.cd_blob where kind=\"trust\" order by cast(id as unsigned) desc limit 1'" |
 	sed -n 's/.*"payload":"\([^"]*\)".*/\1/p' || true)
 liste=$(entpacke "$roh")
 if [ -z "$liste" ]; then
@@ -636,8 +636,8 @@ else
 	fi
 fi
 
-kat=$(auf "$DB" "mariadb -Nse 'select char_length(data) from ngc.ngc_blob where kind=\"catalog\"'" | head -1 || true)
-lage=$(auf "$DB" "mariadb -Nse 'select data from ngc.ngc_blob where id=\"store.global\"'" || true)
+kat=$(auf "$DB" "mariadb -Nse 'select char_length(data) from cd.cd_blob where kind=\"catalog\"'" | head -1 || true)
+lage=$(auf "$DB" "mariadb -Nse 'select data from cd.cd_blob where id=\"store.global\"'" || true)
 case $lage in
 *'"error"'*)
 	fail 6 "$s6" "the installation kept no catalog and says why: $lage"
@@ -655,7 +655,7 @@ case $lage in
 esac
 
 if [ "$offen" = offen ]; then
-	warum="the first setup has not happened: /var/lib/ngc/setup-code is still there, so this installation has no admin and no trust list yet. Open https://$ZONE in a browser and type the code in"
+	warum="the first setup has not happened: /var/lib/cd/setup-code is still there, so this installation has no admin and no trust list yet. Open https://$ZONE in a browser and type the code in"
 	[ "$drei" = getan ] || unmeasurable 3 "$s3" "$warum - the pairing code comes from a signed-in admin"
 	unmeasurable 5 "Systemrechte setzen" "needs station 4"
 	unmeasurable 8 "App erscheint im Menue" "needs station 7, and a second user to show that the rights page offers an app one cannot see yet - and v0.2.1 can make no second user at all (see the other branch of this station)"
@@ -670,7 +670,7 @@ else
 	# login/start, login/finish, logout, trust and ws - no registration; and
 	# the web app has no mask for it (its "Benutzer" tab only lists). The one
 	# admin of the first setup is the only account an installation ever gets.
-	unmeasurable 8 "App erscheint im Menue" "this station is about a CIRCLE - the desktop shows an app only to somebody holding its 'use' right, and the rights page offered rights only for apps one could already see - so it takes a SECOND user to ask it. v0.2.1 can make no second user: ngc.users has no add action, the API has no registration path, and the interface has no mask. So the station is not unmeasured here, it is unreachable"
+	unmeasurable 8 "App erscheint im Menue" "this station is about a CIRCLE - the desktop shows an app only to somebody holding its 'use' right, and the rights page offered rights only for apps one could already see - so it takes a SECOND user to ask it. v0.2.1 can make no second user: cd.users has no add action, the API has no registration path, and the interface has no mask. So the station is not unmeasured here, it is unreachable"
 fi
 
 # ---------------------------------------------------------------------------
@@ -692,26 +692,26 @@ for paar in "svc-1|$SVC1" "svc-2|$SVC2"; do
 	name=${paar%%|*}
 	ip=${paar#*|}
 	kern=$(auf "$ip" "grep -qx CONFIG_FS_ENCRYPTION=y /boot/config-\$(uname -r) 2>/dev/null && echo yes || { [ -e /sys/fs/ext4/features/encryption ] && echo yes || echo no; }" || true)
-	quelle=$(auf "$ip" "findmnt -no SOURCE /var/lib/ngc/apps 2>/dev/null; :" || true)
+	quelle=$(auf "$ip" "findmnt -no SOURCE /var/lib/cd/apps 2>/dev/null; :" || true)
 	# The trailing "; :" and the "|| true" were NOT here, and the run died on
-	# them: on a node where /var/lib/ngc/apps is on no filesystem of its own,
+	# them: on a node where /var/lib/cd/apps is on no filesystem of its own,
 	# findmnt prints nothing, the "[ -n ]" is false, the whole remote command
 	# exits 1, `auf` hands that on and "set -e" ends the run inside a command
 	# substitution - so the station that was about to report exactly that node
 	# never printed a line. Measured 24.10.2026 by pointing --svc1 at a machine
 	# that carries no app disk: the run stopped before station 7 without a word.
-	feat=$(auf "$ip" "d=\$(findmnt -no SOURCE /var/lib/ngc/apps 2>/dev/null); [ -n \"\$d\" ] && tune2fs -l \"\$d\" 2>/dev/null | sed -n 's/^Filesystem features: *//p'; :" || true)
-	modus=$(auf "$ip" "stat -c %a /var/lib/ngc/apps 2>/dev/null; :" || true)
+	feat=$(auf "$ip" "d=\$(findmnt -no SOURCE /var/lib/cd/apps 2>/dev/null); [ -n \"\$d\" ] && tune2fs -l \"\$d\" 2>/dev/null | sed -n 's/^Filesystem features: *//p'; :" || true)
+	modus=$(auf "$ip" "stat -c %a /var/lib/cd/apps 2>/dev/null; :" || true)
 	if [ "$kern" != yes ]; then
 		fail 7 "$s7 ($name)" "this kernel cannot encrypt, and runtime.ErrNoFscrypt ends EVERY activation on it"
 	elif [ -z "$quelle" ]; then
-		fail 7 "$s7 ($name)" "/var/lib/ngc/apps is on no filesystem of its own and nothing says the root can encrypt - an app cannot be set up here"
+		fail 7 "$s7 ($name)" "/var/lib/cd/apps is on no filesystem of its own and nothing says the root can encrypt - an app cannot be set up here"
 	elif ! printf '%s' "$feat" | grep -q encrypt; then
-		fail 7 "$s7 ($name)" "the filesystem of /var/lib/ngc/apps ($quelle) has no encrypt feature, so runtime.ErrNoFscrypt ends every activation: $feat"
+		fail 7 "$s7 ($name)" "the filesystem of /var/lib/cd/apps ($quelle) has no encrypt feature, so runtime.ErrNoFscrypt ends every activation: $feat"
 	elif [ -z "$modus" ] || [ $((8#$modus & 1)) = 0 ]; then
-		fail 7 "$s7 ($name)" "/var/lib/ngc/apps has mode 0$modus, which no app user can traverse - every app runs as its own user and the rootless 'podman load' fails with EACCES on its own home"
+		fail 7 "$s7 ($name)" "/var/lib/cd/apps has mode 0$modus, which no app user can traverse - every app runs as its own user and the rootless 'podman load' fails with EACCES on its own home"
 	else
-		pass 7 "$s7 ($name)" "kernel can encrypt, /var/lib/ngc/apps is $quelle with the encrypt feature, mode 0$modus lets an app user through, podman $(auf "$ip" "podman --version 2>/dev/null | awk '{print \$3}'")"
+		pass 7 "$s7 ($name)" "kernel can encrypt, /var/lib/cd/apps is $quelle with the encrypt feature, mode 0$modus lets an app user through, podman $(auf "$ip" "podman --version 2>/dev/null | awk '{print \$3}'")"
 	fi
 done
 # What is missing for the app itself is named by what the catalog HOLDS, not
@@ -719,7 +719,7 @@ done
 # arrived - station 6 is green on it - and still leaves nothing to install.
 # The app itself. THE SENTENCE THIS REPLACES WAS TRUE AND WENT STALE, which is
 # the failure mode of a station written as prose: it said "a catalog arrived,
-# but it carries no app: 'ngc-store catalog' over an empty directory signs an
+# but it carries no app: 'cd-store catalog' over an empty directory signs an
 # empty list". On 24.10.2026 the catalog of this installation carried two
 # (Terminal and Uhr) and one of them was running on both service nodes - so
 # the run reported a station as unmeasured while the thing it was waiting for
@@ -728,12 +728,12 @@ done
 # machines: a catalog that names apps and machines that carry none is a
 # different fault from a catalog that names none at all.
 s7app="App einrichten (die App selbst)"
-katapps=$(printf '%s' "$(entpacke "$(auf "$DB" "mariadb -Nse 'select data from ngc.ngc_blob where id=\"global\" and kind=\"catalog\"'" |
+katapps=$(printf '%s' "$(entpacke "$(auf "$DB" "mariadb -Nse 'select data from cd.cd_blob where id=\"global\" and kind=\"catalog\"'" |
 	sed -n 's/.*"payload":"\([^"]*\)".*/\1/p' || true)")" | grep -o '"id":"[a-zA-Z0-9._-]*"' | sed 's/"id":"//;s/"//' | tr '\n' ' ' || true)
-gesetzt=$(auf "$SVC1" "ls -1 /var/lib/ngc/apps 2>/dev/null | grep -cv '^lost+found\$'" || true)
-gesetzt2=$(auf "$SVC2" "ls -1 /var/lib/ngc/apps 2>/dev/null | grep -cv '^lost+found\$'" || true)
+gesetzt=$(auf "$SVC1" "ls -1 /var/lib/cd/apps 2>/dev/null | grep -cv '^lost+found\$'" || true)
+gesetzt2=$(auf "$SVC2" "ls -1 /var/lib/cd/apps 2>/dev/null | grep -cv '^lost+found\$'" || true)
 if [ -z "$katapps" ]; then
-	unmeasurable 7 "$s7app" "the stored catalog could not be read or names no app at all: 'ngc-store catalog' over an empty directory signs an empty list. Pack one with 'ngc-store pack', put it on the store beside catalog.json and sign the catalog again with a higher seq"
+	unmeasurable 7 "$s7app" "the stored catalog could not be read or names no app at all: 'cd-store catalog' over an empty directory signs an empty list. Pack one with 'cd-store pack', put it on the store beside catalog.json and sign the catalog again with a higher seq"
 elif [ "${gesetzt:-0}" = 0 ] && [ "${gesetzt2:-0}" = 0 ]; then
 	fail 7 "$s7app" "the catalog of this installation names $katapps and NEITHER service node carries a single one of them - the disk is ready on both (above), so an app that is in the offer cannot be set up"
 else
@@ -783,7 +783,7 @@ sd4="eine App landet, wo man sie hinschickt"
 # script outside the repository finds no shared/config/config.go, and three of
 # four mutant runs vanished after station 7 instead of answering.
 appdir=$(sed -n 's/^[[:space:]]*AppDataDir[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$root/shared/config/config.go" 2>/dev/null | head -1 || true)
-[ -n "$appdir" ] || appdir=/var/lib/ngc/apps
+[ -n "$appdir" ] || appdir=/var/lib/cd/apps
 
 # One line per node: how many apps have a user, a home, an image of their own
 # and a running container there.

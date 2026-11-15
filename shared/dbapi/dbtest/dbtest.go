@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 var ctx = context.Background()
@@ -300,7 +300,7 @@ func testLog(t *testing.T, s dbapi.Store) {
 	entries := []core.LogEntry{
 		{ID: logID(0x31), Time: 1790000001, User: "u-admin", Kind: core.LogLogin, Result: "ok"},
 		{ID: logID(0x32), Time: 1790000002, User: "u-alice", Kind: core.LogChannel, App: "org.sorglos.terminal", Action: "shell", Node: "ctl-1", Result: "ok", Detail: "80x24"},
-		{ID: logID(0x33), Time: 1790000003, User: "u-admin", Kind: core.LogTask, App: "ngc.store", Action: "activate", Node: "ctl-1", Result: "ok"},
+		{ID: logID(0x33), Time: 1790000003, User: "u-admin", Kind: core.LogTask, App: "cd.store", Action: "activate", Node: "ctl-1", Result: "ok"},
 	}
 	for _, e := range entries {
 		if err := s.LogAdd(ctx, e); err != nil {

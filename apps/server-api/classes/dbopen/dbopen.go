@@ -10,26 +10,26 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // Opener opens a store for cfg. owner names who opens it and goes into the
-// migration lock ngc_lock: on SQLite every Open migrates (apps/server-db
+// migration lock cd_lock: on SQLite every Open migrates (apps/server-db
 // classes/sqlite, Open), so the lock is what keeps two openers of one file
 // apart, and owner is the only part of that row a human reads. It is an
 // argument and not a value of apps/server-db because only the program knows
 // its own node.
 type Opener func(ctx context.Context, cfg config.DB, owner string) (dbapi.Store, error)
 
-// Owner is the first part of what ngc-api writes into ngc_lock, and it is a
-// DECISION of this file. It names the PROGRAM, as ngc-controller does for
+// Owner is the first part of what cd-api writes into cd_lock, and it is a
+// DECISION of this file. It names the PROGRAM, as cd-controller does for
 // itself: the one thing an admin wants from that row is which program is
-// migrating, and "ngc" would say nothing.
-const Owner = "ngc-api"
+// migrating, and "cd" would say nothing.
+const Owner = "cd-api"
 
 // OwnerOf is that name for one node. The form is Owner + "/" + node, one part
-// shorter than the controller's "ngc-controller/<name>[/<node>]", and the
+// shorter than the controller's "cd-controller/<name>[/<node>]", and the
 // reason is in the contract rather than in taste: config.API has no Name
 // field at all, and its Node is never empty -- (*API).Validate refuses a
 // configuration without a node ID, so unlike a freshly paired controller an

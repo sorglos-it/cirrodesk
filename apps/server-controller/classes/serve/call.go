@@ -3,7 +3,7 @@
 // with.
 //
 // Nothing of what a call was given is written by this controller itself.
-// NGC_PARAMS carries whatever the user typed, so the environment travels in a
+// CD_PARAMS carries whatever the user typed, so the environment travels in a
 // file under config.RunDir and never in an argument (runtime.Exec.EnvFile),
 // and the only thing of a call this file hands a logger is logKeys - three
 // strings, built in one place, with no way to carry Params along.
@@ -12,11 +12,11 @@
 // matters to whoever writes a service: contract V3 asks for the stderr of the
 // program. What this package writes of it by default is that there was stderr
 // and how many bytes - never the text. The text is a service telling this
-// server about itself, and a service has NGC_PARAMS in its environment: one
+// server about itself, and a service has CD_PARAMS in its environment: one
 // that writes its environment, or its parameters, or the text of an error
 // which quotes them, would put what the user typed into the log of this
-// server. Measured: shared/testdata/service/echo.sh writes NGC_APP,
-// NGC_SERVICE, NGC_ACTION and NGC_USER to stderr, and a case here reads all
+// server. Measured: shared/testdata/service/echo.sh writes CD_APP,
+// CD_SERVICE, CD_ACTION and CD_USER to stderr, and a case here reads all
 // four back out of the log - with CallInput.LogStderr on.
 //
 // So the text goes out only where someone switched it on, and off is the
@@ -37,16 +37,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // envDir is where the file with the environment of a call is written. It is
 // config.RunDir, because that is the one directory the engine takes an
-// EnvFile from (runtime.Exec.EnvFile) and a tmpfs, so no copy of NGC_PARAMS
+// EnvFile from (runtime.Exec.EnvFile) and a tmpfs, so no copy of CD_PARAMS
 // outlives a restart.
 //
 // Only a test moves it, to a directory it may write in. It is one variable for
@@ -160,7 +160,7 @@ func RunService(ctx context.Context, in CallInput) wire.Close {
 			defer close(fed)
 			// A goroutine of its own, feeding ONE call: a panic in it -- in
 			// the reader this call was handed, say -- would take the whole
-			// ngc-controller with every channel of every tunnel (V1.2 point
+			// cd-controller with every channel of every tunnel (V1.2 point
 			// 38). It ends this call instead, and loudly: E_INTERNAL below.
 			//
 			// The catch does the same two things the ordinary end of the
@@ -254,7 +254,7 @@ func limit(d time.Duration, stream bool) time.Duration {
 // and answers with its path.
 //
 // Mode 0600 is not tidiness: this file is the only copy on the machine of what
-// the call was given, NGC_PARAMS and all, and it lies in a directory the apps
+// the call was given, CD_PARAMS and all, and it lies in a directory the apps
 // of this server have theirs in too.
 //
 // The owner is not this function's to set and does not have to be: the engine

@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // demoManifest is the manifest of the app writeApp lays down.
@@ -61,7 +61,7 @@ func read(t testing.TB, path string) []byte {
 
 func TestPackWritesAReadablePackage(t *testing.T) {
 	dir := writeApp(t)
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	m, sum, err := Pack(dir, out)
 	if err != nil || m.ID != "org.sorglos.demo" || len(sum) != 32 {
 		t.Fatalf("pack: %v %+v", err, m)
@@ -104,8 +104,8 @@ func TestPackWritesAReadablePackage(t *testing.T) {
 func TestPackIsReproducible(t *testing.T) {
 	dir := writeApp(t)
 	outDir := t.TempDir()
-	first := filepath.Join(outDir, "one.ngc")
-	second := filepath.Join(outDir, "two.ngc")
+	first := filepath.Join(outDir, "one.cd")
+	second := filepath.Join(outDir, "two.cd")
 	_, sumA, err := Pack(dir, first)
 	if err != nil {
 		t.Fatalf("pack: %v", err)
@@ -145,7 +145,7 @@ func TestPackRefusesUnsafeNames(t *testing.T) {
 	// A hidden file, a name with "..", a symbolic link and a path outside ui/
 	// are refused before anything is written.
 	write(t, filepath.Join(dir, "ui", ".hidden"), []byte("x"))
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	if _, _, err := Pack(dir, out); err == nil {
 		t.Fatal("a hidden file was packed")
 	}
@@ -203,10 +203,10 @@ func TestPackRefusesWhatAHostileDirectoryTries(t *testing.T) {
 			// gets as far as creating the file and fails with that path's
 			// error, which is never ErrPack.
 			openDir := writeApp(t)
-			if _, _, err := Pack(openDir, filepath.Join(t.TempDir(), "open.ngc")); err != nil {
+			if _, _, err := Pack(openDir, filepath.Join(t.TempDir(), "open.cd")); err != nil {
 				t.Fatalf("the way was not open before the change: %v", err)
 			}
-			unwritable := filepath.Join(t.TempDir(), "no-such-directory", "out.ngc")
+			unwritable := filepath.Join(t.TempDir(), "no-such-directory", "out.cd")
 			if _, _, err := Pack(openDir, unwritable); err == nil || err == ErrPack {
 				t.Fatalf("the way to the output file was not open: %v", err)
 			}
@@ -215,10 +215,10 @@ func TestPackRefusesWhatAHostileDirectoryTries(t *testing.T) {
 			// The hostile directory is refused with ErrPack although the
 			// output file could not be created at all: so it was refused
 			// before the packer wrote, read or even opened anything.
-			if _, _, err := Pack(dir, filepath.Join(t.TempDir(), "no-such-directory", "out.ngc")); err != ErrPack {
+			if _, _, err := Pack(dir, filepath.Join(t.TempDir(), "no-such-directory", "out.cd")); err != ErrPack {
 				t.Fatalf("not refused before the output file was touched: %v", err)
 			}
-			out := filepath.Join(t.TempDir(), "hostile.ngc")
+			out := filepath.Join(t.TempDir(), "hostile.cd")
 			if _, _, err := Pack(dir, out); err == nil {
 				t.Fatal("packed it")
 			}
@@ -281,7 +281,7 @@ func TestValidEntryRefusesNamesNoDirectoryCanHold(t *testing.T) {
 }
 
 func TestPackRefusesADirectoryThatIsNoApp(t *testing.T) {
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	if _, _, err := Pack(t.TempDir(), out); err != ErrPack {
 		t.Errorf("without a manifest: %v", err)
 	}
@@ -305,7 +305,7 @@ func TestPackRefusesADirectoryThatIsNoApp(t *testing.T) {
 }
 
 func TestPackMatchesTheVectors(t *testing.T) {
-	// packui.json holds the packages ngc-store pack writes, with their ui-tar
+	// packui.json holds the packages cd-store pack writes, with their ui-tar
 	// and its SHA-256: whatever this packer writes must read back into exactly
 	// those bytes, or the shell, the API and the controller would judge an app
 	// differently.
@@ -343,7 +343,7 @@ func TestPackMatchesTheVectors(t *testing.T) {
 // headers the packages in packui.json carry — USTAR, mode 0644, owner 0, time
 // 0 — in the order manifest, ui files, images, and no entry besides them.
 func TestPackWritesTheHeadersOfTheVectors(t *testing.T) {
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	if _, _, err := Pack(writeApp(t), out); err != nil {
 		t.Fatalf("pack: %v", err)
 	}
@@ -377,7 +377,7 @@ var longUIPath = strings.Repeat("d", 99) + "/" + strings.Repeat("f", 43) + ".css
 func TestPackWritesALongNameAsUSTAR(t *testing.T) {
 	dir := writeApp(t)
 	write(t, filepath.Join(dir, "ui", filepath.FromSlash(longUIPath)), []byte("p{margin:0}\n"))
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	if _, _, err := Pack(dir, out); err != nil {
 		t.Fatalf("pack: %v", err)
 	}
@@ -421,7 +421,7 @@ func TestPackPacksAnAppWithoutAUI(t *testing.T) {
 		`"version":"1.0.0","publisher":"Sorglos IT","services":[{"name":"backup","command":["/usr/bin/backup"]}]}`))
 	write(t, filepath.Join(dir, "services", "amd64.tar"), []byte("amd64 image"))
 	write(t, filepath.Join(dir, "services", "arm64.tar"), []byte("arm64 image"))
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	m, _, err := Pack(dir, out)
 	if err != nil || m.ID != "org.sorglos.backup" {
 		t.Fatalf("pack: %v %+v", err, m)
@@ -447,7 +447,7 @@ func TestPackPacksAnAppWithoutAUI(t *testing.T) {
 // TestPackRefusesANameNoUSTARHeaderHolds: store.ValidPath allows a path of up
 // to 200 bytes, but a USTAR header splits a name only at a "/" with at most
 // 100 bytes behind it. Such a name is refused rather than written as a PAX
-// entry, because packui.json holds ngc-store's packages as USTAR throughout.
+// entry, because packui.json holds cd-store's packages as USTAR throughout.
 // Whoever packs the app renames the file.
 func TestPackRefusesANameNoUSTARHeaderHolds(t *testing.T) {
 	dir := writeApp(t)
@@ -456,7 +456,7 @@ func TestPackRefusesANameNoUSTARHeaderHolds(t *testing.T) {
 		t.Fatalf("the way was not open: store.ValidPath already refuses %d bytes", len(name))
 	}
 	write(t, filepath.Join(dir, "ui", name), []byte("p{margin:0}\n"))
-	out := filepath.Join(t.TempDir(), "app.ngc")
+	out := filepath.Join(t.TempDir(), "app.cd")
 	if _, _, err := Pack(dir, out); err == nil {
 		t.Fatal("packed a name no USTAR header holds")
 	}

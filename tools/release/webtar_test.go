@@ -10,15 +10,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // WHAT THIS FILE MEASURES, and why it still stands after S7.
 //
 // Until 15.11.2026 two halves of the release path could not meet:
-// tools/pack-release.sh wrote the ngc-web file with "git archive" over apps/web,
+// tools/pack-release.sh wrote the cd-web file with "git archive" over apps/web,
 // names in the root, and the controller (update/install.go, unpack) reads an
-// ngc-web release file with store.WalkUI, a UI tar rooted at "ui/".
+// cd-web release file with store.WalkUI, a UI tar rooted at "ui/".
 //
 // store.WalkUI knows exactly ONE tar dialect (the rules at the top of
 // shared/store/ui.go), and a real git archive breaks it in three independent
@@ -36,7 +36,7 @@ import (
 // S7 (Thomas, 15.11.2026) answered it the second of the two ways this file
 // named: shared/ stays as it is, and the packer stops handing out git archive.
 // pack-release.sh still lets git archive choose the bytes of the commit, unpacks
-// them, and writes the release file with "ngc-store web" through
+// them, and writes the release file with "cd-store web" through
 // store.UIWriter - fixed headers, sorted names, so reproducible without a pinned
 // date (TestPackIsReproducible). TestPackedArchivePassesWalkUI holds that the
 // result is what the controller reads.
@@ -166,7 +166,7 @@ func TestTheArchiveOfGitArchiveAloneIsRefused(t *testing.T) {
 }
 
 // 6. And the archive pack-release.sh writes since S7 is one store.WalkUI
-// takes, whole, with the entry point ngc-web.sh looks for and ui/VERSION.
+// takes, whole, with the entry point cd-web.sh looks for and ui/VERSION.
 func TestPackedArchivePassesWalkUI(t *testing.T) {
 	t.Parallel()
 	needTools(t)
@@ -175,7 +175,7 @@ func TestPackedArchivePassesWalkUI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	ar, err := os.ReadFile(filepath.Join(out, "ngc-web-all.tar"))
+	ar, err := os.ReadFile(filepath.Join(out, "cd-web-all.tar"))
 	if err != nil {
 		t.Fatal(err)
 	}

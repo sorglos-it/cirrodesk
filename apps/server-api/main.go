@@ -1,11 +1,11 @@
-// Command ngc-api is the API of NGC: sessions, rights, forwarding.
+// Command cd-api is the API of CirroDesk: sessions, rights, forwarding.
 //
 // Three ways to start it, and no more:
 //
-//	ngc-api                  run the API
-//	ngc-api -join <code>     join an installation and fetch its shared keys
-//	ngc-api migrate          bring the database schema up to this release
-//	ngc-api backup <file>    write a copy of the database to <file>
+//	cd-api                  run the API
+//	cd-api -join <code>     join an installation and fetch its shared keys
+//	cd-api migrate          bring the database schema up to this release
+//	cd-api backup <file>    write a copy of the database to <file>
 //
 // migrate is a subcommand of this program and not a library the controller
 // calls: one runner over one schema (Verträge V1.2, Punkt 28). The controller
@@ -24,26 +24,26 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/apitls"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/dbopen"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/join"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/server"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/apitls"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/dbopen"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/join"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/server"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 
 	// The database part of this installation. Blank, because nothing of this
 	// program calls it: it registers the opener and the migrator with
 	// classes/dbopen in its init, and that import is the whole decision that
 	// THIS program carries the drivers and the migrations. Without the line
-	// server.Build comes back with dbopen.ErrNoOpener and ngc-api does not
+	// server.Build comes back with dbopen.ErrNoOpener and cd-api does not
 	// start -- which is exactly what it did until this line existed.
-	_ "github.com/sorglos-it/nextgencloud/apps/server-db/classes/register"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	_ "github.com/sorglos-it/cirrodesk/apps/server-db/classes/register"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // Version is set when building: -ldflags "-X main.Version=1.0.0".
 var Version = "0.0.0-dev"
 
-// Where ngc-api -join puts the two private keys it makes. They go to the run
+// Where cd-api -join puts the two private keys it makes. They go to the run
 // directory and not next to api.json: the ulh script reads all three files
 // (these two and join.SecretFile) and writes them into api.json itself, and
 // a reboot clears what is left there.
@@ -60,7 +60,7 @@ func run(args []string) int {
 	if !ok {
 		return 2
 	}
-	fs := flag.NewFlagSet("ngc-api", flag.ContinueOnError)
+	fs := flag.NewFlagSet("cd-api", flag.ContinueOnError)
 	version := fs.Bool("version", false, "print the version and exit")
 	path := fs.String("config", config.APIFile, "configuration file")
 	joinCode := fs.String("join", "", "join an installation with a join code and fetch its shared keys")
@@ -68,7 +68,7 @@ func run(args []string) int {
 		return 2
 	}
 	if *version {
-		fmt.Printf("ngc-api %s (contract %d)\n", Version, tunnel.Contract)
+		fmt.Printf("cd-api %s (contract %d)\n", Version, tunnel.Contract)
 		return 0
 	}
 	// signal.NotifyContext is what makes SIGTERM a clean stop: systemd sends
@@ -92,8 +92,8 @@ func run(args []string) int {
 // stands, and gives the rest back for the flags.
 //
 // It is lifted out and not left to flag.FlagSet for one measured reason: that
-// package stops at the first argument which is not a flag, so "ngc-api
-// migrate -config /etc/ngc/other.json" would reach migrate with the DEFAULT
+// package stops at the first argument which is not a flag, so "cd-api
+// migrate -config /etc/cd/other.json" would reach migrate with the DEFAULT
 // configuration -- and that is a migration of the wrong database, silently.
 // Anything other than one known subcommand is refused here rather than taken
 // for "run the API".
@@ -116,27 +116,27 @@ func subcommand(args []string) (rest []string, cmd, arg string, ok bool) {
 		// because it is not optional -- a backup without a target is not a
 		// backup with a default but a question nobody asked. "migrate" takes
 		// none, and a second word for either is refused rather than dropped:
-		// "ngc-api backup /mnt/a /mnt/b" would otherwise write one of the
+		// "cd-api backup /mnt/a /mnt/b" would otherwise write one of the
 		// two and say nothing about the other.
 		switch {
 		case cmd == "":
 			if a != "migrate" && a != "backup" {
-				fmt.Fprintf(os.Stderr, "ngc-api: unbekannter Befehl %q\n", a)
+				fmt.Fprintf(os.Stderr, "cd-api: unbekannter Befehl %q\n", a)
 				return nil, "", "", false
 			}
 			cmd = a
 		case cmd == "backup" && arg == "":
 			arg = a
 		default:
-			fmt.Fprintf(os.Stderr, "ngc-api: zu viele Angaben hinter %q: %q\n", cmd, a)
+			fmt.Fprintf(os.Stderr, "cd-api: zu viele Angaben hinter %q: %q\n", cmd, a)
 			return nil, "", "", false
 		}
 	}
 	// A target is required, and the refusal names the whole call: an admin who
-	// typed "ngc-api backup" has a backup plan in mind, and the worst answer
+	// typed "cd-api backup" has a backup plan in mind, and the worst answer
 	// here is a default path they never see again.
 	if cmd == "backup" && arg == "" {
-		fmt.Fprintln(os.Stderr, "ngc-api: backup braucht den Namen der Datei, die geschrieben werden soll: ngc-api backup /pfad/sicherung.db")
+		fmt.Fprintln(os.Stderr, "cd-api: backup braucht den Namen der Datei, die geschrieben werden soll: cd-api backup /pfad/sicherung.db")
 		return nil, "", "", false
 	}
 	return rest, cmd, arg, true
@@ -158,7 +158,7 @@ func serve(ctx context.Context, path string) int {
 	if !ok {
 		return 1
 	}
-	slog.Info("ngc-api starting", "version", Version, "node", cfg.Node, "listen", cfg.Listen)
+	slog.Info("cd-api starting", "version", Version, "node", cfg.Node, "listen", cfg.Listen)
 	srv, err := server.Build(ctx, cfg, Version)
 	if err != nil {
 		slog.Error("die API kann nicht starten", "error", err)
@@ -188,7 +188,7 @@ func migrate(ctx context.Context, path string) int {
 	return 0
 }
 
-// joinRun is ngc-api -join: it asks a running API of the installation to take
+// joinRun is cd-api -join: it asks a running API of the installation to take
 // this server in and waits for an admin to sign it into the trust list.
 //
 // api.json is already there when this runs -- the ulh script writes it first,
@@ -239,18 +239,18 @@ func joinRun(ctx context.Context, path, code string) int {
 // written with the path of that key file. join.Run keeps both to itself now;
 // these lines are what is left to say.
 const (
-	msgJoinFailed    = "Der Beitritt ist gescheitert. Bitte einen neuen Beitrittscode in NextGenCloud erzeugen und es noch einmal versuchen."
+	msgJoinFailed    = "Der Beitritt ist gescheitert. Bitte einen neuen Beitrittscode in CirroDesk erzeugen und es noch einmal versuchen."
 	msgJoinNothing   = "Der Beitritt wurde nicht abgeschickt: dieser Server passt mit seinen eigenen Angaben nicht zu einem Beitritt. Bitte die Einrichtung dieses Servers mit ulh wiederholen. Der Beitrittscode ist noch gültig."
-	msgJoinBadCode   = "Kein gültiger Beitrittscode. Bitte den Code aus NextGenCloud vollständig einfügen und es noch einmal versuchen."
-	msgJoinNoAnswer  = "Die API hat nicht geantwortet. Bitte prüfen, ob der erste Server von NextGenCloud läuft und von hier aus erreichbar ist, dann noch einmal versuchen. Der Beitrittscode ist noch gültig."
+	msgJoinBadCode   = "Kein gültiger Beitrittscode. Bitte den Code aus CirroDesk vollständig einfügen und es noch einmal versuchen."
+	msgJoinNoAnswer  = "Die API hat nicht geantwortet. Bitte prüfen, ob der erste Server von CirroDesk läuft und von hier aus erreichbar ist, dann noch einmal versuchen. Der Beitrittscode ist noch gültig."
 	msgJoinTooSlow   = "Die API hat nicht rechtzeitig geantwortet. Bitte in ein paar Minuten noch einmal versuchen. Ob der Beitrittscode dabei verbraucht wurde, lässt sich von hier aus nicht sagen; falls es wieder scheitert, einen neuen erzeugen."
-	msgJoinWrongAPI  = "Es hat ein anderer Server geantwortet als der, den der Beitrittscode nennt. Bitte nicht wiederholen: in NextGenCloud einen neuen Beitrittscode erzeugen und, wenn es wieder geschieht, das Netz dieses Servers prüfen."
-	msgJoinRefused   = "Die API hat den Beitrittscode abgelehnt. Er ist wahrscheinlich schon benutzt oder abgelaufen. Bitte in NextGenCloud einen neuen erzeugen und diesen einfügen."
-	msgJoinNameWaits = "Unter dem Namen dieses Servers wartet in NextGenCloud schon ein anderer Beitritt. Bitte dort nachsehen, welcher Server das ist: diesen Server unter einem anderen Namen neu einrichten, oder den wartenden zuerst annehmen oder verwerfen. Der Beitrittscode ist verbraucht."
+	msgJoinWrongAPI  = "Es hat ein anderer Server geantwortet als der, den der Beitrittscode nennt. Bitte nicht wiederholen: in CirroDesk einen neuen Beitrittscode erzeugen und, wenn es wieder geschieht, das Netz dieses Servers prüfen."
+	msgJoinRefused   = "Die API hat den Beitrittscode abgelehnt. Er ist wahrscheinlich schon benutzt oder abgelaufen. Bitte in CirroDesk einen neuen erzeugen und diesen einfügen."
+	msgJoinNameWaits = "Unter dem Namen dieses Servers wartet in CirroDesk schon ein anderer Beitritt. Bitte dort nachsehen, welcher Server das ist: diesen Server unter einem anderen Namen neu einrichten, oder den wartenden zuerst annehmen oder verwerfen. Der Beitrittscode ist verbraucht."
 	msgJoinSecret    = "Ein Schlüssel dieses Servers ließ sich nicht speichern. Bitte Platz und Rechte auf diesem Server prüfen und den Beitritt mit einem neuen Beitrittscode wiederholen."
 	// Nobody signed the server in. Nothing is lost and nothing is spent: the
 	// request stands in the API and waits for an administrator.
-	msgJoinNotListed = "Innerhalb einer Stunde hat niemand diesen Server in die Vertrauensliste eingetragen. Bitte als Administrator bei NextGenCloud anmelden, diesen Server dort eintragen und den Beitritt danach noch einmal aufrufen."
+	msgJoinNotListed = "Innerhalb einer Stunde hat niemand diesen Server in die Vertrauensliste eingetragen. Bitte als Administrator bei CirroDesk anmelden, diesen Server dort eintragen und den Beitritt danach noch einmal aufrufen."
 )
 
 // joinFailure picks the line for what join.Run came back with. It asks the
@@ -280,7 +280,7 @@ func joinFailure(err error) string {
 	return msgJoinFailed
 }
 
-// backupRun is ngc-api backup <file>. It writes a copy of the database this
+// backupRun is cd-api backup <file>. It writes a copy of the database this
 // configuration names and then says the one sentence the file itself cannot.
 //
 // THAT SENTENCE IS THE POINT OF THIS FUNCTION as much as the copy is. The
@@ -310,7 +310,7 @@ func backupRun(ctx context.Context, path, target string) int {
 	fmt.Printf("Die Sicherung liegt in %s.\n", target)
 	fmt.Printf("WICHTIG: Diese Datei ist verschlüsselt, und der Schlüssel steht NICHT darin.\n"+
 		"Er steht in %s. Ohne diese Konfiguration lässt sich die Sicherung auf keinem\n"+
-		"Rechner mehr öffnen - von niemandem, auch nicht von NextGenCloud. Bewahren Sie\n"+
+		"Rechner mehr öffnen - von niemandem, auch nicht von CirroDesk. Bewahren Sie\n"+
 		"beide Dateien auf, und den Schlüssel an einem anderen Ort als die Sicherung.\n", path)
 	return 0
 }

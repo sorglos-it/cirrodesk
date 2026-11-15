@@ -8,9 +8,9 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // ErrClosed says that the channel is over: this side has closed it, the CLOSE
@@ -738,7 +738,7 @@ func (c *channels) drop(ch *Channel) {
 // take starts it with go, so this is a goroutine of its own and a panic in it
 // is final -- nothing above a goroutine can catch one. Until the catch in
 // handle below, ONE programming error in ONE handler of ONE channel ended the
-// whole ngc-controller: every other channel of this tunnel, every other
+// whole cd-controller: every other channel of this tunnel, every other
 // tunnel, and with them the shells, the terminals and the service calls of
 // every user of this installation. That is V1.2 point 38 on this side of the
 // link; the API side was built first (package guard), and this controller is

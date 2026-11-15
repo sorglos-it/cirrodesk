@@ -1,4 +1,4 @@
-// Command ngc-store packs apps, encrypts paid apps and signs catalogs and
+// Command cd-store packs apps, encrypts paid apps and signs catalogs and
 // licenses. With it anyone can run their own store.
 package main
 
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sorglos-it/nextgencloud/apps/cli/classes"
+	"github.com/sorglos-it/cirrodesk/apps/cli/classes"
 )
 
 // Version is set when building.
@@ -18,7 +18,7 @@ func main() {
 	flag.Usage = func() { fmt.Fprint(os.Stderr, classes.Usage) }
 	flag.Parse()
 	if *version {
-		fmt.Printf("ngc-store %s\n", Version)
+		fmt.Printf("cd-store %s\n", Version)
 		return
 	}
 	os.Exit(classes.Run(flag.Args(), os.Stdout, os.Stderr))

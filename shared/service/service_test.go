@@ -10,7 +10,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 func testCall() Call {
@@ -21,23 +21,23 @@ func testCall() Call {
 func TestEnv(t *testing.T) {
 	got := testCall().Env()
 	want := []string{
+		"CD_ACTION=shell",
+		"CD_APP=org.sorglos.terminal",
+		"CD_DATA=/data",
+		`CD_PARAMS={"cols":80}`,
+		"CD_SERVICE=terminal",
+		"CD_START=0",
+		"CD_USER=ISEhISEhISEhISEhISEhIQ",
+		"CD_USER_NAME=admin",
+		"CD_VERSION=1.0.0",
 		"LANG=C.UTF-8",
-		"NGC_ACTION=shell",
-		"NGC_APP=org.sorglos.terminal",
-		"NGC_DATA=/data",
-		`NGC_PARAMS={"cols":80}`,
-		"NGC_SERVICE=terminal",
-		"NGC_START=0",
-		"NGC_USER=ISEhISEhISEhISEhISEhIQ",
-		"NGC_USER_NAME=admin",
-		"NGC_VERSION=1.0.0",
 		"PATH=" + Path,
 	}
 	if !slices.Equal(got, want) {
 		t.Fatalf("got %q", got)
 	}
 	start := Call{App: "org.sorglos.firewall", Service: "rules", Action: "start", Version: "2.1.0", Start: true}
-	if err := start.Validate(); err != nil || !slices.Contains(start.Env(), "NGC_START=1") || !slices.Contains(start.Env(), "NGC_USER=") {
+	if err := start.Validate(); err != nil || !slices.Contains(start.Env(), "CD_START=1") || !slices.Contains(start.Env(), "CD_USER=") {
 		t.Errorf("start action: %v %q", err, start.Env())
 	}
 }
@@ -51,7 +51,7 @@ func TestEnvParamsCompact(t *testing.T) {
 	if err := c.Validate(); err != nil {
 		t.Fatalf("Validate: %v", err)
 	}
-	want := `NGC_PARAMS={"cols":80,"x":"y"}`
+	want := `CD_PARAMS={"cols":80,"x":"y"}`
 	if !slices.Contains(c.Env(), want) {
 		t.Errorf("got %q, want %q in env", c.Env(), want)
 	}
@@ -64,7 +64,7 @@ func TestValidate(t *testing.T) {
 		"params":            func(c *Call) { c.Params = json.RawMessage(`[1]`) },
 		"user":              func(c *Call) { c.User = "root" },
 		"start with user":   func(c *Call) { c.Start = true },
-		"name with newline": func(c *Call) { c.UserName = "admin\nNGC_USER=x" },
+		"name with newline": func(c *Call) { c.UserName = "admin\nCD_USER=x" },
 		"name with NUL":     func(c *Call) { c.UserName = "admin\x00" },
 	} {
 		c := testCall()

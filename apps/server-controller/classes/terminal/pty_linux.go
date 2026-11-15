@@ -11,7 +11,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/sorglos-it/nextgencloud/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/service"
 )
 
 // shellPath is the shell of the image (debian:13-slim). It is a fixed path
@@ -126,7 +126,7 @@ func runShell(ctx context.Context, in io.Reader, out io.Writer, idle time.Durati
 	// takes once the first answer has been read.
 	fail := make(chan error, 3)
 	// Each of the four is a goroutine of its own, so a panic in one of them
-	// was the end of the whole ngc-controller -- every terminal of every user
+	// was the end of the whole cd-controller -- every terminal of every user
 	// and every other channel of every tunnel (V1.2 point 38). ended turns it
 	// into the end of THIS terminal and no more, and it needs no new
 	// machinery to do it: the pumps already say how they ended through fail,

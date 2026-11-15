@@ -15,7 +15,7 @@ cd "$(dirname "$0")/.."
 # produces no artefact, so the stamp is not needed here. Measured 10.10.2026.
 export GOFLAGS="${GOFLAGS:+$GOFLAGS }-buildvcs=false"
 
-mod=github.com/sorglos-it/nextgencloud
+mod=github.com/sorglos-it/cirrodesk
 # A list that comes back nearly empty is a failed list, not a small repo: go list
 # answers "packages=0" in a worktree it cannot stat (measured 12.10.2026). The
 # floor is far below the real count (69 packages, 393 files on main) so it never
@@ -159,15 +159,15 @@ fi
 # needs nothing but PHP. Skipping it quietly would mean the drift it is written
 # to catch never shows in a normal run, and a path to one machine's php has no
 # place in a shared script, so php is looked up in four steps:
-#   1. NGC_PHP, 2. tools/local.env (not in git, one NGC_PHP=<path> line),
+#   1. CD_PHP, 2. tools/local.env (not in git, one CD_PHP=<path> line),
 #   3. php from the PATH, 4. stop and say so.
 # apps/web/tests/playwright.config.js looks it up in the same four steps for
 # the test server; the path itself is written down only in tools/local.env.
-named="${NGC_PHP:-}"
-where="NGC_PHP"
+named="${CD_PHP:-}"
+where="CD_PHP"
 if [ -z "$named" ] && [ -f tools/local.env ]; then
 	. ./tools/local.env
-	named="${NGC_PHP:-}"
+	named="${CD_PHP:-}"
 	where="tools/local.env"
 fi
 if [ -n "$named" ]; then
@@ -179,7 +179,7 @@ if [ -n "$named" ]; then
 elif command -v php >/dev/null 2>&1; then
 	php=php
 else
-	echo "no php: set NGC_PHP to its path, or write NGC_PHP=<path> into tools/local.env"
+	echo "no php: set CD_PHP to its path, or write CD_PHP=<path> into tools/local.env"
 	exit 1
 fi
 "$php" apps/web/tests/php/config-test.php
@@ -219,7 +219,7 @@ go vet ./...
 # really compile it: -race itself needs cgo and a C compiler (here only in the
 # ESP toolchain), vet with the tag does not. Measured 17.10.2026.
 go vet -tags=race ./...
-# NGC_CHECK_TEST_JSON, the -json stream tools/ci-count.sh counts, is written
+# CD_CHECK_TEST_JSON, the -json stream tools/ci-count.sh counts, is written
 # below - and it is built ON this one run, not beside it.
 #
 # NOTE 18.10.2026 said the mechanism was "NOT taken here" and ended with
@@ -260,9 +260,9 @@ log=$(mktemp)
 # in the script (structural check, go vet) and a test run that wrote nothing
 # look the same to the counter, and for three days in October 2026 the CI said
 # "is empty - nothing ran" while the real cause was one step away.
-if [ -n "${NGC_CHECK_TEST_JSON:-}" ]; then
-	: >"$NGC_CHECK_TEST_JSON" ||
-		die "cannot write the test JSON stream to $NGC_CHECK_TEST_JSON"
+if [ -n "${CD_CHECK_TEST_JSON:-}" ]; then
+	: >"$CD_CHECK_TEST_JSON" ||
+		die "cannot write the test JSON stream to $CD_CHECK_TEST_JSON"
 fi
 # The run stands in an "if", not bare with $? after it: this script is
 # "set -e", so a bare red run would end it here and the conversion below -
@@ -275,10 +275,10 @@ fi
 # Converted BEFORE the exit code is acted on, so a red run is counted too:
 # the workflow step runs with "if: always()" and a count that only exists
 # for green runs is a count that is missing exactly when it is needed.
-if [ -n "${NGC_CHECK_TEST_JSON:-}" ]; then
-	go tool test2json -t <"$log" >"$NGC_CHECK_TEST_JSON" ||
+if [ -n "${CD_CHECK_TEST_JSON:-}" ]; then
+	go tool test2json -t <"$log" >"$CD_CHECK_TEST_JSON" ||
 		die "go tool test2json could not turn the test log into a JSON stream"
-	[ -s "$NGC_CHECK_TEST_JSON" ] ||
+	[ -s "$CD_CHECK_TEST_JSON" ] ||
 		die "the JSON stream of the test run is empty - ci-count.sh would have nothing to count"
 fi
 if [ "$rc" != 0 ]; then

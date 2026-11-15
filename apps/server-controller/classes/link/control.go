@@ -18,10 +18,10 @@
 package link
 
 import (
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The German lines an admin reads when the two ends are more than one version
@@ -38,7 +38,7 @@ const (
 
 // speak says which version of the contract the two ends talk and whether they
 // can talk at all: the newer side speaks the version of the older one, and more
-// than one version apart there is nothing left in common. Every part of NGC
+// than one version apart there is nothing left in common. Every part of CirroDesk
 // understands the version before its own and no further back than that.
 //
 // theirs comes from a hello and is therefore at least 1 already

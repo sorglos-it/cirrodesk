@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
-// TestCAWorksWithTLSConfig makes the certificates the way ngc-db.sh does and
+// TestCAWorksWithTLSConfig makes the certificates the way cd-db.sh does and
 // proves that config.DB.TLSConfig accepts exactly them: the same CA, the
 // node's own host name, TLS 1.3. If openssl builds something the Go side
 // refuses, this fails here and not on the servers.
@@ -27,7 +27,7 @@ func TestCAWorksWithTLSConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const host = "db-1.ngc.test"
+	const host = "db-1.cd.test"
 	if err := os.WriteFile(cnf, []byte(strings.ReplaceAll(string(body), "@HOST@", host)), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestCAWorksWithTLSConfig(t *testing.T) {
 			t.Fatalf("openssl %v: %v\n%s", args, err, out)
 		}
 	}
-	// The CA: Ed25519, as everywhere else in NGC.
+	// The CA: Ed25519, as everywhere else in CirroDesk.
 	run("genpkey", "-algorithm", "ed25519", "-out", "ca.key")
 	run("req", "-new", "-x509", "-key", "ca.key", "-out", "ca.crt", "-days", "7300",
 		"-config", cnf, "-section", "ca_dn", "-extensions", "ca_ext")
@@ -53,8 +53,8 @@ func TestCAWorksWithTLSConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	db := config.DB{Driver: config.DriverMariaDB, Nodes: []string{host + ":3306"}, Name: "ngc",
-		User: "ngc", Password: config.NewSecretText("x"), CA: string(caPEM)}
+	db := config.DB{Driver: config.DriverMariaDB, Nodes: []string{host + ":3306"}, Name: "cd",
+		User: "cd", Password: config.NewSecretText("x"), CA: string(caPEM)}
 	if err := db.Validate(); err != nil {
 		t.Fatalf("config refuses the CA of the template: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestCAWorksWithTLSConfig(t *testing.T) {
 	conn.Close()
 
 	// The same certificate under another name must not be accepted.
-	wrong, err := db.TLSConfig("db-2.ngc.test")
+	wrong, err := db.TLSConfig("db-2.cd.test")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -6,7 +6,7 @@
 // "Diese App braucht klassische Skripte" instead of showing the app
 // (shell/appframe.js, NEEDS_CLASSIC).
 //
-// WHAT ARRIVES IS BYTES. ngc.call resolves with a Uint8Array - the raw stdout
+// WHAT ARRIVES IS BYTES. cd.call resolves with a Uint8Array - the raw stdout
 // of the service, handed over as it came (net/world.js: "call(...) ->
 // Promise<Uint8Array>", appframe.doCall passes the value through without
 // reading it). So the decoding is this app's own business, and so is trusting
@@ -28,9 +28,9 @@
 
   // The shell tells the app its accent before the app's own scripts run, so
   // the first paint already has it; onTheme keeps it right afterwards.
-  const paint = (accent) => document.documentElement.style.setProperty("--ngc-accent", accent);
-  paint(ngc.accent);
-  ngc.onTheme((theme, accent) => paint(accent));
+  const paint = (accent) => document.documentElement.style.setProperty("--cd-accent", accent);
+  paint(cd.accent);
+  cd.onTheme((theme, accent) => paint(accent));
 
   async function read() {
     lesen.disabled = true;
@@ -40,7 +40,7 @@
       // manifest names them: the shell refuses an action the app's own
       // manifest does not carry (appframe.doCall, CODES.FORBIDDEN), so a
       // typo here is a refusal and not a call.
-      const bytes = await ngc.call("uhr", "zeit");
+      const bytes = await cd.call("uhr", "zeit");
       // TWO LINES SINCE 1.0.1, read by their number: line one is the time,
       // line two the number of readings the server kept. A service that sent
       // only the first line leaves the counter on its dash - an older service

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# proxmox-sechs-grundlage - what the six Debian VMs need BEFORE ngc-db, ngc-api,
-# ngc-web and ngc-controller are run on them.
+# proxmox-sechs-grundlage - what the six Debian VMs need BEFORE cd-db, cd-api,
+# cd-web and cd-controller are run on them.
 #
 # It is a second file and not a part of tools/proxmox-sechs.sh on purpose: that
 # one only talks to Proxmox (qm), this one only talks to the machines (ssh).
@@ -13,8 +13,8 @@
 #
 # THE TWO THINGS THIS FILE EXISTS FOR
 #
-# 1 fscrypt. An app of NGC lives in an encrypted directory under
-#   config.AppDataDir (/var/lib/ngc/apps), and the controller does that with the
+# 1 fscrypt. An app of CirroDesk lives in an encrypted directory under
+#   config.AppDataDir (/var/lib/cd/apps), and the controller does that with the
 #   kernel's own ioctls - FS_IOC_ADD_ENCRYPTION_KEY and
 #   FS_IOC_SET_ENCRYPTION_POLICY in
 #   apps/server-controller/classes/runtime/data_linux.go. On a filesystem that
@@ -31,17 +31,17 @@
 #       with mkfs.ext4 and no further flag therefore CANNOT encrypt a
 #       directory. Measured twice: once on a loop image with e2fsprogs 1.47.2
 #       (the version Debian 13 ships) where mkfs left the feature out and
-#       "tune2fs -O encrypt" put it in, and once on the running NGC VM, whose
+#       "tune2fs -O encrypt" put it in, and once on the running CirroDesk VM, whose
 #       root carries "encrypt" because somebody set it there by hand.
 #     - the PACKAGE fscrypt is not needed. It is installed on the running VM,
-#       and NGC never calls it: the controller does the ioctls itself. What is
+#       and CirroDesk never calls it: the controller does the ioctls itself. What is
 #       needed is the filesystem feature, nothing else.
 #
 #   WHY A SECOND DISK AND NOT tune2fs ON THE ROOT. "tune2fs -O encrypt" on the
 #   MOUNTED root of a running machine is the one thing in this whole setup that
 #   was NOT measured here, and a flag on the filesystem the machine is running
 #   from is a poor place to find out. A second disk, made with
-#   "mkfs.ext4 -O encrypt" and mounted at /var/lib/ngc/apps, answers the same
+#   "mkfs.ext4 -O encrypt" and mounted at /var/lib/cd/apps, answers the same
 #   question with nothing at risk - and the ioctls are per filesystem, so the
 #   directory below the mount is exactly where the controller needs it.
 #   If you would rather have it on the root after all: boot the installer's
@@ -49,9 +49,9 @@
 #   and check with "lsattr -d" afterwards. This script does not do it.
 #
 # 2 The packages. The ulh scripts install their own
-#   (ngc-api: openssl jq curl ca-certificates; ngc-web: apache2 php-fpm and
-#   those four; ngc-db: mariadb-server galera-4 mariadb-backup openssl;
-#   ngc-controller: those four plus podman where the server carries services),
+#   (cd-api: openssl jq curl ca-certificates; cd-web: apache2 php-fpm and
+#   those four; cd-db: mariadb-server galera-4 mariadb-backup openssl;
+#   cd-controller: those four plus podman where the server carries services),
 #   so what is put on here is only what a Debian CLOUD image lacks and the
 #   scripts need from the start: a guest agent so Proxmox sees the machine, and
 #   the tools the release check of shared/ulh.md names (sha256sum, od, tr, cut,
@@ -81,15 +81,15 @@ MASCHINEN=(
 	"store|10.2.3.215|-"
 )
 
-NUTZER=${NGC_CIUSER:-root}
+NUTZER=${CD_CIUSER:-root}
 # config.AppDataDir of shared/config/config.go. Not typed in again anywhere
 # below: the one place it stands is here.
-APPS=${NGC_APPS_DIR:-/var/lib/ngc/apps}
+APPS=${CD_APPS_DIR:-/var/lib/cd/apps}
 # The disk tools/proxmox-sechs.sh hangs on the services nodes as scsi1. On a
 # virtio-scsi-single controller it is the second disk, so /dev/sdb - which is
 # CHECKED before anything is written to it, because a wrong guess here is a
 # formatted root disk.
-PLATTE=${NGC_APPS_DISK:-/dev/sdb}
+PLATTE=${CD_APPS_DISK:-/dev/sdb}
 
 fehler() {
 	echo "grundlage: $*" >&2
@@ -164,14 +164,14 @@ platte() {
 			echo "platte: $name already has something on $PLATTE, leaving it alone"
 		else
 			# -O encrypt is the whole point of this file; see the head.
-			auf "$ip" "mkfs.ext4 -q -F -L ngc-apps -O encrypt $PLATTE" ||
+			auf "$ip" "mkfs.ext4 -q -F -L cd-apps -O encrypt $PLATTE" ||
 				fehler "$name: mkfs.ext4 on $PLATTE failed"
 			printf 'platte: %s: %s made with -O encrypt\n' "$name" "$PLATTE"
 		fi
 		# Mounted by LABEL and not by /dev/sdb: a device name can move when a
 		# disk is added, and a mount that moved would put the apps on the
 		# wrong filesystem without a word.
-		auf "$ip" "mkdir -p $APPS && grep -q '^LABEL=ngc-apps' /etc/fstab || printf 'LABEL=ngc-apps %s ext4 defaults 0 2\n' $APPS >>/etc/fstab" ||
+		auf "$ip" "mkdir -p $APPS && grep -q '^LABEL=cd-apps' /etc/fstab || printf 'LABEL=cd-apps %s ext4 defaults 0 2\n' $APPS >>/etc/fstab" ||
 			fehler "$name: could not write /etc/fstab"
 		auf "$ip" "mountpoint -q $APPS || mount $APPS" || fehler "$name: $APPS could not be mounted"
 		# The mode the controller itself uses: every app runs as its own user

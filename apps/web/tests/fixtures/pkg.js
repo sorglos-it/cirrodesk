@@ -70,7 +70,7 @@ export function manifest(o) {
     needs: [],
     cpu: 0,
     memory: 0,
-    minNgc: "",
+    minCd: "",
     ...o,
   };
 }

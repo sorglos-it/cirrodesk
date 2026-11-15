@@ -11,9 +11,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // The clock of every case here. A fixed number, so what goes into the
@@ -21,7 +21,7 @@ import (
 const testNow = int64(1_790_000_000)
 
 // testOwner is what these cases write into the lock.
-const testOwner = "ngc-controller/test"
+const testOwner = "cd-controller/test"
 
 // dbOf is the configuration of one controller database.
 func dbOf(path string, keyLen int) config.DB {
@@ -168,10 +168,10 @@ func TestAFileLeftBehindByADeadProcessStaysReadable(t *testing.T) {
 // nothing unless it was started as one, so a normal run of this package skips
 // it in a fraction of a second.
 func TestOpenHelperProcess(t *testing.T) {
-	if os.Getenv("NGC_STATE_HELPER") == "" {
+	if os.Getenv("CD_STATE_HELPER") == "" {
 		t.Skip("not the second process of TestASecondControllerOnTheSameFileIsTurnedAway")
 	}
-	st, err := Open(dbOf(os.Getenv("NGC_STATE_HELPER"), 64), "ngc-controller/second", testNow)
+	st, err := Open(dbOf(os.Getenv("CD_STATE_HELPER"), 64), "cd-controller/second", testNow)
 	if err != nil {
 		// The one line the parent reads. It goes to stdout, because the test
 		// framework writes its own lines there too and the parent looks for
@@ -211,7 +211,7 @@ func TestASecondControllerOnTheSameFileIsTurnedAway(t *testing.T) {
 
 	// Sequentially: the second process comes up. The lock was given back.
 	cmd := exec.Command(os.Args[0], "-test.run=^TestOpenHelperProcess$")
-	cmd.Env = append(os.Environ(), "NGC_STATE_HELPER="+path)
+	cmd.Env = append(os.Environ(), "CD_STATE_HELPER="+path)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("the second process failed to run: %v\n%s", err, out)
@@ -235,8 +235,8 @@ func TestASecondControllerOnTheSameFileIsTurnedAway(t *testing.T) {
 	//
 	// until far in the future: migrate takes the lock only where
 	// "until <= now" (migrate.takeLock).
-	res, err := db.Exec("INSERT INTO ngc_lock (name, owner, until) VALUES (?, ?, ?)",
-		[]byte("migrate"), []byte("ngc-controller/somebody-else"), testNow+100000)
+	res, err := db.Exec("INSERT INTO cd_lock (name, owner, until) VALUES (?, ?, ?)",
+		[]byte("migrate"), []byte("cd-controller/somebody-else"), testNow+100000)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,7 +251,7 @@ func TestASecondControllerOnTheSameFileIsTurnedAway(t *testing.T) {
 		t.Fatalf("the lock row was not taken: %d rows written, want 1", n)
 	}
 	cmd = exec.Command(os.Args[0], "-test.run=^TestOpenHelperProcess$")
-	cmd.Env = append(os.Environ(), "NGC_STATE_HELPER="+path)
+	cmd.Env = append(os.Environ(), "CD_STATE_HELPER="+path)
 	out, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("the second process failed to run: %v\n%s", err, out)

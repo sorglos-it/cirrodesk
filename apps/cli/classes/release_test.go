@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // releaseSeed is the Ed25519 seed the release key of these cases carries. It
@@ -42,7 +42,7 @@ func newReleaseFixture(t testing.TB, parts ...string) releaseFixture {
 	for i, p := range parts {
 		name := p + ".tar"
 		body := []byte(strings.Repeat(p+" ", i+1) + "\n")
-		if p == "ngc-web-all" {
+		if p == "cd-web-all" {
 			body = webTar(t, "1.1.0\n")
 		}
 		write(t, filepath.Join(dir, name), body)
@@ -74,8 +74,8 @@ func releaseOpts(seq uint64, base string) ReleaseOpts {
 }
 
 func TestReleaseListsEveryFile(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all", "ngc-api-amd64", "ngc-api-arm64",
-		"ngc-controller-amd64", "ngc-controller-arm64")
+	f := newReleaseFixture(t, "cd-web-all", "cd-api-amd64", "cd-api-arm64",
+		"cd-controller-amd64", "cd-controller-arm64")
 	env, err := Release(f.dir, f.keyFile, releaseOpts(1, "https://dl.example.org/1.1.0"))
 	if err != nil {
 		t.Fatalf("release: %v", err)
@@ -118,8 +118,8 @@ func TestReleaseListsEveryFile(t *testing.T) {
 // lists only the ones whose name names a part, and a directory that names
 // none at all is an error and not an empty release.
 func TestReleaseNamesTheFilesByTheirName(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all")
-	for _, name := range []string{"notes.txt", "ngc-web-amd64.tar", "ngc-store-all.tar", "ngc-web-all.zip"} {
+	f := newReleaseFixture(t, "cd-web-all")
+	for _, name := range []string{"notes.txt", "cd-web-amd64.tar", "cd-store-all.tar", "cd-web-all.zip"} {
 		write(t, filepath.Join(f.dir, name), []byte("not a release file\n"))
 	}
 	env, err := Release(f.dir, f.keyFile, releaseOpts(1, ""))
@@ -127,7 +127,7 @@ func TestReleaseNamesTheFilesByTheirName(t *testing.T) {
 		t.Fatalf("release: %v", err)
 	}
 	r := f.verifyOK(t, env, 0)
-	if len(r.Files) != 1 || r.Files[0].Part != store.ReleaseWeb || r.Files[0].URL != "ngc-web-all.tar" {
+	if len(r.Files) != 1 || r.Files[0].Part != store.ReleaseWeb || r.Files[0].URL != "cd-web-all.tar" {
 		t.Fatalf("files %+v", r.Files)
 	}
 	empty := t.TempDir()
@@ -137,7 +137,7 @@ func TestReleaseNamesTheFilesByTheirName(t *testing.T) {
 }
 
 func TestReleaseVerifies(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all", "ngc-api-amd64")
+	f := newReleaseFixture(t, "cd-web-all", "cd-api-amd64")
 	env, err := Release(f.dir, f.keyFile, releaseOpts(7, ""))
 	if err != nil {
 		t.Fatalf("release: %v", err)
@@ -159,10 +159,10 @@ func TestReleaseVerifies(t *testing.T) {
 // 28: the contract still accepts a release whose seq equals the last one
 // seen (store.VerifyRelease refuses only seq < lastSeq), and writing one
 // again is still a mistake of whoever runs the server. One tool must not
-// have two ideas of what a sequence number is, so ngc-store refuses the
+// have two ideas of what a sequence number is, so cd-store refuses the
 // equal one here, in both subcommands.
 func TestReleaseRefusesASequenceThatDoesNotRise(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all")
+	f := newReleaseFixture(t, "cd-web-all")
 	env, err := Release(f.dir, f.keyFile, releaseOpts(3, ""))
 	if err != nil {
 		t.Fatalf("release: %v", err)
@@ -191,10 +191,10 @@ func TestReleaseRefusesASequenceThatDoesNotRise(t *testing.T) {
 
 // TestReleaseRefusesABaseWithAQuery is Release's one rule of its own about
 // an address, and it is about the shape of the base, not its characters:
-// "…?token=x/ngc-web-all.tar" stays inside store's grammar and names no
+// "…?token=x/cd-web-all.tar" stays inside store's grammar and names no
 // file on any server.
 func TestReleaseRefusesABaseWithAQuery(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all")
+	f := newReleaseFixture(t, "cd-web-all")
 	if _, err := Release(f.dir, f.keyFile, releaseOpts(1, "https://dl.example.org/x")); err != nil {
 		t.Fatalf("the way is not open: %v", err)
 	}
@@ -204,10 +204,10 @@ func TestReleaseRefusesABaseWithAQuery(t *testing.T) {
 }
 
 // TestReleaseRefusesAnAddressOutsideTheGrammar leaves the grammar to the
-// contract, as Punkt 25 of docs/vertraege-v1.2.md asks: ngc-store writes no
+// contract, as Punkt 25 of docs/vertraege-v1.2.md asks: cd-store writes no
 // second one, and an address the contract refuses never gets a signature.
 func TestReleaseRefusesAnAddressOutsideTheGrammar(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all")
+	f := newReleaseFixture(t, "cd-web-all")
 	for _, base := range []string{"http://dl.example.org", "https://dl example.org", "https://dl.example.org/<x>",
 		"https://dl.example.org/" + strings.Repeat("d", 600), "ftp://dl.example.org", "/srv/releases"} {
 		if _, err := Release(f.dir, f.keyFile, releaseOpts(1, base)); !errors.Is(err, store.ErrRelease) {
@@ -217,10 +217,10 @@ func TestReleaseRefusesAnAddressOutsideTheGrammar(t *testing.T) {
 }
 
 // TestReleaseRefusesABrokenKeyFile and the next case keep the secret out of
-// every message: the key reaches ngc-store as a file, never as an argument,
+// every message: the key reaches cd-store as a file, never as an argument,
 // and a file that is no key is a sentinel without a word of its content.
 func TestReleaseRefusesABrokenKeyFile(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all")
+	f := newReleaseFixture(t, "cd-web-all")
 	broken := filepath.Join(t.TempDir(), "broken.key")
 	write(t, broken, []byte("Dies ist kein Schlüssel\n"))
 	if _, err := Release(f.dir, f.keyFile, releaseOpts(1, "")); err != nil {
@@ -239,7 +239,7 @@ func TestReleaseRefusesABrokenKeyFile(t *testing.T) {
 // the seed in four shapes (keyShapes), the control among them being a text
 // that does leak and has to be found.
 func TestReleaseTellsNoSecret(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all")
+	f := newReleaseFixture(t, "cd-web-all")
 	if !leaks(enc.B64.EncodeToString(releaseSeed), releaseSeed) {
 		t.Fatal("the control does not find a leak, so this case measures nothing")
 	}
@@ -276,7 +276,7 @@ func TestReleaseTellsNoSecret(t *testing.T) {
 // directory, check reads it and says "release ok", and a changed file makes
 // it say what is wrong and return 1.
 func TestRunChecksARelease(t *testing.T) {
-	f := newReleaseFixture(t, "ngc-web-all")
+	f := newReleaseFixture(t, "cd-web-all")
 	var out, errOut bytes.Buffer
 	if code := Run([]string{"release", "-version", "1.1.0", "-seq", "1", f.dir, f.keyFile}, &out, &errOut); code != 0 {
 		t.Fatalf("release: %d, %s", code, errOut.String())
@@ -285,11 +285,11 @@ func TestRunChecksARelease(t *testing.T) {
 	if code := Run([]string{"check", f.dir, store.ReleaseWeb, "all"}, &out, &errOut); code != 0 || out.String() != "release ok\n" {
 		t.Fatalf("check: %d, %q, %s", code, out.String(), errOut.String())
 	}
-	write(t, filepath.Join(f.dir, "ngc-web-all.tar"), []byte("etwas anderes\n"))
+	write(t, filepath.Join(f.dir, "cd-web-all.tar"), []byte("etwas anderes\n"))
 	out.Reset()
 	errOut.Reset()
 	if code := Run([]string{"check", f.dir, store.ReleaseWeb, "all"}, &out, &errOut); code != 1 ||
-		!strings.Contains(errOut.String(), "release wrong: checksum wrong: ngc-web-all.tar") {
+		!strings.Contains(errOut.String(), "release wrong: checksum wrong: cd-web-all.tar") {
 		t.Errorf("check of a changed file: %d, %q, %q", code, out.String(), errOut.String())
 	}
 }
@@ -301,7 +301,7 @@ func TestRunChecksARelease(t *testing.T) {
 func testdataRelease(t *testing.T) string {
 	t.Helper()
 	dir := filepath.Join("..", "..", "..", "shared", "testdata", "release")
-	for _, name := range []string{"release.json", "release-key.pem", "ngc-web-all.tar", "verify.sh"} {
+	for _, name := range []string{"release.json", "release-key.pem", "cd-web-all.tar", "verify.sh"} {
 		if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
 			t.Fatalf("the release vector is not there: %v", err)
 		}
@@ -351,14 +351,14 @@ type scriptCase struct {
 func TestCheckMatchesTheScript(t *testing.T) {
 	vectorDir := testdataRelease(t)
 	vector := map[string][]byte{}
-	for _, name := range []string{"release.json", "release-key.pem", "ngc-web-all.tar"} {
+	for _, name := range []string{"release.json", "release-key.pem", "cd-web-all.tar"} {
 		b, err := os.ReadFile(filepath.Join(vectorDir, name))
 		if err != nil {
 			t.Fatal(err)
 		}
 		vector[name] = b
 	}
-	releaseFile := vector["ngc-web-all.tar"]
+	releaseFile := vector["cd-web-all.tar"]
 	key := ed25519.NewKeyFromSeed(releaseSeed)
 	keyPEM, err := PublicKeyPEM(key.Public().(ed25519.PublicKey))
 	if err != nil {
@@ -369,12 +369,12 @@ func TestCheckMatchesTheScript(t *testing.T) {
 		t.Fatal(err)
 	}
 	checksum := func(b []byte) enc.Bytes { s := sha256.Sum256(b); return s[:] }
-	api := []byte("NGC api test file\n")
-	web := store.File{Part: store.ReleaseWeb, Arch: "all", URL: "ngc-web-all.tar",
+	api := []byte("CirroDesk api test file\n")
+	web := store.File{Part: store.ReleaseWeb, Arch: "all", URL: "cd-web-all.tar",
 		Size: int64(len(releaseFile)), SHA256: checksum(releaseFile)}
-	apiAMD := store.File{Part: store.ReleaseAPI, Arch: "amd64", URL: "https://example.org/1.1.0/ngc-api-amd64.tar",
+	apiAMD := store.File{Part: store.ReleaseAPI, Arch: "amd64", URL: "https://example.org/1.1.0/cd-api-amd64.tar",
 		Size: int64(len(api)), SHA256: checksum(api)}
-	apiARM := store.File{Part: store.ReleaseAPI, Arch: "arm64", URL: "https://example.org/1.1.0/ngc-api-arm64.tar",
+	apiARM := store.File{Part: store.ReleaseAPI, Arch: "arm64", URL: "https://example.org/1.1.0/cd-api-arm64.tar",
 		Size: 1, SHA256: checksum([]byte("x"))}
 	webAt := func(url string) store.File { f := web; f.URL = url; return f }
 	payload := func(files ...store.File) []byte {
@@ -410,7 +410,7 @@ func TestCheckMatchesTheScript(t *testing.T) {
 		return d
 	}
 	withKey := func(d map[string][]byte, pem []byte) map[string][]byte { d["release-key.pem"] = pem; return d }
-	webOnly := map[string][]byte{"ngc-web-all.tar": releaseFile}
+	webOnly := map[string][]byte{"cd-web-all.tar": releaseFile}
 	// unusedBit sets an unused bit of the signature's last letter: the same
 	// bytes, a second spelling, which enc.B64 refuses as strictly as the
 	// script's b64url does.
@@ -422,15 +422,15 @@ func TestCheckMatchesTheScript(t *testing.T) {
 
 	cases := []scriptCase{
 		{name: "release vector", files: map[string][]byte{"release.json": vector["release.json"],
-			"release-key.pem": vector["release-key.pem"], "ngc-web-all.tar": vector["ngc-web-all.tar"]}},
-		{name: "url of https", files: dir(release(payload(webAt("https://example.org/1.1.0/ngc-web-all.tar")), nil), webOnly)},
-		{name: "url with a directory", files: dir(release(payload(webAt("sub/ngc-web-all.tar")), nil), webOnly)},
+			"release-key.pem": vector["release-key.pem"], "cd-web-all.tar": vector["cd-web-all.tar"]}},
+		{name: "url of https", files: dir(release(payload(webAt("https://example.org/1.1.0/cd-web-all.tar")), nil), webOnly)},
+		{name: "url with a directory", files: dir(release(payload(webAt("sub/cd-web-all.tar")), nil), webOnly)},
 		{name: "files of other parts missing", files: dir(release(payload(web, apiAMD, apiARM), nil),
-			map[string][]byte{"ngc-api-amd64.tar": api}), part: store.ReleaseAPI, arch: "amd64"},
+			map[string][]byte{"cd-api-amd64.tar": api}), part: store.ReleaseAPI, arch: "amd64"},
 		{name: "file of another part changed", files: dir(release(payload(web, apiAMD), nil),
-			map[string][]byte{"ngc-web-all.tar": releaseFile, "ngc-api-amd64.tar": []byte("changed")})},
-		{name: "files not listed", files: dir(release(payload(web), nil), map[string][]byte{"ngc-web-all.tar": releaseFile,
-			"evil.sh": []byte("rm -rf /"), "payload.json": []byte("{}"), "sub/ngc-web-all.tar": []byte("other")})},
+			map[string][]byte{"cd-web-all.tar": releaseFile, "cd-api-amd64.tar": []byte("changed")})},
+		{name: "files not listed", files: dir(release(payload(web), nil), map[string][]byte{"cd-web-all.tar": releaseFile,
+			"evil.sh": []byte("rm -rf /"), "payload.json": []byte("{}"), "sub/cd-web-all.tar": []byte("other")})},
 		{name: "file named like a work file", files: dir(release(payload(webAt("payload.json")), nil),
 			map[string][]byte{"payload.json": releaseFile})},
 
@@ -463,14 +463,14 @@ func TestCheckMatchesTheScript(t *testing.T) {
 			delete(m, "payload")
 		}), webOnly), why: "no payload"},
 		{name: "wrong hash", files: dir(release(payload(web), nil),
-			map[string][]byte{"ngc-web-all.tar": []byte("NGC web test filE\n")}), why: "checksum wrong"},
+			map[string][]byte{"cd-web-all.tar": []byte("CirroDesk web test filE\n")}), why: "checksum wrong"},
 		{name: "bytes appended", files: dir(release(payload(web), nil),
-			map[string][]byte{"ngc-web-all.tar": append(slices.Clone(releaseFile), 'x')}), why: "checksum wrong"},
+			map[string][]byte{"cd-web-all.tar": append(slices.Clone(releaseFile), 'x')}), why: "checksum wrong"},
 		{name: "wrong size", files: dir(release(payload(func() store.File { f := web; f.Size++; return f }()), nil), webOnly),
 			why: "size wrong"},
 		{name: "missing file", files: dir(release(payload(web), nil), nil), why: "file missing"},
-		{name: "file only in the url's directory", files: dir(release(payload(webAt("sub/ngc-web-all.tar")), nil),
-			map[string][]byte{"sub/ngc-web-all.tar": releaseFile}), why: "file missing"},
+		{name: "file only in the url's directory", files: dir(release(payload(webAt("sub/cd-web-all.tar")), nil),
+			map[string][]byte{"sub/cd-web-all.tar": releaseFile}), why: "file missing"},
 		{name: "files null", files: dir(release(payload(), nil), webOnly), why: "no single valid entry"},
 		{name: "files empty", files: dir(release(payload([]store.File{}...), nil), webOnly), why: "no single valid entry"},
 		{name: "part not listed", files: dir(release(payload(web), nil), webOnly),
@@ -556,7 +556,7 @@ func TestCheckMatchesTheScript(t *testing.T) {
 	})
 }
 
-// webTar is a ngc-web release file as ngc-store web writes it, with the
+// webTar is a cd-web release file as cd-store web writes it, with the
 // given content of ui/VERSION.
 func webTar(t testing.TB, version string) []byte {
 	t.Helper()
@@ -578,8 +578,8 @@ func webTar(t testing.TB, version string) []byte {
 // controller reads as the installed version, so it must be the release's.
 func TestReleaseRefusesAWebFileOfAnotherVersion(t *testing.T) {
 	for _, v := range []string{"1.0.9\n", "1.1.0", "1.1.0\r\n", "1.1.0\n\n"} {
-		f := newReleaseFixture(t, "ngc-web-all")
-		write(t, filepath.Join(f.dir, "ngc-web-all.tar"), webTar(t, v))
+		f := newReleaseFixture(t, "cd-web-all")
+		write(t, filepath.Join(f.dir, "cd-web-all.tar"), webTar(t, v))
 		if _, err := Release(f.dir, f.keyFile, releaseOpts(1, "")); !errors.Is(err, ErrContents) {
 			t.Errorf("ui/VERSION %q: %v, want ErrContents", v, err)
 		}

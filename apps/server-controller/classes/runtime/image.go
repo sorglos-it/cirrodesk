@@ -8,12 +8,12 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
 )
 
 // ManifestFile is the member of an image tar that names the image, and
 // MaxImageManifest is the most of it that is read. Both belong to the archive
-// format of podman and docker, not to NGC: an app package carries the tar as
+// format of podman and docker, not to CirroDesk: an app package carries the tar as
 // podman wrote it (services/<GOARCH>.tar).
 const (
 	ManifestFile     = "manifest.json"

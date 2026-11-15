@@ -13,9 +13,9 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // Names inside the staged folder of an accepted package.
@@ -32,7 +32,7 @@ var (
 	ErrSource = errors.New("install: no approved source for this package")
 	// ErrVerify says the package is not what was approved: a checksum, a
 	// size, a UI hash, an app name or a version that does not match, or an
-	// NGC too old for it. A caller maps it to core.ErrVerify (E_VERIFY).
+	// CirroDesk too old for it. A caller maps it to core.ErrVerify (E_VERIFY).
 	ErrVerify = errors.New("install: package does not match what was approved")
 	// ErrDisk says this node could not put the package down: no space, no
 	// permission, or a name in the package that the target filesystem cannot
@@ -83,7 +83,7 @@ func (m *markWriter) Write(p []byte) (int, error) {
 // List is the installation's own trust list, the only place a store key may
 // come from. Store, App, Version, SHA256 and UI come from the signed task
 // (core.ActivateParams); Store is core.LocalStore for an app an admin
-// uploaded and empty for a release. NGC is this NGC's version, Dir the folder
+// uploaded and empty for a release. CirroDesk is this CirroDesk's version, Dir the folder
 // under which a fresh staging folder is made (config.StageDir in operation).
 // LastSeq returns the newest catalogue number already seen from a store, "" for
 // a release.
@@ -102,7 +102,7 @@ type AcceptInput struct {
 	Version    string
 	SHA256     []byte
 	UI         []byte
-	NGC        string
+	CirroDesk  string
 	Dir        string
 	ReleaseKey []byte
 	LastSeq    func(store string) uint64
@@ -132,14 +132,14 @@ type source struct {
 	size   int64
 	sha    []byte
 	ui     []byte // catalogue entry only; nil for a release and an upload
-	minNGC string
+	minCD  string
 	app    bool // an app package: it has a manifest and a UI, a release has not
 }
 
 // Accept reads the transfer header, checks that the file was approved, and
 // only then writes it. What stands before the first byte reaches the disk is
 // the signature, the catalogue or release membership, the rollback rule, the
-// NGC version, and the IDENTITY of the three checksums - that the signed
+// CirroDesk version, and the IDENTITY of the three checksums - that the signed
 // task, the header and the checked entry all name the same one. The checksum
 // of the bytes themselves cannot be had before them, so it comes after.
 //
@@ -171,7 +171,7 @@ func Accept(ctx context.Context, in AcceptInput) (Package, error) {
 	if tr.Size != src.size || !bytes.Equal(tr.SHA256, src.sha) {
 		return Package{}, ErrVerify
 	}
-	if !store.SupportsMinNGC(in.NGC, src.minNGC) {
+	if !store.SupportsMinCD(in.CirroDesk, src.minCD) {
 		return Package{}, ErrVerify
 	}
 	if err := ctx.Err(); err != nil {
@@ -249,7 +249,7 @@ func fromCatalog(in AcceptInput, tr core.Transfer) (source, error) {
 	}
 	e := c.Apps[a].Versions[v]
 	return source{signer: st.Key, seq: c.Seq, size: e.Size, sha: e.SHA256, ui: e.UI,
-		minNGC: e.MinNGC, app: true}, nil
+		minCD: e.MinCD, app: true}, nil
 }
 
 func fromRelease(in AcceptInput, tr core.Transfer) (source, error) {
@@ -292,7 +292,7 @@ func stage(ctx context.Context, dir string, in AcceptInput, tr core.Transfer, sr
 	p := Package{Dir: dir, Transfer: tr, Signer: src.signer, Seq: src.seq}
 	if !src.app {
 		// A release ends here, and Manifest and UI stay nil: a release file is
-		// an NGC component, not an app package, so it has no manifest.json and
+		// a CirroDesk component, not an app package, so it has no manifest.json and
 		// no ui/ for store.Walk and store.PackageUI to find. nil is the
 		// finished answer for this branch, not a failure a caller must handle
 		// — the signature, the release number, the part, the version, the size
@@ -301,7 +301,7 @@ func stage(ctx context.Context, dir string, in AcceptInput, tr core.Transfer, sr
 		return p, nil
 	}
 	// No check here that the catalogue's "encrypted" and a content key agree:
-	// store.NewDecrypter refuses a plain file (no NGCENC1 magic) with
+	// store.NewDecrypter refuses a plain file (no CD-ENC1 magic) with
 	// store.ErrEncrypted, and store.Walk refuses a sealed file read without a
 	// key with store.ErrPackage. A check of its own was measured to be
 	// unkillable - both directions already fall one layer down
@@ -314,7 +314,7 @@ func stage(ctx context.Context, dir string, in AcceptInput, tr core.Transfer, sr
 	// contain", and the two could drift.
 	m, uiHash, err := unpackApp(ctx, unpack{
 		Pkg: filepath.Join(dir, PackageFile), Files: filepath.Join(dir, FilesDir),
-		Key: tr.Key, App: in.App, Version: in.Version, NGC: in.NGC,
+		Key: tr.Key, App: in.App, Version: in.Version, CirroDesk: in.CirroDesk,
 		UI: [][]byte{in.UI, src.ui},
 	})
 	if err != nil {
@@ -326,17 +326,17 @@ func stage(ctx context.Context, dir string, in AcceptInput, tr core.Transfer, sr
 
 // unpack is one package file on this disk, to be checked and unpacked. Pkg is
 // the file, Files the directory its files are written into, Key the content
-// key of a paid app (nil for a plain one). App, Version and NGC are what the
+// key of a paid app (nil for a plain one). App, Version and CirroDesk are what the
 // package has to say it is; every non-nil entry of UI is a SHA-256 the
 // package's ui-tar has to have, and an empty UI names none.
 type unpack struct {
-	Pkg     string
-	Files   string
-	Key     []byte
-	App     string
-	Version string
-	NGC     string
-	UI      [][]byte
+	Pkg       string
+	Files     string
+	Key       []byte
+	App       string
+	Version   string
+	CirroDesk string
+	UI        [][]byte
 }
 
 // unpackApp reads the package file, holds its manifest against what it is
@@ -372,9 +372,9 @@ func unpackApp(ctx context.Context, u unpack) (*store.Manifest, []byte, error) {
 		}
 	}
 	// For an uploaded app the manifest is the only place the app's name, its
-	// version and its minNgc stand; for a store app the catalogue said the
+	// version and its minCd stand; for a store app the catalogue said the
 	// same already, and the two must not disagree.
-	if m.ID != u.App || m.Version != u.Version || !store.SupportsMinNGC(u.NGC, m.MinNGC) {
+	if m.ID != u.App || m.Version != u.Version || !store.SupportsMinCD(u.CirroDesk, m.MinCD) {
 		return nil, nil, ErrVerify
 	}
 	if err := ctx.Err(); err != nil {

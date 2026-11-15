@@ -1,4 +1,4 @@
-// Package release names the parts of an NGC release, and it names them by
+// Package release names the parts of a CirroDesk release, and it names them by
 // ASKING THE CONTRACT instead of holding a list of its own.
 //
 // Why that way round: apps/cli/classes/release.go already holds a written
@@ -18,7 +18,7 @@ package release
 import (
 	"sort"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // Part is one file of a release: a component and the machine it is for.

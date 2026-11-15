@@ -1,4 +1,4 @@
-// Driving one round of an NGC update: lay the file ready on a node, install
+// Driving one round of a CirroDesk update: lay the file ready on a node, install
 // it, wait until that node says it is up, then the next one.
 //
 // Everything in here is deliberately powerless. The API does not decide what
@@ -23,20 +23,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
-// rolloutOrder is the order of an NGC update: the APIs first, then the
+// rolloutOrder is the order of a CirroDesk update: the APIs first, then the
 // controllers, the web interface last. Every part understands the previous
-// contract, and every migration lets the previous API version run on, so NGC
+// contract, and every migration lets the previous API version run on, so CirroDesk
 // stays reachable throughout (Entwurf 4.8). The database comes before all of
 // them and is not in this list, because it is not a part that is installed:
-// one controller with the role db gets the ngc-api file LAID READY so that it
+// one controller with the role db gets the cd-api file LAID READY so that it
 // can play the migrations in (MigrationNode).
 var rolloutOrder = []string{trust.AutoAPI, trust.AutoController, trust.AutoWeb}
 
@@ -48,7 +48,7 @@ const (
 	// a round walks every part of every node one after the other, and each of
 	// those steps may cost InstallWait. Measured: one single machine with the
 	// roles api and web costs THREE waits, because tunnel.Components gives it
-	// ngc-controller, ngc-api and ngc-web -- 45 minutes against this lease of
+	// cd-controller, cd-api and cd-web -- 45 minutes against this lease of
 	// 40 (TestOneNodeCostsThreeWaits). That is why the round renews the lease
 	// before every step (renewLease) instead of trusting this number.
 	lockLease = int64(2400)
@@ -93,7 +93,7 @@ var ErrLostLease = errors.New("updates: the lease on the rollout lock ran out mi
 // part understands the previous one), while a half-written program is what
 // the controller's rename prevents. So there is no "finished" to roll back,
 // and -- this is the point -- there is no row anywhere that says a round
-// finished either. The rows of ngc.store/updates are computed from what the
+// finished either. The rows of cd.store/updates are computed from what the
 // nodes report, so a round broken off in the middle shows itself as what it
 // is: the nodes that are up, and the ones that are not.
 func (u *Updates) Rollout(ctx context.Context) error {
@@ -118,10 +118,10 @@ func (u *Updates) Rollout(ctx context.Context) error {
 		return err
 	}
 	// The migrations belong to the API version and run before the new API
-	// starts. One controller with the role db gets the ngc-api file of its
+	// starts. One controller with the role db gets the cd-api file of its
 	// architecture LAID READY for that, and nothing more: this contract has
 	// no action that plays migrations in (core.All lists stage and install
-	// and no third one), and "install ngc-api" on a node whose server is not
+	// and no third one), and "install cd-api" on a node whose server is not
 	// an API would copy the program into its bin directory and restart a
 	// service that does not belong there. Playing the file in is the
 	// controller's step and is not built on its branch either; the file lying
@@ -292,7 +292,7 @@ func (u *Updates) stageAndInstall(ctx context.Context, node, part string, rel *s
 // architecture.
 //
 // It asks nothing about what is installed. Its other caller is the migration
-// node, where NOTHING of ngc-api is installed and nothing ever will be: the
+// node, where NOTHING of cd-api is installed and nothing ever will be: the
 // node holds the file so that it can play the migrations in. A guard on
 // "newer than installed" belongs where the decision is -- in stageAndInstall,
 // one per node and part the node really runs.
@@ -335,7 +335,7 @@ func (u *Updates) stage(ctx context.Context, node, part string, rel *store.Relea
 	if err := head.Validate(); err != nil {
 		return err
 	}
-	tmp, err := os.CreateTemp(u.Spool, "ngc-update-*")
+	tmp, err := os.CreateTemp(u.Spool, "cd-update-*")
 	if err != nil {
 		return err
 	}

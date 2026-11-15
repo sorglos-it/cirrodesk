@@ -9,7 +9,7 @@ import (
 )
 
 // The pairing code must not stand on the screen either, so it is read with the
-// echo of the terminal switched off. golang.org/x/term does this, but NGC
+// echo of the terminal switched off. golang.org/x/term does this, but CirroDesk
 // carries no package for it and takes none in; the two calls below are what
 // that package does on Linux, and Linux is where the controller runs.
 const (
@@ -20,11 +20,11 @@ const (
 
 // termios is exactly what the kernel carries over TCGETS and TCSETS: four flag
 // words, the line discipline and the control characters, and nothing behind
-// them. The form is the same on both architectures NGC is built for. The
+// them. The form is the same on both architectures CirroDesk is built for. The
 // struct of the C library is not this one - it carries two speeds at the end -
 // and other architectures order it differently (mips counts 23 control
 // characters, powerpc puts the line discipline behind them), so whoever ports
-// NGC reads the form off that kernel instead of copying this one.
+// CirroDesk reads the form off that kernel instead of copying this one.
 type termios struct {
 	Iflag, Oflag, Cflag, Lflag uint32
 	Line                       uint8

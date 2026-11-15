@@ -3,11 +3,11 @@ package main
 import (
 	"os"
 
-	"github.com/sorglos-it/nextgencloud/tools/release"
+	"github.com/sorglos-it/cirrodesk/tools/release"
 )
 
 func main() {
-	f, err := os.Create("tools/release/testdata/ngc-web-all.tar")
+	f, err := os.Create("tools/release/testdata/cd-web-all.tar")
 	if err != nil {
 		panic(err)
 	}

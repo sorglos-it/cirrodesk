@@ -23,7 +23,7 @@ const inside = (shell, sel, outer) => shell.evaluate(([s, o]) => {
   return a.left >= b.left - 1 && a.right <= b.right + 1 && a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
 }, [sel, outer]);
 
-// docs/gestaltung.md point 1: NGC has to be usable on a phone, and the way to
+// docs/gestaltung.md point 1: CirroDesk has to be usable on a phone, and the way to
 // the apps has to survive under 640 px, where the desktop icons step aside.
 // The way Thomas named is the start menu, and this case pins that promise
 // instead of leaving it to fall out of another case: every app this user may
@@ -120,7 +120,7 @@ test("a window that asks for more than the screen has is cut to fit", async ({ s
 });
 
 test("the notice strip stays on the screen", async ({ shell }) => {
-  await shell.evaluate(() => window.__ngcSendNotice(
+  await shell.evaluate(() => window.__cdSendNotice(
     "warn", "Ein etwas längerer Hinweis, damit zu sehen ist wie breit der Streifen wird."));
   await expect(shell.getByRole("status")).toBeVisible();
   expect(await inside(shell, ".noticebar", "viewport")).toBe(true);

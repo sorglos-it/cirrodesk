@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 var ctx = context.Background()
@@ -137,7 +137,7 @@ func dropped(t *testing.T, good, bad core.LogEntry, field func(core.LogEntry) st
 // entry is written. The fields are taken one at a time, so each case shows
 // which field it pins.
 func TestABadFieldLosesTheFieldAndNotTheEvent(t *testing.T) {
-	ok := core.LogEntry{Kind: core.LogTrust, User: user, App: "ngc.store", Action: "activate",
+	ok := core.LogEntry{Kind: core.LogTrust, User: user, App: "cd.store", Action: "activate",
 		Node: "ctl-1", Result: "ok", Detail: "role admin"}
 	with := func(f func(e *core.LogEntry)) core.LogEntry {
 		e := ok
@@ -180,7 +180,7 @@ func TestABadFieldLosesTheFieldAndNotTheEvent(t *testing.T) {
 func TestDetailOf100BytesIsKept(t *testing.T) {
 	lg := newLog()
 	long := strings.Repeat("x", 100)
-	if err := lg.Note(ctx, core.LogTrust, user, "ngc.store", "ctl-1", long); err != nil {
+	if err := lg.Note(ctx, core.LogTrust, user, "cd.store", "ctl-1", long); err != nil {
 		t.Fatalf("note: %v", err)
 	}
 	if e := only(t, lg); e.Detail != long {
@@ -224,7 +224,7 @@ func slicesContains(list []string, s string) bool {
 // the machine instead of leaving the field empty.
 func TestAnEmptyUserBecomesTheMachine(t *testing.T) {
 	lg := newLog()
-	if err := lg.Note(ctx, core.LogUpdate, "", "ngc.store", "ctl-1", "mode auto"); err != nil {
+	if err := lg.Note(ctx, core.LogUpdate, "", "cd.store", "ctl-1", "mode auto"); err != nil {
 		t.Fatalf("note: %v", err)
 	}
 	if e := only(t, lg); e.User != UserSystem {
@@ -239,7 +239,7 @@ func TestAnEmptyUserBecomesTheMachine(t *testing.T) {
 func TestNoFieldCanKeepAnEventOutOfTheLog(t *testing.T) {
 	const evil = "\x00\x1b[2K' OR 1=1 --\n\n" // control characters, SQL, line breaks
 	huge := strings.Repeat("\xff", 10000)     // invalid UTF-8, far over every limit
-	base := core.LogEntry{Kind: core.LogChannel, User: user, App: "ngc.store", Action: "open",
+	base := core.LogEntry{Kind: core.LogChannel, User: user, App: "cd.store", Action: "open",
 		Node: "ctl-1", Result: "ok", Detail: "ok"}
 	fields := map[string]func(e *core.LogEntry, v string){
 		"user":   func(e *core.LogEntry, v string) { e.User = v },
@@ -311,7 +311,7 @@ func TestOnlyAnUnknownKindIsRefused(t *testing.T) {
 // hands over the wrong one loses the value, not the task.
 func TestTaskKeepsOnlyASignature(t *testing.T) {
 	lg := newLog()
-	if err := lg.Task(ctx, user, "ngc.store", "activate", "ctl-1", signature); err != nil {
+	if err := lg.Task(ctx, user, "cd.store", "activate", "ctl-1", signature); err != nil {
 		t.Fatalf("task: %v", err)
 	}
 	if e := only(t, lg); e.Detail != signature || e.Kind != core.LogTask {
@@ -320,7 +320,7 @@ func TestTaskKeepsOnlyASignature(t *testing.T) {
 	for _, bad := range []string{"", strings.Repeat("A", 43), strings.Repeat("A", 85), "hunter2",
 		strings.Repeat("A", 85) + "="} {
 		lg := newLog()
-		if err := lg.Task(ctx, user, "ngc.store", "activate", "ctl-1", bad); !errors.Is(err, ErrDropped) {
+		if err := lg.Task(ctx, user, "cd.store", "activate", "ctl-1", bad); !errors.Is(err, ErrDropped) {
 			t.Fatalf("signature %q: got %v, want ErrDropped", bad, err)
 		}
 		if e := only(t, lg); e.Detail != Dropped || e.Kind != core.LogTask {
@@ -400,7 +400,7 @@ func TestNoteKeepsTheOtherKinds(t *testing.T) {
 	lg := newLog()
 	for _, kind := range []string{core.LogTrust, core.LogRights, core.LogApp, core.LogStore,
 		core.LogLicense, core.LogUpdate} {
-		if err := lg.Note(ctx, kind, user, "ngc.store", "ctl-1", "role admin"); err != nil {
+		if err := lg.Note(ctx, kind, user, "cd.store", "ctl-1", "role admin"); err != nil {
 			t.Fatalf("note %s: %v", kind, err)
 		}
 	}

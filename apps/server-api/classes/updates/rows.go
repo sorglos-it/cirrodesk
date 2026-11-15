@@ -1,4 +1,4 @@
-// Package updates computes the rows of ngc.store/updates and drives a rollout.
+// Package updates computes the rows of cd.store/updates and drives a rollout.
 // Nothing but the setting per target is stored (dbapi.SettingUpdate); the rows
 // come from releases, catalogs and what the controllers reported, so they are
 // always current and never stale.
@@ -28,16 +28,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/audit"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/controllers"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/audit"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/controllers"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // Fleet is what this package reads about the controllers that are connected
@@ -70,7 +70,7 @@ func (f registryFleet) Seen(node string) (tunnel.Hello, tunnel.Status, bool) {
 
 func (f registryFleet) Online() []string { return f.r.Nodes() }
 
-// Updates answers ngc.store/updates and drives a rollout.
+// Updates answers cd.store/updates and drives a rollout.
 type Updates struct {
 	S      *state.State
 	Stores *appstore.Stores
@@ -118,7 +118,7 @@ func (u *Updates) Rows(ctx context.Context) ([]core.UpdateInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Without a release nothing of NGC can be offered; apps still can. A store
+	// Without a release nothing of CirroDesk can be offered; apps still can. A store
 	// that is away must not empty the whole page.
 	release, _, relErr := u.Stores.Release(ctx)
 	if relErr != nil {
@@ -145,7 +145,7 @@ func (u *Updates) Rows(ctx context.Context) ([]core.UpdateInfo, error) {
 			out = append(out, row)
 		}
 		// System packages have no version to compare: apt knows what is due,
-		// and NGC neither names it nor signs it. The row carries the setting
+		// and CirroDesk neither names it nor signs it. The row carries the setting
 		// and whatever the node last reported, and no Key -- a standing
 		// approval for trust.AutoSystem names none (trust.Auto).
 		sys := core.UpdateInfo{Target: trust.AutoSystem, Node: n.ID}
@@ -179,7 +179,7 @@ func (u *Updates) seenOf(node string) (tunnel.Hello, tunnel.Status, bool) {
 	return u.Tunnels.Seen(node)
 }
 
-// releaseFile is the entry of an NGC part for one architecture, picked by part
+// releaseFile is the entry of a CirroDesk part for one architecture, picked by part
 // AND architecture and by nothing else -- the same way the controller picks it
 // when it stages (apps/server-controller/classes/update.fromRelease). The web
 // interface has no machine code and is listed as arch "all" (store.File).
@@ -208,7 +208,7 @@ func releaseFile(r *store.Release, part, arch string) (store.File, bool) {
 }
 
 // available sets Available for an app: the newest version of the catalog of
-// the store the app was activated from, whose minNgc suits the node's NGC
+// the store the app was activated from, whose minCd suits the node's CirroDesk
 // version. A version that needs more than the app was granted marks the row
 // needsgrants instead of being offered. It returns the entry it chose, so the
 // checksum of a staged file comes out of that same signed source.
@@ -217,9 +217,9 @@ func (u *Updates) available(ctx context.Context, row *core.UpdateInfo, a dbapi.A
 	if err != nil {
 		return nil
 	}
-	ngc := ""
+	cd := ""
 	if h, _, ok := u.seenOf(a.Node); ok {
-		ngc = h.Version
+		cd = h.Version
 	}
 	var chosen *store.Package
 	for _, e := range c.Apps {
@@ -227,7 +227,7 @@ func (u *Updates) available(ctx context.Context, row *core.UpdateInfo, a dbapi.A
 			continue
 		}
 		for i, p := range e.Versions {
-			if !store.Newer(p.Version, a.Version) || !store.SupportsMinNGC(ngc, p.MinNGC) {
+			if !store.Newer(p.Version, a.Version) || !store.SupportsMinCD(cd, p.MinCD) {
 				continue
 			}
 			if !store.Granted(p.Needs, a.Grants) {
@@ -327,7 +327,7 @@ func (u *Updates) waiter() <-chan struct{} {
 func settingID(target string) string { return dbapi.SettingUpdate + target }
 
 // Setting returns the update policy of a target. store.ModeAuto is the default
-// and is what a target without a row has: NGC keeps itself up to date unless
+// and is what a target without a row has: CirroDesk keeps itself up to date unless
 // an admin says otherwise. A row that does not read is an error and not the
 // default, because the default in its place would quietly turn a "notify" back
 // into "auto".
@@ -349,7 +349,7 @@ func (u *Updates) Setting(ctx context.Context, target string) (core.UpdateSettin
 	return s, nil
 }
 
-// SetSetting writes the update policy of a target (ngc.store/set-update).
+// SetSetting writes the update policy of a target (cd.store/set-update).
 //
 // store.ModeAuto needs a standing approval for the target in the trust list
 // (store.Approved): auto means "install without asking anybody", and the trust
@@ -392,7 +392,7 @@ func (u *Updates) note(ctx context.Context, target, detail string) error {
 		return nil
 	}
 	app := ""
-	if !ngcPart(target) && target != trust.AutoSystem {
+	if !cdPart(target) && target != trust.AutoSystem {
 		app = target
 	}
 	err := u.Log.Note(ctx, core.LogUpdate, audit.UserSystem, app, "", detail)
@@ -403,7 +403,7 @@ func (u *Updates) note(ctx context.Context, target, detail string) error {
 }
 
 // approvalKey is the key a standing approval for target has to name: the
-// release key of this API for an NGC part, the key of the app's own store for
+// release key of this API for a CirroDesk part, the key of the app's own store for
 // an app, and none for the system packages (trust.Auto). An app whose row or
 // whose store this installation does not know has no key, and store.Approved
 // then says no.
@@ -411,7 +411,7 @@ func (u *Updates) approvalKey(ctx context.Context, l *trust.List, target string)
 	switch {
 	case target == trust.AutoSystem:
 		return nil, nil
-	case ngcPart(target):
+	case cdPart(target):
 		return u.S.Cfg.ReleaseKey, nil
 	}
 	a, err := u.S.DB.AppGet(ctx, target)
@@ -426,8 +426,8 @@ func (u *Updates) approvalKey(ctx context.Context, l *trust.List, target string)
 	return nil, nil
 }
 
-// ngcPart reports whether target is a part of NGC itself, which comes out of a
+// cdPart reports whether target is a part of CirroDesk itself, which comes out of a
 // signed release rather than out of a store's catalog.
-func ngcPart(target string) bool {
+func cdPart(target string) bool {
 	return target == trust.AutoWeb || target == trust.AutoAPI || target == trust.AutoController
 }

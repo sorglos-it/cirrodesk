@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // A pipe, a file and every reader of a test are no terminal. What a terminal
@@ -290,7 +290,7 @@ func TestParsePairRefusesTheOldFlag(t *testing.T) {
 	} {
 		in := strings.NewReader(code + "\n")
 		var prompt bytes.Buffer
-		opts, err := parsePair("/etc/ngc/controller.json", args, in, &prompt)
+		opts, err := parsePair("/etc/cd/controller.json", args, in, &prompt)
 		if !errors.Is(err, errCodeFlag) {
 			t.Errorf("%s: parsePair = %v, want the answer about the flag", name, err)
 		}
@@ -323,9 +323,9 @@ func TestMainTellsWhereTheCodeGoesNow(t *testing.T) {
 // and the two others carry the files it works in. The pairing code is not
 // among them: it goes over the standard input alone.
 const (
-	childEnv    = "NGC_TEST_PAIR_CHILD"
-	childConfig = "NGC_TEST_PAIR_CONFIG"
-	childAnchor = "NGC_TEST_PAIR_ANCHOR"
+	childEnv    = "CD_TEST_PAIR_CHILD"
+	childConfig = "CD_TEST_PAIR_CONFIG"
+	childAnchor = "CD_TEST_PAIR_ANCHOR"
 )
 
 // A real pairing in a real process, with the code on its standard input: the

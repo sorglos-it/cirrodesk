@@ -9,10 +9,10 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 // The version the staged update brings and what the app kept before it.
@@ -171,7 +171,7 @@ func TestUpdateRefusesBytesThatAreNotTheStagedOnes(t *testing.T) {
 }
 
 // TestUpdateRefusesAPackageThatSaysSomethingElse: the bytes may be the staged
-// ones and the manifest still name another app, another version or an NGC this
+// ones and the manifest still name another app, another version or a CirroDesk this
 // one is not.
 func TestUpdateRefusesAPackageThatSaysSomethingElse(t *testing.T) {
 	cases := []struct {
@@ -183,8 +183,8 @@ func TestUpdateRefusesAPackageThatSaysSomethingElse(t *testing.T) {
 			u.withManifest(func(m *store.Manifest) { m.Version = "2.0.0" })
 			u.in.Version = testNewVer
 		}},
-		{"an NGC this is not", func(u *upd) {
-			u.withManifest(func(m *store.Manifest) { m.MinNGC = "99.0.0" })
+		{"a CirroDesk this is not", func(u *upd) {
+			u.withManifest(func(m *store.Manifest) { m.MinCD = "99.0.0" })
 		}},
 	}
 	for _, c := range cases {
@@ -287,7 +287,7 @@ func TestUpdateWithServicesNeedsTheRoleServices(t *testing.T) {
 }
 
 // TestUpdateLeavesTheOldVersionInTheRowAtEveryStep holds the standard the
-// program swap of an NGC part was measured against
+// program swap of a CirroDesk part was measured against
 // (update.TestInstallKeepsOneWholeProgramAtEveryStep): a broken-off update
 // never counts as a finished one, and running it again sets the new version
 // up over whatever the broken one left.

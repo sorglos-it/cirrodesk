@@ -15,8 +15,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // stubbedSignerGlob matches every copy stubbedSigner can leave behind. It is in
@@ -160,7 +160,7 @@ func webFixture(t *testing.T, change func(files map[string]string)) string {
 		"public/assets/vendor/noble-hashes/argon2.js": "/**\n * import { x } from '@noble/hashes/sha2.js';\n */\nexport const h = 1;\n",
 		"public/assets/vendor/noble-hashes/LICENSE":   "MIT\n",
 		"public/assets/vendor/noble-hashes/SOURCE.md": "from npm\n",
-		"public/assets/ngc.js":                        "// the library the shell writes into an app\n",
+		"public/assets/cd.js":                         "// the library the shell writes into an app\n",
 		"assets/apps/calculator/index.html":           "<script src=\"app.js\"></script><link href=\"app.css\">\n",
 		"assets/apps/calculator/app.js":               "// calc\n",
 		"assets/apps/calculator/app.css":              "/* calc */\n",
@@ -252,45 +252,45 @@ func pack(t *testing.T, repo, ref, seq string) (string, string, error) {
 	// The guard has to name THIS repository, not the checkout: the script runs
 	// git inside repo.
 	env := append(gitEnv(t), "TZ=UTC", "LC_ALL=C",
-		"GIT_CONFIG_VALUE_0="+filepath.ToSlash(repo), "NGC_STORE="+filepath.ToSlash(ngcStore(t)))
+		"GIT_CONFIG_VALUE_0="+filepath.ToSlash(repo), "CD_STORE="+filepath.ToSlash(cdStore(t)))
 	cmd.Env = env
 	b, err := cmd.CombinedOutput()
 	return out, string(b), err
 }
 
-// ngcStore builds ngc-store from this checkout once for the package: every
-// case hands it to pack-release.sh as NGC_STORE, so a dozen parallel runs do
+// cdStore builds cd-store from this checkout once for the package: every
+// case hands it to pack-release.sh as CD_STORE, so a dozen parallel runs do
 // not build a dozen binaries. The script's own build path is measured by
-// TestPackBuildsItsOwnNgcStore.
+// TestPackBuildsItsOwnCdStore.
 var (
-	ngcStoreOnce sync.Once
-	ngcStorePath string
-	ngcStoreErr  error
+	cdStoreOnce sync.Once
+	cdStorePath string
+	cdStoreErr  error
 )
 
-func ngcStore(t *testing.T) string {
+func cdStore(t *testing.T) string {
 	t.Helper()
-	ngcStoreOnce.Do(func() {
-		dir, err := os.MkdirTemp("", "ngc-store-bin-")
+	cdStoreOnce.Do(func() {
+		dir, err := os.MkdirTemp("", "cd-store-bin-")
 		if err != nil {
-			ngcStoreErr = err
+			cdStoreErr = err
 			return
 		}
-		ngcStorePath = filepath.Join(dir, "ngc-store")
+		cdStorePath = filepath.Join(dir, "cd-store")
 		if runtime.GOOS == "windows" {
-			ngcStorePath += ".exe"
+			cdStorePath += ".exe"
 		}
-		cmd := exec.Command("go", "build", "-trimpath", "-o", ngcStorePath, "./apps/cli")
+		cmd := exec.Command("go", "build", "-trimpath", "-o", cdStorePath, "./apps/cli")
 		cmd.Dir = repoRoot(t)
 		cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
 		if b, err := cmd.CombinedOutput(); err != nil {
-			ngcStoreErr = fmt.Errorf("go build ngc-store: %v\n%s", err, b)
+			cdStoreErr = fmt.Errorf("go build cd-store: %v\n%s", err, b)
 		}
 	})
-	if ngcStoreErr != nil {
-		t.Fatal(ngcStoreErr)
+	if cdStoreErr != nil {
+		t.Fatal(cdStoreErr)
 	}
-	return ngcStorePath
+	return cdStorePath
 }
 
 // unpack extracts an archive so the graph can be walked over it, and returns
@@ -335,7 +335,7 @@ func TestArchiveIsClosed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	dir := unpack(t, filepath.Join(out, "ngc-web-all.tar"))
+	dir := unpack(t, filepath.Join(out, "cd-web-all.tar"))
 	got, err := Closure(dir, lines(t, "entrypoints-web.txt"))
 	if err != nil {
 		t.Fatalf("Closure: %v", err)
@@ -359,7 +359,7 @@ func TestArchiveCarriesTheFilesNoReferenceReaches(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	dir := unpack(t, filepath.Join(out, "ngc-web-all.tar"))
+	dir := unpack(t, filepath.Join(out, "cd-web-all.tar"))
 	for _, rel := range lines(t, "extra-web.txt") {
 		if _, err := os.Stat(filepath.Join(dir, filepath.FromSlash(rel))); err != nil {
 			t.Errorf("the archive does not carry %s", rel)
@@ -368,7 +368,7 @@ func TestArchiveCarriesTheFilesNoReferenceReaches(t *testing.T) {
 }
 
 // TestPackRefusesATreeWithoutTheEntryPoint: public/index.php is the one file
-// ngc-web.sh checks itself (line 619), so it must never leave the build.
+// cd-web.sh checks itself (line 619), so it must never leave the build.
 func TestPackRefusesATreeWithoutTheEntryPoint(t *testing.T) {
 	t.Parallel()
 	needTools(t)
@@ -390,7 +390,7 @@ func TestArchiveCarriesNoTests(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	b, err := tarCmd("-tf", filepath.Join(out, "ngc-web-all.tar")).Output()
+	b, err := tarCmd("-tf", filepath.Join(out, "cd-web-all.tar")).Output()
 	if err != nil {
 		t.Fatalf("tar -tf: %v", err)
 	}
@@ -424,7 +424,7 @@ func TestArchiveCarriesNoTestOnlyLink(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	b, err := tarCmd("-tf", filepath.Join(out, "ngc-web-all.tar")).Output()
+	b, err := tarCmd("-tf", filepath.Join(out, "cd-web-all.tar")).Output()
 	if err != nil {
 		t.Fatalf("tar -tf: %v", err)
 	}
@@ -444,7 +444,7 @@ func TestArchiveCarriesNoTestOnlyLink(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	b, err = tarCmd("-tf", filepath.Join(out, "ngc-web-all.tar")).Output()
+	b, err = tarCmd("-tf", filepath.Join(out, "cd-web-all.tar")).Output()
 	if err != nil {
 		t.Fatalf("tar -tf: %v", err)
 	}
@@ -468,7 +468,7 @@ func TestPackIsReproducible(t *testing.T) {
 		if err != nil {
 			t.Fatalf("pack-release.sh: %v\n%s", err, log)
 		}
-		b, err := os.ReadFile(filepath.Join(out, "ngc-web-all.tar"))
+		b, err := os.ReadFile(filepath.Join(out, "cd-web-all.tar"))
 		if err != nil {
 			t.Fatalf("read archive: %v", err)
 		}
@@ -491,7 +491,7 @@ func TestPackWritesLFWhateverTheCheckoutDoes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	b, err := tarCmd("-xOf", filepath.Join(out, "ngc-web-all.tar"), "ui/VERSION").Output()
+	b, err := tarCmd("-xOf", filepath.Join(out, "cd-web-all.tar"), "ui/VERSION").Output()
 	if err != nil {
 		t.Fatalf("tar -xOf ui/VERSION: %v", err)
 	}
@@ -554,14 +554,14 @@ func TestPackRefusesAVersionStoreWouldReject(t *testing.T) {
 // refuses every mode but 0644 for a file (shared/store/ui.go), so an -rwx
 // entry would make the release unusable instead of executable. apps/web has
 // no 100755 file at all (measured), so nothing is lost; the archives of
-// ngc-api and ngc-controller are packed by build-release.sh and keep their
+// cd-api and cd-controller are packed by build-release.sh and keep their
 // bits there. The fixture still makes an executable in the INDEX, so the case
 // falls if a packer ever takes the mode from git again.
 func TestArchiveWritesTheModeOfTheContract(t *testing.T) {
 	t.Parallel()
 	needTools(t)
 	repo := webFixture(t, func(f map[string]string) {
-		f["ngc-probe"] = "#!/bin/sh\nexit 0\n"
+		f["cd-probe"] = "#!/bin/sh\nexit 0\n"
 	})
 	git := func(args ...string) {
 		t.Helper()
@@ -571,14 +571,14 @@ func TestArchiveWritesTheModeOfTheContract(t *testing.T) {
 			t.Fatalf("git %v: %v\n%s", args, err, b)
 		}
 	}
-	git("update-index", "--chmod=+x", "apps/web/ngc-probe")
+	git("update-index", "--chmod=+x", "apps/web/cd-probe")
 	git("commit", "-q", "-m", "probe")
 
 	out, log, err := pack(t, repo, "main", "3")
 	if err != nil {
 		t.Fatalf("pack-release.sh: %v\n%s", err, log)
 	}
-	b, err := tarCmd("-tvf", filepath.Join(out, "ngc-web-all.tar")).Output()
+	b, err := tarCmd("-tvf", filepath.Join(out, "cd-web-all.tar")).Output()
 	if err != nil {
 		t.Fatalf("tar -tvf: %v", err)
 	}
@@ -591,12 +591,12 @@ func TestArchiveWritesTheModeOfTheContract(t *testing.T) {
 		if len(f) == 0 {
 			continue
 		}
-		if name := f[len(f)-1]; name == "ui/ngc-probe" {
+		if name := f[len(f)-1]; name == "ui/cd-probe" {
 			line = l
 		}
 	}
 	if line == "" {
-		t.Fatal("ngc-probe is not in the archive")
+		t.Fatal("cd-probe is not in the archive")
 	}
 	if !strings.HasPrefix(line, "-rw-r--r--") {
 		t.Errorf("the mode is not the 0644 store.WalkUI demands: %q", line)
@@ -638,10 +638,10 @@ func TestPayloadPassesVerifyRelease(t *testing.T) {
 		t.Errorf("issued is %d, not the commit date 1790000000", rel.Issued)
 	}
 	f := rel.Files[0]
-	if f.Part != store.ReleaseWeb || f.Arch != "all" || f.URL != "ngc-web-all.tar" {
+	if f.Part != store.ReleaseWeb || f.Arch != "all" || f.URL != "cd-web-all.tar" {
 		t.Errorf("entry wrong: %+v", f)
 	}
-	tarball, err := os.ReadFile(filepath.Join(out, "ngc-web-all.tar"))
+	tarball, err := os.ReadFile(filepath.Join(out, "cd-web-all.tar"))
 	if err != nil {
 		t.Fatalf("read archive: %v", err)
 	}
@@ -684,7 +684,7 @@ func TestSignScriptMakesAReleaseVerifyShAccepts(t *testing.T) {
 		t.Fatalf("VerifyRelease: %v", err)
 	}
 	vs := filepath.Join(repoRoot(t), "shared", "testdata", "release", "verify.sh")
-	b, err := exec.Command("sh", vs, out, "ngc-web", "all").CombinedOutput()
+	b, err := exec.Command("sh", vs, out, "cd-web", "all").CombinedOutput()
 	if err != nil {
 		t.Fatalf("verify.sh: %v\n%s", err, b)
 	}
@@ -858,7 +858,7 @@ func stubbedSigner(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("read sign-release.sh: %v", err)
 	}
-	const call = `sh "$verify" "$dir" ngc-web all >"$work/verify.out" 2>&1 || {`
+	const call = `sh "$verify" "$dir" cd-web all >"$work/verify.out" 2>&1 || {`
 	if !strings.Contains(string(b), call) {
 		t.Fatal("the self-check line of sign-release.sh was not found; this helper is stale")
 	}
@@ -999,11 +999,11 @@ func readPub(t *testing.T, path string) ed25519.PublicKey {
 	return ed25519.PublicKey(der[12:])
 }
 
-// TestPackBuildsItsOwnNgcStore. Every other case hands pack-release.sh a
-// prebuilt ngc-store; this one leaves NGC_STORE empty, so the script builds
+// TestPackBuildsItsOwnCdStore. Every other case hands pack-release.sh a
+// prebuilt cd-store; this one leaves CD_STORE empty, so the script builds
 // the tool from this checkout itself - and the archive must be the same bytes
 // as with the handed-over one, or the release depends on who built the tool.
-func TestPackBuildsItsOwnNgcStore(t *testing.T) {
+func TestPackBuildsItsOwnCdStore(t *testing.T) {
 	t.Parallel()
 	needTools(t)
 	repo := webFixture(t, nil)
@@ -1015,19 +1015,19 @@ func TestPackBuildsItsOwnNgcStore(t *testing.T) {
 	cmd := exec.Command("sh", filepath.Join(repoRoot(t), "tools", "pack-release.sh"), "main", "3", own)
 	cmd.Dir = repo
 	cmd.Env = append(gitEnv(t), "TZ=UTC", "LC_ALL=C",
-		"GIT_CONFIG_VALUE_0="+filepath.ToSlash(repo), "NGC_STORE=")
+		"GIT_CONFIG_VALUE_0="+filepath.ToSlash(repo), "CD_STORE=")
 	if b, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("pack-release.sh without NGC_STORE: %v\n%s", err, b)
+		t.Fatalf("pack-release.sh without CD_STORE: %v\n%s", err, b)
 	}
-	a, err := os.ReadFile(filepath.Join(handed, "ngc-web-all.tar"))
+	a, err := os.ReadFile(filepath.Join(handed, "cd-web-all.tar"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, err := os.ReadFile(filepath.Join(own, "ngc-web-all.tar"))
+	b, err := os.ReadFile(filepath.Join(own, "cd-web-all.tar"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if sha256.Sum256(a) != sha256.Sum256(b) {
-		t.Error("the archive differs between a handed-over and a self-built ngc-store")
+		t.Error("the archive differs between a handed-over and a self-built cd-store")
 	}
 }

@@ -19,11 +19,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -33,7 +33,7 @@ const issued = 1790000000
 var (
 	storeKey   = ed25519.NewKeyFromSeed(bytes.Repeat([]byte{0x71}, ed25519.SeedSize))
 	releaseKey = ed25519.NewKeyFromSeed(bytes.Repeat([]byte{0x72}, ed25519.SeedSize))
-	global     = trust.Store{ID: GlobalID, Name: "NGC Store", URL: "https://store.ngc.test", Key: enc.Bytes(storeKey.Public().(ed25519.PublicKey))}
+	global     = trust.Store{ID: GlobalID, Name: "CirroDesk Store", URL: "https://store.cd.test", Key: enc.Bytes(storeKey.Public().(ed25519.PublicKey))}
 	install, _ = trusttest.NodeKeys(0x91) // X25519 key pair of the installation
 )
 
@@ -55,13 +55,13 @@ func testCatalog() Catalog {
 	ui := bytes.Repeat([]byte{0x06}, 32)
 	return Catalog{Store: GlobalID, Seq: 5, Issued: issued, Apps: []Entry{
 		{ID: "org.sorglos.calculator", Name: "Rechner", Publisher: "Sorglos IT",
-			Versions: []Package{{Version: "1.0.0", URL: "org.sorglos.calculator-1.0.0.ngc", Size: 12345, SHA256: sum, UI: ui}}},
+			Versions: []Package{{Version: "1.0.0", URL: "org.sorglos.calculator-1.0.0.cd", Size: 12345, SHA256: sum, UI: ui}}},
 		{ID: "org.sorglos.terminal", Name: "Terminal", Publisher: "Sorglos IT",
-			Price: &Price{Model: PriceSubscription, Per: PerSite, Amount: 499, Currency: "EUR", Period: PeriodMonth, Shop: "https://store.ngc.test/buy/terminal"},
+			Price: &Price{Model: PriceSubscription, Per: PerSite, Amount: 499, Currency: "EUR", Period: PeriodMonth, Shop: "https://store.cd.test/buy/terminal"},
 			Versions: []Package{
-				{Version: "1.0.0", URL: "https://cdn.ngc.test/terminal-1.0.0.ngc", Size: 5000000, SHA256: sum, UI: ui, Encrypted: true},
+				{Version: "1.0.0", URL: "https://cdn.cd.test/terminal-1.0.0.cd", Size: 5000000, SHA256: sum, UI: ui, Encrypted: true},
 				// A store signs its download links, so a query must pass.
-				{Version: "1.1.0", URL: "https://cdn.ngc.test/terminal-1.1.0.ngc?token=a1b2c3&expires=1790003600",
+				{Version: "1.1.0", URL: "https://cdn.cd.test/terminal-1.1.0.cd?token=a1b2c3&expires=1790003600",
 					Size: 5100000, SHA256: sum, UI: ui, Encrypted: true},
 			}},
 	}}
@@ -85,7 +85,7 @@ func testLicense() License {
 func testRelease() Release {
 	sum := bytes.Repeat([]byte{0x05}, 32)
 	f := func(part, arch string) File {
-		return File{Part: part, Arch: arch, URL: "https://releases.ngc.test/1.1.0/" + part + "-" + arch + ".tar", Size: 1000, SHA256: sum}
+		return File{Part: part, Arch: arch, URL: "https://releases.cd.test/1.1.0/" + part + "-" + arch + ".tar", Size: 1000, SHA256: sum}
 	}
 	return Release{Seq: 3, Issued: issued, Version: "1.1.0", Notes: "Fehler behoben.", Files: []File{
 		f(ReleaseWeb, "all"), f(ReleaseAPI, "amd64"), f(ReleaseAPI, "arm64"), f(ReleaseController, "amd64"), f(ReleaseController, "arm64"),
@@ -125,9 +125,9 @@ func TestCatalogRejects(t *testing.T) {
 		"versions not rising": func(c *Catalog) { c.Apps[1].Versions[1].Version = "0.9.0" },
 		"short checksum":      func(c *Catalog) { c.Apps[0].Versions[0].SHA256 = []byte{1} },
 		"subscription period": func(c *Catalog) { c.Apps[1].Price.Period = "" },
-		"url with ..":         func(c *Catalog) { c.Apps[0].Versions[0].URL = "../secret.ngc" },
-		"plain http":          func(c *Catalog) { c.Apps[1].Versions[0].URL = "http://cdn.ngc.test/x.ngc" },
-		"core app":            func(c *Catalog) { c.Apps[0].ID = "ngc.calculator" },
+		"url with ..":         func(c *Catalog) { c.Apps[0].Versions[0].URL = "../secret.cd" },
+		"plain http":          func(c *Catalog) { c.Apps[1].Versions[0].URL = "http://cdn.cd.test/x.cd" },
+		"core app":            func(c *Catalog) { c.Apps[0].ID = "cd.calculator" },
 		"no versions":         func(c *Catalog) { c.Apps[0].Versions = nil },
 		"version without ui":  func(c *Catalog) { c.Apps[0].Versions[0].UI = nil },
 		"more versions than MaxCatalogVersions": func(c *Catalog) {
@@ -135,7 +135,7 @@ func TestCatalogRejects(t *testing.T) {
 			for i := range MaxCatalogVersions/MaxVersions + 1 {
 				e := Entry{ID: fmt.Sprintf("org.example.a%05d", i), Name: "App", Publisher: "P"}
 				for j := range MaxVersions {
-					e.Versions = append(e.Versions, Package{Version: fmt.Sprintf("1.0.%d", j), URL: "a.ngc", Size: 1,
+					e.Versions = append(e.Versions, Package{Version: fmt.Sprintf("1.0.%d", j), URL: "a.cd", Size: 1,
 						SHA256: make([]byte, 32), UI: make([]byte, 32)})
 				}
 				c.Apps = append(c.Apps, e)
@@ -323,7 +323,7 @@ func TestRelease(t *testing.T) {
 		"old part name web":        func(r *Release) { r.Files[0].Part = "web" },
 		"old part name api":        func(r *Release) { r.Files[1].Part = "api" },
 		"old part name controller": func(r *Release) { r.Files[3].Part = "controller" },
-		"component name db":        func(r *Release) { r.Files[1].Part = "ngc-db" },
+		"component name db":        func(r *Release) { r.Files[1].Part = "cd-db" },
 	} {
 		r := testRelease()
 		mutate(&r)
@@ -336,12 +336,12 @@ func TestRelease(t *testing.T) {
 // badUpdateReports are update reports ParseUpdateReport must refuse, one per
 // rule: TestUpdates checks them, FuzzParseUpdateReport seeds with them.
 var badUpdateReports = []string{
-	`{"target":"ngc-api","state":"exploded"}`,
-	`{"target":"ngc-api","state":"failed","message":null}`,
-	`{"target":"ngc-api","state":"failed","version":"1.1"}`,
-	`{"target":"ngc.store","state":"failed"}`,
-	`{"target":"ngc-api","state":"failed","message":"a\nb"}`,
-	`{"target":"ngc-api","state":"failed"} {}`,
+	`{"target":"cd-api","state":"exploded"}`,
+	`{"target":"cd-api","state":"failed","message":null}`,
+	`{"target":"cd-api","state":"failed","version":"1.1"}`,
+	`{"target":"cd.store","state":"failed"}`,
+	`{"target":"cd-api","state":"failed","message":"a\nb"}`,
+	`{"target":"cd-api","state":"failed"} {}`,
 }
 
 func TestUpdates(t *testing.T) {
@@ -350,7 +350,7 @@ func TestUpdates(t *testing.T) {
 			t.Errorf("%s rejected", target)
 		}
 	}
-	for _, target := range []string{"ngc-db", "ngc.store", ""} {
+	for _, target := range []string{"cd-db", "cd.store", ""} {
 		if ValidTarget(target) {
 			t.Errorf("%q accepted", target)
 		}
@@ -512,7 +512,7 @@ func TestCatalogDecodeCost(t *testing.T) {
 			return catalogShape(MaxCatalogVersions/MaxVersions, ``, MaxVersions, `{"url":"`+s+`","needs":["",""]}`)
 		})},
 		{"versions with every field", catalogShape(MaxCatalogVersions/MaxVersions, ``, MaxVersions,
-			`{"version":"","url":"","size":0,"sha256":"","ui":"","needs":["",""],"minNgc":""}`)},
+			`{"version":"","url":"","size":0,"sha256":"","ui":"","needs":["",""],"minCd":""}`)},
 	}
 	fixed := len(cases)
 	var list []Package
@@ -646,36 +646,36 @@ func catalogRejects(t testing.TB) []catalogReject {
 		// One past its own seq, which is no rollback (catalogLastSeq).
 		{Name: "older than the last one seen", Catalog: signJSON(t, storeKey, sign.PurposeCatalog, testCatalog()),
 			LastSeq: testCatalog().Seq + 1, want: ErrRollback},
-		{Name: "core app", Catalog: signed(func(c *Catalog) { c.Apps[0].ID = "ngc.calculator" }), want: ErrCatalog},
+		{Name: "core app", Catalog: signed(func(c *Catalog) { c.Apps[0].ID = "cd.calculator" }), want: ErrCatalog},
 		// Ascending as text, not as versions: 1.9.0 is older than 1.10.0.
 		{Name: "versions not ascending", Catalog: signed(func(c *Catalog) {
 			c.Apps[1].Versions[0].Version, c.Apps[1].Versions[1].Version = "1.10.0", "1.9.0"
 		}), want: ErrCatalog},
 		{Name: "version without ui", Catalog: withoutUI, want: ErrCatalog},
 		{Name: "ui of 31 bytes", Catalog: signed(func(c *Catalog) { c.Apps[0].Versions[0].UI = c.Apps[0].Versions[0].UI[:31] }), want: ErrCatalog},
-		{Name: "plain http url", Catalog: signed(func(c *Catalog) { c.Apps[1].Versions[0].URL = "http://cdn.ngc.test/terminal-1.0.0.ngc" }), want: ErrCatalog},
+		{Name: "plain http url", Catalog: signed(func(c *Catalog) { c.Apps[1].Versions[0].URL = "http://cdn.cd.test/terminal-1.0.0.cd" }), want: ErrCatalog},
 		// The address grammar (validHTTPSURL): the host as trust.ValidHost
 		// writes it, no user info, no fragment, nothing unprintable, at most
 		// 512 bytes. A JavaScript verifier that keeps the old loose rule
 		// passes every other case in this file and fails these.
 		{Name: "url with an upper-case host", Catalog: signed(func(c *Catalog) {
-			c.Apps[1].Versions[0].URL = "https://CDN.ngc.test/terminal-1.0.0.ngc"
+			c.Apps[1].Versions[0].URL = "https://CDN.cd.test/terminal-1.0.0.cd"
 		}), want: ErrCatalog},
 		{Name: "url with user info", Catalog: signed(func(c *Catalog) {
-			c.Apps[1].Versions[0].URL = "https://user@cdn.ngc.test/terminal-1.0.0.ngc"
+			c.Apps[1].Versions[0].URL = "https://user@cdn.cd.test/terminal-1.0.0.cd"
 		}), want: ErrCatalog},
 		{Name: "url with a fragment", Catalog: signed(func(c *Catalog) {
-			c.Apps[1].Versions[0].URL = "https://cdn.ngc.test/terminal-1.0.0.ngc#top"
+			c.Apps[1].Versions[0].URL = "https://cdn.cd.test/terminal-1.0.0.cd#top"
 		}), want: ErrCatalog},
 		{Name: "url with a control character", Catalog: signed(func(c *Catalog) {
-			c.Apps[1].Versions[0].URL = "https://cdn.ngc.test/terminal\x07-1.0.0.ngc"
+			c.Apps[1].Versions[0].URL = "https://cdn.cd.test/terminal\x07-1.0.0.cd"
 		}), want: ErrCatalog},
 		// An internationalised name belongs in a catalog as punycode.
 		{Name: "url with a host that is no punycode", Catalog: signed(func(c *Catalog) {
-			c.Apps[1].Versions[0].URL = "https://m\xc3\xbcnchen.example/terminal-1.0.0.ngc"
+			c.Apps[1].Versions[0].URL = "https://m\xc3\xbcnchen.example/terminal-1.0.0.cd"
 		}), want: ErrCatalog},
 		{Name: "url of 513 bytes", Catalog: signed(func(c *Catalog) {
-			c.Apps[1].Versions[0].URL = "https://cdn.ngc.test/" + strings.Repeat("a", 513-len("https://cdn.ngc.test/"))
+			c.Apps[1].Versions[0].URL = "https://cdn.cd.test/" + strings.Repeat("a", 513-len("https://cdn.cd.test/"))
 		}), want: ErrCatalog},
 		{Name: "encrypted without a price", Catalog: signed(func(c *Catalog) { c.Apps[0].Versions[0].Encrypted = true }), want: ErrCatalog},
 	}
@@ -741,9 +741,9 @@ func releaseRejects(t testing.TB) []releaseReject {
 			signer: signer{purpose: sign.PurposeCatalog}},
 		{Name: "old part name web", Release: signed(func(r *Release) { r.Files[0].Part = "web" }), want: ErrRelease},
 		// A second file, not the same one twice.
-		{Name: "two files for ngc-api amd64", Release: signed(func(r *Release) {
+		{Name: "two files for cd-api amd64", Release: signed(func(r *Release) {
 			twin := r.Files[1]
-			twin.URL, twin.SHA256 = "https://releases.ngc.test/1.1.0/ngc-api-amd64-b.tar", bytes.Repeat([]byte{0x07}, 32)
+			twin.URL, twin.SHA256 = "https://releases.cd.test/1.1.0/cd-api-amd64-b.tar", bytes.Repeat([]byte{0x07}, 32)
 			r.Files = slices.Insert(r.Files, 2, twin)
 		}), want: ErrRelease},
 		// One past its own seq, which is no rollback (releaseLastSeq).
@@ -879,7 +879,7 @@ func TestVectors(t *testing.T) {
 }
 
 // releaseFile is the one file of the release vector for install scripts.
-var releaseFile = []byte("NGC web test file\n")
+var releaseFile = []byte("CD web test file.\n")
 
 // TestReleaseScriptVector writes what verify.sh, the reference for the ulh
 // scripts, checks: the release key as PEM, the file and the signed release,
@@ -892,7 +892,7 @@ func TestReleaseScriptVector(t *testing.T) {
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
 	sum := sha256.Sum256(releaseFile)
 	env := signJSON(t, releaseKey, sign.PurposeRelease, Release{Seq: 3, Issued: issued, Version: "1.1.0",
-		Files: []File{{Part: ReleaseWeb, Arch: "all", URL: "ngc-web-all.tar", Size: int64(len(releaseFile)), SHA256: sum[:]}}})
+		Files: []File{{Part: ReleaseWeb, Arch: "all", URL: "cd-web-all.tar", Size: int64(len(releaseFile)), SHA256: sum[:]}}})
 	release, err := json.Marshal(env)
 	if err != nil {
 		t.Fatal(err)
@@ -927,7 +927,7 @@ func TestReleaseScriptVector(t *testing.T) {
 	}
 
 	golden.CheckBytes(t, *update, "release/release-key.pem", keyPEM)
-	golden.CheckBytes(t, *update, "release/ngc-web-all.tar", releaseFile)
+	golden.CheckBytes(t, *update, "release/cd-web-all.tar", releaseFile)
 	golden.CheckBytes(t, *update, "release/release.json", release)
 }
 
@@ -943,7 +943,7 @@ func TestReleaseScript(t *testing.T) {
 		}
 	}
 	vector := map[string][]byte{}
-	for _, name := range []string{"release.json", "release-key.pem", "ngc-web-all.tar", "verify.sh"} {
+	for _, name := range []string{"release.json", "release-key.pem", "cd-web-all.tar", "verify.sh"} {
 		b, err := os.ReadFile(filepath.Join(golden.Dir, "release", name))
 		if err != nil {
 			t.Fatal(err)
@@ -955,10 +955,10 @@ func TestReleaseScript(t *testing.T) {
 		t.Fatal(err)
 	}
 	checksum := func(b []byte) enc.Bytes { s := sha256.Sum256(b); return s[:] }
-	api := []byte("NGC api test file\n")
-	web := File{Part: ReleaseWeb, Arch: "all", URL: "ngc-web-all.tar", Size: int64(len(releaseFile)), SHA256: checksum(releaseFile)}
-	apiAMD := File{Part: ReleaseAPI, Arch: "amd64", URL: "https://example.org/1.1.0/ngc-api-amd64.tar", Size: int64(len(api)), SHA256: checksum(api)}
-	apiARM := File{Part: ReleaseAPI, Arch: "arm64", URL: "https://example.org/1.1.0/ngc-api-arm64.tar", Size: 1, SHA256: checksum([]byte("x"))}
+	api := []byte("CirroDesk api test file\n")
+	web := File{Part: ReleaseWeb, Arch: "all", URL: "cd-web-all.tar", Size: int64(len(releaseFile)), SHA256: checksum(releaseFile)}
+	apiAMD := File{Part: ReleaseAPI, Arch: "amd64", URL: "https://example.org/1.1.0/cd-api-amd64.tar", Size: int64(len(api)), SHA256: checksum(api)}
+	apiARM := File{Part: ReleaseAPI, Arch: "arm64", URL: "https://example.org/1.1.0/cd-api-arm64.tar", Size: 1, SHA256: checksum([]byte("x"))}
 	webAt := func(url string) File { f := web; f.URL = url; return f }
 	payload := func(files ...File) []byte {
 		b, err := json.Marshal(Release{Seq: 3, Issued: issued, Version: "1.1.0", Files: files})
@@ -992,7 +992,7 @@ func TestReleaseScript(t *testing.T) {
 		}
 		return d
 	}
-	webOnly := map[string][]byte{"ngc-web-all.tar": releaseFile}
+	webOnly := map[string][]byte{"cd-web-all.tar": releaseFile}
 	otherKey := func() []byte {
 		der, err := x509.MarshalPKIXPublicKey(storeKey.Public())
 		if err != nil {
@@ -1015,15 +1015,15 @@ func TestReleaseScript(t *testing.T) {
 		why   string // what verify.sh says of a release it refuses; "" if it passes
 	}{
 		{"release vector", map[string][]byte{"release.json": vector["release.json"], "release-key.pem": vector["release-key.pem"],
-			"ngc-web-all.tar": vector["ngc-web-all.tar"]}, webArgs, ""},
-		{"url of https", dir(release(payload(webAt("https://example.org/1.1.0/ngc-web-all.tar")), nil), webOnly), webArgs, ""},
-		{"url with a directory", dir(release(payload(webAt("sub/ngc-web-all.tar")), nil), webOnly), webArgs, ""},
-		{"files of other parts missing", dir(release(payload(web, apiAMD, apiARM), nil), map[string][]byte{"ngc-api-amd64.tar": api}),
+			"cd-web-all.tar": vector["cd-web-all.tar"]}, webArgs, ""},
+		{"url of https", dir(release(payload(webAt("https://example.org/1.1.0/cd-web-all.tar")), nil), webOnly), webArgs, ""},
+		{"url with a directory", dir(release(payload(webAt("sub/cd-web-all.tar")), nil), webOnly), webArgs, ""},
+		{"files of other parts missing", dir(release(payload(web, apiAMD, apiARM), nil), map[string][]byte{"cd-api-amd64.tar": api}),
 			[]string{ReleaseAPI, "amd64"}, ""},
-		{"file of another part changed", dir(release(payload(web, apiAMD), nil), map[string][]byte{"ngc-web-all.tar": releaseFile,
-			"ngc-api-amd64.tar": []byte("changed")}), webArgs, ""},
-		{"files not listed", dir(release(payload(web), nil), map[string][]byte{"ngc-web-all.tar": releaseFile, "evil.sh": []byte("rm -rf /"),
-			"payload.json": []byte("{}"), "sub/ngc-web-all.tar": []byte("other")}), webArgs, ""},
+		{"file of another part changed", dir(release(payload(web, apiAMD), nil), map[string][]byte{"cd-web-all.tar": releaseFile,
+			"cd-api-amd64.tar": []byte("changed")}), webArgs, ""},
+		{"files not listed", dir(release(payload(web), nil), map[string][]byte{"cd-web-all.tar": releaseFile, "evil.sh": []byte("rm -rf /"),
+			"payload.json": []byte("{}"), "sub/cd-web-all.tar": []byte("other")}), webArgs, ""},
 		{"file named like a work file", dir(release(payload(webAt("payload.json")), nil), map[string][]byte{"payload.json": releaseFile}), webArgs, ""},
 
 		{"tampered payload", dir(release(payload(web), func(m map[string]string) {
@@ -1044,12 +1044,12 @@ func TestReleaseScript(t *testing.T) {
 		{"signature ending in a newline", dir(release(payload(web), func(m map[string]string) { m["sig"] += "\n" }), webOnly), webArgs, "signature not base64url"},
 		{"payload with a NUL byte", dir(release(payload(web), func(m map[string]string) { m["payload"] += "\x00" }), webOnly), webArgs, "payload not base64url"},
 		{"no payload", dir(release(payload(web), func(m map[string]string) { delete(m, "payload") }), webOnly), webArgs, "no payload"},
-		{"wrong hash", dir(release(payload(web), nil), map[string][]byte{"ngc-web-all.tar": []byte("NGC web test filE\n")}), webArgs, "checksum wrong"},
-		{"bytes appended", dir(release(payload(web), nil), map[string][]byte{"ngc-web-all.tar": append(slices.Clone(releaseFile), 'x')}), webArgs, "checksum wrong"},
+		{"wrong hash", dir(release(payload(web), nil), map[string][]byte{"cd-web-all.tar": []byte("CirroDesk web test filE\n")}), webArgs, "checksum wrong"},
+		{"bytes appended", dir(release(payload(web), nil), map[string][]byte{"cd-web-all.tar": append(slices.Clone(releaseFile), 'x')}), webArgs, "checksum wrong"},
 		{"wrong size", dir(release(payload(func() File { f := web; f.Size++; return f }()), nil), webOnly), webArgs, "size wrong"},
 		{"missing file", dir(release(payload(web), nil), nil), webArgs, "file missing"},
-		{"file only in the url's directory", dir(release(payload(webAt("sub/ngc-web-all.tar")), nil),
-			map[string][]byte{"sub/ngc-web-all.tar": releaseFile}), webArgs, "file missing"},
+		{"file only in the url's directory", dir(release(payload(webAt("sub/cd-web-all.tar")), nil),
+			map[string][]byte{"sub/cd-web-all.tar": releaseFile}), webArgs, "file missing"},
 		{"files null", dir(release(payload(), nil), webOnly), webArgs, "no single valid entry"},
 		{"files empty", dir(release(payload([]File{}...), nil), webOnly), webArgs, "no single valid entry"},
 		{"part not listed", dir(release(payload(web), nil), webOnly), []string{ReleaseController, "amd64"}, "no single valid entry"},

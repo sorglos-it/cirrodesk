@@ -2,7 +2,7 @@
 # Builds an own CA and a server certificate for a TEST store.
 #
 # This belongs to no release. It builds a *test* store, the thing an API can
-# really fetch from while nobody has an official NGC store yet (the store key
+# really fetch from while nobody has an official CirroDesk store yet (the store key
 # in the installer is still a placeholder, points 56 and 57).
 #
 # Rescued on 24.10.2026 off the first single machine, where it lived in a home
@@ -13,7 +13,7 @@
 #
 #   sh tools/pruefladen-tls.sh [name] [output-dir]
 #
-#   name        DNS name of the store, default store.ngc.test. ".test" is
+#   name        DNS name of the store, default store.cd.test. ".test" is
 #               reserved for exactly this (RFC 2606), so it can never collide
 #               with a real domain.
 #   output-dir  where the keys and certificates land, default ./pruefladen-tls
@@ -23,7 +23,7 @@
 # measurement of the CA, not of the API.
 set -e
 
-NAME="${1:-store.ngc.test}"
+NAME="${1:-store.cd.test}"
 D="${2:-./pruefladen-tls}"
 
 case "$NAME" in
@@ -44,7 +44,7 @@ umask 077
 
 openssl req -x509 -newkey rsa:3072 -sha256 -days 365 -nodes \
   -keyout ca.key -out ca.crt \
-  -subj "/CN=NGC Test Store CA" \
+  -subj "/CN=CirroDesk Test Store CA" \
   -addext "basicConstraints=critical,CA:TRUE,pathlen:0" \
   -addext "keyUsage=critical,keyCertSign,cRLSign"
 

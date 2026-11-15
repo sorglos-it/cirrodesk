@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 // controllerWithADatabase writes a controller.json whose database really
@@ -42,7 +42,7 @@ func controllerWithADatabase(t *testing.T) (cfgPath, dbPath string) {
 		t.Fatalf("the case did not set up what it measures: %v", err)
 	}
 	cfg := config.DB{Driver: config.DriverSQLite, Path: dbPath, Key: c.DBKey}
-	st, err := state.Open(cfg, "ngc-controller/test", 1_790_000_000)
+	st, err := state.Open(cfg, "cd-controller/test", 1_790_000_000)
 	if err != nil {
 		t.Fatalf("the case did not set up what it measures: %v", err)
 	}

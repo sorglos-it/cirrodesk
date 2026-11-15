@@ -76,7 +76,7 @@ async function capabilities(shell) {
       out.set(raw, prefix.length);
       return out;
     };
-    const message = new TextEncoder().encode("ngc: capability probe");
+    const message = new TextEncoder().encode("cd: capability probe");
     const uses = (curve) => (curve === "Ed25519" ? ["sign", "verify"] : ["deriveBits"]);
 
     // One cell. It answers "" when the call went through and the name of the
@@ -377,8 +377,8 @@ test("die Fähigkeiten dieser Engine, Zelle für Zelle", async ({ shell }, info)
 // beforeEach: since task 17b the shell takes the REAL session, and the mock
 // API answers five actions where a desktop needs two dozen. Without it a
 // login fails in the ENGINE THAT CAN DO EVERYTHING - measured, first run of
-// this file: chromium reached "NGC konnte nicht geladen werden." and that was
-// my fixture, not NGC. It is named here and in every line this file prints,
+// this file: chromium reached "CirroDesk konnte nicht geladen werden." and that was
+// my fixture, not CirroDesk. It is named here and in every line this file prints,
 // because a figure from a run with a stand-in is a figure about a stand-in.
 test.beforeEach(async ({ shell }) => {
   await standInOn(shell);
@@ -418,7 +418,7 @@ test("kommt eine Anmeldung durch - Passwort und Passkey getrennt", async ({ shel
 
   // THE CONTROL, and its absence is what made the first run of this file
   // worthless. An engine whose three gates all answer true can do everything
-  // NGC asks of a browser, so it MUST reach a desktop. If it does not, the
+  // CirroDesk asks of a browser, so it MUST reach a desktop. If it does not, the
   // fixture is broken - and then the other two engines were read against
   // nothing, which is how "firefox cannot log in" would get written down about
   // a mistake of mine. Same discipline as the AES-GCM control in part A, one
@@ -600,7 +600,7 @@ test("traegt der Passkey-Weg ohne die CFRG-Kurven (Weg 1c)", async ({ shell }, i
   console.log(`WEG1C ${e} | newSessionKeys() ohne CFRG | ${JSON.stringify(session)}`);
 
   // Two separate findings, and they must not be rolled into one sentence: what
-  // the GATE does, and what the SESSION can do. The gate is a decision NGC
+  // the GATE does, and what the SESSION can do. The gate is a decision CirroDesk
   // makes and could change; the session is what the curves are actually needed
   // for, and no gate changes that.
   console.log(`WEG1C ${e} | ERGEBNIS Tor | ${gates1.browserFits === false

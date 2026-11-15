@@ -1,5 +1,5 @@
 // Package uitar: a ui-tar is how the API keeps an app's UI and sends it to
-// the shell (ngc.desktop/ui). There is exactly one form, the one
+// the shell (cd.desktop/ui). There is exactly one form, the one
 // shared/store/ui.go writes; everything else is refused, so the browser and Go
 // see exactly the same files (Go: store.WalkUI and store.UIWriter, vectors:
 // ui.json).
@@ -268,7 +268,7 @@ function uiHeader(flag, name, size) {
 // walkUI as it goes and refuses an entry that breaks one; after any refusal it
 // refuses everything, because half an archive may not go on to look like a
 // whole one. The shell needs it to compute the UI hash of a package an admin
-// uploads, the same way ngc-store, the API and the controller compute it.
+// uploads, the same way cd-store, the API and the controller compute it.
 //
 // Every method takes a hash as its last argument, and it is optional. Left out,
 // nothing changes: the archive comes back at close and whoever wants its

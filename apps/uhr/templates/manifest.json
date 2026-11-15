@@ -9,7 +9,7 @@
     { "name": "zeit", "title": "Die Uhrzeit des Servers lesen", "service": "uhr" }
   ],
   "services": [
-    { "name": "uhr", "command": ["/usr/lib/ngc/ngc-uhr"] }
+    { "name": "uhr", "command": ["/usr/lib/cd/cd-uhr"] }
   ],
   "runtime": "podman",
   "cpu": 1000,

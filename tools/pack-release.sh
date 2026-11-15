@@ -1,5 +1,5 @@
 #!/bin/sh
-# pack-release.sh - builds the release archive of the NGC web interface.
+# pack-release.sh - builds the release archive of the CirroDesk web interface.
 #
 # Usage: pack-release.sh <ref> <seq> [outdir]
 #   <ref>    a git ref or commit holding apps/web. For a PUBLISHED release this
@@ -7,14 +7,14 @@
 #            different thing tomorrow (web went 62d618e -> fe5a0e4 inside one
 #            day while this was written).
 #   <seq>    the number of this release, a positive integer (store.Release.Seq).
-#            ngc-web.sh refuses a release whose seq is below the installed one
-#            in /var/lib/ngc/release.seq, and the same seq may come again to
+#            cd-web.sh refuses a release whose seq is below the installed one
+#            in /var/lib/cd/release.seq, and the same seq may come again to
 #            repair an installation (shared/ulh.md).
 #   [outdir] where to write; default dist/release/<version>/ (dist/ is ignored)
 #
 # It writes two files and nothing else:
-#   ngc-web-all.tar        the tree of apps/web without tests/, under ui/, as a
-#                          UI tar (store.WalkUI), written by "ngc-store web"
+#   cd-web-all.tar        the tree of apps/web without tests/, under ui/, as a
+#                          UI tar (store.WalkUI), written by "cd-store web"
 #   release.payload.json   the UNSIGNED payload of a store.Release
 #
 # IT HOLDS NO KEY AND SIGNS NOTHING. Signing is a separate, human step on the
@@ -26,7 +26,7 @@
 # tools/release/closure.go follows the references of the four entrypoints and
 # names what is missing; it runs in go test, hence in tools/check.sh, hence
 # before every commit. This script checks the SHAPE: the one entry point
-# ngc-web.sh looks for, no tests/, no path leading out, nothing but files and
+# cd-web.sh looks for, no tests/, no path leading out, nothing but files and
 # folders. The line at the end says so, because a builder who skips the tests
 # should at least be told.
 #
@@ -176,15 +176,15 @@ case $stamp in
 esac
 
 # WHY git archive IS NOT THE RELEASE FILE ANY MORE (S7, decided 15.11.2026).
-# The controller unpacks a ngc-web file with store.WalkUI, and WalkUI knows one
+# The controller unpacks a cd-web file with store.WalkUI, and WalkUI knows one
 # tar dialect: names under ui/, mode 0644, mtime 0 (shared/store/ui.go). git
 # archive writes none of the three - measured in tools/release/webtar_test.go.
 # So git archive still CHOOSES THE BYTES (the commit, not the working tree, LF
-# whatever the checkout does) and is unpacked into $work/web; "ngc-store web"
+# whatever the checkout does) and is unpacked into $work/web; "cd-store web"
 # then WRITES the archive through store.UIWriter, sorted, with fixed headers.
 # Reproducible, because neither step reads a clock or the order of a file system.
 #
-# ngc-store comes from the caller (NGC_STORE; build-release.sh hands its own
+# cd-store comes from the caller (CD_STORE; build-release.sh hands its own
 # over) or is built here from this checkout. -trimpath keeps the paths of the
 # builder out of the binary; the binary is a tool and never travels.
 mkdir -p -- "$work/web" || die "cannot create $work/web"
@@ -194,40 +194,40 @@ git -c core.autocrlf=false archive --format=tar --mtime="@$stamp" \
 	die "git archive failed"
 (cd -- "$work" && tar -xf web.tar -C web) || die "the git archive cannot be unpacked"
 
-ngc_store=${NGC_STORE:-}
-if [ -z "$ngc_store" ]; then
-	command -v go >/dev/null 2>&1 || die "go is missing; build ngc-store or hand it over as NGC_STORE"
-	ngc_store=$work/ngc-store
+cd_store=${CD_STORE:-}
+if [ -z "$cd_store" ]; then
+	command -v go >/dev/null 2>&1 || die "go is missing; build cd-store or hand it over as CD_STORE"
+	cd_store=$work/cd-store
 	# A relative -o, then mv: go is a native tool on Windows, and with the MSYS
 	# rewriting off it would take "/tmp/..." literally (measured,
 	# TestPackAndSignSurviveArgumentConversionOff). The name is this run's own.
-	built=.ngc-store-build.$$
+	built=.cd-store-build.$$
 	trap 'rm -rf -- "$work"; rm -f -- "$self/../$built"' EXIT
 	(cd -- "$self/.." && CGO_ENABLED=0 go build -trimpath -o "$built" ./apps/cli) ||
-		die "ngc-store could not be built"
-	mv -f -- "$self/../$built" "$ngc_store" || die "ngc-store could not be moved into the work folder"
+		die "cd-store could not be built"
+	mv -f -- "$self/../$built" "$cd_store" || die "cd-store could not be moved into the work folder"
 fi
 # Bare names inside $work, for the reason given at openssl below: a native
-# Windows ngc-store never sees an MSYS path.
-(cd -- "$work" && "$ngc_store" web web ngc-web-all.tar >/dev/null) ||
-	die "ngc-store web refuses the tree of $ref"
+# Windows cd-store never sees an MSYS path.
+(cd -- "$work" && "$cd_store" web web cd-web-all.tar >/dev/null) ||
+	die "cd-store web refuses the tree of $ref"
 
-tar -tf "$work/ngc-web-all.tar" >"$work/entries" || die "the archive cannot be read"
+tar -tf "$work/cd-web-all.tar" >"$work/entries" || die "the archive cannot be read"
 tr -d '\r' <"$work/entries" >"$work/entries.lf"
 
-# The one file ngc-web.sh checks itself (line 619). Everything else is the
+# The one file cd-web.sh checks itself (line 619). Everything else is the
 # graph's business, not this script's.
 grep -qxF -- 'ui/public/index.php' "$work/entries.lf" ||
-	die "ui/public/index.php is not in the archive; ngc-web.sh refuses such a release (line 619)"
+	die "ui/public/index.php is not in the archive; cd-web.sh refuses such a release (line 619)"
 
 grep -q '^ui/tests/' "$work/entries.lf" && die "the archive carries files below ui/tests/"
 grep -qv '^ui/' "$work/entries.lf" && die "the archive carries a name outside ui/"
 
-# The release check of ngc-store as well: ui/VERSION, the WalkUI form, the two
-# files ngc-web.sh reads. Only the archive is judged; web/ is no release file.
-(cd -- "$work" && "$ngc_store" contents . >/dev/null) || die "ngc-store contents refuses the archive"
+# The release check of cd-store as well: ui/VERSION, the WalkUI form, the two
+# files cd-web.sh reads. Only the archive is judged; web/ is no release file.
+(cd -- "$work" && "$cd_store" contents . >/dev/null) || die "cd-store contents refuses the archive"
 
-# Safe unpacking of NGC (shared/README.md), said here as well as in ngc-web.sh:
+# Safe unpacking of CirroDesk (shared/README.md), said here as well as in cd-web.sh:
 # a path that leads out, or anything that is not a file or a folder, must not be
 # built in the first place.
 while IFS= read -r entry; do
@@ -235,11 +235,11 @@ while IFS= read -r entry; do
 	/* | .. | ../* | */../* | */..) die "the archive holds a path that leads out: $entry" ;;
 	esac
 done <"$work/entries.lf"
-if tar -tvf "$work/ngc-web-all.tar" | tr -d '\r' | grep -qv '^[-d]'; then
+if tar -tvf "$work/cd-web-all.tar" | tr -d '\r' | grep -qv '^[-d]'; then
 	die "the archive holds links or device files"
 fi
 
-size=$(wc -c <"$work/ngc-web-all.tar" | tr -d ' ')
+size=$(wc -c <"$work/cd-web-all.tar" | tr -d ' ')
 # The checksum as BYTES, base64url without padding, the way enc.Bytes reads it.
 # Not through hex and back: that is one more place to get an escape wrong, and
 # this has to match a sha256sum on the server exactly.
@@ -250,14 +250,14 @@ size=$(wc -c <"$work/ngc-web-all.tar" | tr -d ' ')
 # that rewriting off, and docs/STAND.md tells everybody to export them,
 # because a worktree outside the repository needs them for git:
 #   MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
-# With them set openssl got the string "/tmp/tmp.XXXX/ngc-web-all.tar" and
+# With them set openssl got the string "/tmp/tmp.XXXX/cd-web-all.tar" and
 # answered "No such file or directory" for a file that was measurably there
 # (probe right before the call: 40960 bytes, same path) - and all eleven cases
 # of tools/release went red, which read like a bug in the packer. A bare name
 # in the right directory needs no rewriting, so it holds either way, and on
 # Linux it changes nothing. The same reasoning applies to every other native
 # tool: give it a name, not a path, and go to the directory.
-(cd -- "$work" && openssl dgst -sha256 -binary -- ngc-web-all.tar) >"$work/sum.bin" ||
+(cd -- "$work" && openssl dgst -sha256 -binary -- cd-web-all.tar) >"$work/sum.bin" ||
 	die "the checksum could not be built"
 [ "$(wc -c <"$work/sum.bin" | tr -d ' ')" = 32 ] || die "the checksum is not 32 bytes"
 sha=$(base64 -w0 <"$work/sum.bin" | tr '+/' '-_' | tr -d '=')
@@ -265,23 +265,23 @@ sha=$(base64 -w0 <"$work/sum.bin" | tr '+/' '-_' | tr -d '=')
 # Two tools, one answer, or the release is not built: sha256sum is what verify.sh
 # runs on the server.
 want=$(od -An -tx1 <"$work/sum.bin" | tr -d ' \n')
-got=$(sha256sum -- "$work/ngc-web-all.tar" | cut -d' ' -f1)
+got=$(sha256sum -- "$work/cd-web-all.tar" | cut -d' ' -f1)
 [ "$want" = "$got" ] || die "openssl and sha256sum disagree about the archive"
 
 # store.Release, and only the members the contract names: no "notes", because an
 # empty member must be absent entirely (strict JSON, shared/README.md).
-printf '{"seq":%s,"issued":%s,"version":"%s","files":[{"part":"ngc-web","arch":"all","url":"ngc-web-all.tar","size":%s,"sha256":"%s"}]}' \
+printf '{"seq":%s,"issued":%s,"version":"%s","files":[{"part":"cd-web","arch":"all","url":"cd-web-all.tar","size":%s,"sha256":"%s"}]}' \
 	"$seq" "$stamp" "$version" "$size" "$sha" >"$work/release.payload.json"
 
-cp -f -- "$work/ngc-web-all.tar" "$out/ngc-web-all.tar"
+cp -f -- "$work/cd-web-all.tar" "$out/cd-web-all.tar"
 cp -f -- "$work/release.payload.json" "$out/release.payload.json"
 
-echo "ngc-web $version, release $seq, from commit $commit"
+echo "cd-web $version, release $seq, from commit $commit"
 case $ref in
 "$commit") ;;
 *) echo "  NOTE: $ref is a name, and a name moves. Publish from a tag." ;;
 esac
-echo "  $out/ngc-web-all.tar          $size bytes"
+echo "  $out/cd-web-all.tar          $size bytes"
 echo "  $out/release.payload.json     not signed yet"
 echo "Completeness is NOT checked here. Run it:"
 echo "  go test ./tools/release/"

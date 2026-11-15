@@ -15,23 +15,23 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The installation and the clock every case below starts from.
 const (
 	testInstall = "AAAAAAAAAAAAAAAAAAAAAA" // trust.ValidID: 16 bytes, base64url
 	testNow     = int64(1790000000)
-	testImage   = "ngc/notes:1.0.0"
+	testImage   = "cd/notes:1.0.0"
 )
 
 // imageTar is an image tar as podman writes one: one manifest member that
@@ -47,7 +47,7 @@ func imageTar(t testing.TB, ref string) []byte {
 }
 
 // appEntries is a package of the manifest m with a real image tar for every
-// architecture NGC is built for, so the case runs on the machine it is written
+// architecture CirroDesk is built for, so the case runs on the machine it is written
 // on and on an arm64 server alike. pad bytes of a UI file are added where a
 // case needs a package of a given size (space_test.go).
 func appEntries(t testing.TB, m *store.Manifest, pad int) []entry {
@@ -195,7 +195,7 @@ func (s *sys) EnsureRun(_ context.Context, u runtime.User) (string, error) {
 	if err := s.did("EnsureRun"); err != nil {
 		return "", err
 	}
-	return "/run/ngc/" + u.Name, nil
+	return "/run/cd/" + u.Name, nil
 }
 func (s *sys) DropRun(_ string) error { return s.did("DropRun") }
 
@@ -288,8 +288,8 @@ func newStand(t *testing.T) *stand {
 	t.Helper()
 	mf := appManifest(testApp, testVer, "")
 	s := &stand{t: t, mf: mf, eng: &engine{}, apps: newApps(), storeID: testStore,
-		sys: &sys{user: runtime.User{Name: "ngc-notes-0123abcd", UID: 4711, GID: 4712},
-			data: "/var/lib/ngc/apps/" + testApp}}
+		sys: &sys{user: runtime.User{Name: "cd-notes-0123abcd", UID: 4711, GID: 4712},
+			data: "/var/lib/cd/apps/" + testApp}}
 	s.f = catalogFixture(t)
 	// Every stand records the two file calls of image.go instead of making
 	// them: os.Chown answers "not supported by windows" for every path, and no
@@ -297,8 +297,8 @@ func newStand(t *testing.T) *stand {
 	s.fileLog = bendFiles(t)
 	s.setPackage()
 	s.deps = Deps{State: s.apps, Engine: s.eng, Sys: s.sys, List: s.f.in.List,
-		Roles: []string{tunnel.RoleServices}, Node: "ctl-1", NGC: testNGC,
-		StageDir: filepath.Join(t.TempDir(), "staged"), Hold: "/usr/lib/ngc/ngc-controller",
+		Roles: []string{tunnel.RoleServices}, Node: "ctl-1", CirroDesk: testCD,
+		StageDir: filepath.Join(t.TempDir(), "staged"), Hold: "/usr/lib/cd/cd-controller",
 		Max: store.MaxPackage, LastSeq: func(string) uint64 { return 0 },
 		KeepSeq: s.keepSeq,
 		Now:     func() int64 { return testNow }}
@@ -754,7 +754,7 @@ func TestActivateMakesUserDataAndRunDirBeforeTheContainer(t *testing.T) {
 	if c.Name != s.sys.user.Name || c.UID != s.sys.user.UID || c.GID != s.sys.user.GID {
 		t.Fatalf("the container runs as %q %d:%d", c.Name, c.UID, c.GID)
 	}
-	if c.DataDir != s.sys.data || c.Hold != "/usr/lib/ngc/ngc-controller" || c.Image != testImage {
+	if c.DataDir != s.sys.data || c.Hold != "/usr/lib/cd/cd-controller" || c.Image != testImage {
 		t.Fatalf("the container got %+v", c)
 	}
 }
@@ -856,7 +856,7 @@ func TestActivateReadsTheSignedTaskAndNotTheOpen(t *testing.T) {
 	}
 }
 
-// Parameters of a signed task that this NGC cannot read are a verification
+// Parameters of a signed task that this CirroDesk cannot read are a verification
 // failure, and nothing of the package is read for them.
 func TestActivateRefusesParamsThatAreNone(t *testing.T) {
 	for name, raw := range map[string]string{
@@ -865,7 +865,7 @@ func TestActivateRefusesParamsThatAreNone(t *testing.T) {
 		"a field too many":       `{"app":"org.sorglos.notes","version":"1.0.0","sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","ui":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","store":"global","what":1}`,
 		"a grant that is none":   `{"app":"org.sorglos.notes","version":"1.0.0","sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","ui":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","store":"global","grants":["everything"]}`,
 		"a version that is none": `{"app":"org.sorglos.notes","version":"1.0","sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","ui":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","store":"global"}`,
-		"a core app":             `{"app":"ngc.store","version":"1.0.0","sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","ui":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","store":"global"}`,
+		"a core app":             `{"app":"cd.store","version":"1.0.0","sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","ui":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=","store":"global"}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			s := newStand(t)
@@ -1186,7 +1186,7 @@ func TestActivateCarriesTheRefusalsOfAccept(t *testing.T) {
 // "no.app.at.all", which wire.ValidAppID ACCEPTS - it is a well-formed
 // reverse-DNS name. On windows EnsureUser then failed for want of useradd and
 // the case looked right; on linux AS ROOT it really made a system user
-// (measured: ngc-all-73e95399 with the home /var/lib/ngc/apps/no.app.at.all,
+// (measured: cd-all-73e95399 with the home /var/lib/cd/apps/no.app.at.all,
 // one line more in /etc/passwd). A case of this package may not change the
 // machine it runs on, so the id handed in has to be one no checker lets
 // through - the same one the next line uses.

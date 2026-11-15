@@ -1,10 +1,10 @@
-// The actions of ngc.store: the stores of the trust list and their catalogs,
+// The actions of cd.store: the stores of the trust list and their catalogs,
 // what is installed, an upload, a licence, the install key, the update rows
 // and the three actions that activate, deactivate and uninstall an app on a
 // controller.
 //
 // Until this file existed, package appstore had every one of these steps built
-// and measured and NO caller: nothing registered a handler for ngc.store, so
+// and measured and NO caller: nothing registered a handler for cd.store, so
 // each of them answered E_NOTFOUND to a shell (task 24, "weiter nur
 // übersetzt"). This file is the registration and nothing else -- not one
 // decision of the app store is repeated here.
@@ -14,7 +14,7 @@
 //
 //   - It decides nothing about WHO may open a channel. rights.Check has
 //     already run when a handler is called (dispatch.go, open), and every
-//     action of ngc.store carries core.Action.Admin, so only the role admin
+//     action of cd.store carries core.Action.Admin, so only the role admin
 //     ever reaches one; a root task of service controller has besides that a
 //     signed task task.Check verified against the trust list. A handler added
 //     here can refuse more, never less, and every refusal below is an extra
@@ -33,17 +33,17 @@ import (
 	"errors"
 	"io"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/appstore"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/reason"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/appstore"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/reason"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// registerStore adds the actions of ngc.store. Each group is registered only
+// registerStore adds the actions of cd.store. Each group is registered only
 // when the thing that serves it is there, so an API built without it says
 // E_NOTFOUND rather than E_INTERNAL; see Deps.Store.
 func (d *Dispatcher) registerStore() {
@@ -65,7 +65,7 @@ func (d *Dispatcher) registerStore() {
 	}
 }
 
-// storeSources answers ngc.store/sources: the stores of the trust list with
+// storeSources answers cd.store/sources: the stores of the trust list with
 // what was last seen of each.
 func (d *Dispatcher) storeSources(ctx context.Context, rq *Call) ([]byte, error) {
 	list, err := d.Store.Sources(ctx)
@@ -75,8 +75,8 @@ func (d *Dispatcher) storeSources(ctx context.Context, rq *Call) ([]byte, error)
 	return result(list)
 }
 
-// storeRefresh answers ngc.store/refresh (A25): every store is asked now, not
-// at the next hourly round, and the answer is ngc.store/sources afterwards.
+// storeRefresh answers cd.store/refresh (A25): every store is asked now, not
+// at the next hourly round, and the answer is cd.store/sources afterwards.
 func (d *Dispatcher) storeRefresh(ctx context.Context, rq *Call) ([]byte, error) {
 	list, err := d.Store.RefreshNow(ctx)
 	if err != nil {
@@ -85,7 +85,7 @@ func (d *Dispatcher) storeRefresh(ctx context.Context, rq *Call) ([]byte, error)
 	return result(list)
 }
 
-// storeCatalog answers ngc.store/catalog: the signed envelope of one store's
+// storeCatalog answers cd.store/catalog: the signed envelope of one store's
 // catalog. Only the envelope travels, and that is the contract's own choice
 // (core.CatalogResult): the shell verifies it against its own copy of the
 // trust list, so it never has to believe this API. The parsed catalog is
@@ -103,7 +103,7 @@ func (d *Dispatcher) storeCatalog(ctx context.Context, rq *Call) ([]byte, error)
 	return result(core.CatalogResult{Catalog: env})
 }
 
-// storeInstalled answers ngc.store/installed.
+// storeInstalled answers cd.store/installed.
 func (d *Dispatcher) storeInstalled(ctx context.Context, rq *Call) ([]byte, error) {
 	rows, err := d.Store.Installed(ctx)
 	if err != nil {
@@ -112,7 +112,7 @@ func (d *Dispatcher) storeInstalled(ctx context.Context, rq *Call) ([]byte, erro
 	return result(rows)
 }
 
-// storeUpload answers ngc.store/upload: the admin sends a package, the API
+// storeUpload answers cd.store/upload: the admin sends a package, the API
 // walks it safely and answers what it read.
 //
 // The stream is handed over and not read into memory: rq.In is the channel's
@@ -135,7 +135,7 @@ func (d *Dispatcher) storeUpload(ctx context.Context, rq *Call) ([]byte, error) 
 	return result(res)
 }
 
-// storeLicense answers ngc.store/api/license: the admin sends a licence the
+// storeLicense answers cd.store/api/license: the admin sends a licence the
 // store signed, the API verifies it with the installation's key and keeps it
 // if it is newer than the one held.
 //
@@ -187,7 +187,7 @@ func appOfLicense(body []byte) (string, bool) {
 	return l.App, true
 }
 
-// storeInstallKey answers ngc.store/install-key. Only the public half of the
+// storeInstallKey answers cd.store/install-key. Only the public half of the
 // installation's key leaves the API, and appstore.InstallKey is what holds
 // that.
 func (d *Dispatcher) storeInstallKey(ctx context.Context, rq *Call) ([]byte, error) {
@@ -198,7 +198,7 @@ func (d *Dispatcher) storeInstallKey(ctx context.Context, rq *Call) ([]byte, err
 	return result(k)
 }
 
-// storeUpdates answers ngc.store/updates: one row per target and node.
+// storeUpdates answers cd.store/updates: one row per target and node.
 func (d *Dispatcher) storeUpdates(ctx context.Context, rq *Call) ([]byte, error) {
 	rows, err := d.Updates.Rows(ctx)
 	if err != nil {
@@ -207,7 +207,7 @@ func (d *Dispatcher) storeUpdates(ctx context.Context, rq *Call) ([]byte, error)
 	return result(rows)
 }
 
-// storeSetUpdate answers ngc.store/set-update: the update mode of one target.
+// storeSetUpdate answers cd.store/set-update: the update mode of one target.
 // Package updates writes the log entry and refuses store.ModeAuto for a target
 // the trust list carries no standing approval for, so nothing of that is
 // repeated here.
@@ -232,7 +232,7 @@ func (d *Dispatcher) storeSetUpdate(ctx context.Context, rq *Call) ([]byte, erro
 	return result(struct{}{})
 }
 
-// storeActivate answers ngc.store/controller/activate: the app is installed
+// storeActivate answers cd.store/controller/activate: the app is installed
 // and started on the controller the signed task names.
 //
 // THE HANDLER STILL HANDS OVER NO FILE, and it still must not: the shell
@@ -262,7 +262,7 @@ func (d *Dispatcher) storeActivate(ctx context.Context, rq *Call) ([]byte, error
 	return storeAnswer(code, err)
 }
 
-// storeDeactivate answers ngc.store/controller/deactivate.
+// storeDeactivate answers cd.store/controller/deactivate.
 func (d *Dispatcher) storeDeactivate(ctx context.Context, rq *Call) ([]byte, error) {
 	p, ok := rq.Params.(*core.AppParams)
 	if !ok {
@@ -276,7 +276,7 @@ func (d *Dispatcher) storeDeactivate(ctx context.Context, rq *Call) ([]byte, err
 	return storeAnswer(code, err)
 }
 
-// storeUninstall answers ngc.store/controller/uninstall.
+// storeUninstall answers cd.store/controller/uninstall.
 func (d *Dispatcher) storeUninstall(ctx context.Context, rq *Call) ([]byte, error) {
 	p, ok := rq.Params.(*core.UninstallParams)
 	if !ok {

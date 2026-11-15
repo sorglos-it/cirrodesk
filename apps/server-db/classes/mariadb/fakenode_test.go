@@ -279,7 +279,7 @@ func greeting(withTLS bool) []byte {
 		salt[i] = byte('a' + i%26)
 	}
 	b := []byte{10}
-	b = append(b, "11.4.0-MariaDB-ngc-fake"...)
+	b = append(b, "11.4.0-MariaDB-cd-fake"...)
 	b = append(b, 0)
 	b = append(b, 1, 0, 0, 0) // connection id
 	b = append(b, salt[:8]...)
@@ -372,7 +372,7 @@ func (a *testAuthority) leaf(t *testing.T, hosts, names []string) *tls.Certifica
 	}
 	tmpl := &x509.Certificate{
 		SerialNumber: big.NewInt(2),
-		Subject:      pkix.Name{CommonName: "ngc-test-node"},
+		Subject:      pkix.Name{CommonName: "cd-test-node"},
 		NotBefore:    time.Now().Add(-time.Hour),
 		NotAfter:     time.Now().Add(24 * time.Hour),
 		KeyUsage:     x509.KeyUsageDigitalSignature,

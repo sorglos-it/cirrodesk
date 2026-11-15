@@ -25,11 +25,11 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The keys of the two ends. They are the ones trusttest.Genesis lists for
@@ -2048,7 +2048,7 @@ func TestKeepAnnouncesEveryTunnelOnceAndItsEnd(t *testing.T) {
 }
 
 // TestKeepSaysTheTunnelIsUpAndNotOnlyThatItEnded nails down the asymmetry that
-// was measured on the small plant on 18.10.2026: ngc-controller was restarted,
+// was measured on the small plant on 18.10.2026: cd-controller was restarted,
 // came back with a standing tunnel -- ss showed the socket to :7443 -- and the
 // journal held no line about it at all. "tunnel ended" and "tunnel failed"
 // each had one; coming up had none. An admin could see when a tunnel broke and

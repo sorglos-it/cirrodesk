@@ -27,8 +27,8 @@ export const PATH_LOGIN_FINISH = "/api/v1/login/finish";
 export const PATH_LOGOUT = "/api/v1/logout";
 export const PATH_TRUST = "/api/v1/trust";
 export const PATH_SOCKET = "/api/v1/ws";
-export const SUBPROTOCOL = "ngc.v1";
-export const COOKIE_NAME = "ngc_session";
+export const SUBPROTOCOL = "cd.v1";
+export const COOKIE_NAME = "cd_session";
 export const TOKEN_SIZE = 32, NONCE_SIZE = 32;
 export const MAX_LIFETIME = 86400, MAX_SKEW = 300, CHALLENGE_LIFETIME = 120;
 export const MAX_CERT = 4096, MAX_REQUEST = 64 << 10;
@@ -558,8 +558,8 @@ async function setupHMAC(code, label, b) {
 
 // The two labels keep the MACs apart, so one made for one direction never
 // passes for the other, whatever bytes it covers.
-export const offerMAC = (code, info) => setupHMAC(code, "ngc/setup-offer/v1", info);
-export const setupMAC = (code, payload) => setupHMAC(code, "ngc/setup/v1", payload);
+export const offerMAC = (code, info) => setupHMAC(code, "cd/setup-offer/v1", info);
+export const setupMAC = (code, payload) => setupHMAC(code, "cd/setup/v1", payload);
 
 // parseSetupOffer reads the answer of GET PATH_SETUP with the canonical code
 // (Go: session.ParseSetupOffer, step for step): strict JSON within

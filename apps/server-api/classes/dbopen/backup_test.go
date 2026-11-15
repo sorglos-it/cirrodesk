@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // registerBackuper puts b in place for one test and takes it out again.
@@ -38,8 +38,8 @@ func TestBackupWithoutBackuperIsItsOwnError(t *testing.T) {
 // named, is the same accident from two sides.
 func TestBackupHandsTargetAndConfigurationOn(t *testing.T) {
 	key := bytes.Repeat([]byte{7}, 64)
-	want := config.DB{Driver: config.DriverSQLite, Path: "/var/lib/ngc/api/ngc.db", Key: config.NewSecret(key)}
-	const target = "/mnt/stick/ngc-2026-10-17.db"
+	want := config.DB{Driver: config.DriverSQLite, Path: "/var/lib/cd/api/cd.db", Key: config.NewSecret(key)}
+	const target = "/mnt/stick/cd-2026-10-17.db"
 	var got config.DB
 	var gotTarget string
 	registerBackuper(t, func(_ context.Context, cfg config.DB, tg string) error {

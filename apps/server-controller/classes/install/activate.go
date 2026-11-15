@@ -27,15 +27,15 @@ import (
 	goruntime "runtime"
 	"slices"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
 var (
@@ -49,7 +49,7 @@ var (
 	// (E_LICENSE).
 	ErrLicense = errors.New("install: no usable licence for this app")
 	// ErrInternal says this program is wired wrong - a missing dependency, an
-	// action this NGC does not know. None of it can be brought about by a
+	// action this CirroDesk does not know. None of it can be brought about by a
 	// peer, and a caller maps it to wire.CodeInternal (E_INTERNAL).
 	ErrInternal = errors.New("install: the installer is not wired up")
 )
@@ -101,7 +101,7 @@ func (h Host) DropRun(name string) error { return runtime.DropRun(name) }
 // with ErrInternal: none of it can be brought about by a peer, so it is
 // answered once and the same way. The guard reads nine of these
 // fields (State, Engine, Sys, List, StageDir, Max, LastSeq, KeepSeq, Now -
-// counted 18.10.2026); Roles, Node, NGC and ReleaseKey empty go through it, and an
+// counted 18.10.2026); Roles, Node, CirroDesk and ReleaseKey empty go through it, and an
 // empty Hold is filled on purpose (Manager.hold).
 type Deps struct {
 	// State is this controller's local store: the row of the app and the
@@ -120,8 +120,8 @@ type Deps struct {
 	// Node is this controller, as it stands in the trust list; it goes into
 	// the row of the app.
 	Node string
-	// NGC is this NGC's version, held against the minNgc of the package.
-	NGC string
+	// CirroDesk is this CirroDesk's version, held against the minCd of the package.
+	CirroDesk string
 	// ReleaseKey is this installation's own release key. An activation never
 	// takes a release, so it is here only because Accept asks for it.
 	ReleaseKey []byte
@@ -130,7 +130,7 @@ type Deps struct {
 	// afterwards, whether it worked or not.
 	StageDir string
 	// Hold is the program that keeps a container alive, under config.BinDir
-	// (runtime.Container.Hold). Empty: config.BinDir + "/ngc-controller".
+	// (runtime.Container.Hold). Empty: config.BinDir + "/cd-controller".
 	Hold string
 	// Max bounds the package file. It has no default on purpose: a package of
 	// n bytes costs 2n on the disk while it is checked (StageFactor), so
@@ -179,7 +179,7 @@ var emptyResult = []byte("{}")
 //	 1 the parameters out of the SIGNED task, never out of the OPEN
 //	 2 the row of the app: an older version is refused here, before a byte
 //	   of the package is read
-//	 3 Accept: checksum, signature, catalogue, rollback, minNgc, and the
+//	 3 Accept: checksum, signature, catalogue, rollback, minCd, and the
 //	   files of the package (package.go)
 //	 4 grants == needs as a set
 //	 5 services only with the role services
@@ -220,7 +220,7 @@ func (m *Manager) Activate(ctx context.Context, d access.Decision, r io.Reader) 
 	if err != nil {
 		// The parameters of a signed task that do not parse are no refusal of
 		// an admin's wish: they are a task that says something else than this
-		// NGC can read, and that is a verification failure.
+		// CirroDesk can read, and that is a verification failure.
 		return nil, errors.Join(ErrVerify, err)
 	}
 	p, ok := params.(*core.ActivateParams)
@@ -256,7 +256,7 @@ func (m *Manager) Activate(ctx context.Context, d access.Decision, r io.Reader) 
 	}
 	pkg, err := Accept(ctx, AcceptInput{
 		Reader: r, Max: max, List: m.d.List, Store: p.Store, App: p.App,
-		Version: p.Version, SHA256: p.SHA256, UI: p.UI, NGC: m.d.NGC,
+		Version: p.Version, SHA256: p.SHA256, UI: p.UI, CirroDesk: m.d.CirroDesk,
 		Dir: m.d.StageDir, ReleaseKey: m.d.ReleaseKey, LastSeq: m.d.LastSeq,
 	})
 	if err != nil {
@@ -550,7 +550,7 @@ func (m *Manager) hold() string {
 	if m.d.Hold != "" {
 		return m.d.Hold
 	}
-	return config.BinDir + "/ngc-controller"
+	return config.BinDir + "/cd-controller"
 }
 
 // licence checks the licence a paid app brought. It writes nothing: keeping it
@@ -576,7 +576,7 @@ func (m *Manager) licence(d access.Decision, p *core.ActivateParams, pkg Package
 	}
 	// The installation the task was signed for, not one out of the package:
 	// a licence of another installation would otherwise let one licence serve
-	// every NGC that can get hold of it.
+	// every CirroDesk that can get hold of it.
 	//
 	// VerifyLicenseFor and not VerifyLicense, and that difference is the
 	// security statement, not a shortcut: this checks the signature of the

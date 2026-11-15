@@ -73,7 +73,7 @@ export class Link {
       ws.onclose = () => no(new Error("link: no connection"));
     });
     // The subprotocol is the one thing about the socket itself that says the
-    // other end speaks NGC at all. A server that answered without it - or
+    // other end speaks CirroDesk at all. A server that answered without it - or
     // with another one - is not one this shell talks to.
     if (ws.protocol !== session.SUBPROTOCOL) {
       ws.close();

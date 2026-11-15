@@ -129,7 +129,7 @@ const GO_CASES = [
   ["cert 33", { cert: { n: 33, fill: 7 } }, false],
   ["node empty", { node: "" }, true],
   ["node upper", { node: "Ctl" }, false],
-  ["app bad", { app: "ngcstore" }, false],
+  ["app bad", { app: "cdstore" }, false],
   ["service bad", { service: "Controller" }, false],
   ["action bad", { action: "" }, false],
   ["inst bad", { inst: "nope" }, false],
@@ -186,7 +186,7 @@ test("validateTask decides every field as Go's task.Task.Validate does", async (
     for (const [name, over] of cases) {
       const t = {
         id: new Uint8Array(16).fill(97), inst: "EREREREREREREREREREREQ",
-        cert: new Uint8Array(32).fill(7), node: "ctl-1", app: "ngc.store",
+        cert: new Uint8Array(32).fill(7), node: "ctl-1", app: "cd.store",
         service: "controller", action: "deactivate",
         params: utf8('{"app":"org.sorglos.terminal"}'), iat: 1790000000, exp: 1790000060,
       };
@@ -212,7 +212,7 @@ test("a field that changes between the check and the writing never reaches the b
     const { utf8, fromUtf8 } = await import("/assets/js/contracts/b64.js");
     const base = () => ({
       id: new Uint8Array(16).fill(97), inst: "EREREREREREREREREREREQ",
-      cert: new Uint8Array(32).fill(7), node: "ctl-1", app: "ngc.store",
+      cert: new Uint8Array(32).fill(7), node: "ctl-1", app: "cd.store",
       service: "controller", action: "deactivate",
       params: utf8('{"a":1}'), iat: 1790000000, exp: 1790000060,
     });
@@ -345,7 +345,7 @@ test("parseTask measures a task by one reading of its length", async ({ shell })
     const { utf8 } = await import("/assets/js/contracts/b64.js");
     const base = task.buildTask({
       inst: "EREREREREREREREREREREQ", certHash: new Uint8Array(32).fill(7),
-      node: "ctl-1", app: "ngc.store", service: "controller", action: "deactivate",
+      node: "ctl-1", app: "cd.store", service: "controller", action: "deactivate",
       params: utf8('{"a":1}'), now: 1790000000,
     }).bytes;
     // n bytes: the document without its closing brace, white space, the brace.
@@ -538,7 +538,7 @@ test("verifyApproval decides on one reading of the payload and decodes those ver
       const client = utf8("the client certificate whose hash the task names");
       const cert = { inst, sig: pub };
       const base = task.buildTask({
-        inst, certHash: await session.certHash(client), node: "ctl-1", app: "ngc.store",
+        inst, certHash: await session.certHash(client), node: "ctl-1", app: "cd.store",
         service: "controller", action: "deactivate", params: utf8('{"a":1}'), now: 1790000000,
       }).bytes;
       const padded = (n) => {
@@ -596,7 +596,7 @@ test("verifyApproval decides on one reading of the payload and decodes those ver
     // decides on: the view is built from buffer, byteOffset and byteLength,
     // and every reader below sees that one view.
     expect(out.good.ok).toBe(true);
-    expect(out.good.app).toBe("ngc.store");
+    expect(out.good.app).toBe("cd.store");
     expect(out.good.node).toBe("ctl-1");
     // The field itself is read once, as it was before this round.
     expect(out.good.field).toBe(1);
@@ -699,7 +699,7 @@ test("buildTask signs exactly the task it checked, and hands back what the bytes
 
     const args = (over) => ({
       inst: "EREREREREREREREREREREQ", certHash: new Uint8Array(32).fill(7),
-      node: "ctl-1", app: "ngc.store", service: "controller", action: "deactivate",
+      node: "ctl-1", app: "cd.store", service: "controller", action: "deactivate",
       params: utf8('{"a":1}'), now: 1790000000, ...over,
     });
     // Bytes that answer the first walk over them with one value and the
@@ -744,7 +744,7 @@ test("buildTask signs exactly the task it checked, and hands back what the bytes
       ["nothing at all", null], ["now as text", { now: "1790000000" }],
       ["now a fraction", { now: 1790000000.5 }], ["no now", { now: undefined }],
       ["no certHash", { certHash: undefined }], ["certHash of 31 bytes", { certHash: new Uint8Array(31) }],
-      ["certHash as text", { certHash: "x".repeat(32) }], ["app that is no app id", { app: "ngcstore" }],
+      ["certHash as text", { certHash: "x".repeat(32) }], ["app that is no app id", { app: "cdstore" }],
       ["params that are an array", { params: utf8("[1,2]") }],
       ["params beyond MAX_PARAMS", { params: utf8('{"a":"' + "x".repeat(8193 - 8) + '"}') }],
       // The two cases this test was written for. Up to this round both got
@@ -840,7 +840,7 @@ test("signTask signs those very bytes, for purpose task/v1 and under the key's o
     const key = { privateKey: pair.privateKey, kid: await sign.keyID(pub) };
     const fields = {
       inst: "EREREREREREREREREREREQ", certHash: new Uint8Array(32).fill(7),
-      node: "ctl-1", app: "ngc.store", service: "controller", action: "deactivate",
+      node: "ctl-1", app: "cd.store", service: "controller", action: "deactivate",
       params: utf8('{"a":1}'), now: 1790000000,
     };
     const built = task.buildTask(fields);
@@ -972,7 +972,7 @@ test("verifyApproval decodes the document it checked, not what the buffer holds 
       const cert = { inst, sig: pub };
       const ch = await session.certHash(client);
       const build = (node, action) => task.buildTask({
-        inst, certHash: ch, node, app: "ngc.store",
+        inst, certHash: ch, node, app: "cd.store",
         service: "controller", action, params: utf8('{"a":1}'), now: 1790000000,
       }).bytes;
       // Two documents of the same length, so one can be written over the other.

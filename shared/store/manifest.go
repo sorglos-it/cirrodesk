@@ -1,4 +1,4 @@
-// Package store defines app packages, store catalogs, licenses, NGC
+// Package store defines app packages, store catalogs, licenses, CirroDesk
 // releases and the encryption of paid apps (contract V5).
 package store
 
@@ -11,10 +11,10 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/task"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/task"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Names and limits of the manifest.
@@ -49,12 +49,12 @@ type Manifest struct {
 	Needs       []string  `json:"needs,omitempty"`   // NeedRoot, NeedNetwork; the admin must allow them
 	CPU         int       `json:"cpu,omitempty"`     // thousandths of a core, default DefaultCPU
 	Memory      int       `json:"memory,omitempty"`  // MiB, default DefaultMemory
-	// MinNGC is the oldest NGC version the app needs (SupportsMinNGC). A
-	// manifest field that NGC version X introduces may appear only in packages
-	// whose minNgc (in the manifest and in the catalog entry) is at least X: an
-	// older NGC never offers such a version, because it could not read the
+	// MinCD is the oldest CirroDesk version the app needs (SupportsMinCD). A
+	// manifest field that CirroDesk version X introduces may appear only in packages
+	// whose minCd (in the manifest and in the catalog entry) is at least X: an
+	// older CirroDesk never offers such a version, because it could not read the
 	// manifest (strict JSON).
-	MinNGC string `json:"minNgc,omitempty"`
+	MinCD string `json:"minCd,omitempty"`
 }
 
 // UI is the browser part of the app.
@@ -134,7 +134,7 @@ func RuleFor(m *Manifest, action string) (task.Rule, error) {
 func (m *Manifest) Validate() error {
 	if !wire.ValidAppID(m.ID) || wire.CoreApp(m.ID) || !ValidText(m.Name, 64) || !ValidText(m.Publisher, 64) ||
 		!ValidVersion(m.Version) || len(m.Description) > 1000 || !utf8.ValidString(m.Description) ||
-		(m.Icon != "" && !ValidPath(m.Icon)) || (m.MinNGC != "" && !ValidVersion(m.MinNGC)) {
+		(m.Icon != "" && !ValidPath(m.Icon)) || (m.MinCD != "" && !ValidVersion(m.MinCD)) {
 		return ErrManifest
 	}
 	if m.UI == nil && len(m.Services) == 0 {
@@ -250,19 +250,19 @@ func Newer(a, b string) bool {
 	return slices.Compare(x[:], y[:]) > 0
 }
 
-// SupportsMinNGC reports whether an NGC of version ngc can take a package
-// that asks for minNGC (Manifest.MinNGC, Package.MinNGC): minNGC empty, or
-// ngc a release version (ValidVersion) not older than minNGC. A version that
-// is no release version, such as 0.0.0-dev, suits no minNGC, and neither does
-// a minNGC that is no version.
-func SupportsMinNGC(ngc, minNGC string) bool {
-	if minNGC == "" {
+// SupportsMinCD reports whether a CirroDesk of version cd can take a package
+// that asks for minCD (Manifest.MinCD, Package.MinCD): minCD empty, or
+// cd a release version (ValidVersion) not older than minCD. A version that
+// is no release version, such as 0.0.0-dev, suits no minCD, and neither does
+// a minCD that is no version.
+func SupportsMinCD(cd, minCD string) bool {
+	if minCD == "" {
 		return true
 	}
 	// Newer is false for an invalid version on either side, so both are
 	// checked here: a build that names itself 0.0.0-dev must fail every
-	// minNgc, not pass it.
-	return ValidVersion(ngc) && ValidVersion(minNGC) && !Newer(minNGC, ngc)
+	// minCd, not pass it.
+	return ValidVersion(cd) && ValidVersion(minCD) && !Newer(minCD, cd)
 }
 
 // parseVersion reads the places of s. A three-place version keeps its fourth

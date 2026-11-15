@@ -19,7 +19,7 @@
 //     the proof that signature, task and rights let it through.
 //
 // What is NOT measurable here is said in the cases themselves, and the list
-// has shrunk once already: the actions of ngc.store/api had no handler
+// has shrunk once already: the actions of cd.store/api had no handler
 // registered in coreapp.New, so every one of them answered E_NOTFOUND
 // whatever was sent, and an attack through them measured the missing handler
 // and nothing else. They are wired now, and store_test.go attacks them for

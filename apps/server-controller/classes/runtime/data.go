@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The data directory of an app is encrypted by the Linux kernel itself
@@ -21,7 +21,7 @@ import (
 // The key of an app never lies on a disk. It is derived from the key of the
 // controller (config.Controller.DBKey, 64 bytes) and the app id each time it is
 // needed, so a stolen disk carries the encrypted directories and nothing that
-// opens them - what opens them is in /etc/ngc/controller.json, which is root
+// opens them - what opens them is in /etc/cd/controller.json, which is root
 // and 0600, and in the kernel's own keyring while the server runs.
 //
 // The other way out of the design draft - one encrypted container file per app -
@@ -32,7 +32,7 @@ const (
 	// keyInfo separates this use of the controller's key from every other use
 	// it may ever have. It carries a version because the day it changes, every
 	// directory already written stays readable only under the old one.
-	keyInfo = "ngc/appdata/v1"
+	keyInfo = "cd/appdata/v1"
 	// keyBytes is what AES-256-XTS takes: two 256 bit halves.
 	keyBytes = 64
 	// minServerKey is the shortest server key this will stretch. HKDF makes 64
@@ -112,7 +112,7 @@ func EnsureData(ctx context.Context, app string, u User, serverKey []byte) (stri
 	// then podman fails on the first look at its own directory and the whole
 	// activation is taken back. Measured on 20.10.2026 on the Debian machine:
 	// with 0700 here, "podman load" of the terminal app answered EACCES on
-	// newfstatat("/var/lib/ngc/apps/org.sorglos.terminal").
+	// newfstatat("/var/lib/cd/apps/org.sorglos.terminal").
 	//
 	// 0711 and not 0755 because the list of installed apps is nothing a user
 	// of this machine needs to read off a directory: with 0711 a foreign user

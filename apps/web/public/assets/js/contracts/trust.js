@@ -22,7 +22,7 @@ export const MAX_KEYS_PER_USER = 16, MAX_ENTRIES = 256, MAX_AUTO = 64, MAX_ORIGI
 export const LEVEL_OFF = "off", LEVEL_CRITICAL = "critical", LEVEL_ROOT = "root", LEVEL_HARDCORE = "hardcore";
 export const NODE_API = "api", NODE_CONTROLLER = "controller";
 export const STORE_GLOBAL = "global", STORE_LOCAL = "local";
-export const AUTO_WEB = "ngc-web", AUTO_API = "ngc-api", AUTO_CONTROLLER = "ngc-controller";
+export const AUTO_WEB = "cd-web", AUTO_API = "cd-api", AUTO_CONTROLLER = "cd-controller";
 export const AUTO_SYSTEM = "system";
 
 const EMPTY = new Uint8Array(0);
@@ -126,7 +126,7 @@ export function validateList(l) {
     // browser's navigator.credentials.get, so it is a DNS name here already
     // (proof.validRPID, the same rule config.Web keeps). Round 1 finding
     // Wichtig 1: this check was missing outright; none of the 24 vectors ever
-    // sets an invalid rp.id (all 52 payloads carry "ngc.example.org"), so its
+    // sets an invalid rp.id (all 52 payloads carry "cd.example.org"), so its
     // absence never turned a test red on its own.
     if (l.rp.id !== "" && !proof.validRPID(l.rp.id)) return false;
 

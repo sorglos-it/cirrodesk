@@ -3,7 +3,7 @@
 //! rejection table of shared/sign/sign_test.go. Every line it prints is a
 //! case: OK or FAIL. It writes nothing into shared/.
 
-use ngc_sign_versuch::*;
+use cd_sign_versuch::*;
 use ed25519_dalek::SigningKey;
 use serde::{Deserialize, Serialize};
 use std::process::ExitCode;

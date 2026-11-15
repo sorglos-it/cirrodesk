@@ -3,7 +3,7 @@
 #
 # Usage: build-servers.sh <outdir> [arch...]        default arch: amd64
 #
-# NGC_BUILD_OS overrides the target system (default linux, which is what a
+# CD_BUILD_OS overrides the target system (default linux, which is what a
 # release is). It exists for ONE caller: tools/erstlauf.sh station 2 has to RUN
 # the programs to ask them their version, and a linux binary does not run on the
 # machine a developer sits at. The stamping is the same work for every target,
@@ -24,8 +24,8 @@
 #   CGO_ENABLED=0 GOOS=linux GOARCH=<arch> go build -buildvcs=false -trimpath \
 #     -ldflags "-s -w -X main.Version=$(cat apps/<app>/VERSION)" ...
 #
-# EVERY PROGRAM CARRIES ITS OWN NUMBER, and that is not a mistake here: ngc-api
-# and ngc-store are 0.2.0 while ngc-controller is 1.0.0 (measured 23.10.2026 in
+# EVERY PROGRAM CARRIES ITS OWN NUMBER, and that is not a mistake here: cd-api
+# and cd-store are 0.2.0 while cd-controller is 1.0.0 (measured 23.10.2026 in
 # the three VERSION files). A release has one Version field in store.Release;
 # WHICH of the three it is, is written down nowhere, and this script does not
 # decide it - it only makes sure that what a program reports is its own VERSION
@@ -43,27 +43,27 @@ out=$1
 shift
 arches=("$@")
 [ ${#arches[@]} -gt 0 ] || arches=(amd64)
-goos=${NGC_BUILD_OS:-linux}
+goos=${CD_BUILD_OS:-linux}
 
 mkdir -p -- "$out" || die "cannot write into $out"
 # A computed output path is held against nothing - it is the caller's - but the
 # SOURCE directory is, before anything is built from it.
-[ -f shared/config/config.go ] || die "$PWD is not the NGC repository"
+[ -f shared/config/config.go ] || die "$PWD is not the CirroDesk repository"
 
-# app -> name of the program. apps/cli builds ngc-store (its main.go says so),
+# app -> name of the program. apps/cli builds cd-store (its main.go says so),
 # which is why the name cannot be derived from the directory.
 parts=(
-	"server-api|ngc-api"
-	"cli|ngc-store"
-	"server-controller|ngc-controller"
-	"server-db|ngc-db"
+	"server-api|cd-api"
+	"cli|cd-store"
+	"server-controller|cd-controller"
+	"server-db|cd-db"
 )
 
 built=0
 for arch in "${arches[@]}"; do
 	case $arch in
 	amd64 | arm64) ;;
-	*) die "NGC builds for amd64 and arm64, not for $arch" ;;
+	*) die "CirroDesk builds for amd64 and arm64, not for $arch" ;;
 	esac
 	for p in "${parts[@]}"; do
 		app=${p%%|*}

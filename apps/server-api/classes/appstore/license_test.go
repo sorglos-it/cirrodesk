@@ -13,15 +13,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // licenseVectors is the part of shared/testdata/store.json this file works
@@ -594,7 +594,7 @@ func TestInstallKeyGivesOnlyThePublicHalf(t *testing.T) {
 }
 
 // containsSecret reports whether s holds the secret in any of the three shapes
-// it could leave in: raw bytes, base64url (as every key travels in NGC) or
+// it could leave in: raw bytes, base64url (as every key travels in CirroDesk) or
 // hex. A search for the raw bytes alone would miss the encoded one, which is
 // exactly the shape a log line would carry.
 func containsSecret(s string, secret []byte) bool {

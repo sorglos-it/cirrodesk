@@ -1,5 +1,5 @@
 // The one core action of this controller that carries a file:
-// ngc.store/controller/activate. It is a FlowTransfer action of core.All, so
+// cd.store/controller/activate. It is a FlowTransfer action of core.All, so
 // what arrives before the EOF of the API is the transfer header and the
 // package behind it, up to core.maxTransferIn bytes - 4303355908 of them,
 // measured 12.10.2026.
@@ -26,16 +26,16 @@ import (
 	"errors"
 	"io"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/install"
-	ctrlrt "github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/install"
+	ctrlrt "github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// activateKey is ngc.store/controller/activate.
+// activateKey is cd.store/controller/activate.
 var activateKey = name{core.AppStore, core.ServiceController, core.ActActivate}
 
 // Installer is what carries out an activation on this server
@@ -55,7 +55,7 @@ type Installer interface {
 	Activate(ctx context.Context, list *trust.List, d access.Decision, r io.Reader) ([]byte, error)
 }
 
-// activate carries out ngc.store/controller/activate.
+// activate carries out cd.store/controller/activate.
 func (s *Server) activate(ctx context.Context, list *trust.List, d access.Decision,
 	r *chanReader) (any, *wire.Close) {
 	if s.d.Installer == nil {

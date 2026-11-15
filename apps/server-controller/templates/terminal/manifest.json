@@ -9,7 +9,7 @@
     { "name": "shell", "title": "Befehle auf dem Server ausführen", "service": "terminal", "stream": true, "critical": true }
   ],
   "services": [
-    { "name": "terminal", "command": ["/usr/lib/ngc/ngc-controller", "terminal"] }
+    { "name": "terminal", "command": ["/usr/lib/cd/cd-controller", "terminal"] }
   ],
   "runtime": "podman",
   "needs": ["root"],

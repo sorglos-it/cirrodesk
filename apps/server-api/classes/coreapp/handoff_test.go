@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/sorglos-it/nextgencloud/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/core"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // TestTheRawOpenBytesTravelToTheRelay is the measurement behind the raw []byte

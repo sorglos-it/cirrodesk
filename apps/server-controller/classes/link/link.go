@@ -43,12 +43,12 @@ import (
 	"github.com/coder/websocket"
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Times of one tunnel.
@@ -397,7 +397,7 @@ func handshake(ctx context.Context, c *websocket.Conn, cfg Config) (*noisep.Tran
 		c.Close(websocket.StatusProtocolError, "")
 		return nil, broke(ReasonHandshake)
 	}
-	// Messages 1 and 2 carry an empty payload in every use of Noise in NGC, so
+	// Messages 1 and 2 carry an empty payload in every use of Noise in CirroDesk, so
 	// a payload here is a protocol error and nothing to read.
 	payload, cs1, cs2, err := hs.ReadMessage(nil, msg2)
 	if err != nil || len(payload) != 0 || cs1 == nil || cs2 == nil {

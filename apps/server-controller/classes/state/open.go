@@ -8,8 +8,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlite"
-	"github.com/sorglos-it/nextgencloud/shared/config"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlite"
+	"github.com/sorglos-it/cirrodesk/shared/config"
 )
 
 // KeySize is the key of the file: 64 bytes, two AES-256 keys for AES-256-XTS
@@ -39,10 +39,10 @@ var ErrKey = errors.New("state: the database key needs 64 bytes for AES-256-XTS"
 //
 //   - On SQLite EVERY caller of this function migrates at its own start. The
 //     rule "the migrations of an update from one place" holds for MariaDB,
-//     where one controller with the role db runs them through ngc_migrate -
+//     where one controller with the role db runs them through cd_migrate -
 //     not here: this file has no second account to run them under and no
 //     second machine to run them from.
-//   - What keeps two callers apart is the migration lock (ngc_lock), and owner
+//   - What keeps two callers apart is the migration lock (cd_lock), and owner
 //     stands in it so that whoever looks can see which one held it. A second
 //     process that meets the lock does NOT wait and does NOT migrate: this
 //     call comes back with an error, and a controller that gets one does not
@@ -52,7 +52,7 @@ var ErrKey = errors.New("state: the database key needs 64 bytes for AES-256-XTS"
 //     finding W-1 of the db package.
 //
 // What this does NOT do is run the migrations of an UPDATE. Those are
-// ngc-api migrate, a program of its own (docs/vertraege-v1.2.md, point 28).
+// cd-api migrate, a program of its own (docs/vertraege-v1.2.md, point 28).
 // This is a file opening its own schema, which is a different thing: it has no
 // ledger to write and no second server to wait for.
 func Open(cfg config.DB, owner string, now int64) (*Store, error) {

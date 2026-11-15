@@ -29,11 +29,11 @@ export const BOTH_NAME = "dora";
 export const TOTP_CODE = "123456";
 
 // The relying party the login challenge names. It is "localhost" and not the
-// trust list's "ngc.example.org", because that is the one thing about a
+// trust list's "cd.example.org", because that is the one thing about a
 // passkey that the BROWSER decides: measured in chromium with a virtual
 // authenticator, an origin that is an IP literal (the suite's 127.0.0.1)
 // answers "SecurityError: This is an invalid domain" for every rp id there
-// is - "ngc.example.org", "127.0.0.1" and none at all - and the same page
+// is - "cd.example.org", "127.0.0.1" and none at all - and the same page
 // reached as http://localhost:<port> takes rp id "localhost" and makes a
 // credential.
 //

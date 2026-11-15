@@ -22,7 +22,7 @@ import (
 func TestMariaDBKeepsItsOnePoolOfSixteen(t *testing.T) {
 	// A pool that opens nothing: sql.OpenDB does not dial, and this case asks
 	// only about the numbers, so no node has to answer.
-	ca := newAuthority(t, "ngc-db-ca")
+	ca := newAuthority(t, "cd-db-ca")
 	node := newFakeNode(t, ca, nodeGood, "127.0.0.1", loopbackCert, nil)
 	db := openCluster(t, cluster(ca, node))
 	if got := db.Stats().MaxOpenConnections; got != maxOpenConns {

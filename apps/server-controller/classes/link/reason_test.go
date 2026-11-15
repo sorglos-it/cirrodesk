@@ -11,8 +11,8 @@ import (
 	"unicode"
 
 	"github.com/coder/websocket"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // The three properties a reason has to keep, and they are the whole point of

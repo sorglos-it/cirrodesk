@@ -25,7 +25,7 @@ log=${1:-}
 title=${2:-run}
 # The floor is far below the real count (over 1000 cases on main) and far above
 # zero: a stream with a handful of cases is a failed run, not a small repo.
-floor=${NGC_COUNT_FLOOR:-200}
+floor=${CD_COUNT_FLOOR:-200}
 
 [ -n "$log" ] || { echo "ci-count: usage: ci-count.sh <go test -json file> [title]" >&2; exit 2; }
 

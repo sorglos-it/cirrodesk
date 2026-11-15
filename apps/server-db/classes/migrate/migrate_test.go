@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-db/classes/sqlstore"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/apps/server-db/classes/sqlstore"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
 )
 
 var ctx = context.Background()
@@ -37,7 +37,7 @@ var OpenEncrypted func(config.DB) (*sql.DB, error)
 // TestApplySaysWhoHoldsTheFile uses it: that case waits the deadline out on
 // purpose, and the production one is ten seconds (sqlite.DefaultBusyTimeout,
 // Punkt 48). It goes through the same sqlite.OpenDBWith the server would, so
-// what it measures is still the file NGC opens - with a shorter clock on the
+// what it measures is still the file CirroDesk opens - with a shorter clock on the
 // one number that case is not about.
 var OpenEncryptedBusy func(config.DB, time.Duration) (*sql.DB, error)
 
@@ -184,7 +184,7 @@ func TestApplyStopsWhenTheSameNameTakesOver(t *testing.T) {
 	d.do = func() {
 		// What a second process under the same node ID leaves behind when it
 		// takes the lock over after lockFor seconds.
-		if _, err := db.ExecContext(ctx, "UPDATE ngc_lock SET owner = ?, until = ? WHERE name = ?",
+		if _, err := db.ExecContext(ctx, "UPDATE cd_lock SET owner = ?, until = ? WHERE name = ?",
 			[]byte("node"), int64(1790009999), []byte(lockName)); err != nil {
 			t.Error(err)
 		}
@@ -206,7 +206,7 @@ func TestApplyStopsWhenTheSameNameTakesOver(t *testing.T) {
 	}
 }
 
-// TestApplyNamesTheTimeLeft: whoever installs NGC is no expert. "in 340
+// TestApplyNamesTheTimeLeft: whoever installs CirroDesk is no expert. "in 340
 // seconds" is something to act on, "up to 900 seconds" is a shrug.
 func TestApplyNamesTheTimeLeft(t *testing.T) {
 	db := openFile(t)
@@ -231,7 +231,7 @@ func TestApplyNamesTheTimeLeft(t *testing.T) {
 		"a deadline one second past what a run may hold": now + lockFor + 1,
 		"a deadline past every date":                     1 << 62,
 	} {
-		if _, err := db.ExecContext(ctx, "UPDATE ngc_lock SET until = ? WHERE name = ?", until, []byte(lockName)); err != nil {
+		if _, err := db.ExecContext(ctx, "UPDATE cd_lock SET until = ? WHERE name = ?", until, []byte(lockName)); err != nil {
 			t.Fatal(err)
 		}
 		_, err := Apply(ctx, db, sqlstore.SQLite, "test", now)
@@ -288,7 +288,7 @@ func firstStatementHasAType(t *testing.T) {
 }
 
 // tablesEmpty checks that every listed table is there and holds no row.
-// ngc_schema is the exception: it holds what ran.
+// cd_schema is the exception: it holds what ran.
 func tablesEmpty(t *testing.T, db *sql.DB) {
 	t.Helper()
 	for _, table := range sqlstore.Tables {
@@ -296,14 +296,14 @@ func tablesEmpty(t *testing.T, db *sql.DB) {
 		// The name comes from the fixed list, never from outside.
 		if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+table).Scan(&count); err != nil {
 			t.Errorf("table %s: %v", table, err)
-		} else if table != "ngc_schema" && count != 0 {
+		} else if table != "cd_schema" && count != 0 {
 			t.Errorf("table %s holds %d rows", table, count)
 		}
 	}
 }
 
 // TestRunnerTables: the two tables the runner brings along keep the rules of
-// a migration, so nothing about ngc_schema and ngc_lock is less portable or
+// a migration, so nothing about cd_schema and cd_lock is less portable or
 // less checked than the rest of the schema.
 func TestRunnerTables(t *testing.T) {
 	for _, stmt := range []string{createSchema, createLock} {
@@ -342,7 +342,7 @@ func TestApply(t *testing.T) {
 	}
 	// Every listed table is there and empty.
 	tablesEmpty(t, db)
-	// The runner shares ngc_lock with dbapi, so a lock that is not its own
+	// The runner shares cd_lock with dbapi, so a lock that is not its own
 	// has to survive the run, even under the same owner.
 	if _, err := db.ExecContext(ctx, insertLock, []byte(dbapi.LockUpdate), []byte("test"), int64(1790009999)); err != nil {
 		t.Fatal(err)
@@ -409,7 +409,7 @@ func TestApplyStopsWhenTheLockChangesHands(t *testing.T) {
 	d.calls, d.nth = 0, 1
 	d.do = func() {
 		// What a takeover after lockFor seconds leaves behind.
-		if _, err := db.ExecContext(ctx, "UPDATE ngc_lock SET owner = ?, until = ? WHERE name = ?",
+		if _, err := db.ExecContext(ctx, "UPDATE cd_lock SET owner = ?, until = ? WHERE name = ?",
 			[]byte("somebody-else"), int64(1790009999), []byte(lockName)); err != nil {
 			t.Error(err)
 		}
@@ -737,7 +737,7 @@ func unlistedInDB(t *testing.T, db *sql.DB) []string {
 	//
 	// It asked the wider question until 30.10.2026, and the wider question is
 	// almost no question: measured, the types of the SQLite dialect are
-	// [BLOB BLOB BLOB BLOB INTEGER], so "one of these" lets ngc_blob.seq stand
+	// [BLOB BLOB BLOB BLOB INTEGER], so "one of these" lets cd_blob.seq stand
 	// as BLOB where the migration wrote {{int}} - and that is the one shape of
 	// damage this measurement exists to catch. The same file, mutated that
 	// way, came through with an empty finding list. sqlstore.ColumnType is
@@ -837,10 +837,10 @@ func TestNothingUnlistedIsEverCreated(t *testing.T) {
 // say has to run on one.
 func TestAnAcceptedAlterRunsOnATableThatHoldsRows(t *testing.T) {
 	for _, s := range []string{
-		"ALTER TABLE ngc_blob ADD COLUMN id {{key}}",
-		"ALTER TABLE ngc_blob ADD id {{key}}",
-		"ALTER TABLE ngc_blob ADD COLUMN id {{key}} NOT NULL",
-		"ALTER TABLE ngc_blob ADD id {{key}} NOT NULL",
+		"ALTER TABLE cd_blob ADD COLUMN id {{key}}",
+		"ALTER TABLE cd_blob ADD id {{key}}",
+		"ALTER TABLE cd_blob ADD COLUMN id {{key}} NOT NULL",
+		"ALTER TABLE cd_blob ADD id {{key}} NOT NULL",
 	} {
 		form, err := checkStatement(s, fromMigration)
 		if err != nil {
@@ -868,7 +868,7 @@ func TestAnAcceptedAlterRunsOnATableThatHoldsRows(t *testing.T) {
 // form.
 func TestANotNullColumnPartsTheTwoDatabases(t *testing.T) {
 	db := blobWithARow(t)
-	if _, err := db.ExecContext(ctx, "ALTER TABLE ngc_blob ADD id BLOB NOT NULL"); err == nil {
+	if _, err := db.ExecContext(ctx, "ALTER TABLE cd_blob ADD id BLOB NOT NULL"); err == nil {
 		t.Error("SQLite took a NOT NULL column on a table that holds rows")
 	} else {
 		t.Logf("a table that holds rows: %v", err)
@@ -876,29 +876,29 @@ func TestANotNullColumnPartsTheTwoDatabases(t *testing.T) {
 	// The same statement on an empty table: it runs, and the table is
 	// unusable afterwards.
 	empty := openFile(t)
-	if _, err := empty.ExecContext(ctx, "CREATE TABLE ngc_blob (kind BLOB NOT NULL)"); err != nil {
+	if _, err := empty.ExecContext(ctx, "CREATE TABLE cd_blob (kind BLOB NOT NULL)"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := empty.ExecContext(ctx, "ALTER TABLE ngc_blob ADD id BLOB NOT NULL"); err != nil {
+	if _, err := empty.ExecContext(ctx, "ALTER TABLE cd_blob ADD id BLOB NOT NULL"); err != nil {
 		t.Errorf("an empty table: %v", err)
 	}
-	if _, err := empty.ExecContext(ctx, "INSERT INTO ngc_blob (kind) VALUES (?)", []byte("x")); err == nil {
+	if _, err := empty.ExecContext(ctx, "INSERT INTO cd_blob (kind) VALUES (?)", []byte("x")); err == nil {
 		t.Error("a row went into the table, so the half-done column costs nothing after all")
 	} else {
 		t.Logf("an empty table, and then a row: %v", err)
 	}
 }
 
-// blobWithARow gives a database with the smallest ngc_blob there is and one
+// blobWithARow gives a database with the smallest cd_blob there is and one
 // row in it, the way every table a migration meets carries rows. Only listed
 // names are written.
 func blobWithARow(t *testing.T) *sql.DB {
 	t.Helper()
 	db := openFile(t)
-	if _, err := db.ExecContext(ctx, "CREATE TABLE ngc_blob (kind BLOB NOT NULL)"); err != nil {
+	if _, err := db.ExecContext(ctx, "CREATE TABLE cd_blob (kind BLOB NOT NULL)"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, "INSERT INTO ngc_blob (kind) VALUES (?)", []byte("x")); err != nil {
+	if _, err := db.ExecContext(ctx, "INSERT INTO cd_blob (kind) VALUES (?)", []byte("x")); err != nil {
 		t.Fatal(err)
 	}
 	return db
@@ -909,11 +909,11 @@ func blobWithARow(t *testing.T) *sql.DB {
 // quotes it cannot be searched for in the .sql any more. The running number
 // of the statement is what points the author at the right line.
 func TestTheMessageSaysWhichStatement(t *testing.T) {
-	table, err := checkStatement("CREATE TABLE ngc_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind)){{opts}}", fromMigration)
+	table, err := checkStatement("CREATE TABLE cd_blob (kind {{key}} NOT NULL, PRIMARY KEY (kind)){{opts}}", fromMigration)
 	if err != nil {
 		t.Fatal(err)
 	}
-	index, err := checkStatement("CREATE INDEX ngc_blob_seq ON ngc_blob (kind)", fromMigration)
+	index, err := checkStatement("CREATE INDEX cd_blob_seq ON cd_blob (kind)", fromMigration)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -924,7 +924,7 @@ func TestTheMessageSaysWhichStatement(t *testing.T) {
 	}{
 		// A statement that never went through the rules: fill refuses it.
 		{"one the rules never wrote", []string{table, index,
-			"CREATE TABLE ngc_blob (kind {{key}} NOT NULL){{opts}}"}, "statement 3 of 3"},
+			"CREATE TABLE cd_blob (kind {{key}} NOT NULL){{opts}}"}, "statement 3 of 3"},
 		// One the database itself refuses: an index before its table.
 		//
 		// It used to be the same CREATE TABLE twice, and that no longer
@@ -958,25 +958,25 @@ func TestTheMessageSaysWhichStatement(t *testing.T) {
 // name SQLite gives the index it makes for a PRIMARY KEY - so exactly the
 // indexes nobody wrote out by hand were the ones it could not see. Now only
 // SQLite's own bookkeeping is left out, named piece by piece, and the whole
-// schema of NGC still comes back with nothing unlisted in it.
+// schema of CirroDesk still comes back with nothing unlisted in it.
 func TestTheOracleSeesEveryIndex(t *testing.T) {
 	db := openFile(t)
 	if _, err := Apply(ctx, db, sqlstore.SQLite, "test", 1790000000); err != nil {
 		t.Fatal(err)
 	}
-	// PRIMARY KEY (kind, id) of ngc_blob: SQLite makes an index for it and
+	// PRIMARY KEY (kind, id) of cd_blob: SQLite makes an index for it and
 	// names it itself.
-	const autoindex = "sqlite_autoindex_ngc_blob_1"
+	const autoindex = "sqlite_autoindex_cd_blob_1"
 	found := false
 	for _, r := range schemaOf(t, db) {
 		if r.name == autoindex {
-			found = r.kind == "index" && r.of == "ngc_blob"
+			found = r.kind == "index" && r.of == "cd_blob"
 		}
 	}
 	if !found {
 		t.Errorf("the oracle does not see %s, so it cannot see any index a statement did not name", autoindex)
 	}
 	if bad := unlistedInDB(t, db); len(bad) != 0 {
-		t.Errorf("the schema of NGC carries something unlisted: %v", bad)
+		t.Errorf("the schema of CirroDesk carries something unlisted: %v", bad)
 	}
 }

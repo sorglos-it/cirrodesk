@@ -17,11 +17,11 @@ import (
 
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/noisep"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/noisep"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
 )
 
 // ID returns a valid ID made of 16 bytes of fill.
@@ -62,13 +62,13 @@ func NewSigner(fill byte) Signer {
 // Fixed relying party for NewPasskey's WebAuthn assertions. Genesis uses the
 // same RP for its passkey admin, so the two agree.
 const (
-	rpID     = "ngc.example.org"
-	rpOrigin = "https://ngc.example.org"
+	rpID     = "cd.example.org"
+	rpOrigin = "https://cd.example.org"
 )
 
 // NewPasskey returns an Ed25519 passkey (as a software WebAuthn authenticator
 // would hold) with seed fill. Its Prove asserts against the fixed RP
-// ngc.example.org / https://ngc.example.org, with the user always present and
+// cd.example.org / https://cd.example.org, with the user always present and
 // verified, so it stays fully deterministic like NewSigner's password key.
 func NewPasskey(fill byte) Signer {
 	priv := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{fill}, ed25519.SeedSize))
@@ -119,7 +119,7 @@ func NodeKeys(fill byte) (noise.DHKey, ed25519.PrivateKey) {
 }
 
 // ReleaseFill is the seed of the key Genesis's standing approval for
-// ngc-controller names; tests use NodeKeys(ReleaseFill) as the NGC release key.
+// cd-controller names; tests use NodeKeys(ReleaseFill) as the CirroDesk release key.
 const ReleaseFill = 0xD1
 
 // APITLS returns the TLS identity of a test API server: an Ed25519 key from
@@ -166,13 +166,13 @@ const GenesisPasskeyFill = 7
 
 // Genesis returns version 1: user "admin" with admin's key, a second admin
 // "admin2" who signs with a passkey (NewPasskey(GenesisPasskeyFill)) against
-// the RP ngc.example.org, API "api-1" (NodeKeys(0xA1), with the TLS pin of
+// the RP cd.example.org, API "api-1" (NodeKeys(0xA1), with the TLS pin of
 // APITLS(0xE1, "api-1.test")) and controller "ctl-1" (NodeKeys(0xC1)), on
 // which admins may run root tasks. An API node is named by its node ID, as
 // core.PendingAPI and the setup of an API server (apps/server-api/CLAUDE.md)
 // name them; only controllers carry a display name. Also carries the global
 // store (ID trust.StoreGlobal, as the setup puts it into version 1) and two
-// standing approvals (system, and ngc-controller updates signed with the
+// standing approvals (system, and cd-controller updates signed with the
 // release key NodeKeys(ReleaseFill)) so a realistic list exercises those
 // fields too.
 func Genesis(admin Signer) *trust.List {
@@ -196,7 +196,7 @@ func Genesis(admin Signer) *trust.List {
 			{ID: "ctl-1", Kind: trust.NodeController, Name: "Dienste", Noise: ctlDH.Public, RootRoles: []string{trust.RoleAdmin}},
 		},
 		Stores: []trust.Store{
-			{ID: trust.StoreGlobal, Name: "NGC Store", URL: "https://store.ngc.example", Key: enc.Bytes(storeSign.Public().(ed25519.PublicKey))},
+			{ID: trust.StoreGlobal, Name: "CirroDesk Store", URL: "https://store.cd.example", Key: enc.Bytes(storeSign.Public().(ed25519.PublicKey))},
 		},
 		Auto: []trust.Auto{
 			{Target: trust.AutoController, Key: enc.Bytes(releaseSign.Public().(ed25519.PublicKey))},

@@ -23,12 +23,12 @@ test("text for people follows wire.ValidText", async ({ shell }) => {
       bytesAtLimit: t.validText("\u00e4\u00e4\u00e4\u00e4", 8),
       name: t.validName("ctl-1") && !t.validName("1ctl") && !t.validName("CTL"),
       appID: t.validAppID("org.sorglos.terminal") && !t.validAppID("terminal"),
-      core: t.coreApp("ngc.desktop") && !t.coreApp("org.sorglos.terminal"),
+      core: t.coreApp("cd.desktop") && !t.coreApp("org.sorglos.terminal"),
       path: t.validPath("index.html") && !t.validPath("../x") && !t.validPath(".hidden"),
       version: t.validVersion("1.0.0") && !t.validVersion("01.0.0") && !t.validVersion("1.0"),
       newer: t.newer("1.1.0", "1.0.9") && !t.newer("1.0.0", "1.0.0"),
-      minNGC: t.supportsMinNGC("1.2.0", "1.1.0") && !t.supportsMinNGC("0.0.0-dev", "1.0.0")
-        && t.supportsMinNGC("1.0.0", ""),
+      minCD: t.supportsMinCD("1.2.0", "1.1.0") && !t.supportsMinCD("0.0.0-dev", "1.0.0")
+        && t.supportsMinCD("1.0.0", ""),
       id: t.validID("EREREREREREREREREREREQ") && !t.validID("ERERERERERERERERERERE"),
       logID: t.validLogID("0123456789abcdef0123456789abcdef")
         && !t.validLogID("0123456789ABCDEF0123456789abcdef"),
@@ -39,7 +39,7 @@ test("text for people follows wire.ValidText", async ({ shell }) => {
     tab: false, newline: false, rtlOverride: false, noncharacter: false,
     bytesOverLimit: false, bytesAtLimit: true,
     name: true, appID: true, core: true, path: true, version: true, newer: true,
-    minNGC: true, id: true, logID: true,
+    minCD: true, id: true, logID: true,
   });
 });
 
@@ -97,8 +97,8 @@ test("names, paths, versions and ids are decided as in Go", async ({ shell }) =>
         && !t.validAppID("A.b") && !t.validAppID("a.") && !t.validAppID(".a")
         && !t.validAppID("a..b") && !t.validAppID("a.b\n")
         && t.validAppID(a(98) + ".b") && !t.validAppID(a(99) + ".b"),
-      // Only the prefix decides what belongs to NGC itself.
-      core: t.coreApp("ngc.") && !t.coreApp("ngc") && !t.coreApp("xngc.a") && !t.coreApp(""),
+      // Only the prefix decides what belongs to CirroDesk itself.
+      core: t.coreApp("cd.") && !t.coreApp("cd") && !t.coreApp("xcd.a") && !t.coreApp(""),
       // A path has no hidden file, no "..", no backslash and no leading
       // slash, and is at most 200 bytes long.
       path: t.validPath("a.b/c-d_e") && t.validPath("-a") && t.validPath("_a")
@@ -112,11 +112,11 @@ test("names, paths, versions and ids are decided as in Go", async ({ shell }) =>
       // Version parts are compared as numbers, not as text.
       newer: t.newer("10.0.0", "9.0.0") && t.newer("0.0.1", "0.0.0")
         && !t.newer("x", "1.0.0") && !t.newer("1.0.0", "x"),
-      // An empty minNgc suits every build, even one that is no release; a
-      // build that is no release suits no minNgc.
-      minNGC: t.supportsMinNGC("0.0.0-dev", "") && t.supportsMinNGC("", "")
-        && !t.supportsMinNGC("", "1.0.0") && t.supportsMinNGC("1.0.0", "1.0.0")
-        && !t.supportsMinNGC("1.0.0", "1.0.1"),
+      // An empty minCd suits every build, even one that is no release; a
+      // build that is no release suits no minCd.
+      minCD: t.supportsMinCD("0.0.0-dev", "") && t.supportsMinCD("", "")
+        && !t.supportsMinCD("", "1.0.0") && t.supportsMinCD("1.0.0", "1.0.0")
+        && !t.supportsMinCD("1.0.0", "1.0.1"),
       // An id is 16 bytes in base64url, decoded strictly: the last four bits
       // belong to no byte and have to be zero.
       id: t.validID("AAAAAAAAAAAAAAAAAAAAAA") && !t.validID("AAAAAAAAAAAAAAAAAAAAAB")
@@ -142,7 +142,7 @@ test("names, paths, versions and ids are decided as in Go", async ({ shell }) =>
   });
   expect(out).toEqual({
     name: true, appID: true, core: true, path: true, version: true, newer: true,
-    minNGC: true, id: true, logID: true, login: true, totp: true, bytes: true,
+    minCD: true, id: true, logID: true, login: true, totp: true, bytes: true,
   });
 });
 
@@ -173,7 +173,7 @@ test("what is missing or of the wrong kind is refused", async ({ shell }) => {
     values.forEach((x, i) => ask("validText", () => t.validText(x, 64), false, `#${i}`));
     values.forEach((x, i) => ask("newer", () => t.newer(x, "1.0.0"), false, `a#${i}`));
     values.forEach((x, i) => ask("newer", () => t.newer("1.0.0", x), false, `b#${i}`));
-    values.forEach((x, i) => ask("supportsMinNGC", () => t.supportsMinNGC(x, "1.0.0"), false, `a#${i}`));
+    values.forEach((x, i) => ask("supportsMinCD", () => t.supportsMinCD(x, "1.0.0"), false, `a#${i}`));
     // A missing limit closes the gate: no text is 1 to nothing bytes long.
     ask("validText", () => t.validText("Terminal"), false, "no max");
     ask("validText", () => t.validText("Terminal", null), false, "null max");
@@ -181,9 +181,9 @@ test("what is missing or of the wrong kind is refused", async ({ shell }) => {
     ask("validText", () => t.validText("Terminal", 64.5), false, "fraction max");
     ask("validText", () => t.validText("Terminal", NaN), false, "NaN max");
     ask("validText", () => t.validText("Terminal", Infinity), false, "Infinity max");
-    // A missing minNgc is not an empty minNgc: Go is handed a string there.
-    ask("supportsMinNGC", () => t.supportsMinNGC("1.0.0"), false, "no minNgc");
-    ask("supportsMinNGC", () => t.supportsMinNGC("1.0.0", null), false, "null minNgc");
+    // A missing minCd is not an empty minCd: Go is handed a string there.
+    ask("supportsMinCD", () => t.supportsMinCD("1.0.0"), false, "no minCd");
+    ask("supportsMinCD", () => t.supportsMinCD("1.0.0", null), false, "null minCd");
     // byteLength has nothing to count without a string, and an answer of 0
     // would be the one that opens every limit. It refuses, like b64.js.
     const { BadInput } = await import("/assets/js/contracts/b64.js");

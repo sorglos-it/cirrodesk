@@ -1,4 +1,4 @@
-// NGC always uses Noise_KK_25519_AESGCM_SHA256, for three uses told apart by
+// CirroDesk always uses Noise_KK_25519_AESGCM_SHA256, for three uses told apart by
 // the prologue: session (browser to API), tunnel (controller to API) and end
 // to end (shell to controller). Messages 1 and 2 carry an empty payload, so
 // each is exactly HANDSHAKE_SIZE bytes (Go: noisep).
@@ -7,9 +7,9 @@
 // the steps is written out here, straight from the Noise specification.
 import { b64decode, concat, utf8, viewOf } from "./b64.js";
 
-export const PROLOGUE_SESSION = "ngc/session/v1";
-export const PROLOGUE_TUNNEL = "ngc/tunnel/v1";
-export const PROLOGUE_E2E = "ngc/e2e/v1";
+export const PROLOGUE_SESSION = "cd/session/v1";
+export const PROLOGUE_TUNNEL = "cd/tunnel/v1";
+export const PROLOGUE_E2E = "cd/e2e/v1";
 export const HANDSHAKE_SIZE = 48;
 export const TAG_SIZE = 16;
 export const MAX_MESSAGE = 65535;
@@ -279,7 +279,7 @@ export class HandshakeKK {
     await this.mixKey(await dh(this.s.priv, this.re));
     await this.mixKey(await dh(this.s.priv, this.rs));
     const payload = await this.decryptAndHash(m.subarray(32));
-    // Messages 1 and 2 never carry a payload in NGC.
+    // Messages 1 and 2 never carry a payload in CirroDesk.
     if (payload.length !== 0) throw new Error("noise: message 1 payload");
   }
 

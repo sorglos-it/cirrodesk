@@ -9,15 +9,15 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 func newStore(t *testing.T) *Store {
@@ -30,22 +30,22 @@ func newStore(t *testing.T) *Store {
 func TestStagedRoundTrip(t *testing.T) {
 	ctx := context.Background()
 	s := newStore(t)
-	want := Staged{Target: "ngc-controller", Version: "1.2.0", SHA256: make([]byte, 32),
-		Size: 17, Seq: 4, File: "/var/lib/ngc/staged/ngc-controller", State: "downloaded", Time: 100}
+	want := Staged{Target: "cd-controller", Version: "1.2.0", SHA256: make([]byte, 32),
+		Size: 17, Seq: 4, File: "/var/lib/cd/staged/cd-controller", State: "downloaded", Time: 100}
 	if err := s.PutStaged(ctx, want); err != nil {
 		t.Fatal(err)
 	}
-	got, err := s.Staged(ctx, "ngc-controller")
+	got, err := s.Staged(ctx, "cd-controller")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if got.Version != want.Version || got.Seq != want.Seq || got.File != want.File {
 		t.Fatalf("staged = %+v, want %+v", got, want)
 	}
-	if err := s.DeleteStaged(ctx, "ngc-controller"); err != nil {
+	if err := s.DeleteStaged(ctx, "cd-controller"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.Staged(ctx, "ngc-controller"); !errors.Is(err, dbapi.ErrNotFound) {
+	if _, err := s.Staged(ctx, "cd-controller"); !errors.Is(err, dbapi.ErrNotFound) {
 		t.Fatalf("after delete: err = %v, want ErrNotFound", err)
 	}
 }
@@ -159,23 +159,23 @@ func TestPutVersionRefusesUnusableVersion(t *testing.T) {
 func TestStagedRefusesWhatItCannotStage(t *testing.T) {
 	ctx := context.Background()
 	s := newStore(t)
-	good := Staged{Target: "ngc-api", Version: "1.2.0", SHA256: make([]byte, 32),
-		File: config.StageDir + "/ngc-api", State: "downloaded", Time: 100}
+	good := Staged{Target: "cd-api", Version: "1.2.0", SHA256: make([]byte, 32),
+		File: config.StageDir + "/cd-api", State: "downloaded", Time: 100}
 	cases := []struct {
 		name   string
 		damage func(*Staged)
 	}{
 		{"no target at all", func(st *Staged) { st.Target = "" }},
 		{"target that climbs out", func(st *Staged) { st.Target = "../components" }},
-		{"core app as target", func(st *Staged) { st.Target = "ngc.store" }},
+		{"core app as target", func(st *Staged) { st.Target = "cd.store" }},
 		{"no version", func(st *Staged) { st.Version = "" }},
 		{"short checksum", func(st *Staged) { st.SHA256 = make([]byte, 31) }},
 		{"signer that is no key", func(st *Staged) { st.Signer = make([]byte, 31) }},
 		{"negative size", func(st *Staged) { st.Size = -1 }},
 		{"no file", func(st *Staged) { st.File = "" }},
-		{"relative file", func(st *Staged) { st.File = "staged/ngc-api" }},
+		{"relative file", func(st *Staged) { st.File = "staged/cd-api" }},
 		{"file outside the staging directory", func(st *Staged) { st.File = "/etc/shadow" }},
-		{"file beside the staging directory", func(st *Staged) { st.File = config.StageDir + "-alt/ngc-api" }},
+		{"file beside the staging directory", func(st *Staged) { st.File = config.StageDir + "-alt/cd-api" }},
 		{"file that climbs out", func(st *Staged) { st.File = config.StageDir + "/../../etc/shadow" }},
 		{"unknown state", func(st *Staged) { st.State = "halb" }},
 		{"no time", func(st *Staged) { st.Time = 0 }},
@@ -200,7 +200,7 @@ func TestStagedRefusesWhatItCannotStage(t *testing.T) {
 	if err := s.PutStaged(ctx, system); !errors.Is(err, dbapi.ErrInvalid) {
 		t.Error("system with a version: want ErrInvalid")
 	}
-	for _, target := range []string{"", "../components", "ngc.store"} {
+	for _, target := range []string{"", "../components", "cd.store"} {
 		if _, err := s.Staged(ctx, target); !errors.Is(err, dbapi.ErrInvalid) {
 			t.Errorf("Staged(%q): want ErrInvalid", target)
 		}
@@ -219,28 +219,28 @@ func TestStagedRefusesDamagedRow(t *testing.T) {
 	t.Cleanup(func() { _ = s.Close() })
 	sha := enc.B64.EncodeToString(make([]byte, 32))
 	row := func(file, tail string) string {
-		return `{"target":"ngc-api","version":"1.0.0","sha256":"` + sha + `","size":0,"file":"` + file + `",` + tail + `}`
+		return `{"target":"cd-api","version":"1.0.0","sha256":"` + sha + `","size":0,"file":"` + file + `",` + tail + `}`
 	}
 	for _, data := range []string{
-		`{"target":"ngc-api","version":"1.0.0","sha256":"","size":0,"file":"` + config.StageDir +
-			`/ngc-api","state":"downloaded","time":1}`,
+		`{"target":"cd-api","version":"1.0.0","sha256":"","size":0,"file":"` + config.StageDir +
+			`/cd-api","state":"downloaded","time":1}`,
 		row("/etc/shadow", `"state":"downloaded","time":1`),
 		row(config.StageDir+`/../../etc/shadow`, `"state":"downloaded","time":1`),
-		row(config.StageDir+`/ngc-api`, `"state":"downloaded","time":0`),
+		row(config.StageDir+`/cd-api`, `"state":"downloaded","time":0`),
 		`{"was":"ganz anderes"}`,
 		`nicht einmal JSON`,
 	} {
-		if err := db.BlobPut(ctx, dbapi.Blob{Kind: dbapi.BlobSetting, ID: "staged.ngc-api", Data: []byte(data)}); err != nil {
+		if err := db.BlobPut(ctx, dbapi.Blob{Kind: dbapi.BlobSetting, ID: "staged.cd-api", Data: []byte(data)}); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := s.Staged(ctx, "ngc-api"); !errors.Is(err, ErrDocument) {
+		if _, err := s.Staged(ctx, "cd-api"); !errors.Is(err, ErrDocument) {
 			t.Errorf("%.60s: err = %v, want ErrDocument", data, err)
 		}
 	}
 }
 
 // TestStagedRefusesAnotherTarget guards the key itself: a row that was moved
-// or edited under staged.ngc-api must not answer as the system update, or the
+// or edited under staged.cd-api must not answer as the system update, or the
 // caller would run apt where a downloaded file was meant to be installed.
 func TestStagedRefusesAnotherTarget(t *testing.T) {
 	ctx := context.Background()
@@ -248,10 +248,10 @@ func TestStagedRefusesAnotherTarget(t *testing.T) {
 	s := New(db)
 	t.Cleanup(func() { _ = s.Close() })
 	row := []byte(`{"target":"system","sha256":"","size":0,"state":"available","time":1}`)
-	if err := db.BlobPut(ctx, dbapi.Blob{Kind: dbapi.BlobSetting, ID: "staged.ngc-api", Data: row}); err != nil {
+	if err := db.BlobPut(ctx, dbapi.Blob{Kind: dbapi.BlobSetting, ID: "staged.cd-api", Data: row}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.Staged(ctx, "ngc-api"); !errors.Is(err, ErrDocument) {
+	if _, err := s.Staged(ctx, "cd-api"); !errors.Is(err, ErrDocument) {
 		t.Fatalf("err = %v, want ErrDocument", err)
 	}
 	// Under its own key the very same row is good.
@@ -269,7 +269,7 @@ func TestComponentsRoundTrip(t *testing.T) {
 	if _, err := s.Components(ctx); !errors.Is(err, dbapi.ErrNotFound) {
 		t.Fatal("before the first write: want ErrNotFound")
 	}
-	want := map[string]string{"ngc-api": "1.2.0", "ngc-controller": "1.2.1", "ngc-web": "1.2.2"}
+	want := map[string]string{"cd-api": "1.2.0", "cd-controller": "1.2.1", "cd-web": "1.2.2"}
 	if err := s.PutComponents(ctx, want); err != nil {
 		t.Fatal(err)
 	}
@@ -287,9 +287,9 @@ func TestComponentsRoundTrip(t *testing.T) {
 		t.Fatalf("after clearing: %v, %v", got, err)
 	}
 	for _, bad := range []map[string]string{
-		{"ngc-store": "1.2.0"},
-		{"ngc-api": "1.2"},
-		{"ngc-api": "0.0.0-dev"},
+		{"cd-store": "1.2.0"},
+		{"cd-api": "1.2"},
+		{"cd-api": "0.0.0-dev"},
 	} {
 		if err := s.PutComponents(ctx, bad); !errors.Is(err, dbapi.ErrInvalid) {
 			t.Errorf("%v: want ErrInvalid", bad)
@@ -303,8 +303,8 @@ func TestComponentsRefusesDamagedRow(t *testing.T) {
 	s := New(db)
 	t.Cleanup(func() { _ = s.Close() })
 	for _, data := range []string{
-		`{"ngc-api":"1.2.0","ngc-web":"1.2.0","ngc-controller":"1.2.0","ngc-db":"1.2.0"}`,
-		`{"ngc-store":"1.2.0"}`,
+		`{"cd-api":"1.2.0","cd-web":"1.2.0","cd-controller":"1.2.0","cd-db":"1.2.0"}`,
+		`{"cd-store":"1.2.0"}`,
 		`null`,
 		`[]`,
 	} {
@@ -512,8 +512,8 @@ func TestPurgeFreesExpiredTasks(t *testing.T) {
 func FuzzStaged(f *testing.F) {
 	f.Add([]byte(`{"target":"system","sha256":"","size":0,"file":"/x","state":"downloaded","time":1}`))
 	f.Add([]byte(`{"target":"system","sha256":"","size":0,"state":"available","time":1}`))
-	f.Add([]byte(`{"target":"ngc-api","version":"1.2.0","sha256":"` + enc.B64.EncodeToString(make([]byte, 32)) +
-		`","size":17,"seq":4,"file":"` + config.StageDir + `/ngc-api","state":"downloaded","time":1}`))
+	f.Add([]byte(`{"target":"cd-api","version":"1.2.0","sha256":"` + enc.B64.EncodeToString(make([]byte, 32)) +
+		`","size":17,"seq":4,"file":"` + config.StageDir + `/cd-api","state":"downloaded","time":1}`))
 	f.Fuzz(func(t *testing.T, b []byte) {
 		st, err := decodeStaged(b)
 		if err != nil {
@@ -544,7 +544,7 @@ func FuzzStaged(f *testing.F) {
 
 func FuzzComponents(f *testing.F) {
 	f.Add([]byte(`{}`))
-	f.Add([]byte(`{"ngc-api":"1.2.0","ngc-controller":"1.2.1","ngc-web":"1.2.2"}`))
+	f.Add([]byte(`{"cd-api":"1.2.0","cd-controller":"1.2.1","cd-web":"1.2.2"}`))
 	f.Fuzz(func(t *testing.T, b []byte) {
 		m, err := decodeComponents(b)
 		if err != nil {

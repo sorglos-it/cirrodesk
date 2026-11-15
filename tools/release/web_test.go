@@ -126,7 +126,7 @@ func TestRealArchiveIsClosed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pack-release.sh on %s: %v\n%s", webRef, err, log)
 	}
-	dir := unpack(t, filepath.Join(out, "ngc-web-all.tar"))
+	dir := unpack(t, filepath.Join(out, "cd-web-all.tar"))
 	got, err := Closure(dir, lines(t, "entrypoints-web.txt"))
 	if err != nil {
 		t.Fatalf("Closure: %v", err)

@@ -9,13 +9,13 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/internal/golden"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/session"
-	"github.com/sorglos-it/nextgencloud/shared/sign"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/internal/golden"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/session"
+	"github.com/sorglos-it/cirrodesk/shared/sign"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 var update = flag.Bool("update", false, "rewrite shared/testdata")
@@ -53,22 +53,22 @@ func newFixture(t testing.TB) fixture {
 	return fixture{list: l, admin: admin, sessSig: sessSig, verified: v}
 }
 
-// activateParams returns valid params of ngc.store/controller/activate with
+// activateParams returns valid params of cd.store/controller/activate with
 // extra members appended, such as grants.
 func activateParams(extra string) json.RawMessage {
 	sum := enc.B64.EncodeToString(bytes.Repeat([]byte{0x01}, 32))
 	return json.RawMessage(`{"app":"org.sorglos.terminal","version":"1.0.0","sha256":"` + sum + `","store":"` + trust.StoreGlobal + `"` + extra + `}`)
 }
 
-// task returns the root task ngc.store/controller/deactivate of the terminal
+// task returns the root task cd.store/controller/deactivate of the terminal
 // on ctl-1, the task of task.json.
 func (f fixture) task() Task {
 	return Task{ID: bytes.Repeat([]byte{0x61}, IDSize), Installation: f.list.Installation, Cert: session.CertHash(f.verified.Payload()),
-		Node: "ctl-1", App: "ngc.store", Service: "controller", Action: "deactivate",
+		Node: "ctl-1", App: "cd.store", Service: "controller", Action: "deactivate",
 		Params: json.RawMessage(`{"app":"org.sorglos.terminal"}`), Issued: issued, Expires: issued + 60}
 }
 
-// activateTask returns the root task ngc.store/controller/activate of the
+// activateTask returns the root task cd.store/controller/activate of the
 // terminal on ctl-1 with params activateParams(extra), for the cases where
 // its grants matter.
 func (f fixture) activateTask(extra string) Task {
@@ -77,7 +77,7 @@ func (f fixture) activateTask(extra string) Task {
 	return tk
 }
 
-// deactivateRule mimics core's rule for ngc.store/controller/deactivate: a
+// deactivateRule mimics core's rule for cd.store/controller/deactivate: a
 // root task that is never critical. Like core, it refuses params it cannot
 // read.
 var deactivateRule = Rule{Root: true, Changes: true, Critical: func(params json.RawMessage) (bool, error) {
@@ -90,7 +90,7 @@ var deactivateRule = Rule{Root: true, Changes: true, Critical: func(params json.
 	return false, json.Unmarshal(params, &p)
 }}
 
-// grantRule mimics core's rule for ngc.store/controller/activate: a root task
+// grantRule mimics core's rule for cd.store/controller/activate: a root task
 // that is critical once it grants the app something. Like core, it refuses
 // params it cannot read, and no params at all.
 var grantRule = Rule{Root: true, Changes: true, Critical: func(params json.RawMessage) (bool, error) {
@@ -122,7 +122,7 @@ func signTask(t testing.TB, priv ed25519.PrivateKey, tk Task) sign.Envelope {
 
 // input is the channel of f.task() on ctl-1 with the task in env.
 func (f fixture) input(env *sign.Envelope) Input {
-	return Input{Task: env, Session: f.verified, Node: "ctl-1", App: "ngc.store", Service: "controller",
+	return Input{Task: env, Session: f.verified, Node: "ctl-1", App: "cd.store", Service: "controller",
 		Action: "deactivate", Rule: deactivateRule}
 }
 

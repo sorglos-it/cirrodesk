@@ -1,5 +1,5 @@
-// Package migrations carries the numbered migrations of NGC. They travel
-// inside the release file ngc-api, because they belong to its version: one
+// Package migrations carries the numbered migrations of CirroDesk. They travel
+// inside the release file cd-api, because they belong to its version: one
 // controller with role db runs them before the new API starts.
 //
 // The folder is called sql because the project structure puts migrations

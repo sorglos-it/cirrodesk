@@ -16,16 +16,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/secrets"
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/config"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi/memstore"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/proof"
-	"github.com/sorglos-it/nextgencloud/shared/store"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/trust/trusttest"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/secrets"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi/memstore"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/proof"
+	"github.com/sorglos-it/cirrodesk/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 )
 
 // newStores is one API with no store served: everything an upload or a proof
@@ -222,7 +222,7 @@ func goodEntries(t *testing.T) []packEntry {
 }
 
 // uploadVectors is shared/testdata/packui.json: whole packages, the canonical
-// ui-tar of each and its SHA-256, as ngc-store, the controller and the shell
+// ui-tar of each and its SHA-256, as cd-store, the controller and the shell
 // compute it.
 type uploadVectors []struct {
 	Name    string    `json:"name"`
@@ -338,7 +338,7 @@ func TestUploadRefusesAnUnsafeArchive(t *testing.T) {
 		pkg  []byte
 	}{
 		{"absolute path", buildPackage(t, append(goodEntries(t),
-			packEntry{name: "/etc/cron.d/ngc", body: []byte("x"), kind: tar.TypeReg}))},
+			packEntry{name: "/etc/cron.d/cd", body: []byte("x"), kind: tar.TypeReg}))},
 		{"dot dot", buildPackage(t, append(goodEntries(t),
 			packEntry{name: "ui/../../etc/passwd", body: []byte("x"), kind: tar.TypeReg}))},
 		{"symlink", buildPackage(t, append(goodEntries(t),
@@ -429,7 +429,7 @@ func (zeroes) Read(p []byte) (int, error) {
 func streamPackage(t *testing.T, size int64) io.Reader {
 	t.Helper()
 	m := testManifest()
-	m.Services = []store.Service{{Name: "notes", Command: []string{"/usr/local/bin/ngc-notes"}}}
+	m.Services = []store.Service{{Name: "notes", Command: []string{"/usr/local/bin/cd-notes"}}}
 	head := goodEntries(t)
 	head[0] = manifestEntry(t, m)
 	pr, pw := io.Pipe()

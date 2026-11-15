@@ -49,8 +49,8 @@
 # (runtime.CheckBase, apps/server-controller/classes/runtime/build_test.go).
 set -eu
 
-repo=${NGC_BASE_REPO:-library/debian}
-tag=${NGC_BASE_TAG:-13-slim}
+repo=${CD_BASE_REPO:-library/debian}
+tag=${CD_BASE_TAG:-13-slim}
 file=$(dirname "$0")/../apps/server-controller/templates/terminal/Containerfile
 mode=report
 case "${1:-}" in
@@ -107,7 +107,7 @@ case $own in
 	*) echo "pin-base: $own is no sha256 digest" >&2; exit 1 ;;
 esac
 
-# Both architectures NGC builds for have to be in there, or the one digest does
+# Both architectures CirroDesk builds for have to be in there, or the one digest does
 # not serve both --arch builds and the second one fails on a build machine.
 for arch in amd64 arm64; do
 	grep -q "\"architecture\":\"$arch\"" "$tmp" ||

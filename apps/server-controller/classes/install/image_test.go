@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
 )
 
 // fileLog records what each of the two calls was asked for, in order, and
@@ -121,8 +121,8 @@ func TestAHandoverThatFailsEndsTheActivation(t *testing.T) {
 // error here and not a question.
 func TestNoImageIsHandedToRoot(t *testing.T) {
 	for _, u := range []runtime.User{
-		{Name: "ngc-a-00000000", UID: 0, GID: 4712},
-		{Name: "ngc-a-00000000", UID: 4711, GID: 0},
+		{Name: "cd-a-00000000", UID: 0, GID: 4712},
+		{Name: "cd-a-00000000", UID: 4711, GID: 0},
 	} {
 		dir := t.TempDir()
 		tar := filepath.Join(dir, "amd64.tar")

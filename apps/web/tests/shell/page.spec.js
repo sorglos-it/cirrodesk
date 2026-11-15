@@ -26,13 +26,13 @@ test("the shell page carries the headers and the anchor", async ({ page }) => {
   expect(h["cache-control"]).toBe("no-store");
   expect(h["x-content-type-options"]).toBe("nosniff");
   expect(h["referrer-policy"]).toBe("no-referrer");
-  expect(await page.title()).toBe("NGC");
+  expect(await page.title()).toBe("CirroDesk");
   await expect(page.locator("#root")).toBeAttached();
 
   const cfg = await (await page.request.get("/config.json")).json();
   expect(cfg.anchor).toEqual(ANCHOR);
-  expect(cfg.rp.id).toBe("ngc.example.org");
-  expect(cfg.apis).toEqual(["https://api-1.ngc.test:7443", "https://api-2.ngc.test:7443"]);
+  expect(cfg.rp.id).toBe("cd.example.org");
+  expect(cfg.apis).toEqual(["https://api-1.cd.test:7443", "https://api-2.cd.test:7443"]);
 });
 
 test("an unknown path answers 404 in German", async ({ page }) => {

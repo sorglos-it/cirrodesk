@@ -36,7 +36,7 @@
 // wurde abgeschnitten." while the journal of this controller held nothing at
 // all (measured on 21.10.2026 on the Debian machine).
 //
-// What this build carries out is ngc.users/controller/trust (trust.go) and
+// What this build carries out is cd.users/controller/trust (trust.go) and
 // the app channels of this controller from end to end (app.go): the handshake,
 // the wait for the first inner message, and the service of the app. Since task
 // 19 it carries out install as well (update.go), so the actions of this build
@@ -56,16 +56,16 @@ import (
 
 	"github.com/flynn/noise"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/access"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/chain"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/link"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/state"
-	"github.com/sorglos-it/nextgencloud/shared/core"
-	"github.com/sorglos-it/nextgencloud/shared/dbapi"
-	"github.com/sorglos-it/nextgencloud/shared/trust"
-	"github.com/sorglos-it/nextgencloud/shared/tunnel"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/access"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/chain"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/link"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/state"
+	"github.com/sorglos-it/cirrodesk/shared/core"
+	"github.com/sorglos-it/cirrodesk/shared/dbapi"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/tunnel"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // Deps is what a Server needs. Everything in it belongs to the whole server
@@ -106,12 +106,12 @@ type Deps struct {
 	// is its configuration and not a peer's, so a channel that meets a
 	// missing one says nothing else about itself.
 	Engine runtime.Engine
-	// Updater carries out ngc.store/controller/install: the parts of NGC, the
+	// Updater carries out cd.store/controller/install: the parts of CirroDesk, the
 	// apps and the system packages of this server (update.go). nil is a
 	// controller that was not built with an updater, and every install
 	// channel ends E_INTERNAL.
 	Updater Updater
-	// Installer carries out ngc.store/controller/activate (activate.go). nil:
+	// Installer carries out cd.store/controller/activate (activate.go). nil:
 	// an activate channel ends E_INTERNAL.
 	Installer Installer
 	// MaxApps bounds how many app channels this controller runs at once,
@@ -213,7 +213,7 @@ type stream func(ctx context.Context, list *trust.List, d access.Decision,
 // cannot be compared.
 type name [3]string
 
-// trustKey is ngc.users/controller/trust, the one core action this package
+// trustKey is cd.users/controller/trust, the one core action this package
 // carries out itself (trust.go).
 var trustKey = name{core.AppUsers, core.ServiceController, core.ActTrust}
 
@@ -543,11 +543,11 @@ func (s *Server) coreStream(ctx context.Context, ch *link.Channel, list *trust.L
 // more than the first GRANT gave it.
 //
 // It keeps the whole input in memory, and it does so for every action alike.
-// What this build serves is bounded by the MaxIn of ngc.users/controller/trust,
+// What this build serves is bounded by the MaxIn of cd.users/controller/trust,
 // 33554432 bytes — but a tunnel may hold wire.MaxTunnelChannels numbers at
 // once, so even that is 32 GiB in a process running as root. The controller
 // actions of core.All that carry a file are already written and only not
-// served yet: ngc.store/controller/stage and activate stand at 4303355908
+// served yet: cd.store/controller/stage and activate stand at 4303355908
 // bytes each (core.maxTransferIn, measured). Whoever serves them reads the
 // input of a FlowTransfer channel as it flows instead of holding it, and this
 // function is where that fork belongs.

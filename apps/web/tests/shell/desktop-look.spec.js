@@ -259,7 +259,7 @@ test("a hostile app name reaches the dock as text and not as markup", async ({ s
 // The name of the app in front, in the band, and its menu.
 test("the band names the app in front, and forgets it again", async ({ shell }) => {
   const btn = shell.locator("#appbtn");
-  // Nothing in front, nothing named: NGC has no app that is always running.
+  // Nothing in front, nothing named: CirroDesk has no app that is always running.
   await expect(btn).toBeHidden();
 
   await shell.getByRole("button", { name: "Start" }).click();
@@ -598,7 +598,7 @@ test("the font steps are fixed and the density moves only the body", async ({ sh
   expect(await shell.locator("#taskbar").evaluate((e) => getComputedStyle(e).fontSize)).toBe("13px");
 });
 
-test("the font travels with NGC instead of coming from the machine", async ({ shell }) => {
+test("the font travels with CirroDesk instead of coming from the machine", async ({ shell }) => {
   // WHAT THIS CASE IS FOR. The sizes above are fixed now, but a size only
   // means something together with the shape it is measured in: 13px of Segoe
   // UI, of Roboto and of San Francisco are three different widths, so one

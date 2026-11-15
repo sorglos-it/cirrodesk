@@ -20,16 +20,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sorglos-it/nextgencloud/apps/server-api/classes/guard"
-	"github.com/sorglos-it/nextgencloud/apps/server-controller/classes/runtime"
-	"github.com/sorglos-it/nextgencloud/shared/enc"
-	"github.com/sorglos-it/nextgencloud/shared/service"
-	"github.com/sorglos-it/nextgencloud/shared/wire"
+	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/guard"
+	"github.com/sorglos-it/cirrodesk/apps/server-controller/classes/runtime"
+	"github.com/sorglos-it/cirrodesk/shared/enc"
+	"github.com/sorglos-it/cirrodesk/shared/service"
+	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
 // echoScript is the example service of contract V3: it echoes stdin to stdout,
 // names app, service, action and user on stderr and ends with the code in
-// NGC_PARAMS.
+// CD_PARAMS.
 const echoScript = "../../../../shared/testdata/service/echo.sh"
 
 // callUser is a user ID of the shape trust.ValidID wants: 16 bytes, base64url
@@ -75,7 +75,7 @@ func needShell(t *testing.T) {
 // echoCall is a call of the example service with these params.
 func echoCall(params string) service.Call {
 	return service.Call{
-		User: callUser, UserName: "Thomas", App: "ngc.test", Service: "demo",
+		User: callUser, UserName: "Thomas", App: "cd.test", Service: "demo",
 		Action: "run", Version: "1.0.0", Params: json.RawMessage(params),
 	}
 }
@@ -211,7 +211,7 @@ func TestRunServicePassesTheEnvironmentAndEchoes(t *testing.T) {
 	var out bytes.Buffer
 	log := newCollector()
 	cl := RunService(context.Background(), CallInput{
-		Engine: local{}, Container: "ngc-app-test",
+		Engine: local{}, Container: "cd-app-test",
 		Command: []string{"/bin/sh", echoScript},
 		Call:    echoCall(`{}`),
 		In:      strings.NewReader("hallo welt"), Out: &out, Log: log.logger(),
@@ -227,8 +227,8 @@ func TestRunServicePassesTheEnvironmentAndEchoes(t *testing.T) {
 	}
 	// The service names who asked on stderr, and that line is what says the
 	// environment really arrived: app, service, action and the user ID, all
-	// four out of NGC_* and none of them from a command line.
-	want := "ngc.test demo run " + callUser
+	// four out of CD_* and none of them from a command line.
+	want := "cd.test demo run " + callUser
 	if !strings.Contains(log.text.String(), want) {
 		t.Fatalf("log = %q, want a line with %q", log.text.String(), want)
 	}
@@ -238,7 +238,7 @@ func TestRunServiceReportsTheExitCode(t *testing.T) {
 	needShell(t)
 	envHere(t)
 	cl := RunService(context.Background(), CallInput{
-		Engine: local{}, Container: "ngc-app-test",
+		Engine: local{}, Container: "cd-app-test",
 		Command: []string{"/bin/sh", echoScript},
 		Call:    echoCall(`{"exit":2}`),
 		In:      strings.NewReader(""), Log: newCollector().logger(),
@@ -263,7 +263,7 @@ func TestRunServiceTimesOut(t *testing.T) {
 	done := make(chan wire.Close, 1)
 	go func() {
 		done <- RunService(context.Background(), CallInput{
-			Engine: local{}, Container: "ngc-app-test",
+			Engine: local{}, Container: "cd-app-test",
 			Command: []string{"/bin/sh", "-c", "sleep 2; : > " + after},
 			Call:    echoCall(`{}`),
 			Timeout: 150 * time.Millisecond, Log: newCollector().logger(),
@@ -292,7 +292,7 @@ func TestParamsNeverReachTheLog(t *testing.T) {
 	const secret = "haus-der-mutter-1993"
 	log := newCollector()
 	cl := RunService(context.Background(), CallInput{
-		Engine: local{}, Container: "ngc-app-test",
+		Engine: local{}, Container: "cd-app-test",
 		Command: []string{"/bin/sh", echoScript},
 		Call:    echoCall(`{"wort":"` + secret + `"}`),
 		In:      strings.NewReader(""), Log: log.logger(),
@@ -306,7 +306,7 @@ func TestParamsNeverReachTheLog(t *testing.T) {
 	got := log.text.String()
 	// First that anything was written at all: a log nobody filled would pass
 	// the two checks below without saying a word about them.
-	if !strings.Contains(got, "ngc.test") {
+	if !strings.Contains(got, "cd.test") {
 		t.Fatalf("log = %q, want the one line of this call", got)
 	}
 	if strings.Contains(got, service.EnvParams) {
@@ -323,9 +323,9 @@ func TestRunServiceStartsNothingWithoutAValidCall(t *testing.T) {
 	c := echoCall(`{}`)
 	// Capital letters are no app ID (wire.ValidAppID), and that is the whole
 	// difference to the call every other case here uses.
-	c.App = "NGC.Test"
+	c.App = "CirroDesk.Test"
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/bin/sh", echoScript},
+		Engine: e, Container: "cd-app-test", Command: []string{"/bin/sh", echoScript},
 		Call: c, Log: newCollector().logger(),
 	})
 	if cl.Status != wire.StatusError || cl.Code != wire.CodeVerify {
@@ -376,7 +376,7 @@ func TestAStreamingCallGetsNoDeadlineAndABoundedOneDoes(t *testing.T) {
 	envHere(t)
 	stream := &stub{}
 	if cl := RunService(context.Background(), CallInput{
-		Engine: stream, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: stream, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Timeout: 2 * time.Hour, Stream: true,
 		Log: newCollector().logger(),
 	}); cl.Status != wire.StatusOK {
@@ -388,7 +388,7 @@ func TestAStreamingCallGetsNoDeadlineAndABoundedOneDoes(t *testing.T) {
 	}
 	bounded := &stub{}
 	if cl := RunService(context.Background(), CallInput{
-		Engine: bounded, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: bounded, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Timeout: 2 * time.Hour,
 		Log: newCollector().logger(),
 	}); cl.Status != wire.StatusOK {
@@ -409,7 +409,7 @@ func TestTheEnvironmentTravelsInAFileAndNotInAnArgument(t *testing.T) {
 	const secret = "muehlenweg-sieben"
 	e := &stub{}
 	if cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/usr/local/bin/demo", "--go"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/usr/local/bin/demo", "--go"},
 		Call: echoCall(`{"wort":"` + secret + `"}`), Log: newCollector().logger(),
 	}); cl.Status != wire.StatusOK {
 		t.Fatalf("close = %+v, want status ok", cl)
@@ -467,7 +467,7 @@ func TestInputCutOffIsNeverASuccess(t *testing.T) {
 		return 0, nil
 	}}
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), In: &halfReader{s: "half"}, Log: newCollector().logger(),
 	})
 	if cl.Status != wire.StatusError || cl.Code != wire.CodeProtocol {
@@ -485,7 +485,7 @@ func TestAWholeInputIsASuccess(t *testing.T) {
 	// reader ends with io.EOF instead of an error. Without this case the one
 	// above would also pass on a RunService that refuses every input.
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), In: strings.NewReader("half"), Log: newCollector().logger(),
 	})
 	if cl.Status != wire.StatusOK || cl.Code != "" {
@@ -503,7 +503,7 @@ func TestTheStderrOfACallIsBoundedAndKeepsItsEnd(t *testing.T) {
 		return 0, nil
 	}}
 	if cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Log: log.logger(), LogStderr: true,
 	}); cl.Status != wire.StatusOK {
 		t.Fatalf("close = %+v, want status ok", cl)
@@ -535,7 +535,7 @@ func TestAnEngineThatCannotBeRunMakesTheServiceUnreachable(t *testing.T) {
 		return 0, errors.New("podman is not installed")
 	}}
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Log: newCollector().logger(),
 	})
 	if cl.Status != wire.StatusError || cl.Code != wire.CodeUnreachable {
@@ -549,7 +549,7 @@ func TestAProgramEndedBySignalHasNoStatus(t *testing.T) {
 		return 0, runtime.ErrKilled
 	}}
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Log: newCollector().logger(),
 	})
 	if cl.Status != wire.StatusError || cl.Code != wire.CodeExit {
@@ -576,7 +576,7 @@ func TestParamsReachNoLineOfAnyCall(t *testing.T) {
 		return 0, nil
 	}}
 	if cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{"wort":"` + secret + `"}`), Log: log.logger(), LogStderr: true,
 	}); cl.Status != wire.StatusOK {
 		t.Fatalf("close = %+v, want status ok", cl)
@@ -600,7 +600,7 @@ func TestACallWhoseProgramIgnoresItsInputStillEnds(t *testing.T) {
 	done := make(chan wire.Close, 1)
 	go func() {
 		done <- RunService(context.Background(), CallInput{
-			Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+			Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 			Call: echoCall(`{}`),
 			In:   strings.NewReader(strings.Repeat("x", 1<<20)),
 			Log:  newCollector().logger(),
@@ -626,7 +626,7 @@ func TestACancelledCallerIsNoTimeLimit(t *testing.T) {
 	}}
 	cancel()
 	cl := RunService(ctx, CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Log: newCollector().logger(),
 	})
 	// E_TIMEOUT would tell the shell this server stopped the service because
@@ -641,7 +641,7 @@ func TestACallThatWroteNoStderrWritesNoLine(t *testing.T) {
 	envHere(t)
 	log := newCollector()
 	if cl := RunService(context.Background(), CallInput{
-		Engine: &stub{}, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: &stub{}, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Log: log.logger(),
 	}); cl.Status != wire.StatusOK {
 		t.Fatalf("close = %+v, want status ok", cl)
@@ -660,9 +660,9 @@ func TestAServiceCallWiredWrongReachesNoEngine(t *testing.T) {
 		name string
 		in   CallInput
 	}{
-		{"no engine", CallInput{Container: "ngc-app-test", Command: []string{"/x"}}},
+		{"no engine", CallInput{Container: "cd-app-test", Command: []string{"/x"}}},
 		{"no container", CallInput{Engine: &stub{}, Command: []string{"/x"}}},
-		{"no command", CallInput{Engine: &stub{}, Container: "ngc-app-test"}},
+		{"no command", CallInput{Engine: &stub{}, Container: "cd-app-test"}},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -690,7 +690,7 @@ func TestInputCutOffEndsTheService(t *testing.T) {
 	done := make(chan wire.Close, 1)
 	go func() {
 		done <- RunService(context.Background(), CallInput{
-			Engine: local{}, Container: "ngc-app-test",
+			Engine: local{}, Container: "cd-app-test",
 			// It reads its input first, because a program that never reads
 			// cannot notice an input at all - and then nothing would be
 			// measured here.
@@ -739,7 +739,7 @@ func TestInputCutOffCancelsTheCallAtOnce(t *testing.T) {
 		return 0, runtime.ErrKilled
 	}}
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Timeout: time.Hour,
 		In:  &halfReader{s: "half"},
 		Log: newCollector().logger(),
@@ -767,7 +767,7 @@ func TestTheOutputOfTheProgramReachesTheCaller(t *testing.T) {
 		return 0, nil
 	}}
 	if cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Out: &out, Log: newCollector().logger(),
 	}); cl.Status != wire.StatusOK {
 		t.Fatalf("close = %+v, want status ok", cl)
@@ -789,7 +789,7 @@ func TestATimeLimitThatRanOutIsNoExitCode(t *testing.T) {
 	done := make(chan wire.Close, 1)
 	go func() {
 		done <- RunService(context.Background(), CallInput{
-			Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+			Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 			Call: echoCall(`{}`), Timeout: 50 * time.Millisecond,
 			Log: newCollector().logger(),
 		})
@@ -816,7 +816,7 @@ func TestTheExitCodeOfTheProgramIsTheOneReported(t *testing.T) {
 	// would go on passing on a RunService that answers with a hard-wired 2.
 	e := &stub{run: func(context.Context, runtime.Exec) (int, error) { return 7, nil }}
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+		Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 		Call: echoCall(`{}`), Log: newCollector().logger(),
 	})
 	if cl.Status != wire.StatusError || cl.Code != wire.CodeExit {
@@ -833,7 +833,7 @@ func TestTheExitCodeOfTheProgramIsTheOneReported(t *testing.T) {
 func TestANameThatIsTakenIsNoPlaceForTheParams(t *testing.T) {
 	dir := envHere(t)
 	name := filepath.Join(dir, "env-taken")
-	const first = "NGC_PARAMS={\"erster\":1}" + "\n"
+	const first = "CD_PARAMS={\"erster\":1}" + "\n"
 	f, err := createEnv(name)
 	if err != nil {
 		t.Fatal(err)
@@ -860,12 +860,12 @@ func TestANameThatIsTakenIsNoPlaceForTheParams(t *testing.T) {
 
 func TestTwoCallsGetTwoFilesOfTheirOwn(t *testing.T) {
 	envHere(t)
-	first, err := writeEnv([]string{"NGC_PARAMS={\"a\":1}"})
+	first, err := writeEnv([]string{"CD_PARAMS={\"a\":1}"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Remove(first)
-	second, err := writeEnv([]string{"NGC_PARAMS={\"b\":2}"})
+	second, err := writeEnv([]string{"CD_PARAMS={\"b\":2}"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -876,8 +876,8 @@ func TestTwoCallsGetTwoFilesOfTheirOwn(t *testing.T) {
 	// And each one still holds its own: a name that is not new would have the
 	// second call reading what the first was given, or the other way round.
 	for path, want := range map[string]string{
-		first:  "NGC_PARAMS={\"a\":1}" + "\n",
-		second: "NGC_PARAMS={\"b\":2}" + "\n",
+		first:  "CD_PARAMS={\"a\":1}" + "\n",
+		second: "CD_PARAMS={\"b\":2}" + "\n",
 	} {
 		b, err := os.ReadFile(path)
 		if err != nil {
@@ -889,7 +889,7 @@ func TestTwoCallsGetTwoFilesOfTheirOwn(t *testing.T) {
 	}
 }
 
-// The stderr of a service is its own text, and a service has NGC_PARAMS in its
+// The stderr of a service is its own text, and a service has CD_PARAMS in its
 // environment: a program that writes its environment would put what the user
 // typed into the log of this server. So the text goes out only where someone
 // switched it on, and off is the default - what stands in the log then is that
@@ -908,7 +908,7 @@ func TestStderrTextStaysOutOfTheLogUnlessItIsSwitchedOn(t *testing.T) {
 				return 0, nil
 			}}
 			if cl := RunService(context.Background(), CallInput{
-				Engine: e, Container: "ngc-app-test", Command: []string{"/x"},
+				Engine: e, Container: "cd-app-test", Command: []string{"/x"},
 				Call: echoCall(`{}`), Log: log.logger(), LogStderr: c.on,
 			}); cl.Status != wire.StatusOK {
 				t.Fatalf("close = %+v, want status ok", cl)
@@ -941,12 +941,12 @@ func (p *panicReader) Read(b []byte) (int, error) {
 }
 
 // callSecret is what the panic value carries by accident.
-const callSecret = "NGC-TEST-SECRET-0123456789"
+const callSecret = "CirroDesk-TEST-SECRET-0123456789"
 
 // TestAPanicInTheFeederEndsTheCallAndNotTheServer is V1.2 point 38 for the one
 // goroutine of a service call: the input of a call is fed to the program from a
 // goroutine of its own, and a panic in it -- in the reader this call was handed
-// -- was the end of the whole ngc-controller, with every channel of every
+// -- was the end of the whole cd-controller, with every channel of every
 // tunnel.
 //
 // Three things are measured, and the second is the one that was not there
@@ -966,7 +966,7 @@ func TestAPanicInTheFeederEndsTheCallAndNotTheServer(t *testing.T) {
 		return 0, nil
 	}}
 	cl := RunService(context.Background(), CallInput{
-		Engine: e, Container: "ngc-app-test", Command: []string{"/bin/sh", echoScript},
+		Engine: e, Container: "cd-app-test", Command: []string{"/bin/sh", echoScript},
 		Call: echoCall(`{}`), In: &panicReader{}, Log: log.logger(),
 	})
 	if cl.Status != wire.StatusError || cl.Code != wire.CodeInternal {

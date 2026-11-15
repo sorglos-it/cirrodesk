@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-// This answers for the systems NGC is only written on, not run on. Putting a
+// This answers for the systems CirroDesk is only written on, not run on. Putting a
 // child process into a cgroup is a call of Linux, and there is no cgroup tree
 // to open either: every case that would start podman skips itself outside
 // Linux, and the ones that measure the numbers written into a cgroup use a

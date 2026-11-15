@@ -12,7 +12,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sorglos-it/nextgencloud/shared/store"
+	"github.com/sorglos-it/cirrodesk/shared/store"
 )
 
 // PartNames are the parts a release knows, in the order releaseParts lists
@@ -34,7 +34,7 @@ func PartNames() []string {
 }
 
 // PartList is PartNames with the architectures behind each part, as one
-// line for a message: "ngc-web (all), ngc-api (amd64, arm64), …".
+// line for a message: "cd-web (all), cd-api (amd64, arm64), …".
 func PartList() string {
 	var parts []string
 	for _, name := range PartNames() {
@@ -77,7 +77,7 @@ func KnownPart(part string) bool { return slices.Contains(PartNames(), part) }
 
 // ErrContents reports a release file whose tar does not hold what the
 // installation scripts take out of it.
-var ErrContents = errors.New("ngc-store: the release file holds the wrong content")
+var ErrContents = errors.New("cd-store: the release file holds the wrong content")
 
 // partContents is what a release tar of one part must hold. The form is
 // the one the ulh scripts rely on; it is written down here because until
@@ -90,10 +90,10 @@ var ErrContents = errors.New("ngc-store: the release file holds the wrong conten
 //     web archive is not, it carries a whole interface.
 //
 // Sources, all in this repo: shared/ulh.md names what each script takes out
-// of a release (ngc-api carries "ngc-api und ngc-store", ngc-controller
-// carries "ngc-controller", ngc-web puts the interface under /var/www/ngc
+// of a release (cd-api carries "cd-api und cd-store", cd-controller
+// carries "cd-controller", cd-web puts the interface under /var/www/cd
 // with public/ as the web root), and docs/STAND.md, "Auslieferungskette",
-// names templates/apache-vhost.conf as the file ngc-web.sh reads out of the
+// names templates/apache-vhost.conf as the file cd-web.sh reads out of the
 // release. The scripts themselves live in the ulh repository and are not
 // readable from here.
 var partContents = map[string]struct {
@@ -104,8 +104,8 @@ var partContents = map[string]struct {
 	// S7 (decided 15.11.2026): the web archive is a UI tar, everything under
 	// ui/, the form the controller unpacks and store.WalkUI reads.
 	store.ReleaseWeb:        {need: []string{"ui/VERSION", "ui/public/index.php", "ui/templates/apache-vhost.conf"}, ui: true},
-	store.ReleaseAPI:        {need: []string{"ngc-api", "ngc-store"}, closed: true},
-	store.ReleaseController: {need: []string{"ngc-controller"}, closed: true},
+	store.ReleaseAPI:        {need: []string{"cd-api", "cd-store"}, closed: true},
+	store.ReleaseController: {need: []string{"cd-controller"}, closed: true},
 }
 
 // CheckContents judges the tar at path against the form the part's
@@ -158,7 +158,7 @@ func CheckContents(path, part string) error {
 		}
 		defer f.Close()
 		if err := store.WalkUI(f, func(store.PackFile, io.Reader) error { return nil }); err != nil {
-			return fmt.Errorf("%w: %s is no UI tar (store.WalkUI refuses it; pack it with ngc-store web)",
+			return fmt.Errorf("%w: %s is no UI tar (store.WalkUI refuses it; pack it with cd-store web)",
 				ErrContents, filepathBase(path))
 		}
 		v, err := WebVersion(path)
@@ -176,7 +176,7 @@ func CheckContents(path, part string) error {
 // maxVersionFile bounds ui/VERSION: a version of four numbers and a newline.
 const maxVersionFile = 64
 
-// WebVersion returns the version a ngc-web release file names in ui/VERSION,
+// WebVersion returns the version a cd-web release file names in ui/VERSION,
 // without its newline. The controller reads the same file to know which
 // version is installed, so the form is one line, store.ValidVersion and
 // exactly one newline, as apps/web/VERSION. A file of another form returns "",
