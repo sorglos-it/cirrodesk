@@ -99,6 +99,15 @@
           { resolve: resolve, reject: reject });
       });
     },
+    // save hands a file to the shell, which checks it and saves it as a
+    // download (the frame itself may not start one). It resolves true, or
+    // rejects with "name", "toolarge" or "unavailable".
+    save: function (name, bytes, type) {
+      return new Promise(function (resolve, reject) {
+        waiting.set(send("save", { name: name, type: type, data: bytes }),
+          { resolve: resolve, reject: reject });
+      });
+    },
     // open asks for a channel that stays open: write and end send, onData and
     // onClose are called as answers arrive.
     open: function (service, action, params) {
