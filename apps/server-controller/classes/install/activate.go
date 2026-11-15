@@ -190,7 +190,16 @@ var emptyResult = []byte("{}")
 //	 9 the old container away, the new one created and started
 //	10 the row of the app, with its grants, and the checked licence kept
 //	11 the start action of the manifest - task 18, not carried out here
-func (m *Manager) Activate(ctx context.Context, d access.Decision, r io.Reader) ([]byte, error) {
+func (m *Manager) Activate(ctx context.Context, d access.Decision, r io.Reader) (_ []byte, err error) {
+	// The walls in front of the setup leave a line too (A1): an E_VERIFY on an
+	// activation said nothing anywhere, and the setup below writes its own.
+	var app string
+	setUp := false
+	defer func() {
+		if err != nil && !setUp && m != nil {
+			m.why(app, stepCheck, err)
+		}
+	}()
 	if m == nil || m.d.State == nil || m.d.Engine == nil || m.d.Sys == nil || m.d.List == nil ||
 		m.d.StageDir == "" || m.d.Max <= 0 || m.d.LastSeq == nil || m.d.KeepSeq == nil ||
 		m.d.Now == nil || r == nil {
@@ -218,6 +227,7 @@ func (m *Manager) Activate(ctx context.Context, d access.Decision, r io.Reader) 
 	if !ok {
 		return nil, ErrInternal
 	}
+	app = p.App
 
 	// The installed row before the package: a rollback is refused without the
 	// API ever sending the file, and an update keeps what the row carries.
@@ -287,6 +297,7 @@ func (m *Manager) Activate(ctx context.Context, d access.Decision, r io.Reader) 
 
 	set := appSetup{app: p.App, version: p.Version, store: p.Store, sha256: p.SHA256,
 		grants: p.Grants, files: filepath.Join(pkg.Dir, FilesDir), seq: pkg.Seq}
+	setUp = true
 	if err := m.setUp(ctx, set, mf, old, installed, pkg.Transfer.License, lic); err != nil {
 		return nil, err
 	}
