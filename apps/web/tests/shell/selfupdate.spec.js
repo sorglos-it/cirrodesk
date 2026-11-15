@@ -158,7 +158,10 @@ test("the store draws its open tab again from the new answer, and drops what it 
     // The tab is opened the way a person opens it, so what is measured is the
     // screen and not a method.
     const tabs = [...box.querySelectorAll(".store .tab")];
-    tabs.find((b) => b.textContent === "Installiert")?.click();
+    // By its place, the third of five (Quellen, Apps, Installiert, ...): the
+    // words are the page's language (S12), and this page may still be
+    // fetching its language file while the store is drawn.
+    tabs[2].click();
     await settle();
     const before = [...box.querySelectorAll(".store .rowmain b")].map((e) => e.textContent);
     const first = asked;
