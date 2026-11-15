@@ -99,8 +99,11 @@ var ErrContents = errors.New("ngc-store: the release file holds the wrong conten
 var partContents = map[string]struct {
 	need   []string
 	closed bool
+	ui     bool // the tar must pass store.WalkUI as a whole
 }{
-	store.ReleaseWeb:        {need: []string{"public/index.php", "templates/apache-vhost.conf"}},
+	// S7 (decided 15.11.2026): the web archive is a UI tar, everything under
+	// ui/, the form the controller unpacks and store.WalkUI reads.
+	store.ReleaseWeb:        {need: []string{"ui/VERSION", "ui/public/index.php", "ui/templates/apache-vhost.conf"}, ui: true},
 	store.ReleaseAPI:        {need: []string{"ngc-api", "ngc-store"}, closed: true},
 	store.ReleaseController: {need: []string{"ngc-controller"}, closed: true},
 }
@@ -148,7 +151,64 @@ func CheckContents(path, part string) error {
 				ErrContents, filepathBase(path), strings.Join(extra, ", "), strings.Join(want.need, ", "))
 		}
 	}
+	if want.ui {
+		f, err := os.Open(path)
+		if err != nil {
+			return fmt.Errorf("%w: %s is unreadable", ErrContents, filepathBase(path))
+		}
+		defer f.Close()
+		if err := store.WalkUI(f, func(store.PackFile, io.Reader) error { return nil }); err != nil {
+			return fmt.Errorf("%w: %s is no UI tar (store.WalkUI refuses it; pack it with ngc-store web)",
+				ErrContents, filepathBase(path))
+		}
+		v, err := WebVersion(path)
+		if err != nil {
+			return err
+		}
+		if !store.ValidVersion(v) {
+			return fmt.Errorf("%w: %s: ui/VERSION is no version line (MAJOR.MINOR.PATCH[.BUILD] and a newline)",
+				ErrContents, filepathBase(path))
+		}
+	}
 	return nil
+}
+
+// maxVersionFile bounds ui/VERSION: a version of four numbers and a newline.
+const maxVersionFile = 64
+
+// WebVersion returns the version a ngc-web release file names in ui/VERSION,
+// without its newline. The controller reads the same file to know which
+// version is installed, so the form is one line, store.ValidVersion and
+// exactly one newline, as apps/web/VERSION. A file of another form returns "",
+// which no version check passes.
+func WebVersion(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", fmt.Errorf("%w: %s is unreadable", ErrContents, filepathBase(path))
+	}
+	defer f.Close()
+	var v []byte
+	found := false
+	err = store.WalkUI(f, func(pf store.PackFile, body io.Reader) error {
+		if pf.Path != "ui/VERSION" {
+			return nil
+		}
+		found = true
+		b, err := io.ReadAll(io.LimitReader(body, maxVersionFile+1))
+		v = b
+		return err
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w: %s is no UI tar", ErrContents, filepathBase(path))
+	}
+	if !found {
+		return "", fmt.Errorf("%w: %s misses ui/VERSION", ErrContents, filepathBase(path))
+	}
+	s := string(v)
+	if len(v) > maxVersionFile || !strings.HasSuffix(s, "\n") || strings.Count(s, "\n") != 1 {
+		return "", nil
+	}
+	return strings.TrimSuffix(s, "\n"), nil
 }
 
 // filepathBase is filepath.Base under its own name, so a message always

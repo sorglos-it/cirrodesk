@@ -139,6 +139,19 @@ func Release(dir, keyFile string, opts ReleaseOpts) (sign.Envelope, error) {
 		} else if err != nil {
 			return sign.Envelope{}, err
 		}
+		// The controller reads the installed version out of ui/VERSION; a web
+		// file that names another version than the release would be installed
+		// and then updated again and again.
+		if p.part == store.ReleaseWeb {
+			v, err := WebVersion(path)
+			if err != nil {
+				return sign.Envelope{}, err
+			}
+			if v != opts.Version {
+				return sign.Envelope{}, fmt.Errorf("%w: %s names %q in ui/VERSION, the release is %q",
+					ErrContents, name, v, opts.Version)
+			}
+		}
 		size, sum, err := sizeAndSum(path)
 		if err != nil {
 			return sign.Envelope{}, err

@@ -42,6 +42,9 @@ func newReleaseFixture(t testing.TB, parts ...string) releaseFixture {
 	for i, p := range parts {
 		name := p + ".tar"
 		body := []byte(strings.Repeat(p+" ", i+1) + "\n")
+		if p == "ngc-web-all" {
+			body = webTar(t, "1.1.0\n")
+		}
 		write(t, filepath.Join(dir, name), body)
 		f.bytes[name] = body
 	}
@@ -551,4 +554,34 @@ func TestCheckMatchesTheScript(t *testing.T) {
 			"written for this case could make the two agree by being wrong. The script is measured " +
 			"in shared/store (TestReleaseScript), and the reasons of that run are this table.")
 	})
+}
+
+// webTar is a ngc-web release file as ngc-store web writes it, with the
+// given content of ui/VERSION.
+func webTar(t testing.TB, version string) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	w := store.NewUIWriter(&buf)
+	for _, f := range [][2]string{{"ui/VERSION", version}, {"ui/public/index.php", "<?php\n"},
+		{"ui/templates/apache-vhost.conf", "# vhost\n"}} {
+		if err := w.File(f[0], int64(len(f[1])), strings.NewReader(f[1])); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return buf.Bytes()
+}
+
+// TestReleaseRefusesAWebFileOfAnotherVersion: ui/VERSION is what the
+// controller reads as the installed version, so it must be the release's.
+func TestReleaseRefusesAWebFileOfAnotherVersion(t *testing.T) {
+	for _, v := range []string{"1.0.9\n", "1.1.0", "1.1.0\r\n", "1.1.0\n\n"} {
+		f := newReleaseFixture(t, "ngc-web-all")
+		write(t, filepath.Join(f.dir, "ngc-web-all.tar"), webTar(t, v))
+		if _, err := Release(f.dir, f.keyFile, releaseOpts(1, "")); !errors.Is(err, ErrContents) {
+			t.Errorf("ui/VERSION %q: %v, want ErrContents", v, err)
+		}
+	}
 }

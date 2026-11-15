@@ -13,7 +13,8 @@
 #   [outdir] where to write; default dist/release/<version>/ (dist/ is ignored)
 #
 # It writes two files and nothing else:
-#   ngc-web-all.tar        the tree of apps/web without tests/, no prefix
+#   ngc-web-all.tar        the tree of apps/web without tests/, under ui/, as a
+#                          UI tar (store.WalkUI), written by "ngc-store web"
 #   release.payload.json   the UNSIGNED payload of a store.Release
 #
 # IT HOLDS NO KEY AND SIGNS NOTHING. Signing is a separate, human step on the
@@ -174,20 +175,57 @@ case $stamp in
 '' | *[!0-9]*) die "the commit has no usable date: $ref" ;;
 esac
 
+# WHY git archive IS NOT THE RELEASE FILE ANY MORE (S7, decided 15.11.2026).
+# The controller unpacks a ngc-web file with store.WalkUI, and WalkUI knows one
+# tar dialect: names under ui/, mode 0644, mtime 0 (shared/store/ui.go). git
+# archive writes none of the three - measured in tools/release/webtar_test.go.
+# So git archive still CHOOSES THE BYTES (the commit, not the working tree, LF
+# whatever the checkout does) and is unpacked into $work/web; "ngc-store web"
+# then WRITES the archive through store.UIWriter, sorted, with fixed headers.
+# Reproducible, because neither step reads a clock or the order of a file system.
+#
+# ngc-store comes from the caller (NGC_STORE; build-release.sh hands its own
+# over) or is built here from this checkout. -trimpath keeps the paths of the
+# builder out of the binary; the binary is a tool and never travels.
+mkdir -p -- "$work/web" || die "cannot create $work/web"
 git -c core.autocrlf=false archive --format=tar --mtime="@$stamp" \
 	"$commit:apps/web" ':(exclude)tests' \
-	':(exclude)public/assets/js/net/testlink.js' >"$work/ngc-web-all.tar" ||
+	':(exclude)public/assets/js/net/testlink.js' >"$work/web.tar" ||
 	die "git archive failed"
+(cd -- "$work" && tar -xf web.tar -C web) || die "the git archive cannot be unpacked"
+
+ngc_store=${NGC_STORE:-}
+if [ -z "$ngc_store" ]; then
+	command -v go >/dev/null 2>&1 || die "go is missing; build ngc-store or hand it over as NGC_STORE"
+	ngc_store=$work/ngc-store
+	# A relative -o, then mv: go is a native tool on Windows, and with the MSYS
+	# rewriting off it would take "/tmp/..." literally (measured,
+	# TestPackAndSignSurviveArgumentConversionOff). The name is this run's own.
+	built=.ngc-store-build.$$
+	trap 'rm -rf -- "$work"; rm -f -- "$self/../$built"' EXIT
+	(cd -- "$self/.." && CGO_ENABLED=0 go build -trimpath -o "$built" ./apps/cli) ||
+		die "ngc-store could not be built"
+	mv -f -- "$self/../$built" "$ngc_store" || die "ngc-store could not be moved into the work folder"
+fi
+# Bare names inside $work, for the reason given at openssl below: a native
+# Windows ngc-store never sees an MSYS path.
+(cd -- "$work" && "$ngc_store" web web ngc-web-all.tar >/dev/null) ||
+	die "ngc-store web refuses the tree of $ref"
 
 tar -tf "$work/ngc-web-all.tar" >"$work/entries" || die "the archive cannot be read"
 tr -d '\r' <"$work/entries" >"$work/entries.lf"
 
 # The one file ngc-web.sh checks itself (line 619). Everything else is the
 # graph's business, not this script's.
-grep -qxF -- 'public/index.php' "$work/entries.lf" ||
-	die "public/index.php is not in the archive; ngc-web.sh refuses such a release (line 619)"
+grep -qxF -- 'ui/public/index.php' "$work/entries.lf" ||
+	die "ui/public/index.php is not in the archive; ngc-web.sh refuses such a release (line 619)"
 
-grep -q '^tests/' "$work/entries.lf" && die "the archive carries files below tests/"
+grep -q '^ui/tests/' "$work/entries.lf" && die "the archive carries files below ui/tests/"
+grep -qv '^ui/' "$work/entries.lf" && die "the archive carries a name outside ui/"
+
+# The release check of ngc-store as well: ui/VERSION, the WalkUI form, the two
+# files ngc-web.sh reads. Only the archive is judged; web/ is no release file.
+(cd -- "$work" && "$ngc_store" contents . >/dev/null) || die "ngc-store contents refuses the archive"
 
 # Safe unpacking of NGC (shared/README.md), said here as well as in ngc-web.sh:
 # a path that leads out, or anything that is not a file or a folder, must not be

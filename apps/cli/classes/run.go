@@ -34,13 +34,15 @@ Aufrufe:
   ngc-store check <Verzeichnis> <Teil> <Architektur>  Release prüfen wie verify.sh
   ngc-store check -store <Store> <Verzeichnis>    ganzen Store prüfen
   ngc-store contents <Verzeichnis>                Inhalt der Release-Tars prüfen
+  ngc-store web <apps/web> <ngc-web-all.tar>      Oberfläche als Release-Datei packen (unter ui/)
   ngc-store key <Schlüsseldatei>                  öffentlichen Schlüssel eines Stores nennen
                                                   (storeKey der Installation, NGC_STORE_KEY)
 
 Von null zu einem geprüften Release:
   1. Die Archive mit genau diesen Namen in ein leeres Verzeichnis legen:
-       ngc-web-all.tar           darin  public/index.php
-                                        templates/apache-vhost.conf
+       ngc-web-all.tar           darin  ui/public/index.php
+                                        ui/templates/apache-vhost.conf
+                                 (packt "ngc-store web" aus apps/web)
        ngc-api-amd64.tar         darin  genau die Dateien ngc-api und ngc-store
        ngc-controller-amd64.tar  darin  genau die Datei ngc-controller
      Für arm64 heißen sie ngc-api-arm64.tar und ngc-controller-arm64.tar.
@@ -196,6 +198,17 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		pub := priv.Public().(ed25519.PublicKey)
 		clear(priv)
 		fmt.Fprintf(stdout, "Öffentlicher Schlüssel: %s\nKennung: %s\n", enc.B64.EncodeToString(pub), sign.KeyID(pub))
+		return 0
+	case "web":
+		if len(args) != 3 {
+			fmt.Fprint(stderr, Usage)
+			return 2
+		}
+		if err := PackWeb(args[1], args[2]); err != nil {
+			fmt.Fprintf(stderr, "Oberfläche nicht gepackt: %v\n", err)
+			return 1
+		}
+		fmt.Fprintf(stdout, "%s\n", args[2])
 		return 0
 	case "contents":
 		if len(args) != 2 {
