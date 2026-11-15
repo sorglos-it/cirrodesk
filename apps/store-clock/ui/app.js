@@ -25,7 +25,7 @@
     return;
   }
 
-  const lang = pickLang([document.documentElement.lang, ...(navigator.languages || []), navigator.language]);
+  const lang = pickLang([window.ngc && ngc.lang, document.documentElement.lang]);
   document.documentElement.lang = lang;
   document.title = TITLES[lang];
 
