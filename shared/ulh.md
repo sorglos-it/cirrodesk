@@ -164,6 +164,10 @@ Damit die Skripte ohne Rückfragen laufen. Schlüssel je Skript:
   ab und nimmt ihn sonst als erste Zeile der Standardeingabe. So reicht das Skript ihn mit einer
   eingebauten Shell-Anweisung durch (`printf '%s\n' "$pair_code" | ngc-controller pair`) und legt
   ihn in keine Prozessliste: `/proc/<pid>/cmdline` liest ohne `hidepid` jeder lokale Benutzer.
+  `ngc-controller pair` legt auch die leere lokale Datenbank an. Das Skript startet den Dienst
+  `ngc-controller` deshalb erst nach `pair`: Fehlt die Datenbank, startet der Dienst nicht (A2,
+  Entscheidung vom 15.11.2026), weil er eine frische Anlage sonst nicht von einer unterscheiden
+  könnte, deren Datenbank verloren ging.
 - **Lastverteilung in Apache:** `config.BalancerFile` (`/etc/ngc/apache-apis.conf`).
   - Es schreiben nur `ngc-web` bei `install`/`configure` (aus `apis` und `api_pins`, nach der
     Prüfung der Fingerabdrücke) und danach der Controller mit Rolle `web` (aus `web.json`),
