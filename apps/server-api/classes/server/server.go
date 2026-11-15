@@ -140,6 +140,10 @@ type Server struct {
 	// trust list, "" after a round that read it. Written and read only there,
 	// under s.round; see Server.minute.
 	trustSaid string
+
+	// missing remembers which controllers had no tunnel in the last rounds
+	// (missing.go).
+	missing absence
 }
 
 // Build makes everything the API needs and fails if anything is missing.
@@ -573,6 +577,12 @@ func (s *Server) minute(ctx context.Context) {
 		}
 	} else {
 		s.trustSaid = ""
+	}
+	if v, err := s.State.Trust(ctx); err == nil && v.List != nil {
+		s.missing.check(v.List.Nodes, func(id string) bool {
+			_, ok := s.tunnels.Get(id)
+			return ok
+		})
 	}
 	guard.Report()
 	httpapi.Report()
