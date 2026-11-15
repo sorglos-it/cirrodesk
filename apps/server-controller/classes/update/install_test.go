@@ -889,8 +889,8 @@ func TestInstallOfAFirstPartHasNothingToRollBackTo(t *testing.T) {
 	f := apiFixture(t)
 	// With a signed task: a channel WITHOUT a user cannot install a first
 	// part at all, because core.Unattended compares with store.Newer, which
-	// answers false for an empty installed version. That is the BLOCKED of
-	// this task and it is measured right below.
+	// answers false for an empty installed version. That is intended and
+	// measured right below.
 	f.user = "admin-1"
 	f.task = true
 	if err := os.Remove(f.bin + "/" + trust.AutoAPI); err != nil {
@@ -913,21 +913,19 @@ func TestInstallOfAFirstPartHasNothingToRollBackTo(t *testing.T) {
 }
 
 func TestInstallOfAFirstPartWithoutAUserIsRefusedByTheContract(t *testing.T) {
-	// BLOCKED, measured: with nothing of a part installed, an install without
-	// a user is refused however right everything else is. core.Unattended
-	// asks store.Newer(version, "") and store.Newer answers false for a
-	// version that is no version - "" is none - while the comment of
-	// core.Unattended says the opposite ("\"\" never is older"). So an
-	// installation can never take its FIRST ngc-api or ngc-web unattended.
-	// The line that would have to change is in shared/, which is frozen.
+	// Intended (decided 15.11.2026): with no installed version known, an
+	// install without a user is refused however right everything else is.
+	// core.Unattended asks store.Newer(version, ""), and "" never is older:
+	// were it, a lost record - a reset database - would let any older signed
+	// version in without a human.
 	if store.Newer("1.2.0", "") {
-		t.Fatal("store.Newer takes \"\" as older now; the BLOCKED of task 20 is gone, " +
-			"and the guard in install() can go with it")
+		t.Fatal("store.Newer takes \"\" as older now; a lost record would allow a downgrade " +
+			"without a human")
 	}
 	p := &core.InstallParams{Target: trust.AutoAPI, Version: newVersion, SHA256: sha(newProgram)}
 	l := &trust.List{Auto: []trust.Auto{{Target: trust.AutoAPI, Key: enc.Bytes(releaseKey(t))}}}
 	if core.Unattended(p, l, releaseKey(t), "") {
-		t.Fatal("core.Unattended allows a first install now; the BLOCKED of task 20 is gone")
+		t.Fatal("core.Unattended allows an install over an unknown version")
 	}
 	// INTERMEDIATE: the same params with a version installed are allowed, so
 	// what is measured above is the empty version and not the approval.
@@ -1524,5 +1522,69 @@ func TestInstallWebRefusesAPackageWithoutUI(t *testing.T) {
 	}
 	if f.st.parts[trust.AutoWeb] != oldVersion {
 		t.Errorf("remembered %q, want the old %q", f.st.parts[trust.AutoWeb], oldVersion)
+	}
+}
+
+// A part ulh put in place has no version written down here: only an install
+// through this controller writes one. The program in place answers for it, so
+// an unattended round goes through on such a node (S8) - and the same answer
+// keeps it from putting an older program over a newer one.
+func TestInstallWithoutAWrittenVersionAsksTheProgram(t *testing.T) {
+	f := apiFixture(t)
+	f.st.parts = map[string]string{} // what every node of the plant holds
+	if _, err := f.run(); err != nil {
+		t.Fatalf("an unattended install over a running older program: %v, want it installed", err)
+	}
+	if f.whichProgram() != "new" {
+		t.Errorf("the program is %s, want the new one", f.whichProgram())
+	}
+
+	// The program in place is NEWER than the staged file: refused, untouched.
+	g := apiFixture(t)
+	g.st.parts = map[string]string{}
+	mustWrite(t, g.bin+"/"+trust.AutoAPI, newProgram)
+	g.health[g.bin+"/"+trust.AutoAPI] = "9.9.9"
+	if _, err := g.run(); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("over a newer program: %v, want ErrForbidden", err)
+	}
+	if g.whichProgram() != "new" {
+		t.Errorf("the program is %s, want the one in place untouched", g.whichProgram())
+	}
+}
+
+// S8 for ngc-web: with no version written down, the VERSION file the package
+// carried under ui/ names the stand in place. Missing or invalid is unknown,
+// and an install without a user is then refused.
+func TestInstallWebWithoutAWrittenVersionReadsTheTree(t *testing.T) {
+	cases := []struct {
+		name, file string
+		write      bool
+		ok         bool
+	}{
+		{"older", oldVersion + "\n", true, true},
+		{"newer", "9.9.9", true, false},
+		{"missing", "", false, false},
+		{"no version", "eins", true, false},
+		{"too long", strings.Repeat("1", 100), true, false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			f := webFixture(t)
+			f.st.parts = map[string]string{}
+			if c.write {
+				mustWrite(t, f.web+"/VERSION", []byte(c.file))
+			}
+			_, err := f.run()
+			if c.ok && err != nil {
+				t.Fatalf("%v, want installed", err)
+			}
+			if !c.ok && !errors.Is(err, ErrForbidden) {
+				t.Fatalf("%v, want ErrForbidden", err)
+			}
+			b, _ := os.ReadFile(f.web + "/index.html")
+			if want := map[bool]string{true: "<p>neu</p>", false: "<p>alt</p>"}[c.ok]; string(b) != want {
+				t.Errorf("index.html is %q, want %q", b, want)
+			}
+		})
 	}
 }

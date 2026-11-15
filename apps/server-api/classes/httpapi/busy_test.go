@@ -199,3 +199,29 @@ func TestAUserRouteEndsInBusyAndNotInSilence(t *testing.T) {
 		t.Fatalf("the log does not name the reason: %q", got)
 	}
 }
+
+// TestANotSetUpInstallationDoesNotBlameTheDatabase is A3: an installation that
+// is migrated and not yet set up said "the database could not be reached" at
+// every login/start. The answer stays E_UNREACHABLE; only the line changes, and
+// it is braked like the other two.
+func TestANotSetUpInstallationDoesNotBlameTheDatabase(t *testing.T) {
+	reset(t)
+	buf := logging(t)
+	for range 3 {
+		w := httptest.NewRecorder()
+		if code := FailCoded(w, wire.CodeUnreachable, state.ErrNoTrust); code != wire.CodeUnreachable {
+			t.Fatalf("code = %q", code)
+		}
+		if w.Code != session.HTTPStatus(wire.CodeUnreachable) || w.Header().Get("Retry-After") != "" {
+			t.Fatalf("answer changed: %d %q", w.Code, w.Header().Get("Retry-After"))
+		}
+	}
+	got := buf.String()
+	if strings.Contains(got, "could not be reached") || strings.Count(got, "not set up yet") != 1 ||
+		!strings.Contains(got, "reason=not-set-up") {
+		t.Fatalf("log = %q", got)
+	}
+	if Unreachable() != 0 {
+		t.Fatalf("counted as an unreachable database: %d", Unreachable())
+	}
+}

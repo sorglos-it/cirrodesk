@@ -174,6 +174,19 @@ func (s *store) OnceUse(_ context.Context, kind string, value []byte, now int64)
 	return v.data, nil
 }
 
+func (s *store) OncePeek(_ context.Context, kind string, value []byte, now int64) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.once[key(kind, hex.EncodeToString(value))]
+	switch {
+	case !ok || v.expires <= now:
+		return "", dbapi.ErrNotFound
+	case v.used:
+		return "", dbapi.ErrUsed
+	}
+	return v.data, nil
+}
+
 func (s *store) OncePurge(_ context.Context, now int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

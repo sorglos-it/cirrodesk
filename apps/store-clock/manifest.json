@@ -1,0 +1,8 @@
+{
+  "id": "org.sorglos.clock",
+  "name": "Uhr",
+  "version": "1.0.0",
+  "publisher": "Sorglos Thomas Weirich",
+  "description": "Zeigt Uhrzeit und Datum, analog und digital.",
+  "ui": { "entry": "index.html", "width": 320, "height": 380 }
+}
