@@ -284,3 +284,17 @@ test("a language tag from outside cannot become a path", async ({ shell }) => {
   expect(got.langs).toEqual(["de", "en", "fr", "it", "es"]);
   expect(got.fallback).toBe("en");
 });
+
+// A3: an installation nobody has set up answers the login with E_NOT_SET_UP,
+// and the mask sends the person to the setup instead of claiming the service
+// is unreachable.
+test("a login on an installation never set up leads to the setup", async ({ shell }) => {
+  await skipWithoutLogin(shell);
+  await tryLogin(shell, "notsetup");
+  await expect(shell.getByRole("heading", { name: "Bei NGC anmelden" })).toHaveCount(0);
+  // The setup's first step: the operator's field for the one-time code.
+  await expect(shell.getByRole("heading", { level: 1 }))
+    .toHaveText("Diese Anlage ist noch nicht benutzbar. Der Betreiber muss die Einrichtung abschließen.");
+  await expect(shell.getByLabel("Einmal-Code")).toBeVisible();
+  await expect(shell.getByText("Dienst nicht erreichbar", { exact: false })).toHaveCount(0);
+});

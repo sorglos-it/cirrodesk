@@ -258,6 +258,13 @@ async function start() {
     message(hasParty && !canAsk ? t("boot.noroute.passkeysoff") : t("boot.noroute.password"));
     return;
   }
+  const setup = () => setupView(root, {
+    config,
+    onDone: (world, setupAnchor) => showDesktop(root, config, setupAnchor, world).catch(() => {
+      message("NGC konnte nicht geladen werden. Bitte die Seite neu laden. Bleibt es dabei, "
+        + "läuft NGC gerade nicht.");
+    }),
+  });
   if (anchor === null) {
     // NO ANCHOR ANYWHERE, AND THIS USED TO BE WHERE THE SHELL GAVE UP. There
     // are two ways to get here and only one of them is a fault: an
@@ -284,13 +291,7 @@ async function start() {
     // list that does not open has put its own alarm up, anything else broke on
     // the way to the desktop, and a white page is the one answer that helps
     // nobody.
-    setupView(root, {
-      config,
-      onDone: (world, setupAnchor) => showDesktop(root, config, setupAnchor, world).catch(() => {
-        message("NGC konnte nicht geladen werden. Bitte die Seite neu laden. Bleibt es dabei, "
-          + "läuft NGC gerade nicht.");
-      }),
-    });
+    setup();
     return;
   }
   // The login. Nothing of the desktop is built before somebody is in. root and
@@ -313,6 +314,10 @@ async function start() {
   loginView(root, {
     config, passwordKeys, passkeys: canAsk,
     openTrust: openerFor({ anchor }),
+    // A3: the API says nobody has set this installation up (a migrated
+    // database with no admin). The anchor on this web server is then older
+    // than the installation, and the setup is the way on.
+    onNotSetUp: setup,
     onSession: (world) => showDesktop(root, config, anchor, world).catch(() => {
       // A trust list that does not open has already put its own alarm on the
       // screen and ended the session; anything else broke on the way to the
