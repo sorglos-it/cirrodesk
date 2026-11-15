@@ -95,10 +95,14 @@ type Stores struct {
 	// for a week knocked 168 times without one line a person finds without
 	// looking. Only a CHANGE is said, so a dead store is one line and not
 	// 168. Guarded by saidMu.
-	saidMu sync.Mutex
-	said   map[string]string
-	S      *state.State
-	Client *http.Client
+	// manual is when ngc.store/refresh last fetched (RefreshNow); guarded by
+	// manualMu, which a second press waits on rather than fetching beside it.
+	manualMu sync.Mutex
+	manual   time.Time
+	saidMu   sync.Mutex
+	said     map[string]string
+	S        *state.State
+	Client   *http.Client
 	// Log is where a change to a store or a catalog is written down. It is the
 	// only log this package writes to: audit.Log checks every field itself, so
 	// nothing a store sends can forge a line in it. audit.ErrDropped is a
@@ -532,4 +536,23 @@ func (st *Stores) FetchReleaseFile(ctx context.Context, f store.File, w io.Write
 		return ErrStore
 	}
 	return st.Download(ctx, url, f.Size, f.SHA256, w)
+}
+
+// RefreshEvery is how often ngc.store/refresh may really fetch: the contract
+// allows one fetch a minute, and a press within that minute gets the last
+// state without knocking on every store again.
+var RefreshEvery = time.Minute
+
+// RefreshNow is ngc.store/refresh (A25): a fresh installation had no store for
+// an hour, because the first round runs a minute after the start and the next
+// an hour later. A failed store is not an error of the call -- its row says
+// what went wrong, and the shell shows the rows.
+func (st *Stores) RefreshNow(ctx context.Context) ([]core.SourceInfo, error) {
+	st.manualMu.Lock()
+	if time.Since(st.manual) >= RefreshEvery {
+		st.manual = time.Now()
+		_ = st.Refresh(ctx)
+	}
+	st.manualMu.Unlock()
+	return st.Sources(ctx)
 }

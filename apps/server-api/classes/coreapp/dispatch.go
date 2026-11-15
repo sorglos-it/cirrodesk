@@ -132,6 +132,7 @@ type JoinCodes interface {
 // deletes the row. All three therefore belong to this API and not to a pipe.
 type Store interface {
 	Sources(ctx context.Context) ([]core.SourceInfo, error)
+	RefreshNow(ctx context.Context) ([]core.SourceInfo, error)
 	Catalog(ctx context.Context, id string) (*store.Catalog, sign.Envelope, error)
 	Installed(ctx context.Context) ([]core.InstalledApp, error)
 	Upload(ctx context.Context, r io.Reader) (core.UploadResult, error)
