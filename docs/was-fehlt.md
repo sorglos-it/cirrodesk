@@ -3,6 +3,36 @@
 **Geschrieben am 30.10.2026.** Diese Datei baut nichts und entscheidet nichts. Sie ist eine
 Landkarte.
 
+## Stand am 15.11.2026 (Koordinator)
+
+Die Tabellen unten sind der Stand vom 30.10. Seitdem, alles in `main` oder als PR offen:
+
+| Punkt | Stand |
+|---|---|
+| S1 | entschieden (A, eigener Webspace); Anleitung PR 214. Offen: `storeUrl`, Schlüssel und ulh-Push (Thomas) |
+| S6 | gebaut: Passkey hinzufügen, PR 203 |
+| S7 | entschieden (Paket unter `ui/`); Controller-Seite PR 213, Packen PR 211 mit `tools/pack-release.sh`. Offen: ulh `ngc-web.sh` (Thomas) |
+| S8 | entschieden; Controller fragt das Programm nach seiner Fassung (PR 210); ngc-web über `ui/VERSION`. `core.Unattended` bleibt |
+| S9 | gebaut: `ngc-db backup/restore`, PR 198. Offen: Lauf gegen eine echte MariaDB, `ngc-db` in den Bau-Skripten |
+| S12 | entschieden: nach dem WhiteSur-Look |
+| S14 | war am 31.10. schon behoben (589324b8) |
+| A1 | Controller-Hälfte PR 216 |
+| A2 | entschieden (Dienst startet ohne Datenbank nicht), Bau beim Controller |
+| A3 | entschieden (`E_NOT_SET_UP`); Journal PR 209, Vertrag und Antwort PR 220 |
+| A5, A8c | PR 204 |
+| A8a | PR 208 |
+| A9 | PR 200 |
+| A11 | war mit #155 gebaut |
+| A13 | `OncePeek` PR 206; Aufruf im Beitritt baut die API |
+| A14 | PR 201 |
+| A19a | mit den Riegeln in Go erledigt |
+| A24 | entschieden (nur der Kanal); README-Stelle offen |
+| A25 | `ngc.store/refresh`, Zweig `shared-store-refresh` |
+| E32 | PR 218 |
+| U2 | PR 217 |
+
+Entscheidungen dazu: Entscheidungsprotokoll im Entwurf, Einträge vom 15.11.2026.
+
 **Die Frage:** NGC läuft. Acht Maschinen, zwei Apps, drei Datenbankknoten, Paketfilter, 95
 Punkte im Entscheidungsbuch, drei veröffentlichte Fassungen. Trotzdem fehlt eine Antwort auf:
 **was hält einen Fremden auf?**
