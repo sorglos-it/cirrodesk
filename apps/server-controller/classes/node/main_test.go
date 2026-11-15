@@ -448,7 +448,23 @@ func writeController(t *testing.T, path string) *config.Controller {
 	if err := config.SaveController(path, c); err != nil {
 		t.Fatalf("SaveController: %v", err)
 	}
+	// pair creates the store at c.DB, which no case may touch on this
+	// machine; TestPairCreatesTheDatabase measures the real one.
+	stubCreateState(t, nil)
 	return c
+}
+
+// stubCreateState puts a recorder in place of the store pair creates.
+func stubCreateState(t *testing.T, made *[]string) {
+	t.Helper()
+	was := createState
+	createState = func(cfg *config.Controller) error {
+		if made != nil {
+			*made = append(*made, cfg.DB)
+		}
+		return nil
+	}
+	t.Cleanup(func() { createState = was })
 }
 
 func TestPairWritesTheConfigurationAndTheAnchor(t *testing.T) {

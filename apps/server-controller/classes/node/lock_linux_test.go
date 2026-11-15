@@ -4,6 +4,7 @@ package node
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,6 +19,10 @@ func TestASecondControllerOnOneDatabaseDoesNotStart(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "controller.json")
 	cfg := writeController(t, path)
 	cfg.DB = filepath.Join(t.TempDir(), "controller.db")
+	// pair left the store there (A2); what is in it this case never reads.
+	if err := os.WriteFile(cfg.DB, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if err := config.SaveController(path, cfg); err != nil {
 		t.Fatal(err)
 	}
