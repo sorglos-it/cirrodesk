@@ -139,6 +139,35 @@ export const BUILT_IN = Object.freeze({
   "win.restore": "Restore",
   "win.tile": "Arrange windows",
   "win.close": "Close",
+  "desk.theme": "Switch design",
+  "desk.search": "Search apps",
+  "desk.allapps": "All apps",
+  "desk.closeall": "Close all",
+  "desk.noticeclose": "Close message",
+  "desk.nohits": "No matches.",
+  "desk.empty": "Your apps will appear here.",
+  "desk.appsfailed": "The list of apps could not be loaded.",
+  "desk.openstore": "Open store",
+  "desk.adminactivates": "An administrator activates the apps of this installation.",
+  "desk.nolicense": "No valid licence.",
+  "desk.appfailed": "This app could not be opened.",
+  "desk.appfailed.hint": "Please close the window and try again.",
+  "look.head": "Appearance",
+  "look.theme.system": "Like the system",
+  "look.theme.light": "Light",
+  "look.theme.dark": "Dark",
+  "look.wallpaper": "Background {name}",
+  "look.wallpaper.deep": "Space",
+  "look.wallpaper.aurora": "Aurora",
+  "look.wallpaper.sunset": "Sunset",
+  "look.wallpaper.mint": "Mint",
+  "look.wallpaper.plum": "Plum",
+  "look.density.eng": "Compact",
+  "look.density.normal": "Standard",
+  "look.density.luftig": "Spacious",
+  "look.glass.aus": "No glass",
+  "look.glass.normal": "Glass",
+  "look.glass.stark": "More glass",
 });
 
 // A map of strings, read through the house decoder with a budget: a language
@@ -170,7 +199,27 @@ export function pick(offers) {
   return FALLBACK;
 }
 
+// The files of one language: the base file and one per area of the shell.
+// WHY MORE THAN ONE: a file is one JSON object, and json.MAX_MEMBERS (64, a
+// contract of shared/) caps an object's members. The base file holds the login
+// and the first run; each area that is translated brings its own file
+// (S12). A part that is missing is no error - its keys fall back per key like
+// any other.
+export const PARTS = Object.freeze(["", "desk"]);
+
 async function fetchLang(name) {
+  const out = { __proto__: null };
+  let any = false;
+  for (const part of PARTS) {
+    const got = await fetchPart(part === "" ? name : `${name}-${part}`);
+    if (got === null) continue;
+    any = true;
+    Object.assign(out, got);
+  }
+  return any ? Object.freeze(out) : null;
+}
+
+async function fetchPart(name) {
   let res;
   try {
     res = await fetch(`/assets/lang/${name}.json`, { cache: "no-store" });
