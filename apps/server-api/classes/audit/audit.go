@@ -107,7 +107,7 @@ var results = func() []string {
 	for _, c := range []wire.Code{wire.CodeForbidden, wire.CodeUnreachable, wire.CodeExit,
 		wire.CodeTimeout, wire.CodeLimit, wire.CodeProtocol, wire.CodeConfirm, wire.CodeLicense,
 		wire.CodeNotFound, wire.CodeVerify, wire.CodeInternal, wire.CodeTooLarge, wire.CodeLogin,
-		wire.CodeLocked} {
+		wire.CodeLocked, wire.CodeNotSetUp} {
 		out = append(out, string(c))
 	}
 	return out
