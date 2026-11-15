@@ -8,6 +8,8 @@ import (
 	"strings"
 	"syscall"
 	"testing"
+
+	"github.com/sorglos-it/nextgencloud/shared/store"
 )
 
 // journal collects what this Manager wrote, as a handler and not as text: a
@@ -221,5 +223,36 @@ func TestTheReasonIsTheKindOfTheCause(t *testing.T) {
 		if !hasReason(r) {
 			t.Errorf("%q is in reasons and not found by hasReason", r)
 		}
+	}
+}
+
+// A1: an activation refused in front of the setup says so too. A wrong UI
+// hash ended E_VERIFY, and neither the API nor this controller wrote a word
+// about it.
+func TestTheJournalSaysWhyAnActivationWasRefused(t *testing.T) {
+	s := newStand(t)
+	j := withJournal(s)
+	other := make([]byte, 32)
+	other[0] = 0x33
+	s.f.in.UI = other
+	s.f.withCatalog(func(c *store.Catalog) { c.Apps[0].Versions[0].UI = other })
+	if _, err := s.activate(); !errors.Is(err, ErrVerify) {
+		t.Fatalf("%v, want ErrVerify", err)
+	}
+	line := j.only(t)
+	for k, want := range map[string]string{"app": testApp, "step": "check", "reason": "did not verify"} {
+		if line[k] != want {
+			t.Errorf("the journal says %s=%q, want %q", k, line[k], want)
+		}
+	}
+
+	// An activation that comes off writes nothing.
+	ok := newStand(t)
+	k := withJournal(ok)
+	if _, err := ok.activate(); err != nil {
+		t.Fatal(err)
+	}
+	if len(k.lines) != 0 {
+		t.Errorf("a good activation wrote %v", k.lines)
 	}
 }

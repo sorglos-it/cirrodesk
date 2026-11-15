@@ -51,12 +51,15 @@ const (
 	stepRow       step = "row"
 	stepLicence   step = "licence"
 	stepSeq       step = "seq"
+	// stepCheck is every wall in front of the setup: task, package, grants,
+	// licence. Nothing was set up, so nothing was taken back.
+	stepCheck step = "check"
 )
 
 // steps is the whole list, so a case can show that no other word ever reaches
 // an administrator (TestEveryStepAndReasonComesOutOfTheClosedList).
 var steps = []step{stepUser, stepData, stepRun, stepImage, stepContainer,
-	stepRow, stepLicence, stepSeq}
+	stepRow, stepLicence, stepSeq, stepCheck}
 
 // The reasons. English, like every other line this controller writes
 // (node.run), and short enough to read at the end of a line that already
