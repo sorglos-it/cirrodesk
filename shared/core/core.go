@@ -53,6 +53,7 @@ const (
 	ActLog        = "log"
 
 	ActSources    = "sources"
+	ActRefresh    = "refresh"
 	ActCatalog    = "catalog"
 	ActInstalled  = "installed"
 	ActUpload     = "upload"
@@ -153,6 +154,9 @@ var actions = []Action{
 	{AppUsers, ServiceController, ActTrust, true, false, true, FlowIn, nil, session.MaxChain},
 
 	{AppStore, ServiceAPI, ActSources, true, false, false, FlowCall, nil, 0},
+	// refresh fetches every store now and answers like sources. It is admin
+	// only because each call makes the API reach out to every store.
+	{AppStore, ServiceAPI, ActRefresh, true, false, false, FlowCall, nil, 0},
 	{AppStore, ServiceAPI, ActCatalog, true, false, false, FlowCall, newParams[StoreParams](), 0},
 	{AppStore, ServiceAPI, ActInstalled, true, false, false, FlowCall, nil, 0},
 	{AppStore, ServiceAPI, ActUpload, true, false, true, FlowIn, nil, store.MaxPackage},

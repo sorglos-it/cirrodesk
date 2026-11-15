@@ -177,7 +177,7 @@ Sie kommt als Vertragsänderung nach der Freigabe der Verträge und vor den Plä
 | `noise.json` | ein Ende-zu-Ende-Handschlag mit festen Schlüsseln und Transportnachrichten; `prologues`: je ein OPEN mit seinen `params`- und `task`-Bytes (base64url, leer, wenn das Feld fehlt), Prolog und Nachricht 1 | `noisep`: `TestVectors` |
 | `tunnel.json` | Kopplungscode (mit `tls`) mit MAC und Fingerabdruck, `pairCheck` (`tunnel.PairCode.Check`), `join` (Beitrittscode und Anfrage mit `node`, `tls`, `url`, MAC nach `tunnel.JoinMAC` und `fingerprint` nach `tunnel.JoinFingerprint`), `tlsPin` (Fingerabdruck von `tls/api.pem`) | `tunnel`: `TestVectors` |
 | `tls/` | `api.pem`: TLS-Zertifikat von `api-1` aus `trust.json`; `pin.sh` (von Hand) rechnet den Fingerabdruck wie `trust.TLSPin`, geprüft von `TestTLSPinScript` | `tunnel`: `TestVectors` |
-| `core.json` | ein Beispiel-Ergebnis je Kern-Aktion mit Ergebnis (auch `ngc.desktop/ui-proof` und `ngc.users/pending-api`; Kopplungs- und Beitrittscode sind echte Codes zur Fassung „genesis“ aus `trust.json`, `ngc.store/catalog` ein echter Katalog des globalen Stores; `ngc.users/nodes` die Controller der Vertrauensliste, `entry` in `ngc.desktop/apps` die erste Seite, `ngc.store/updates` mit einer Zeile `needsgrants`), dazu `notice`; unter `empty` die zehn Ergebnisse, die Listen sind, leer, wie `core.EncodeResult` sie schickt (`[]`) | `core`: `TestExamples` |
+| `core.json` | ein Beispiel-Ergebnis je Kern-Aktion mit Ergebnis (auch `ngc.desktop/ui-proof` und `ngc.users/pending-api`; Kopplungs- und Beitrittscode sind echte Codes zur Fassung „genesis“ aus `trust.json`, `ngc.store/catalog` ein echter Katalog des globalen Stores; `ngc.users/nodes` die Controller der Vertrauensliste, `entry` in `ngc.desktop/apps` die erste Seite, `ngc.store/updates` mit einer Zeile `needsgrants`), dazu `notice`; unter `empty` die elf Ergebnisse, die Listen sind, leer, wie `core.EncodeResult` sie schickt (`[]`) | `core`: `TestExamples` |
 | `uiproof.json` | UI-Beweise gegen eine Vertrauensliste (`trust`): je Fall App, Version, Beweis, die UI-Prüfsumme, die er belegt, und ob er gilt | `core`: `TestUIProofVectors` |
 | `store.json`, `pack.json` | Katalog (mit `ui` je Version), Lizenz und Release, je mit abgelehnten: `catalogRejects` (darunter sieben Adressen, die die Grammatik brechen), `licenseRejects` (darunter eine Lizenz für eine andere App), `releaseRejects`; dazu die Werte zum Prüfen (`store`, `installation`, `installKey`, `licenseApp`, `catalogLastSeq`, `releaseLastSeq`); Verschlüsselung der Kauf-Apps | `store`: `TestVectors`, `TestPackVectors` |
 | `packui.json` | Pakete, wie `ngc-store pack` sie schreibt, mit dem ui-tar von `store.PackageUI` und dessen SHA-256 | `store`: `TestPackageUIVectors` |
@@ -472,6 +472,9 @@ aus der Vertrauensliste. Die Shell findet den Controller in `core.DesktopApp` (F
   - `call` (`core.FlowCall`): Parameter im OPEN oder in der Aufgabe; der Öffner schickt sofort EOF.
     Das Ergebnis sind alle DATA bis zum EOF der Gegenseite. Aktionen ohne Ergebnis antworten `{}`.
     Beispiele: `core.json`.
+  - `ngc.store/refresh` (nur Admin, keine Parameter) ruft jeden Store sofort ab und antwortet wie
+    `ngc.store/sources` mit dem Stand danach. Die API ruft höchstens einmal je Minute ab; ein zweiter
+    Aufruf in dieser Zeit bekommt den letzten Stand.
   - `in` (`core.FlowIn`): Der Öffner schickt höchstens `MaxIn` Byte, dann EOF; Ergebnis wie bei
     `call`.
   - `out` (`core.FlowOut`): Die API schickt Daten statt eines Ergebnisses; bei `ui` ein ui-tar in

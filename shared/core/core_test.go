@@ -1152,6 +1152,7 @@ func examples(t testing.TB) map[string]any {
 			TLS: apiPin, URL: "wss://api-2.test:7443/tunnel", Since: 1790000000}},
 		"ngc.users/log":         []LogEntry{{ID: "000102030405060708090a0b0c0d0e0f", Time: 1790000000, User: "ISEhISEhISEhISEhISEhIQ", Kind: LogTask, App: "ngc.store", Action: "activate", Node: "ctl-1", Result: "ok"}},
 		"ngc.store/sources":     []SourceInfo{{ID: "global", Name: "NGC Store", URL: "https://store.ngc.test", Seq: 5, Checked: 1790000000}},
+		"ngc.store/refresh":     []SourceInfo{{ID: "global", Name: "NGC Store", URL: "https://store.ngc.test", Seq: 5, Checked: 1790000000}},
 		"ngc.store/catalog":     CatalogResult{Catalog: *f.catalog(t, uiCatalog(), f.global)},
 		"ngc.store/installed":   []InstalledApp{{ID: "org.sorglos.terminal", Version: "1.0.0", Store: "global", Node: "ctl-1", Active: true, State: AppOK, License: LicenseValid}},
 		"ngc.store/upload":      UploadResult{ID: "org.example.notes", Version: "0.1.0", SHA256: bytes.Repeat([]byte{5}, 32), UI: uiNotes},
@@ -1360,7 +1361,7 @@ func TestEncodeResult(t *testing.T) {
 		}
 	}
 	slices.Sort(lists)
-	want := []string{"ngc.desktop/apps", "ngc.store/installed", "ngc.store/sources", "ngc.store/updates",
+	want := []string{"ngc.desktop/apps", "ngc.store/installed", "ngc.store/refresh", "ngc.store/sources", "ngc.store/updates",
 		"ngc.users/list", "ngc.users/log", "ngc.users/nodes", "ngc.users/pending", "ngc.users/pending-api",
 		"ngc.users/rights"}
 	if !slices.Equal(lists, want) {
