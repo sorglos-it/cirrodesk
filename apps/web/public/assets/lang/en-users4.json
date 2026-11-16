@@ -1,0 +1,12 @@
+{
+  "users.col.detail": "Details",
+  "users.log.more": "Load more",
+  "users.log.head": "Log",
+  "users.log.empty": "The log is empty.",
+  "users.log.start": "This is the start of the log.",
+  "users.cancel": "Cancel",
+  "users.nochange": "Nothing changed.",
+  "users.unreadable": "A detail of this server cannot be read ({what}).",
+  "users.addr.aria": "Address {addr}",
+  "users.right.use": "use"
+}

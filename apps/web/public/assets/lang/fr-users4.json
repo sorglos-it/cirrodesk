@@ -1,0 +1,12 @@
+{
+  "users.col.detail": "Détails",
+  "users.log.more": "Charger plus",
+  "users.log.head": "Journal",
+  "users.log.empty": "Le journal est vide.",
+  "users.log.start": "C'est le début du journal.",
+  "users.cancel": "Annuler",
+  "users.nochange": "Rien n'a été modifié.",
+  "users.unreadable": "Une donnée de ce serveur est illisible ({what}).",
+  "users.addr.aria": "Adresse {addr}",
+  "users.right.use": "utiliser"
+}

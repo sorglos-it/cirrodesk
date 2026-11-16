@@ -73,6 +73,26 @@ public/assets/lang/en-store2.json
 public/assets/lang/es-store2.json
 public/assets/lang/fr-store2.json
 public/assets/lang/it-store2.json
+public/assets/lang/de-users.json
+public/assets/lang/en-users.json
+public/assets/lang/es-users.json
+public/assets/lang/fr-users.json
+public/assets/lang/it-users.json
+public/assets/lang/de-users2.json
+public/assets/lang/en-users2.json
+public/assets/lang/es-users2.json
+public/assets/lang/fr-users2.json
+public/assets/lang/it-users2.json
+public/assets/lang/de-users3.json
+public/assets/lang/en-users3.json
+public/assets/lang/es-users3.json
+public/assets/lang/fr-users3.json
+public/assets/lang/it-users3.json
+public/assets/lang/de-users4.json
+public/assets/lang/en-users4.json
+public/assets/lang/es-users4.json
+public/assets/lang/fr-users4.json
+public/assets/lang/it-users4.json
 
 # The licence of the vendored Inter font. It must travel with the font it
 # covers, and a LICENSE is named by nothing.
