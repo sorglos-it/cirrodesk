@@ -35,9 +35,3 @@
 #
 # Held by TestArchiveCarriesNoTestOnlyLink, which also checks that the exclusion
 # names the one file and does not take public/assets/js/net/ with it.
-
-# package.json - OPEN, and on its way out. Only the browser tests need it (Node
-# reads the mock as ESM); Apache and the shell never read it. PR 235 makes
-# cd-store web leave it out like tests/; that PR removes this entry, which then
-# turns stale.
-package.json
