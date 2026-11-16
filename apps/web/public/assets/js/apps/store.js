@@ -1059,7 +1059,7 @@ function money(price) {
   const amount = price.amount / 100;
   let s;
   try {
-    s = new Intl.NumberFormat("de-DE", { style: "currency", currency: price.currency }).format(amount);
+    s = new Intl.NumberFormat(language(), { style: "currency", currency: price.currency }).format(amount);
   } catch {
     s = amount.toFixed(2) + " " + price.currency;
   }
