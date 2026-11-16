@@ -1,0 +1,12 @@
+{
+  "users.col.detail": "Detalles",
+  "users.log.more": "Cargar más",
+  "users.log.head": "Registro",
+  "users.log.empty": "El registro está vacío.",
+  "users.log.start": "Este es el comienzo del registro.",
+  "users.cancel": "Cancelar",
+  "users.nochange": "No se ha cambiado nada.",
+  "users.unreadable": "Un dato de este servidor no se puede leer ({what}).",
+  "users.addr.aria": "Dirección {addr}",
+  "users.right.use": "usar"
+}

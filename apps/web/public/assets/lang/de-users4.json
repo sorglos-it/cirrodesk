@@ -1,0 +1,12 @@
+{
+  "users.col.detail": "Näheres",
+  "users.log.more": "Mehr laden",
+  "users.log.head": "h3Protokoll",
+  "users.log.empty": "Das Protokoll ist leer.",
+  "users.log.start": "Das ist der Anfang des Protokolls.",
+  "users.cancel": "Abbrechen",
+  "users.nochange": "Nichts geändert.",
+  "users.unreadable": "Eine Angabe dieses Servers ist unlesbar ({what}).",
+  "users.addr.aria": "Adresse {addr}",
+  "users.right.use": "benutzen"
+}
