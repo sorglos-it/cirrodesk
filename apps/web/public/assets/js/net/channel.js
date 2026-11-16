@@ -19,6 +19,7 @@
 // what the Web Crypto API returned.
 import * as wire from "../contracts/wire.js";
 import * as core from "../contracts/core.js";
+import { t } from "../shell/lang.js";
 import { BadInput, bytesOf, concat, viewOf } from "../contracts/b64.js";
 
 // The states a channel walks through. "opening" is between the OPEN and the
@@ -56,7 +57,9 @@ const TAG_SIZE = wire.MAX_PAYLOAD - wire.MAX_E2E_PLAINTEXT;
 //     shown twice.
 export class ChannelError extends Error {
   constructor(code, serverText) {
-    super(wire.message(code) || "Ungültige Nachricht.");
+    // The sentence in the browser's language. wire.message stays the German
+    // mirror of Go's table: lang.js reaches wire.js, so it cannot ask lang.js.
+    super(t("code." + code) || t("code.E_PROTOCOL"));
     this.name = "ChannelError";
     this.code = code;
     const own = this.message;
@@ -65,6 +68,7 @@ export class ChannelError extends Error {
     // guard no case can hold (a mutant that dropped it changed nothing,
     // 18.10.2026).
     this.serverText = typeof serverText === "string" && serverText !== own &&
+      serverText !== wire.message(code) &&
       wire.isGeneral(code)
       ? serverText
       : "";

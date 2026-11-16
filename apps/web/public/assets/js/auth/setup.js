@@ -290,7 +290,7 @@ export function setupView(root, { config, onDone } = {}) {
   // because GET /api/v1/setup already answers the whole offer to anyone who
   // knows the endpoint, and the page must not read that file out a second time
   // to somebody who does not (docs/setup-auskunft-und-meldung.md, part B).
-  function box(lead, heading = "CirroDesk einrichten") {
+  function box(lead, heading = t("setup.ui.head")) {
     const form = el("form", "loginbox setupbox");
     // A form, so Enter works in every field - and one that never submits
     // itself, because a shell that navigates away from itself is gone.
@@ -325,7 +325,7 @@ export function setupView(root, { config, onDone } = {}) {
     // reveals nothing a visitor could use. The old lead named the code and its
     // place on the server screen -- the one thing part B's lock forbids.
     const { form, said } = box("", t("setup.notready"));
-    const code = field("Einmal-Code", "text");
+    const code = field(t("setup.ui.code"), "text");
     // Nothing of this field is remembered, suggested or corrected: it holds a
     // secret that is good once.
     code.input.autocomplete = "off";
@@ -337,7 +337,7 @@ export function setupView(root, { config, onDone } = {}) {
     // normalizeSetupCode takes without blinking.
     code.input.maxLength = 40;
     const row = el("div", "loginrow");
-    const go = button("b on", "Weiter", null);
+    const go = button("b on", t("setup.ui.next"), null);
     go.type = "submit";
     row.append(go);
     form.append(code.box, row, said);
@@ -406,7 +406,7 @@ export function setupView(root, { config, onDone } = {}) {
   // list yet. "Already set up" would be true and useless; this says what to
   // do. (The POST keeps the brief's own sentence - see below.)
   function sentenceForOffer(e) {
-    if (e?.code === wire.CODES.NOTFOUND) return NOT_SET_UP;
+    if (e?.code === wire.CODES.NOTFOUND) return t(NOT_SET_UP);
     if (e?.code === wire.CODES.UNREACHABLE) return UNREACHABLE();
     if (e?.code === wire.CODES.LOCKED) return t("login.locked");
     // An installation that answered and could not answer THIS is not a code
@@ -419,22 +419,22 @@ export function setupView(root, { config, onDone } = {}) {
   // ------------------------------------------------------------- step two
 
   function showOffer(code, info) {
-    const { form, said } = box("Bitte vergleichen: Steht hier dasselbe wie auf dem Bildschirm "
-      + "des Servers? Danach legen Sie Ihr Benutzerkonto an.");
+    const { form, said } = box(t("setup.ui.compare"));
 
     // A heading per section and a definition list under it. The headings stay
     // OUTSIDE the lists: a <dl> may hold dt, dd and div and nothing else, and
     // a heading inside one is markup no screen reader has to make sense of.
-    form.append(el("h2", "setuphead", "Anlage"));
-    form.append(facts([line("Kennung", info.installation)]));
-    form.append(el("h2", "setuphead", "API-Server"));
+    form.append(el("h2", "setuphead", t("setup.ui.site")));
+    form.append(facts([line(t("setup.ui.id"), info.installation)]));
+    form.append(el("h2", "setuphead", t("setup.ui.apis")));
     // One list per server, so two servers never read as one. Every value goes
     // in character for character - that is what the person compares with the
     // screen, and a value this file prettied up would be a value that does
     // not match.
     for (const n of info.nodes) {
       form.append(facts([
-        line("Name", n.name), line("Adresse", n.url), line("Fingerabdruck", b64encode(n.tls)),
+        line(t("setup.ui.node.name"), n.name), line(t("setup.ui.node.addr"), n.url),
+        line(t("setup.ui.node.tls"), b64encode(n.tls)),
       ]));
     }
 
@@ -444,26 +444,25 @@ export function setupView(root, { config, onDone } = {}) {
     // everybody.
     let storeBox = null;
     if (info.store !== null) {
-      form.append(el("h2", "setuphead", "App-Store"));
+      form.append(el("h2", "setuphead", t("setup.ui.store")));
       const label = el("label", "setupcheck");
       storeBox = el("input", null);
       storeBox.type = "checkbox";
       storeBox.checked = true;
-      label.append(storeBox, el("span", null, "Apps aus dem CirroDesk-Store installieren können"));
+      label.append(storeBox, el("span", null, t("setup.ui.store.use")));
       form.append(label, el("p", "setupvalue", info.store.url));
     }
 
-    form.append(el("h2", "setuphead", "Ihr Benutzerkonto"));
-    form.append(el("p", "setuplead", "Dieses Konto darf alles. Merken Sie sich das Passwort gut: "
-      + "ohne es kommt niemand mehr an diese Anlage."));
-    const name = field("Benutzername", "text");
+    form.append(el("h2", "setuphead", t("setup.ui.account")));
+    form.append(el("p", "setuplead", t("setup.ui.account.lead")));
+    const name = field(t("setup.ui.name"), "text");
     name.input.autocomplete = "username";
-    const pw = field("Passwort", "password");
+    const pw = field(t("setup.ui.password"), "password");
     pw.input.autocomplete = "new-password";
-    const again = field("Passwort wiederholen", "password");
+    const again = field(t("setup.ui.again"), "password");
     again.input.autocomplete = "new-password";
     const row = el("div", "loginrow");
-    const go = button("b on", "Einrichten", null);
+    const go = button("b on", t("setup.ui.go"), null);
     go.type = "submit";
     row.append(go);
     form.append(name.box, pw.box, again.box, row, said);

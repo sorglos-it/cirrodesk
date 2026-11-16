@@ -48,6 +48,8 @@ import { test, expect } from "@playwright/test";
 // idea of a close.
 async function afterGrant(page, { code, message }) {
   return page.evaluate(async ({ code, message }) => {
+    // The sentence is the language file's (S12): wait until it is in.
+    await (await import("/assets/js/shell/lang.js")).ready;
     const wire = await import("/assets/js/contracts/wire.js");
     const { Channel } = await import("/assets/js/net/channel.js");
     const link = { handOver() {}, free() {}, async send() {} };
@@ -70,6 +72,8 @@ async function afterGrant(page, { code, message }) {
 // frame, same channel, different caller - and it has to say the same thing.
 async function beforeGrant(page, { code, message }) {
   return page.evaluate(async ({ code, message }) => {
+    // The sentence is the language file's (S12): wait until it is in.
+    await (await import("/assets/js/shell/lang.js")).ready;
     const wire = await import("/assets/js/contracts/wire.js");
     const { Channel } = await import("/assets/js/net/channel.js");
     const link = { handOver() {}, free() {}, async send() {} };
