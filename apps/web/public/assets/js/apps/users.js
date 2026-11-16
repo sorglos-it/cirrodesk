@@ -62,7 +62,7 @@ import { validOrigin, validTunnelURL } from "../contracts/url.js";
 import { coreApp, validAppID, validLoginName, validName } from "../contracts/text.js";
 import { APPS, NODES, RIGHTS, USERS } from "../shell/changed.js";
 import { freshness } from "../shell/stale.js";
-import { t } from "../shell/lang.js";
+import { language, t } from "../shell/lang.js";
 
 // How many log lines one page holds. The contract allows 1 to 500; fifty is
 // a screenful and a half, and paging is one button.
@@ -2026,8 +2026,9 @@ const cell = (cls, txt) => el("td", cls, txt);
 // number is seconds, as every time in the contracts is.
 function when(seconds) {
   const d = new Date(seconds * 1000);
-  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
-    + " " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  const lang = language(); // read here: the language settles after this module loads
+  return d.toLocaleDateString(lang, { day: "2-digit", month: "2-digit", year: "numeric" })
+    + " " + d.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
 }
 
 // usersApp builds the surface into the window's body and hands back the

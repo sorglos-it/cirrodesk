@@ -496,7 +496,8 @@ async function mount(page, cfg = {}) {
     window.__cdCtx = ctx;
     window.__cdClose = usersApp({ body: host }, ctx);
   }, cfg);
-  await expect(page.getByRole("tab", { name: "Benutzer", exact: true })).toBeVisible();
+  // The first tab and not its German name, so a case in another locale mounts too.
+  await expect(app(page).getByRole("tab").first()).toBeVisible();
 }
 
 const app = (page) => page.locator("#mount");
@@ -1256,6 +1257,16 @@ test("the users tab shows every user as text", async ({ page }) => {
   await expect(rows.nth(2).locator(".roles")).toHaveText("technik");
   await expect(rows.nth(2).locator(".locked")).toHaveText("gesperrt");
   await expect(rows.nth(1).locator(".last")).toHaveText("noch nie");
+});
+
+test.describe("in en-US", () => {
+  test.use({ locale: "en-US" });
+  // The last login is written in the shell's language, not in a fixed German.
+  test("the last login has the American order", async ({ page }) => {
+    await mount(page);
+    await expect(app(page).locator(".users .row").first().locator(".last"))
+      .toHaveText(/^\d\d\/\d\d\/2026 \d\d:\d\d [AP]M$/);
+  });
 });
 
 test("the four tabs can be walked with the keyboard alone", async ({ page }) => {
