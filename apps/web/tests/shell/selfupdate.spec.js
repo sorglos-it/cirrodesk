@@ -204,13 +204,12 @@ test("the Server panel of Benutzer und Rechte is built again when the list moved
     const box = document.createElement("div");
     document.body.append(box);
     const win = { id: "w1", body: box };
+    // Drawn only once the language is in, as the shell does it.
+    await (await import("/assets/js/shell/lang.js")).ready;
     const stop = usersApp(win, { link, changed, trust: { current: () => null }, session: null });
     const settle = () => new Promise((r) => setTimeout(r, 80));
     const tabs = [...box.querySelectorAll(".usersapp .tab")];
-    // By its place, the third of four (Benutzer, Rollen und Rechte, Server,
-    // Protokoll): the words are the page's language (S12), and this page may
-    // still be fetching its language file while the app is drawn.
-    tabs[2].click();
+    tabs.find((b) => b.textContent === "Server").click();
     await settle();
     const first = pending;
     changed.tell("nodes");
