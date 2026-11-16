@@ -286,7 +286,10 @@ test("the PKCS#8 copy of the seed does not stay behind", async ({ shell }) => {
       // public key and carries no secret.
       if (format === "pkcs8" && data instanceof Uint8Array) {
         const tail = data.subarray(data.length - seed.length);
-        seen.push({ data, len: data.length, was: seed.every((b, i) => tail[i] === b) });
+        const was = seed.every((b, i) => tail[i] === b);
+        // Only the documents that carry THIS seed: the page itself may import a
+        // key of its own meanwhile (measured in Firefox CI, three imports).
+        if (was) seen.push({ data, len: data.length, was });
       }
       return original.call(this, format, data, ...rest);
     };
