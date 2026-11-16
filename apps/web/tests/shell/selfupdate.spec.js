@@ -207,7 +207,10 @@ test("the Server panel of Benutzer und Rechte is built again when the list moved
     const stop = usersApp(win, { link, changed, trust: { current: () => null }, session: null });
     const settle = () => new Promise((r) => setTimeout(r, 80));
     const tabs = [...box.querySelectorAll(".usersapp .tab")];
-    tabs.find((b) => b.textContent === "Server")?.click();
+    // By its place, the third of four (Benutzer, Rollen und Rechte, Server,
+    // Protokoll): the words are the page's language (S12), and this page may
+    // still be fetching its language file while the app is drawn.
+    tabs[2].click();
     await settle();
     const first = pending;
     changed.tell("nodes");
