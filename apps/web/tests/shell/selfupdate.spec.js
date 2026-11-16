@@ -124,6 +124,9 @@ test("a new version of the trust list reaches every surface, once", async ({ she
 test("the store draws its open tab again from the new answer, and drops what it cached", async ({ shell }) => {
   const got = await shell.evaluate(async () => {
     const { storeApp } = await import("/assets/js/apps/store.js");
+    // The page loads its language while the test begins; the store is drawn
+    // only after that, as the shell does it.
+    await (await import("/assets/js/shell/lang.js")).ready;
     const { Changed } = await import("/assets/js/shell/changed.js");
     const core = await import("/assets/js/contracts/core.js");
     const { utf8 } = await import("/assets/js/contracts/b64.js");
@@ -157,8 +160,9 @@ test("the store draws its open tab again from the new answer, and drops what it 
     await settle();
     // The tab is opened the way a person opens it, so what is measured is the
     // screen and not a method.
-    const tabs = [...box.querySelectorAll(".store .tab")];
-    tabs.find((b) => b.textContent === "Installiert")?.click();
+    const tab = [...box.querySelectorAll(".store .tab")]
+      .find((b) => b.textContent === "Installiert");
+    tab.click();
     await settle();
     const before = [...box.querySelectorAll(".store .rowmain b")].map((e) => e.textContent);
     const first = asked;

@@ -168,6 +168,111 @@ export const BUILT_IN = Object.freeze({
   "look.glass.aus": "No glass",
   "look.glass.normal": "Glass",
   "look.glass.stark": "More glass",
+  "store.tab.sources": "Sources",
+  "store.tab.apps": "Apps",
+  "store.tab.installed": "Installed",
+  "store.tab.upload": "Upload",
+  "store.tab.updates": "Updates",
+  "store.need.network": "Access to the network",
+  "store.need.root": "Full rights in its container",
+  "store.part.web": "CirroDesk web interface",
+  "store.part.api": "CirroDesk API",
+  "store.part.controller": "CirroDesk services",
+  "store.part.system": "Operating system",
+  "store.upd.available": "New version available",
+  "store.upd.downloaded": "Ready to install",
+  "store.upd.installing": "Installing",
+  "store.upd.installed": "Installed",
+  "store.upd.rolledback": "Rolled back",
+  "store.upd.failed": "Failed",
+  "store.upd.rejected": "Rejected",
+  "store.upd.needsgrants": "Needs new rights",
+  "store.app.ok": "Running",
+  "store.app.unreachable": "Not reachable",
+  "store.app.unlicensed": "No valid licence",
+  "store.mode.auto": "automatic",
+  "store.mode.semi": "on click",
+  "store.mode.notify": "notify only",
+  "store.wait": "One moment …",
+  "store.broken": "That did not work. Please close the window and open it again.",
+  "store.src.lead": "This is where CirroDesk gets its apps.",
+  "store.src.checked": "Last checked: {when}",
+  "store.src.never": "Not checked yet",
+  "store.src.silent": "This source does not answer. Please check the address.",
+  "store.src.none": "No source entered yet.",
+  "store.apps.nosource": "No source yet. Please enter one under “Sources”.",
+  "store.apps.source": "Source",
+  "store.apps.untrusted": "This store is not trusted yet. Please enter it first.",
+  "store.apps.notfetched": "This store's catalogue has not been fetched yet. CirroDesk checks every hour; Sources shows when it last worked.",
+  "store.apps.old": "This store sends an old catalogue. Please try again later.",
+  "store.apps.fake": "This store's catalogue is not genuine.",
+  "store.apps.install": "Install",
+  "store.apps.install.for": "Install {name}",
+  "store.apps.buy": "Buy",
+  "store.apps.buy.for": "Buy {name}",
+  "store.apps.none": "This store has no app yet.",
+  "store.lic.nokey": "This installation's key did not arrive. Please try again.",
+  "store.lic.asks": "The shop asks for these two details:",
+  "store.lic.installation": "Installation",
+  "store.lic.key": "Key",
+  "store.lic.copy": "Copy",
+  "store.lic.copy.both": "Copy installation and key",
+  "store.lic.shop": "Shop: {shop}",
+  "store.lic.pickfile": "Choose the licence file from the shop here:",
+  "store.lic.pick": "Choose licence",
+  "store.lic.toolarge": "This file is too large for a licence. Please choose the file from the shop.",
+  "store.lic.valid": "The licence is valid.",
+  "store.lic.taken": "The licence was accepted.",
+  "store.lic.refused": "This licence was not accepted. Please choose the file from the shop.",
+  "store.copied": "Copied.",
+  "store.nocopy": "Copying does not work here. Please select the text by hand.",
+  "store.inst.off": "Switched off",
+  "store.inst.remove": "Remove",
+  "store.inst.remove.for": "Remove {name}",
+  "store.inst.none": "No app set up yet.",
+  "store.inst.removed": "The app has been removed.",
+  "store.up.lead": "Set up a package from disk.",
+  "store.up.pick": "Choose package",
+  "store.up.notcd": "This file is not a CirroDesk package. Please choose a file ending in .cd.",
+  "store.up.app": "App",
+  "store.up.version": "Version",
+  "store.up.sum": "Checksum",
+  "store.up.uisum": "UI checksum",
+  "store.up.sending": "Sending …",
+  "store.up.progress": "Sending … {kb} KB",
+  "store.up.lost": "The package did not arrive. Please choose it again.",
+  "store.up.swapped": "The installation received a different package from the one sent.",
+  "store.act.rights": "This app wants to do more than others. Please allow each right on its own:",
+  "store.act.nodesfailed": "The machines could not be loaded. Please reopen the window.",
+  "store.act.unreadable": "A detail of this server cannot be read ({what}).",
+  "store.act.nonode": "No machine for services. Please add a machine first.",
+  "store.act.node": "Machine",
+  "store.act.go": "Activate",
+  "store.act.allrights": "Please allow all rights. Without them the app cannot work.",
+  "store.act.done": "The app is set up.",
+  "store.upd.lead": "What new versions there are.",
+  "store.upd.for": "Updates for {name}",
+  "store.upd.now": "Update now",
+  "store.upd.now.for": "Update {name} now",
+  "store.upd.withrights": "Activate the new version with new rights",
+  "store.upd.none": "Everything is up to date.",
+  "store.upd.started": "The new version is being installed.",
+  "store.failed.again": "That did not work. Please try again.",
+  "store.upd.notstore": "This app did not come from a store. Please set up the new version under “Upload”.",
+  "store.upd.notincat": "This version is not in the catalogue. Please try again later.",
+  "store.save.failed": "That could not be saved. Please try again.",
+  "store.saved": "Saved.",
+  "store.needlogin": "This needs a login. Please sign in again.",
+  "store.grant.nokey": "The key for this approval is missing. Please enter this app's store first.",
+  "store.nochange": "Nothing changed.",
+  "store.grant.invalid": "This approval does not make a valid trust list. Please sign in again.",
+  "store.grant.refused": "The approval was not accepted. Please try again.",
+  "store.grant.reload": "The approval is stored. Please reload the page so CirroDesk is up to date here.",
+  "store.nosign": "That could not be signed. Please sign in again.",
+  "store.notrust": "The trust list is missing. Please sign in again.",
+  "store.confirm.short": "The confirmation was not enough. Please try again.",
+  "store.node.refused": "The machine did not accept that. Please try again.",
+  "store.node.says": "The machine says: {text}",
 });
 
 // A map of strings, read through the house decoder with a budget: a language
@@ -205,7 +310,7 @@ export function pick(offers) {
 // and the first run; each area that is translated brings its own file
 // (S12). A part that is missing is no error - its keys fall back per key like
 // any other.
-export const PARTS = Object.freeze(["", "desk"]);
+export const PARTS = Object.freeze(["", "desk", "store", "store2"]);
 
 async function fetchLang(name) {
   const out = { __proto__: null };
@@ -257,11 +362,18 @@ async function fetchPart(name) {
 // with what it has, and t() answers "" for a key it then does not hold. A
 // login mask that refuses to appear because a sentence could not be fetched
 // would be worse than a login mask with one empty line in it.
+// ready settles once the first load() is done, file or no file. The shell
+// awaits load() itself before it draws; a page that draws an app on its own
+// (a test) waits here, so it never draws before the language is in.
+let settleReady;
+export const ready = new Promise((r) => { settleReady = r; });
+
 export async function load(offers = navigator.languages ?? [navigator.language]) {
   chosen = pick(offers);
   fallbackTable = (await fetchLang(FALLBACK)) ?? Object.freeze({ __proto__: null });
   table = chosen === FALLBACK ? fallbackTable : (await fetchLang(chosen)) ?? fallbackTable;
   document.documentElement.lang = chosen;
+  settleReady(chosen);
   return chosen;
 }
 

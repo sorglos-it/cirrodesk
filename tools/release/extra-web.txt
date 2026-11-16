@@ -63,6 +63,16 @@ public/assets/lang/en-desk.json
 public/assets/lang/es-desk.json
 public/assets/lang/fr-desk.json
 public/assets/lang/it-desk.json
+public/assets/lang/de-store.json
+public/assets/lang/en-store.json
+public/assets/lang/es-store.json
+public/assets/lang/fr-store.json
+public/assets/lang/it-store.json
+public/assets/lang/de-store2.json
+public/assets/lang/en-store2.json
+public/assets/lang/es-store2.json
+public/assets/lang/fr-store2.json
+public/assets/lang/it-store2.json
 
 # The licence of the vendored Inter font. It must travel with the font it
 # covers, and a LICENSE is named by nothing.
