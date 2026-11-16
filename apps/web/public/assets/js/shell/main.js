@@ -16,7 +16,7 @@ import { fakeWorld } from "./fake-link.js";
 
 
 // The standing advice for somebody who got in with a password alone.
-const HINT = "Umstellen auf Passkeys empfohlen";
+const HINT = "boot.passkeyhint";
 
 // IT DOES THE WORK AND NOT A PREPARATION FOR IT - the same lesson
 // passwordLoginFits below was built on, paid for a second time one curve
@@ -158,15 +158,14 @@ async function start() {
   // The sentences next, and before any mask is drawn, for the same reason:
   // a mask that appeared in German and swapped its texts a frame later would
   // be read in the wrong language by whoever was quick. It never throws - a
-  // language file that cannot be fetched leaves the sentences empty, and the
-  // five lines below say their own words anyway (they are the shell's own
-  // messages, not a mask's, and still German in the source: see lang.js).
+  // language file that cannot be fetched falls back to BUILT_IN, which holds
+  // every one of the shell's own messages below.
   await loadLang();
   // Without a secure connection there is no crypto.subtle at all. Checking
   // the browser first would blame the browser for it, and the person would
   // install another one for nothing.
   if (!window.isSecureContext) {
-    message("CirroDesk braucht eine sichere Verbindung. Bitte die Seite über https:// aufrufen.");
+    message(t("boot.https"));
     return;
   }
   if (!(await browserFits())) {
@@ -198,7 +197,7 @@ async function start() {
   try {
     config = await loadConfig();
   } catch {
-    message("CirroDesk ist nicht eingerichtet.");
+    message(t("boot.notsetup"));
     return;
   }
   // THE ROOT OF ALL OF IT: which keys this workplace believes. The anchor
@@ -261,8 +260,7 @@ async function start() {
   const setup = () => setupView(root, {
     config,
     onDone: (world, setupAnchor) => showDesktop(root, config, setupAnchor, world).catch(() => {
-      message("CirroDesk konnte nicht geladen werden. Bitte die Seite neu laden. Bleibt es dabei, "
-        + "läuft CirroDesk gerade nicht.");
+      message(t("boot.loadfailed"));
     }),
   });
   if (anchor === null) {
@@ -322,8 +320,7 @@ async function start() {
       // A trust list that does not open has already put its own alarm on the
       // screen and ended the session; anything else broke on the way to the
       // desktop, and a white page is the one answer that helps nobody.
-      message("CirroDesk konnte nicht geladen werden. Bitte die Seite neu laden. Bleibt es dabei, "
-        + "läuft CirroDesk gerade nicht.");
+      message(t("boot.loadfailed"));
     }),
   });
 }
@@ -405,12 +402,11 @@ async function showDesktop(root, config, anchor, world) {
   // two cases pin by that very count (desktop-keyboard.spec.js:
   // `getByRole("status")).toHaveCount(1)`, store.spec.js reads the one there
   // is). A live region is for news anyway; this is advice that stands there.
-  if (world.passwordHint) document.body.append(el("p", "passkeyhint", HINT));
+  if (world.passwordHint) document.body.append(el("p", "passkeyhint", t(HINT)));
 }
 
 start().catch(() => {
   // A broken connection or a damaged answer must never leave a white page:
   // that is exactly the moment when the person needs to be told what to do.
-  message("CirroDesk konnte nicht geladen werden. Bitte die Seite neu laden. Bleibt es dabei, "
-    + "läuft CirroDesk gerade nicht.");
+  message(t("boot.loadfailed"));
 });

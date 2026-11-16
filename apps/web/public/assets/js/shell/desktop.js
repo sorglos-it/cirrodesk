@@ -400,7 +400,7 @@ class Desktop {
 
     const papers = el("div", "wpgrid");
     for (const w of WALLPAPERS) {
-      const b = button(null, null, t("look.wallpaper", { name: t("look.wallpaper." + w.id) || w.name }));
+      const b = button(null, null, t("look.wallpaper", { name: t("look.wallpaper." + w.id) }));
       b.style.background = w.css;
       b.dataset.wallpaper = w.id;
       b.addEventListener("click", () => {
@@ -418,7 +418,7 @@ class Desktop {
     // without knowing what a pixel is.
     const dens = el("div", "row");
     for (const d of DENSITIES) {
-      const b = button("b", t("look.density." + d.id) || d.name, null);
+      const b = button("b", t("look.density." + d.id), null);
       b.dataset.density = d.id;
       b.addEventListener("click", () => {
         applyDensity(d.id);
@@ -430,7 +430,7 @@ class Desktop {
 
     const glass = el("div", "row");
     for (const g of GLASSES) {
-      const b = button("b", t("look.glass." + g.id) || g.name, null);
+      const b = button("b", t("look.glass." + g.id), null);
       b.dataset.glass = g.id;
       b.addEventListener("click", () => {
         applyGlass(g.id);
@@ -885,7 +885,7 @@ class Desktop {
     // out, opens no window: an empty frame with an error in it looks like a
     // broken app, and this is not the app's fault.
     if (a.state === "unreachable") {
-      this.notice("warn", a.name + " ist nicht erreichbar.");
+      this.notice("warn", t("desk.unreachable", { name: a.name }));
       return null;
     }
     if (a.state === "unlicensed") {

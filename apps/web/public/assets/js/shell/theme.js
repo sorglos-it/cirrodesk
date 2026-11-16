@@ -38,27 +38,27 @@ const SYSTEM_LIGHT = typeof matchMedia === "function"
 // images fetched from anywhere: no request leaves the page for a background,
 // and the content security policy needs no img-src for it.
 export const WALLPAPERS = [
-  { id: "deep", name: "Weltraum", css: "radial-gradient(120% 120% at 20% 15%, #2b4a7d 0%, #16223a 45%, #0a0e18 100%)" },
-  { id: "aurora", name: "Polarlicht", css: "linear-gradient(135deg,#0f2027 0%,#203a43 45%,#2c5364 100%)" },
-  { id: "sunset", name: "Abendrot", css: "linear-gradient(135deg,#ff7e5f 0%,#feb47b 50%,#8e5b8e 100%)" },
-  { id: "mint", name: "Minze", css: "linear-gradient(135deg,#134e5e 0%,#71b280 100%)" },
-  { id: "plum", name: "Pflaume", css: "linear-gradient(135deg,#41295a 0%,#2f0743 100%)" },
+  { id: "deep", css: "radial-gradient(120% 120% at 20% 15%, #2b4a7d 0%, #16223a 45%, #0a0e18 100%)" },
+  { id: "aurora", css: "linear-gradient(135deg,#0f2027 0%,#203a43 45%,#2c5364 100%)" },
+  { id: "sunset", css: "linear-gradient(135deg,#ff7e5f 0%,#feb47b 50%,#8e5b8e 100%)" },
+  { id: "mint", css: "linear-gradient(135deg,#134e5e 0%,#71b280 100%)" },
+  { id: "plum", css: "linear-gradient(135deg,#41295a 0%,#2f0743 100%)" },
 ];
 
 export const ACCENTS = ["#2f7de1", "#16d1c3", "#e14f8a", "#f0a020", "#8b5cf6", "#22c55e"];
 
-// Eng, wie heute, luftig (docs/gestaltung.md Punkt 5). The names a person
-// reads stand with them, because this is the one list of them: the start menu
-// draws its three buttons out of this and nothing else.
+// Eng, wie heute, luftig (docs/gestaltung.md Punkt 5). The start menu draws
+// its three buttons out of this and nothing else; the names a person reads are
+// look.density.<id> in shell/lang.js, in the browser's language.
 //
 // "normal" is the default and writes NO attribute: the sizes of :root are the
 // density that was measured and checked, and a second place holding the same
 // three numbers is a place for them to drift apart. Same shape as the theme's
 // "system", and for the same reason.
 export const DENSITIES = [
-  { id: "eng", name: "Eng" },
-  { id: "normal", name: "Wie heute" },
-  { id: "luftig", name: "Luftig" },
+  { id: "eng" },
+  { id: "normal" },
+  { id: "luftig" },
 ];
 export const DEFAULT_DENSITY = "normal";
 
@@ -66,9 +66,9 @@ export const DEFAULT_DENSITY = "normal";
 // glass" of WhiteSur and macOS). The same shape as the density: "normal"
 // writes no attribute, the values of :root are it.
 export const GLASSES = [
-  { id: "aus", name: "Kein Glas" },
-  { id: "normal", name: "Glas" },
-  { id: "stark", name: "Viel Glas" },
+  { id: "aus" },
+  { id: "normal" },
+  { id: "stark" },
 ];
 export const DEFAULT_GLASS = "normal";
 

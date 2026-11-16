@@ -1,0 +1,20 @@
+{
+  "setup.ui.head": "Configurer CirroDesk",
+  "setup.ui.code": "Code à usage unique",
+  "setup.ui.next": "Suivant",
+  "setup.ui.compare": "Veuillez comparer : est-ce identique à ce qu'affiche l'écran du serveur ? Créez ensuite votre compte utilisateur.",
+  "setup.ui.site": "Installation",
+  "setup.ui.id": "Identifiant",
+  "setup.ui.apis": "Serveurs API",
+  "setup.ui.node.name": "Nom",
+  "setup.ui.node.addr": "Adresse",
+  "setup.ui.node.tls": "Empreinte",
+  "setup.ui.store": "Boutique d'apps",
+  "setup.ui.store.use": "Pouvoir installer des apps depuis la boutique CirroDesk",
+  "setup.ui.account": "Votre compte utilisateur",
+  "setup.ui.account.lead": "Ce compte peut tout faire. Retenez bien le mot de passe : sans lui, plus personne ne pourra accéder à cette installation.",
+  "setup.ui.name": "Nom d'utilisateur",
+  "setup.ui.password": "Mot de passe",
+  "setup.ui.again": "Répéter le mot de passe",
+  "setup.ui.go": "Configurer"
+}

@@ -491,6 +491,7 @@ test("the alarm says what is the matter and cannot be clicked away", async ({ sh
 test("without an anchor the shell says the installation is not finished", async ({ shell }) => {
   const got = await shell.evaluate(async () => {
     const { anchorFor, rememberAnchor, NOT_SET_UP } = await import("/assets/js/shell/trustlist.js");
+    const { t } = await import("/assets/js/shell/lang.js");
     const { b64decode, b64encode } = await import("/assets/js/contracts/b64.js");
     const hash = b64decode("zS9XXS6Q0JSYOx3mn2pxZV3w9H6M_PdzXHZtxaXKN9s");
     // No anchor from the server and nothing remembered: there is nothing to
@@ -503,7 +504,7 @@ test("without an anchor the shell says the installation is not finished", async 
     // the file on the server is the one that counts.
     const fromServer = await anchorFor({ anchor: { seq: 7, hash } });
     return {
-      nothing, text: NOT_SET_UP,
+      nothing, text: t(NOT_SET_UP),
       keptSeq: kept?.seq ?? 0, keptHash: kept === null ? "" : b64encode(kept.hash),
       serverSeq: fromServer?.seq ?? 0,
     };

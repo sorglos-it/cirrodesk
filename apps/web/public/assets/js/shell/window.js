@@ -7,6 +7,7 @@
 // 240 x 150, as it is there.
 import { el, button, text } from "./dom.js";
 import { fillGlyph } from "./icon.js";
+import { t } from "./lang.js";
 
 // A DRAG WHOSE pointerup NEVER ARRIVED. Both drags below hold the pointer with
 // setPointerCapture, so the moves keep coming when the pointer leaves the
@@ -124,7 +125,7 @@ export class Win {
     // the right in the order small, big, close. They are also first in the
     // DOM, so the keyboard reaches them in the order they are seen in.
     const btns = el("div", "wbtns");
-    for (const [cls, label] of [["close", "Schließen"], ["mini", "Minimieren"], ["maxi", "Maximieren"]]) {
+    for (const [cls, label] of [["close", t("win.close")], ["mini", t("win.minimize")], ["maxi", t("win.maximize")]]) {
       const b = button("wbtn " + cls, cls === "mini" ? "—" : cls === "maxi" ? "▢" : "✕", label);
       b.title = label;
       btns.append(b);
@@ -148,7 +149,7 @@ export class Win {
 
     // The taskbar entry is a button: it is pressed, and a keyboard has to
     // reach it like every other control in the bar.
-    this.tab = button("task", null, "Fenster " + title);
+    this.tab = button("task", null, t("win.tab", { title }));
     // The class is not decoration: the badge used to be a letter and took its
     // size from that text. An icon is a mask on an empty element, so without
     // a size of its own it draws nothing at all - which is exactly what the
@@ -218,7 +219,7 @@ export class Win {
     // window where neither a person nor a screen reader can tell which is
     // which. Measured as a strict-mode violation the moment a case asked for
     // "Schließen" inside the window.
-    const go = button("b", "Meldung schließen", null);
+    const go = button("b", t("win.msgclose"), null);
     go.addEventListener("click", () => {
       this.clearSay();
       // Back into the window, not nowhere: the focus was moved onto the
@@ -246,13 +247,13 @@ export class Win {
     this.sayBack = null;
   }
 
-  setTitle(t) {
-    text(this.el.querySelector(".t"), t);
+  setTitle(title) {
+    text(this.el.querySelector(".t"), title);
     // The band reads the title off this very element, so it is told to look
     // again rather than handed a copy.
     this.desktop.markBar?.();
-    text(this.tab.querySelector(".lbl"), t);
-    this.tab.setAttribute("aria-label", "Fenster " + t);
+    text(this.tab.querySelector(".lbl"), title);
+    this.tab.setAttribute("aria-label", t("win.tab", { title }));
   }
 
   open() {

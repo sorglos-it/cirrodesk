@@ -27,6 +27,10 @@ export const test = base.extend({
   dnsName: [false, { option: true }],
   shell: async ({ page, baseURL, dnsName }, use) => {
     await page.goto(dnsName ? `${baseURL.replace("127.0.0.1", "localhost")}/` : "/");
+    // The shell's own sentences come out of the language files (S12), and a
+    // case that imports a module and reads a sentence at once would otherwise
+    // read the English BUILT_IN while the files are still on their way.
+    await page.evaluate(async () => { await (await import("/assets/js/shell/lang.js")).ready; });
     await use(page);
   },
 });

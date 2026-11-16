@@ -24,10 +24,14 @@ import * as core from "../contracts/core.js";
 import * as uitar from "../contracts/uitar.js";
 import { equal, fromUtf8, bytesOf } from "../contracts/b64.js";
 import { validName, validPath } from "../contracts/text.js";
-import { CODES, MAX_PARAMS, validParams, message as codeMessage } from "../contracts/wire.js";
+import { CODES, MAX_PARAMS, validParams } from "../contracts/wire.js";
 import { sha256 } from "../../vendor/noble-hashes/sha2.js";
 import { effectiveTheme, onThemeChange } from "./theme.js";
-import { language } from "./lang.js";
+import { language, t } from "./lang.js";
+
+// The sentence of a code in the browser's language. Not wire.message: that
+// stays the German mirror of Go, and lang.js reaches wire.js.
+const codeMessage = (code) => t("code." + code);
 import { saveError, saveFile } from "./save.js";
 
 // Where an app window comes from. It is a document of this server and not a
@@ -67,18 +71,18 @@ const CLOSE_OK = "ok";
 // What the person is told. Four sentences, because four things can go wrong
 // that they can tell apart; which rule inside a proof broke is not one of
 // them, and naming it would only describe the inside of the server.
-const NOT_GENUINE = "Die Oberfläche dieser App ist nicht echt. CirroDesk führt sie nicht aus.";
-const NO_ENTRY = "Die Startseite dieser App fehlt. CirroDesk führt sie nicht aus.";
-const NEEDS_CLASSIC = "Diese App braucht klassische Skripte.";
-const NOT_LOADED = "Die Oberfläche dieser App konnte nicht geladen werden.";
+const NOT_GENUINE = "frame.notgenuine";
+const NO_ENTRY = "frame.noentry";
+const NEEDS_CLASSIC = "frame.needsclassic";
+const NOT_LOADED = "frame.notloaded";
 
 // What to do about it. One line each, because a message with no way out is
 // a dead end for somebody who did not choose any of this.
 const HINTS = new Map([
-  [NOT_GENUINE, "Bitte den Administrator fragen."],
-  [NO_ENTRY, "Bitte den Administrator fragen."],
-  [NEEDS_CLASSIC, "Bitte den Administrator fragen."],
-  [NOT_LOADED, "Bitte das Fenster schließen und es noch einmal versuchen."],
+  [NOT_GENUINE, "frame.hint.admin"],
+  [NO_ENTRY, "frame.hint.admin"],
+  [NEEDS_CLASSIC, "frame.hint.admin"],
+  [NOT_LOADED, "frame.hint.retry"],
 ]);
 
 // Refused carries the sentence the person gets. Everything else that is
@@ -86,7 +90,7 @@ const HINTS = new Map([
 // turn into a window that shows an app all the same.
 class Refused extends Error {
   constructor(msg) {
-    super(msg);
+    super(t(msg));
     this.shown = msg;
   }
 }
@@ -1133,11 +1137,11 @@ function accent() {
 function refuse(win, e) {
   const msg = e instanceof Refused ? e.shown : NOT_LOADED;
   const pad = el("div", "pad app");
-  const p = el("p", null, msg);
+  const p = el("p", null, t(msg));
   // An error the person did not ask for is announced at once; the desktop's
   // own strip is for what merely happened.
   p.setAttribute("role", "alert");
-  pad.append(p, el("p", "muted", HINTS.get(msg) ?? ""));
+  pad.append(p, el("p", "muted", t(HINTS.get(msg))));
   clear(win.body);
   win.body.append(pad);
 }

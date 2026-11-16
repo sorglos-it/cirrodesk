@@ -15,6 +15,7 @@
 // expects to see what is there now, and it costs one question per return
 // instead of one per second.
 import { button, el, text } from "./dom.js";
+import { t } from "./lang.js";
 
 // How long two returns to the window have to be apart before the second one
 // asks again. Switching tabs with the keyboard raises "visibilitychange" and
@@ -47,7 +48,7 @@ export function freshness(ask) {
   // regions where its locator wanted one. The age is a fact about the screen
   // and is read where it stands.
   const when = el("span", "standtxt", "");
-  const again = button("standgo", "Jetzt nachsehen", "Diesen Stand jetzt neu holen");
+  const again = button("standgo", t("stale.now"), t("stale.now.title"));
   line.append(when, again);
 
   let at = 0;              // when the screen last finished being built
@@ -57,10 +58,10 @@ export function freshness(ask) {
 
   const draw = () => {
     if (at === 0) {
-      text(when, "Stand: wird geholt …");
+      text(when, t("stale.fetching"));
       return;
     }
-    text(when, "Stand: " + ago(Date.now() - at));
+    text(when, t("stale.at", { ago: ago(Date.now() - at) }));
   };
 
   const run = () => {
@@ -112,11 +113,11 @@ export function freshness(ask) {
 // something it cannot vouch for towards the end of it.
 export function ago(ms) {
   const s = Math.max(0, Math.floor(ms / 1000));
-  if (s < 45) return "gerade eben";
+  if (s < 45) return t("stale.justnow");
   const m = Math.round(s / 60);
-  if (m < 60) return "vor " + m + (m === 1 ? " Minute" : " Minuten");
+  if (m < 60) return m === 1 ? t("stale.min1") : t("stale.mins", { n: m });
   const h = Math.round(m / 60);
-  if (h < 24) return "vor " + h + (h === 1 ? " Stunde" : " Stunden");
+  if (h < 24) return h === 1 ? t("stale.hour1") : t("stale.hours", { n: h });
   const d = Math.round(h / 24);
-  return "vor " + d + (d === 1 ? " Tag" : " Tagen");
+  return d === 1 ? t("stale.day1") : t("stale.days", { n: d });
 }

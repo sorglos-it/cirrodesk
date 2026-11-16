@@ -333,9 +333,9 @@ test("the code is kept nowhere once it has been used", async ({ shell }) => {
 // two languages, and the sentence is searched for a DIGIT rather than its
 // wording -- a version number has slipped into a human sentence three times
 // elsewhere, and here a digit would be the one thing a code is made of.
-for (const [locale, sentence] of [
-  ["de-DE", "Diese Anlage ist noch nicht benutzbar. Der Betreiber muss die Einrichtung abschließen."],
-  ["fr-FR", "Cette installation n'est pas encore utilisable. L'exploitant doit terminer la configuration."],
+for (const [locale, sentence, codeLabel] of [
+  ["de-DE", "Diese Anlage ist noch nicht benutzbar. Der Betreiber muss die Einrichtung abschließen.", "Einmal-Code"],
+  ["fr-FR", "Cette installation n'est pas encore utilisable. L'exploitant doit terminer la configuration.", "Code à usage unique"],
 ]) {
   test.describe(`the unpaired notice in ${locale}`, () => {
     test.use({ locale });
@@ -359,7 +359,8 @@ for (const [locale, sentence] of [
       ).toHaveCount(0);
       // The operator's door is still there: the first run pairs through it, and
       // that is the living control that this change must not break (part B, B1).
-      await expect(shell.getByLabel("Einmal-Code")).toBeVisible();
+      // Its label is the browser's language too (S12).
+      await expect(shell.getByLabel(codeLabel)).toBeVisible();
     });
   });
 }

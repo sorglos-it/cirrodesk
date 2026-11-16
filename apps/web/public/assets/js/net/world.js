@@ -51,6 +51,7 @@ import { buildTask, envelopeBytes, signTask } from "../contracts/task.js";
 import { proofBytes } from "../contracts/proof.js";
 import { NOT_TRUSTED, startTrust } from "../shell/trustlist.js";
 import { validAppID, validName } from "../contracts/text.js";
+import { t } from "../shell/lang.js";
 
 // The flows of core.ACTIONS, as the texts the table holds. core.js keeps them
 // to itself on purpose - one name per flow, in one place - and the shell is
@@ -86,38 +87,34 @@ const CLOSE_OK = "ok";
 // in this installation's trust list - and a case that hides behind another is
 // the mistake this project has made most often.
 export class WorldError extends Error {
-  constructor(text, missing = "") {
-    super(text);
+  constructor(key, missing = "") {
+    super(t(key));
     this.name = "WorldError";
     this.missing = missing;
   }
 }
 
-const NO_ACTION = "Diese Anfrage kennt CirroDesk nicht.";
-const WRONG_WAY = "Diese Anfrage geht so nicht.";
-const NO_NODE = "Diese App sagt nicht, auf welchem Rechner ihr Dienst läuft.";
+const NO_ACTION = "world.noaction";
+const WRONG_WAY = "world.wrongway";
+const NO_NODE = "world.nonode";
 // No session key pair in this adapter. It is NOT a missing feature any more -
 // since Task 28 the login carries the pair through (auth/login.js, sessionDH)
 // and realWorld hands it here - so what is wrong is THIS session, and the
 // sentence says that and names what helps.
-const NO_SESSION_KEY = "Diese Anmeldung kann den eigenen Dienst einer App nicht erreichen. "
-  + "Bitte die Seite neu laden.";
+const NO_SESSION_KEY = "world.nosessionkey";
 // No trust list in this adapter. A DIFFERENT fact from the one below: there is
 // no list to ask, so nothing is known about this server either way, and
 // "this server is not in your trust list" would be a sentence about the server
 // that says nothing true about it.
-const NO_TRUST_LIST = "CirroDesk hat die Vertrauensliste dieser Anlage nicht geöffnet. "
-  + "Bitte die Seite neu laden.";
+const NO_TRUST_LIST = "world.notrustlist";
 // A step the server will only run on a signed task, and no session here that
 // could sign one. The sentence names what helps, like the one above it.
-const NO_SESSION_FOR_TASK = "Diese Anmeldung kann den Auftrag für diese App nicht unterschreiben. "
-  + "Bitte neu anmelden.";
+const NO_SESSION_FOR_TASK = "world.nosessiontask";
 // The signature itself did not come off, or the confirmation did not hold.
-const NO_SIGNATURE = "Der Auftrag für diese App ließ sich nicht unterschreiben. "
-  + "Bitte neu anmelden.";
+const NO_SIGNATURE = "world.nosignature";
 // The person said no. That is an answer and it is said as one: nothing is
 // broken, and there is nothing to try again differently.
-const NOT_CONFIRMED = "Nicht bestätigt. Die App wurde nicht geöffnet.";
+const NOT_CONFIRMED = "world.notconfirmed";
 // A node the verified list does not carry. The sentence is shell/trustlist.js's
 // own, and not a second wording of it: it is the same fact, and NotTrusted is
 // what answers it.

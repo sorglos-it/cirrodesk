@@ -93,6 +93,21 @@ public/assets/lang/en-users4.json
 public/assets/lang/es-users4.json
 public/assets/lang/fr-users4.json
 public/assets/lang/it-users4.json
+public/assets/lang/de-shell.json
+public/assets/lang/en-shell.json
+public/assets/lang/es-shell.json
+public/assets/lang/fr-shell.json
+public/assets/lang/it-shell.json
+public/assets/lang/de-net.json
+public/assets/lang/en-net.json
+public/assets/lang/es-net.json
+public/assets/lang/fr-net.json
+public/assets/lang/it-net.json
+public/assets/lang/de-setup.json
+public/assets/lang/en-setup.json
+public/assets/lang/es-setup.json
+public/assets/lang/fr-setup.json
+public/assets/lang/it-setup.json
 
 # The licence of the vendored Inter font. It must travel with the font it
 # covers, and a LICENSE is named by nothing.
