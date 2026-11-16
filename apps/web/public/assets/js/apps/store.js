@@ -35,7 +35,7 @@ import { PURPOSE_TRUST_LIST } from "../contracts/sign.js";
 import { APPS, NODES } from "../shell/changed.js";
 import { freshness } from "../shell/stale.js";
 import { CODES } from "../contracts/wire.js";
-import { t } from "../shell/lang.js";
+import { language, t } from "../shell/lang.js";
 
 const EMPTY = new Uint8Array(0);
 
@@ -1049,7 +1049,7 @@ function field(name, control) {
   return row;
 }
 
-const when = (unix) => new Date(unix * 1000).toLocaleString("de-DE",
+const when = (unix) => new Date(unix * 1000).toLocaleString(language(),
   { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 // money writes a price the way the person's browser writes prices. A
