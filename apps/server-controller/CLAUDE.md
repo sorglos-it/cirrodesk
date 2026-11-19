@@ -1,6 +1,6 @@
 # Server-Controller
 
-Dein Ordner: `apps/server-controller/`, dazu `scripts/cd-controller.sh` im ulh-Repo
+Dein Ordner: `apps/server-controller/`, dazu `apps/cli-ulh/assets/scripts/cd-controller.sh` im ulh-Repo
 (`shared/ulh.md`). Verträge: V1, V2, V3, V4, V5, V6, V7.
 
 Aufbau: `main.go` ist der Einstiegspunkt von `cd-controller`, die Logik liegt in `classes/`

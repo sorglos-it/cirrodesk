@@ -1,6 +1,6 @@
 # Datenbank
 
-Dein Ordner: `apps/server-db/`, dazu `scripts/cd-db.sh` im ulh-Repo (`shared/ulh.md`).
+Dein Ordner: `apps/server-db/`, dazu `apps/cli-ulh/assets/scripts/cd-db.sh` im ulh-Repo (`shared/ulh.md`).
 Verträge: V4, V6.
 
 Aufbau: das Programm `cd-db` (`main.go`, Logik in `classes/dbcli/`) sichert und spielt den MariaDB-Knoten des Rechners mit `mariabackup` zurück (`cd-db backup|restore <Ordner>`); SQLite sichert `cd-api backup`. `classes/` enthält die Umsetzungen von `dbapi`, je ein Go-Paket
