@@ -1,66 +1,206 @@
 # Stand: CirroDesk
 
-**Zuletzt aktualisiert:** 10.10.2026
+**Zuletzt aktualisiert:** 19.11.2026 · gemessen an `origin/main` **`b2262020`** (Merge von PR #242,
+1612 Commits)
 
-## Ziel der nächsten Sitzung
+> **Die Fassung davor beschrieb den 10.10.2026.** Sie nannte die Pull Requests #26–#30 als offen und
+> api-Aufgabe 24 („`main.go` verdrahten") als nächstes Ziel. Beides ist erledigt: #26–#30 sind
+> zwischen dem 12. und 18.10.2026 zusammengeführt, `apps/server-api/main.go` gibt es (316 Zeilen),
+> und drei Fassungen sind veröffentlicht. Ein Versuch vom 10.11.2026, diese Datei nachzuziehen
+> (Zweig `stand-aktuell`), wurde nie zusammengeführt; was davon noch gilt, steht jetzt hier.
+> **Bei jeder Zahl steht, woran sie gemessen ist.**
 
-Die fünf großen Zweige sind weit gebaut, aber **nichts davon ist je gelaufen**: kein `main.go`
-bindet die Pakete ein. Das nächste große Ziel ist deshalb **api-Aufgabe 24** („`main.go`
-verdrahten, Dienst und Module") — erst dort zeigt sich, ob die Teile zusammenpassen. Davor die
-offenen Aufgaben der vier Teile weiterbauen und die fünf Pull Requests zusammenführen.
+## Wo wir stehen
 
-## Stand je Zweig (gemessen am 10.10.2026)
+CirroDesk ist ein Arbeitsplatz im Browser mit App-Store. Bis zum 15.11.2026 hieß es **NGC**
+(NextGenCloud). Der Code ist öffentlich, drei Fassungen sind veröffentlicht. **Für Fremde benutzbar
+ist es noch nicht** — was fehlt, steht in [`was-fehlt.md`](was-fehlt.md).
 
-| Zweig | Kopf | Gebaut und geprüft |
+| Was | Stand am 19.11.2026 | Gemessen mit |
 |---|---|---|
-| `main` | `424a198` | Verträge V1.1 (Etikett `vertraege-v1.1`), Arbeitsweise, `messen.md`, V1.2-Punkte 19–24 |
-| `web` | `e5f1fcc` | Aufgaben 1–35 plus Apache-Vorlage gehärtet (36) und auf die gemessene Maschine gebracht (37) |
-| `api` | `33688a3` | Aufgaben 1–15, dazu das Protokoll (14), die Rechte je Kanal (13) und die Übergabefläche für die Weiterleitung |
-| `api-t17` | `6000616` | Aufgabe 17 (Weiterleitung an die Controller) — **fertig, eigener Zweig, noch nicht in `api`** |
-| `controller` | `dce4bb8` | Aufgaben 1–15 (Paket annehmen und prüfen, mit `ErrDisk`) |
-| `controller-t16` | `863c89b` | Aufgabe 16 (App aktivieren) — **fertig, eigener Zweig, noch nicht in `controller`** |
-| `db` | `a48d8a0` | Plan vollständig (1–12), dazu `ADD COLUMN`, Register nach Verzeichnis, Sicherung in Stücken |
-| `recovery` | `3b5b1e8` | Aufgaben 1–9. **Abnahmekriterium von Paket 0 erreicht:** PolicyOR aus sieben Zweigen auf swtpm, 30 Fälle grün, dreimal |
-| `release-packer` | `61e21f0` | Packer gebaut und geprüft, **noch nicht zusammengeführt** |
+| `main` | `b2262020`, 1612 Commits | `git rev-list --count origin/main` |
+| Offene Pull Requests | außer #244, der diese Fassung bringt, **einer:** #243 `labor-cd` (Labornamen auf `cd`, Reste der ulh-Umbenennung) | `gh pr list -R sorglos-it/cirrodesk` |
+| Zuletzt zusammengeführt | #242 am 19.11., davor #203–#241 am 14.–16.11. | `gh pr list --state merged` |
+| Prüfung auf GitHub | `b2262020` grün. Go: 3765 Fälle bestanden, 0 rot, 27 übersprungen. Web: chromium 612, firefox 609, webkit 604 bestanden, je 0 rot, 0 flatternd | `gh run view 44573010049 --log` |
+| Veröffentlicht | 0.2.0 (19.10.), 0.2.1 und **0.2.2** (beide 23.10.) | `gh release list` |
+| Entscheidungsbuch | bis **Punkt 102** | [`vertraege-v1.2.md`](vertraege-v1.2.md) |
 
-Im ulh-Repo (öffentlich, **Thomas schiebt dort, nie ein Agent**): `cd-web-kopfzeilen` (`75c63f4`,
-der vhost kommt aus dem Release) und `cd-db` (`33dce46`, `backup`/`restore` ohne den Augenblick,
-in dem die Daten weg sind). Beide warten.
+### Die Teile
 
-Offene Pull Requests nach `main`: **#26 web, #27 api, #28 controller, #29 db, #30 recovery**.
-
-## Was beim Abbruch noch lief
-
-Sechs Stränge waren am 10.10.2026 unterwegs, als Thomas „auslaufen lassen" sagte. Ihre Ergebnisse
-stehen in den Ledgern, **falls sie fertig geworden sind** — wer hier weitermacht, liest dort zuerst
-nach, ob die Aufgabe noch offen ist:
-
-| Strang | Aufgabe | Zweig |
+| Teil | Ordner | Fassung |
 |---|---|---|
-| api | 16 — `cd.users` | `api` |
-| api | 19 — Stores und Kataloge | `api-t19` |
-| controller | 17 — Deaktivieren, Deinstallieren, Daten löschen | `controller` |
-| recovery | 10 — die Negativfälle (ein Stick allein, Replay) | `recovery` |
-| packer | Messung: trägt das Archiv die neue Vorlage bitgleich? | `release-packer` |
-| db | Abschlussprüfung des ganzen Zweigs | `db` |
+| Webinterface | `apps/web/` | 0.2.1 |
+| API | `apps/server-api/` | 0.2.0 |
+| Controller | `apps/server-controller/` | 1.0.0 |
+| Datenbank | `apps/server-db/` | 0.1.0 |
+| Werkzeug `cd-store` | `apps/cli/` | 0.2.0 |
+| App „Uhr" (`cd-uhr`) | `apps/uhr/` | 1.0.1 |
+| Store-Apps Rechner, Uhr, Dateien | `apps/store-calculator/`, `apps/store-clock/`, `apps/store-files/` | je 1.0.0 |
 
-## Nächste Schritte (in dieser Reihenfolge)
+Fassung aus `VERSION`, bei den Store-Apps aus `manifest.json`. **Der Recovery-Modus liegt noch nicht
+auf `main`:** `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/` und `lib/rust/` aus
+[`recovery-modus.md`](recovery-modus.md) gibt es dort nicht.
 
-1. **Die Ledger lesen, nicht den Kopf.** Je Plan `.superpowers/sdd/<plan>/progress.md`. **Jeder
-   Ledger hat sein eigenes Wort für „fertig"** — der Recovery-Ledger schreibt `ABGESCHLOSSEN`, die
-   anderen `COMPLETE`. Nach dem Wort des Ledgers suchen, nicht nach dem eigenen.
-2. Die fertigen Nebenzweige zusammenführen: `api-t17` → `api`, `controller-t16` → `controller`.
-3. Die fünf Pull Requests nach `main` zusammenführen, wenn kein Strang mehr in den Zweigen
-   arbeitet. Alle fünf führten am 10.10. sauber zusammen.
-4. **api-Aufgabe 24** (`main.go` und `classes/server/`): bis dahin gilt für alles „gebaut ist nicht
-   gelaufen".
-5. Die Auslieferungskette unten abarbeiten — Vorlage, Packer, unterschriebenes Release, dann das
-   ulh-Skript.
+## Neuer Name: NGC → CirroDesk
+
+- **15.11.2026:** NGC heißt CirroDesk, Kürzel `cd` — im Code, in den Programmen und in den lebenden
+  Dokumenten (PR #237, letzte Reste #242). Datierte Berichte behalten die alten Namen und sagen das
+  in ihrem Kopf (z. B. `CHANGELOG.md`).
+- **19.11.2026:** Das GitHub-Repo heißt **`sorglos-it/cirrodesk`** (öffentlich). Die alte Adresse
+  `sorglos-it/nextgencloud` leitet weiter (`gh api repos/sorglos-it/nextgencloud` antwortet mit
+  `sorglos-it/cirrodesk`).
+- **Das ulh-Repo ist `sorglos-it/unknown-helper`** (öffentlich). In seinem `main` (`2181c9bb` vom
+  07.11.2026) heißen die Skripte noch `apps/cli-ulh/assets/scripts/ngc-*.sh`. Der Zweig
+  **`cd-umbenennung`** (Partner-Thread ulh-cd) ist fertig: 6 Commits vor ulh-`main`, zuletzt
+  `5146658` (cd-web schreibt die Balancer-Datei aus dem Vertrag) und `010cfdc` (CHANGELOG). Dort heißen
+  die Skripte `apps/cli-ulh/assets/scripts/cd-*.sh`, und er bringt die Balancer-Zeilen aus
+  `shared/ulh.md` mit, die ulh fehlten (`connectiontimeout=2`, `Retry-After`, `LogLevel`). **Er liegt
+  nur lokal** in `Z:\GitHub\unknown-helper`, nicht auf GitHub.
+- **Labor, laufende Arbeit (Entscheidung Thomas, 19.11.2026):** Auch die Laborbezeichnungen werden
+  umbenannt. Die Proxmox-VMs 300–309 heißen seit dem 19.11.2026 `cd-vorlage`, `cd-web-api-1`,
+  `cd-api-2`, `cd-db-1` bis `cd-db-3`, `cd-svc-1`, `cd-svc-2`, `cd-store` und `cd-ein` (Angabe des
+  Koordinators). PR #243 (`labor-cd`, offen) stellt `tools/` und die lebenden Dokumente auf
+  `cd.mein.lan` und `cd-*` um. **In den laufenden Gästen gelten Hostnamen, Zertifikate und
+  `/etc/hosts` noch für `ngc.mein.lan`** (dort läuft NGC 0.2.x), bis die Anlage mit dem ersten
+  `cd`-Release neu aufgesetzt wird. Historische Angaben (etwa `ssh ngc`, 10.2.3.208, datierte
+  Berichte) bleiben unverändert.
+- **Die drei Releases tragen `ngc-`Namen** (`ngc-api-*.tar`, `ngc-controller-*.tar`,
+  `ngc-web-all.tar`; `gh release view v0.2.2`). Darum gehen das erste Release mit `cd`-Namen und
+  `cd-umbenennung` nur **zusammen** raus — siehe Nachtrag unter „Auslieferungskette".
+
+## Nächster Schritt
+
+1. **Umbenennung abschließen:** Der ulh-Zweig `cd-umbenennung` ist fertig und liegt nur lokal; er und
+   das erste `cd`-Release gehen zusammen raus — **beides macht Thomas**. Dazu die Labornamen (PR #243);
+   die Anlage selbst wird mit dem ersten `cd`-Release neu aufgesetzt.
+2. **Die Sperren aus [`was-fehlt.md`](was-fehlt.md)**, Abschnitt „Stand am 15.11.2026". Danach
+   zusammengeführt, laut PR-Titel: A24 (#224), A2 (#225), A25 (#227), A3 (#234) und S12, die
+   Oberfläche in fünf Sprachen (#230, #233, #238–#241). **Erst nachsehen, dann anfangen** — eine
+   Sperre kann längst zu sein.
+3. **Was nur Thomas entscheidet**, steht in [`was-fehlt.md`](was-fehlt.md), Abschnitt 5:
+   Release-Schlüssel (S3), Laden (S1), ein Push nach ulh-`main`, P10, Verhaltensänderungen für
+   fremde Anlagen, ein öffentlicher Name für die Messung S10.
+4. **Die 31 Zweige ohne Pull Request** (nächster Abschnitt): je Zweig entscheiden — Pull Request
+   oder löschen.
+
+## Zweige: was wirklich offen ist (gemessen am 19.11.2026)
+
+200 Zweige liegen auf GitHub außer `main`:
+
+| Anzahl | Was |
+|---:|---|
+| 142 | ganz in `main` enthalten |
+| 1 | inhaltlich leer: jede Zeile steht schon in `main` (`ngc-uhr-fassung-pruefung`) |
+| 20 | Pull Request zusammengeführt, danach kein Commit mehr auf dem Zweig — der Unterschied zu `main` ist also auf `main` entstanden |
+| 5 | Pull Request zusammengeführt, **danach** noch Commits: `ausfall` (7), `gui-gestaltung` (2), `zweite-app`, `docs/portierbarkeit`, `design-marken` (je 1) |
+| 1 | offener Pull Request: #243 `labor-cd` |
+| 31 | **tragen Zeilen, die `main` nicht hat, und hatten nie einen Pull Request** |
+
+Die drei, die schon am 10.11.2026 als dringend galten, tragen ihre Arbeit weiterhin:
+
+- **`ngc-join-keys`** (06.11.): „join: register the keys this server holds, and write none to
+  `/run`" — kein privater Schlüssel mehr unter `/run`, also Sicherheit. 5 Dateien, +258 Zeilen.
+- **`fristen-hintergrund`** (16.10.): 13 Dateien, +1719 Zeilen; ein Commit darin nennt ein
+  Datenrennen, das ein `-race`-Lauf gefunden hat.
+- **`ngc-rootrechte`** (19.10.): das Rechtemodell über Web, API und Controller, 30 Dateien, +1358
+  Zeilen.
+
+Keiner der 31 ändert `shared/`. Ob ihre Arbeit noch gebraucht wird oder längst anders gebaut ist,
+sagt die Zahl nicht — unter den 31 ist auch `stand-aktuell`, den diese Fassung ablöst.
+
+<details><summary>Alle 31, neueste zuerst</summary>
+
+| Zweig | Letzter Commit | Commits vor `main` | Zeilen, die `main` nicht hat |
+|---|---|---:|---:|
+| `p-web-s12-store` | 15.11.2026 | 1 | 66 |
+| `stand-aktuell` | 13.11.2026 | 2 | 170 |
+| `ngc-join-keys` | 06.11.2026 | 1 | 333 |
+| `docs-apps-bauen` | 04.11.2026 | 1 | 359 |
+| `api-knoten-kennung` | 03.11.2026 | 4 | 463 |
+| `ngc-zweiter-mensch` | 29.10.2026 | 3 | 200 |
+| `ngc-rootrechte` | 19.10.2026 | 6 | 2248 |
+| `veroeffentlichungsliste` | 19.10.2026 | 35 | 4965 |
+| `ngc-fscrypt-echt` | 19.10.2026 | 1 | 34 |
+| `ngc-knotenkennung` | 18.10.2026 | 5 | 1358 |
+| `ngc-abmelden` | 18.10.2026 | 4 | 535 |
+| `web-lang` | 18.10.2026 | 2 | 3250 |
+| `ngc-appweg` | 18.10.2026 | 2 | 146 |
+| `ctl-aktivierung-kanalfall` | 18.10.2026 | 2 | 1115 |
+| `web-reif` | 18.10.2026 | 14 | 4287 |
+| `zeit-vm` | 18.10.2026 | 1 | 91 |
+| `web-pruef-main` | 18.10.2026 | 1 | 890 |
+| `term-echo` | 18.10.2026 | 1 | 51 |
+| `ngc-ersteapp` | 18.10.2026 | 1 | 303 |
+| `ngc-knotenfassung` | 17.10.2026 | 3 | 662 |
+| `ngc-upload-bestaetigung` | 17.10.2026 | 2 | 669 |
+| `endgeraet-echo-merge` | 17.10.2026 | 2 | 34 |
+| `fristen-hintergrund` | 16.10.2026 | 5 | 1849 |
+| `punkt54-paar-echt` | 16.10.2026 | 4 | 361 |
+| `pool-schreibkanal` | 16.10.2026 | 3 | 1034 |
+| `riegel-ed25519-messen` | 15.10.2026 | 1 | 238 |
+| `messung-punkt53-paar` | 13.10.2026 | 1 | 307 |
+| `release-packer` | 02.10.2026 | 7 | 208 |
+| `pruefauftraege` | 25.09.2026 | 4 | 368 |
+| `claude/elegant-thompson-6m2un0` | 25.09.2026 | 4 | 343 |
+| `pruefergebnisse` | 25.09.2026 | 1 | 286 |
+
+</details>
+
+**So gemessen**, nach `git fetch --prune`, je Zweig:
+
+    git merge-base --is-ancestor origin/<zweig> origin/main                  # ganz enthalten?
+    git diff --numstat origin/main origin/<zweig> -- <dateien des zweigs>    # Zeilen, die main fehlen
+    gh pr list -R sorglos-it/cirrodesk --state all                           # gab es je einen PR?
+
+`<dateien des zweigs>` nennt `git diff --name-only $(git merge-base origin/main origin/<zweig>)
+origin/<zweig>`. „Danach noch Commits" heißt: Commit-Zeit nach der Merge-Zeit des Pull Requests.
+**Drei Punkte (`origin/main...<zweig>`) taugen nicht:** das vergleicht gegen den Abzweigpunkt und wird
+nie leer.
+
+## Ledger
+
+Die sechs Ledger der ersten Pläne (`.superpowers/sdd/<plan>/progress.md`, nur im Hauptcheckout
+`Z:\GitHub\cirrodesk`, nicht im Repo) enden zwischen dem 22.09. und 13.10.2026 (Dateidatum). Danach
+lief die Arbeit über Pull Requests und [`was-fehlt.md`](was-fehlt.md).
+
+**Wer einen Ledger liest: jeder hat sein eigenes Wort für „fertig".** Gezählt am 19.11.2026: Plan 0
+schreibt `complete` (35-mal). Web, API, Controller und Datenbank mischen `complete`, `COMPLETE` und
+`ABGESCHLOSSEN`, drei davon auch `abgeschlossen`. Recovery schreibt vor allem `ABGESCHLOSSEN` — sein
+eigener Eintrag sagt, dass `grep 'Task N: complete'` dort nur Aufgabe 1 fand, obwohl 1 bis 6 fertig
+waren. `DONE` und `DONE_WITH_CONCERNS` heißen dort „umgesetzt", nicht „geprüft und fertig". **Nach
+allen Wörtern suchen, nicht nach einem.**
+
+## Im ulh-Repo (öffentlich — dort schiebt nur Thomas, nie ein Agent)
+
+Gemessen am 19.11.2026 an ulh-`main` (`2181c9bb`):
+
+- **Kein offener Pull Request.** Neben `main` liegen 18 Zweige unter `archiv/ulh/` und
+  `ulh-s3a-kommentar` (1 Commit vor `main`, ohne Pull Request — die Berichtigung S3a aus
+  [`was-fehlt.md`](was-fehlt.md)). Die am 10.10.2026 genannten Stände `75c63f4` und `33dce46` liegen
+  nur noch auf `archiv/ulh/ngc-web-pruefung` und `archiv/ulh/ngc-db`, nicht in `main`.
+- **Bei der API fehlt `RuntimeDirectoryPreserve=yes`.** API und Controller nennen beide
+  `RuntimeDirectory=ngc` (`ngc-api.sh:1050`, `ngc-controller.sh:1231`), aber nur der Controller
+  behält das Verzeichnis (`ngc-controller.sh:1256`, `ngc-all.sh:1536`). Ohne die Zeile löscht systemd
+  das Verzeichnis, wenn die Unit stoppt (`man systemd.exec`) — stoppt die API, ist `/run/ngc` also
+  auch für den Controller weg. Ein Nachtrag liegt auf `archiv/ulh/api-runtimedir-preserve`. Auf
+  `cd-umbenennung` ist es genauso: die Zeile steht nur in `cd-controller.sh:1256` und `cd-all.sh:1536`.
+- **Die Vorlage für den virtuellen Host wird gelesen:** `ensure_vhost_template` in `ngc-web.sh`.
+- **Berichtigt gegenüber `stand-aktuell`:** Dass `Delegate=yes` in ulh-`main` fehlt, ist **kein
+  Loch, sondern entschieden** — Punkt 101, Abschnitt „Warum nicht `Delegate=yes`": der Controller
+  legt die cgroup selbst an.
+
+## Schon entschieden — nicht neu aufmachen
+
+- **Go, nicht Rust:** Punkt 67 im Entscheidungsbuch, gemessen am 20.10.2026. Der Versuch liegt unter
+  `versuch-rust/` als Beleg, nicht als Bestandteil. Für den Recovery-Modus ist Rust dagegen gesetzt:
+  alles, was Schlüssel berührt ([`recovery-modus.md`](recovery-modus.md)).
 
 ## Fallen dieser Umgebung (am 10.10.2026 gemessen, alle bezahlt)
 
-Vollständig mit Messungen: `Z:\GitHub\claude-md\messen.md` (gilt für jedes Projekt) und
-`docs/arbeitsweise.md` (CirroDesk-eigene Lehren). Die sieben, die am meisten gekostet haben:
+Vollständig mit Messungen: `Z:\GitHub\claude\docs\programmierung.md`, Abschnitt B7 „Prüfen und
+Messen" (gilt für jedes Projekt), und `docs/arbeitsweise.md` (CirroDesk-eigene Lehren).
+**Berichtigt 19.11.2026:** hier stand `Z:\GitHub\claude-md\messen.md` — die Datei gibt es nicht mehr.
+Die, die am meisten gekostet haben:
 
 - **Arbeitsbäume werden während der Arbeit hohl.** Mehrmals gemessen: ein Baum stand nach einer
   Wiederherstellung bei 0 fehlenden Dateien und kurz darauf wieder bei **629**; parallel 145, 123,
@@ -138,9 +278,10 @@ Vollständig mit Messungen: `Z:\GitHub\claude-md\messen.md` (gilt für jedes Pro
   **Die Trennlinie für jede Meldung:** ein roter Lauf mit `unknown caller pc`,
   `unexpected return pc`, `found pointer to free object`, `sweep increased allocation count`,
   `fatal error: fault` oder `Exception 0x` ist **kein Befund** — verwerfen und wiederholen.
-  Ein roter Lauf mit `--- FAIL` **ist** einer. Und: **der Hauptcheckout kann den Controller-Satz
+  Ein roter Lauf mit `--- FAIL` **ist** einer. ~~Und: **der Hauptcheckout kann den Controller-Satz
   gar nicht messen** — `apps/server-controller/classes` gibt es auf `main` nicht, `go list` meldet
-  dort 1 Paket „no test files" und Ausstiegscode 0, was wie grün aussieht.
+  dort 1 Paket „no test files" und Ausstiegscode 0, was wie grün aussieht.~~ **Berichtigt
+  19.11.2026:** `apps/server-controller/classes/` gibt es inzwischen auf `main`.
   **Daraus folgt für jede Meldung: ein einzelnes grünes `go test ./...` ist hier keine
   Aussage.** Das eigene Paket einzeln messen, und wenn der Gesamtsatz genannt wird, ihn
   mehrfach fahren und die Zahl der roten Läufe mitnennen.
@@ -156,6 +297,71 @@ Vollständig mit Messungen: `Z:\GitHub\claude-md\messen.md` (gilt für jedes Pro
 - **Der Scratchpad ist zwischen den Strängen geteilt**, nicht nur `/tmp`: eine Messdatei wurde
   mitten im Lauf von einem anderen Strang überschrieben. Je Strang ein eigener Unterordner, und
   eine Zahl aus einer überschriebenen Datei wird **neu gemessen**, nicht geborgen.
+
+### Nachträge bis 19.11.2026
+
+- **Der Hauptcheckout stand nicht immer auf `main`.** Am 10.11.2026 stand er auf
+  `feldzug-echter-server`, 912 Commits hinter `main` (gemessen im Zweig `stand-aktuell`); am
+  19.11.2026 stand er auf `main`. Jede Datei dort kann also alt sein, auch `CLAUDE.md` und diese.
+  Vor dem Lesen:
+
+  ```powershell
+  git -C Z:\GitHub\cirrodesk rev-parse --abbrev-ref HEAD
+  git -C Z:\GitHub\cirrodesk rev-list --count HEAD..origin/main
+  ```
+
+  Steht da nicht `main` und `0`: mit `git show origin/main:<datei>` lesen oder einen eigenen
+  Arbeitsbaum anlegen, unter `D:\claude\working\cirrodesk-<name>`, **nie auf `Z:`**.
+- **Der git-Index eines Checkouts ist zwischen allen Sitzungen darin geteilt:** `git commit --
+  <pfade>`, nie `git add -A` (`docs/arbeitsweise.md`). Und **nie `git config` in einem
+  Arbeitsbaum** — alle Arbeitsbäume eines Repos teilen eine Konfiguration.
+- **Ein zweiter Prüflauf für denselben Zweig bricht den ersten ab**, auch Push und Pull Request
+  desselben Commits (`.github/workflows/linux.yml`, `concurrency` mit `cancel-in-progress`).
+  `cancelled` ist kein `failure`: je Lauf die Schlussfolgerung lesen (`gh run list`). Auf `main`
+  zuletzt am 16.11.2026: `85244a0d` `cancelled`, gleich danach `2e7bc052` `success`.
+- **Flatternd zählt rot.** `tools/ci-count-web.mjs` wertet einen Fall, der erst im zweiten Versuch
+  grün wird, als rot.
+
+### Ein dritter Zeitflattrer: `TestStartTakesTheSameTimeForAnUnknownName`
+
+`apps/server-api/classes/login`. Er verlangt, dass ein unbekannter Name nicht schneller abgelehnt
+wird als ein bekannter, und misst dafür einen Faktor zwei. Am 13.10.2026 einmal rot im vollen
+`tools/check.sh`-Lauf (`263,877µs` gegen `118,197µs`, „this machine cannot measure a factor of two
+today"), **allein 0 von 10 rot**, und der zweite vollständige Lauf ebenfalls grün mit `check: ok`.
+
+Gleiche Familie wie die zwei oben: eine abgeleitete Erwartung gegen ein Fenster im
+Mikrosekundenbereich, auf einer Maschine mit anderen Lasten. **Ursache nicht gemessen** — er liegt
+auf keinem Weg, der an diesem Tag geändert wurde (der Fall ruft den Handler direkt, nicht über den
+Router). Wer ihn rot sieht: erst allein wiederholen, und mit `GOMAXPROCS=1` prüfen, bevor er zum
+Befund wird.
+
+### `tools/check.sh` scheitert im Arbeitsbaum mit Code 128 — UNC-Pfad, nicht Eigentum
+
+Nicht „dubious ownership": `git worktree add` schreibt in die `.git`-Datei einen **UNC-Pfad**
+(`//nas.mein.lan/freigaben/…`), den Git-Bash über seine Pfadumschreibung zerlegt —
+`fatal: not a git repository: /mnt/c/<baum>/Z:/GitHub/…`. **Abhilfe gemessen:**
+`MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'`, dann läuft derselbe Befehl. `Z:/…` in die
+`.git`-Datei zu schreiben hilft **nicht** (`fatal: not a git repository: (NULL)`).
+
+### `git stash push` ohne `-u` lässt neue Testdateien stehen
+
+Der „Grundstand"-Lauf misst dann **alte Quelle gegen neue Fälle**. Einmal war das nützlich (es
+wurde die Rot-vorher-Messung des ganzen Satzes), aber es wäre leicht als Grundstand durchgegangen.
+Mit `-u` dagegen verschwindet ein eigener Messordner im Arbeitsbaum mitten im Lauf —
+**Messdateien gehören in den Scratchpad, nicht in den Baum.**
+
+### Ein vierter Zeitflattrer: `TestFinishTakesTheSameTimeForAKeyNobodyHolds`
+
+`apps/server-api/classes/login`, 1 von 2 `check.sh`-Läufen rot (174,57 s), allein 0 von 3. Der
+Null-Kontrollzweig des Falls feuert selbst („this machine cannot measure a factor of two today").
+Gleiche Familie wie die drei darüber. **Freigemessen** mit zehn verschachtelten Paaren
+(Grundstand und Änderung abwechselnd, gleicher Maschinenzustand je Paar): **0/10 gegen 0/10**.
+
+**Und eine Lehre dazu:** `GOMAXPROCS=1` ist bei einem Fall, der **Uhrzeiten** vergleicht, der
+falsche Hebel — `messen.md` nennt es für ein Flattern an einer Reihenfolge zwischen Goroutinen.
+Das Verengen des Planers macht die Uhr nur verrauschter; der Lauf war nach über 30 Minuten nicht
+durch. Bei einem Zeitvergleich trennt der **gepaarte Lauf gegen den Grundstand**, nicht der
+verengte Planer.
 
 ## Wie hier gearbeitet wird (Head-Officer)
 
@@ -177,8 +383,11 @@ Vollständig mit Messungen: `Z:\GitHub\claude-md\messen.md` (gilt für jedes Pro
   Nachrichten schicken können (Entwurf 4.7 setzt das voraus).
 - Was Thomas bereitstellt: siehe Entwurf 4.7, „Voraussetzungen“ (sieben Server, ein Pi, je ein
   YubiKey 5 NFC und Nitrokey 3 NFC).
-- Auf dem ersten Linux-Server mit echtem `jq`: `TestReleaseScript` (31 Fälle, auch der mit einem
-  Null-Byte) muss laufen und grün sein; bisher lief es nur mit einem Ersatz für `jq`.
+- ~~Auf dem ersten Linux-Server mit echtem `jq`: `TestReleaseScript` (31 Fälle, auch der mit einem
+  Null-Byte) muss laufen und grün sein; bisher lief es nur mit einem Ersatz für `jq`.~~
+  **Berichtigt 19.11.2026:** Er läuft bei jedem Push in der Linux-Prüfung auf GitHub. Ohne `jq`
+  überspringt er sich selbst; im Lauf 44573010049 (`b2262020`) steht er in keiner der drei
+  SKIPPED-Listen, und rot war nichts.
 
 ## Auslieferungskette ulh ↔ Release (zwingende Reihenfolge, Stand 03.10.2026)
 
@@ -187,6 +396,17 @@ und `ngc/`-Signaturen, wie sie `v0.2.2` trägt. Das erste Release mit `cd`-Namen
 ulh-Installation, bis der ulh-Zweig `cd-umbenennung` in ulhs `main` liegt. **Release und dieser Zweig
 gehen nur zusammen raus**, beides macht Thomas. Alte Adressen von `sorglos-it/nextgencloud` leiten seit
 der Umbenennung des GitHub-Repos weiter (gemessen: ulhs `curl --location` kommt mit 206 an).
+
+**Berichtigt 19.11.2026:** Von den vier Stücken unten liegen drei nachweislich — die Vorlage auf
+`main` (`apps/web/templates/apache-vhost.conf`), der Packer auf `main` (`tools/pack-release.sh`, Liste
+`tools/release/extra-web.txt`), und ulh-`main` liest die Vorlage (`ensure_vhost_template` in
+`ngc-web.sh`). Veröffentlicht sind drei Releases; ob 0.2.2 die Vorlage trägt, ist hier nicht
+nachgesehen. Die ulh-Namen unten (`cd-web-kopfzeilen`, `cd-web`, `cd-web.sh`) hat die Umbenennung vom
+15.11.2026 mitgeändert; damals hießen sie `ngc-…`, und das Skript heißt in ulh-`main` noch heute
+`ngc-web.sh` (erst auf `cd-umbenennung` `cd-web.sh`). `75c63f4` liegt nur noch auf
+`archiv/ulh/ngc-web-pruefung`. Der Kommentar aus dem
+Nachtrag vom 10.10.2026 (unten) steht
+**noch unberichtigt** in `extra-web.txt` (Zeilen 27 und 33: „cd-web.sh does NOT read it").
 
 Vier Stücke hängen aneinander, und **in der falschen Reihenfolge macht jedes
 einzelne die Installation kaputt**. Gemessen, nicht geschätzt:
@@ -251,34 +471,20 @@ weil `jq` auf diesem Rechner fehlt.
 
 ## Offene Entscheidungen
 
-- **Eine Anlage kann keinen zweiten Benutzer bekommen — aber es fehlt nur die Oberfläche, nicht
-  der Vertrag (gemessen am 23.10.2026).** Thomas: „ich kann dort keine user anlegen die funktion
-  gibt es nicht." Stimmt — kein Knopf, kein Formular, kein Befehl, auf keiner Ebene
-  (`cd-store` kann es nicht, `apps/cli-recovery/` gibt es nicht, der Recovery-Modus zielt auf
-  einen Not-Admin und nicht auf einen Mitbewohner). **Aber:** `cd.users/api/trust` nimmt jede
-  Fassung an, und `trust.Advance` erlaubt einem Admin als Unterzeichner jede Änderung, also auch
-  einen neuen Benutzer. Die Schwierigkeit ist, dass ein Benutzer einen Schlüssel braucht und der
-  bei einem Passwortkonto das Passwort selbst ist, das den Browser nie verlassen darf.
-  **Entwurf mit Messung, Abwägung der drei Abläufe und der Anfrage an den Koordinator:**
-  [`superpowers/specs/2026-10-23-zweiter-benutzer.md`](superpowers/specs/2026-10-23-zweiter-benutzer.md).
-  Empfehlung dort: Erstpasswort durch den Admin jetzt (ohne eine Zeile in `shared/`, Preis im
-  Formular benannt), Einladungscode als Ziel. **Nicht gebaut, nichts entschieden** — der
-  Koordinator bestätigt zuerst, dass der Weg über eine Shell-gebaute Fassung der gewollte ist.
-- **ES GIBT KEINEN RELEASE-PACKER — gemessen am 01.10.2026, und das ist der eigentliche Grund,
-  warum CirroDesk noch nicht installierbar ist.** Kein `tar -c`, kein Workflow, kein `tools/release*`,
-  weder auf `main` noch auf `web`; `shared/testdata/release/cd-web-all.tar` sind **18 Byte Text**.
-  `verify_release` in `cd-web.sh` prüft das Archiv als **undurchsichtigen Block** (Signatur,
-  SHA-256, Größe) und sagt kein Wort über den Inhalt; `unpack_release` verlangt danach **nur**
-  `public/index.php`. Die Vorlage `apps/web/templates/apache-vhost.conf` *beansprucht* in ihrem
-  eigenen Kommentar, im Release zu liegen — das ist Absicht, nicht gebaut.
-  **Folge:** Der Release-Schlüssel unterschreibt ein Archiv, das niemand packt. Wer die Reihenfolge
-  sucht: erst der Packer (mit einer Liste, was hineingehört und einer Prüfung, dass es drin ist),
-  dann der Schlüssel, dann Aufgabe 26.
+- ~~**Eine Anlage kann keinen zweiten Benutzer bekommen.**~~ **Berichtigt 19.11.2026: gebaut** am
+  24.10.2026 (`72ceb7e7` „web: let an admin create a role and a second user"). Was dabei nur ein
+  Mensch tun kann: [`zweiter-benutzer-schritte.md`](zweiter-benutzer-schritte.md). Entwurf und
+  Abwägung: [`superpowers/specs/2026-10-23-zweiter-benutzer.md`](superpowers/specs/2026-10-23-zweiter-benutzer.md).
+- ~~**ES GIBT KEINEN RELEASE-PACKER**~~ **Berichtigt 19.11.2026: es gibt ihn**
+  (`tools/pack-release.sh`, `tools/build-release.sh`), und drei Releases sind veröffentlicht. Offen
+  bleibt der Release-Schlüssel (S3 und S4 in [`was-fehlt.md`](was-fehlt.md)).
 - **Vertragsfassung 1.2:** Was der nächste Schnitt an `shared/` tragen muss,
   steht gesammelt in [`vertraege-v1.2.md`](vertraege-v1.2.md) — **83 Einträge**
   aus allen vier Strängen, jeder mit Herkunft und Messung (bis 18.10.2026 stand
   hier „18 Punkte"). Mehrere Module verweisen im Code darauf; die Datei ist die
-  Liste, die dort gemeint ist.
+  Liste, die dort gemeint ist. **Berichtigt 19.11.2026:** die Datei reicht
+  inzwischen bis Punkt 102; ein Vorschlag für den Schnitt 1.3 liegt in
+  [`vertraege-v1-3-vorschlag.md`](vertraege-v1-3-vorschlag.md).
   - Seit dem 18.10.2026 hat sie **ein Inhaltsverzeichnis mit Stand je Punkt**
     (gilt · überholt durch Punkt N · berichtigt Punkt N · offen) und **die
     offenen Entscheidungen gesammelt am Ende**. Wer eine Entscheidung sucht,
@@ -316,7 +522,7 @@ weil `jq` auf diesem Rechner fehlt.
     ohne Endung und einer, die es nicht gibt; die Mock-API liest die Werte aus der Vorlage und
     prüft dabei, dass der Block unter dem DocumentRoot liegt – ein Block woanders bricht den Lauf.
   - **Offene Reste davon, drei:**
-    1. **`scripts/cd-web.sh` im ulh-Repo (Aufgabe 26) nachziehen.** Es schreibt einen eigenen
+    1. **`apps/cli-ulh/assets/scripts/cd-web.sh` im ulh-Repo (Aufgabe 26) nachziehen.** Es schreibt einen eigenen
        virtuellen Host unter demselben Namen und ist eine Aufgabe älter. Vier Unterschiede: *für*
        die Vorlage, dass das Skript für `assets/` **keine** Kopfzeile außer HSTS setzt (das Loch)
        und dass es `/assets/` aus seiner Rewrite-Regel nimmt, sodass eine fehlende Datei dort von
@@ -324,7 +530,10 @@ weil `jq` auf diesem Rechner fehlt.
        die Zertifikatserneuerung mit mod_md löst – ein bewegliches Teil weniger als certbot in der
        Vorlage – und dass es `cd-web.conf` bei jedem `install`/`configure` **überschreibt**: ein
        von Hand gehärteter Server verliert den Asset-Block ohne Warnung, bis das Skript ihn selbst
-       mitbringt.
+       mitbringt. **Berichtigt 19.11.2026:** Pfad berichtigt (hier stand `scripts/cd-web.sh`; in
+       ulh-`main` heißt die Datei bis `cd-umbenennung` noch `ngc-web.sh`). Das Skript liest die
+       Vorlage inzwischen (`ensure_vhost_template`); ob die zwei Punkte „gegen die Vorlage" damit
+       erledigt sind, ist nicht nachgesehen.
     2. **Kein Apache im Repo.** Fünf `curl`-Befehle in `apps/web/README.md` („What no test here can
        measure") machen aus „ungemessen" „gemessen"; der wichtigste klärt, ob
        `Header always set` auf dem Rückfall-404 **ergänzt** statt zu ersetzen. Ergebnis hierher.
@@ -345,12 +554,15 @@ Alle weiteren Entscheidungen stehen im Entwurf, Kapitel 6.
   zuerst benutzt, nimmt seine Zeile dort heraus.
 - **`-race` IST auf dieser Maschine messbar** — berichtigt am 12.10.2026, und zwar gegen einen Satz,
   der vorher hier stand und falsch war. Der C-Übersetzer liegt unter
-  **`C:\esp\tools\llvm-mingw\bin\gcc.exe`** (clang 23.1.1, `x86_64-w64-windows-gnu`), also in der
-  Werkzeugkette der ESP-Arbeit — darum hat ihn keine Suche an den „üblichen Orten" gefunden.
-  So läuft es, selbst gemessen (`relay` und `link`: 0 DATA RACE, Code 0):
+  ~~`C:\esp\tools\llvm-mingw\bin\gcc.exe`~~ **`D:\claude\sdk\esp-tools\llvm-mingw\bin\gcc.exe`**
+  (clang 23.1.1, `x86_64-w64-windows-gnu`), also in der Werkzeugkette der ESP-Arbeit — darum hat ihn
+  keine Suche an den „üblichen Orten" gefunden. **Berichtigt 19.11.2026:** `C:\esp\tools\` gibt es
+  nicht mehr; mit dem neuen Pfad ist `-race` hier nicht neu gemessen. Auf GitHub läuft `-race` bei
+  jedem Push (Linux, `shared/trust` getrennt, `.github/workflows/linux.yml`).
+  So lief es am 12.10.2026, selbst gemessen (`relay` und `link`: 0 DATA RACE, Code 0):
 
   ```powershell
-  $env:CGO_ENABLED="1"; $env:CC="C:\esp\tools\llvm-mingw\bin\gcc.exe"
+  $env:CGO_ENABLED="1"; $env:CC="D:\claude\sdk\esp-tools\llvm-mingw\bin\gcc.exe"
   go test -count=1 -buildvcs=false -race ./apps/server-api/...
   ```
 
@@ -374,8 +586,12 @@ Alle weiteren Entscheidungen stehen im Entwurf, Kapitel 6.
 
 ## Skills
 
-- `superpowers:brainstorming` und `superpowers:writing-plans`: Wiederherstellung, dann die Pläne 1–4
-- `superpowers:subagent-driven-development`: die Pläne ausführen
+- ~~`superpowers:brainstorming` und `superpowers:writing-plans`: Wiederherstellung, dann die Pläne 1–4~~
+- ~~`superpowers:subagent-driven-development`: die Pläne ausführen~~
+
+**Berichtigt 19.11.2026:** `superpowers` ist installiert, aber seit dem 09.10.2026 abgeschaltet
+(`Z:\GitHub\claude\docs\programmierung.md`, Abschnitt B10); diese Skills stehen in den Sitzungen
+nicht zur Verfügung.
 
 ## Artefakte
 
@@ -395,46 +611,6 @@ Alle weiteren Entscheidungen stehen im Entwurf, Kapitel 6.
 - Verträge: [`shared/README.md`](../shared/README.md), [`shared/ulh.md`](../shared/ulh.md)
 - Prototyp: [`docs/prototype.html`](prototype.html), Original unter `W:\cd\index.html`
 - Repo: <https://github.com/sorglos-it/cirrodesk> (öffentlich)
-- Facebook-Post: zurückgestellt, solange das Repo privat ist; Vermerk in
-  `Z:\GitHub\facebook\README.md`, Abschnitt „Bestand“
-
-### Ein dritter Zeitflattrer: `TestStartTakesTheSameTimeForAnUnknownName`
-
-`apps/server-api/classes/login`. Er verlangt, dass ein unbekannter Name nicht schneller abgelehnt
-wird als ein bekannter, und misst dafür einen Faktor zwei. Am 13.10.2026 einmal rot im vollen
-`tools/check.sh`-Lauf (`263,877µs` gegen `118,197µs`, „this machine cannot measure a factor of two
-today"), **allein 0 von 10 rot**, und der zweite vollständige Lauf ebenfalls grün mit `check: ok`.
-
-Gleiche Familie wie die zwei oben: eine abgeleitete Erwartung gegen ein Fenster im
-Mikrosekundenbereich, auf einer Maschine mit anderen Lasten. **Ursache nicht gemessen** — er liegt
-auf keinem Weg, der an diesem Tag geändert wurde (der Fall ruft den Handler direkt, nicht über den
-Router). Wer ihn rot sieht: erst allein wiederholen, und mit `GOMAXPROCS=1` prüfen, bevor er zum
-Befund wird.
-
-### `tools/check.sh` scheitert im Arbeitsbaum mit Code 128 — UNC-Pfad, nicht Eigentum
-
-Nicht „dubious ownership": `git worktree add` schreibt in die `.git`-Datei einen **UNC-Pfad**
-(`//nas.mein.lan/freigaben/…`), den Git-Bash über seine Pfadumschreibung zerlegt —
-`fatal: not a git repository: /mnt/c/<baum>/Z:/GitHub/…`. **Abhilfe gemessen:**
-`MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'`, dann läuft derselbe Befehl. `Z:/…` in die
-`.git`-Datei zu schreiben hilft **nicht** (`fatal: not a git repository: (NULL)`).
-
-### `git stash push` ohne `-u` lässt neue Testdateien stehen
-
-Der „Grundstand"-Lauf misst dann **alte Quelle gegen neue Fälle**. Einmal war das nützlich (es
-wurde die Rot-vorher-Messung des ganzen Satzes), aber es wäre leicht als Grundstand durchgegangen.
-Mit `-u` dagegen verschwindet ein eigener Messordner im Arbeitsbaum mitten im Lauf —
-**Messdateien gehören in den Scratchpad, nicht in den Baum.**
-
-### Ein vierter Zeitflattrer: `TestFinishTakesTheSameTimeForAKeyNobodyHolds`
-
-`apps/server-api/classes/login`, 1 von 2 `check.sh`-Läufen rot (174,57 s), allein 0 von 3. Der
-Null-Kontrollzweig des Falls feuert selbst („this machine cannot measure a factor of two today").
-Gleiche Familie wie die drei darüber. **Freigemessen** mit zehn verschachtelten Paaren
-(Grundstand und Änderung abwechselnd, gleicher Maschinenzustand je Paar): **0/10 gegen 0/10**.
-
-**Und eine Lehre dazu:** `GOMAXPROCS=1` ist bei einem Fall, der **Uhrzeiten** vergleicht, der
-falsche Hebel — `messen.md` nennt es für ein Flattern an einer Reihenfolge zwischen Goroutinen.
-Das Verengen des Planers macht die Uhr nur verrauschter; der Lauf war nach über 30 Minuten nicht
-durch. Bei einem Zeitvergleich trennt der **gepaarte Lauf gegen den Grundstand**, nicht der
-verengte Planer.
+- Facebook-Post: ~~zurückgestellt, solange das Repo privat ist; Vermerk in
+  `Z:\GitHub\facebook\README.md`, Abschnitt „Bestand“~~ **Berichtigt 19.11.2026:** das Repo ist
+  öffentlich, und `Z:\GitHub\facebook\` gibt es nicht mehr. Ob ein Post kommt, entscheidet Thomas.
