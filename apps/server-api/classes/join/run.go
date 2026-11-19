@@ -30,8 +30,8 @@ import (
 	"github.com/sorglos-it/cirrodesk/shared/wire"
 )
 
-// Where the joining side puts what it made and what it fetched. The ulh script
-// reads SecretFile and writes both keys into api.json, then removes it.
+// Where the joining side puts what it fetched. The ulh script reads SecretFile
+// and writes both keys into api.json, then removes it.
 const (
 	SecretFile = "/run/cd/join-secret"
 	// JoinTimeout is how long Run waits for an admin to sign the new server

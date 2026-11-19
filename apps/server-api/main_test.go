@@ -2,10 +2,18 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"crypto/ecdh"
+	"crypto/ed25519"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +21,8 @@ import (
 
 	"github.com/sorglos-it/cirrodesk/apps/server-api/classes/join"
 	"github.com/sorglos-it/cirrodesk/shared/config"
+	"github.com/sorglos-it/cirrodesk/shared/trust"
+	"github.com/sorglos-it/cirrodesk/shared/trust/trusttest"
 	"github.com/sorglos-it/cirrodesk/shared/tunnel"
 )
 
@@ -157,6 +167,92 @@ func TestJoinNamesNoValueWhateverGoesWrong(t *testing.T) {
 		if !strings.Contains(line, "Bitte ") {
 			t.Errorf("line %d says nothing to do next", i)
 		}
+	}
+}
+
+// TestJoinListsTheKeysThisServerHolds walks cd-api -join up to the request and
+// reads what it asks this server to be listed with. A trust.Node of kind API
+// names the public halves of the two keys in api.json (setup.publicKeys), and
+// the running server answers with exactly those (controllers.staticKey,
+// login/finish.go). A request that lists any other pair puts this server into
+// the trust list under keys it does not hold.
+//
+// The cases in classes/join hand Run its keys themselves; this one holds the
+// step before, that joinRun hands it the two of api.json and each in its place.
+// Against main before the change (b7a21def) it failed on both keys, 5 of 5 runs:
+// Run made a pair of its own.
+func TestJoinListsTheKeysThisServerHolds(t *testing.T) {
+	// The api.json of the joining server: the example of the repository with
+	// its own node, address and TLS files. The keys are the example's.
+	dir := t.TempDir()
+	raw, err := os.ReadFile(filepath.Join("..", "..", "shared", "testdata", "config", "api.json"))
+	if err != nil {
+		t.Fatalf("example api.json: %v", err)
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		t.Fatalf("example api.json: %v", err)
+	}
+	for k, v := range map[string]string{"node": "api-2", "url": "wss://api-2.cd.test:7443/tunnel",
+		"cert": filepath.Join(dir, "api.crt"), "certKey": filepath.Join(dir, "api.key")} {
+		if fields[k], err = json.Marshal(v); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if raw, err = json.Marshal(fields); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "api.json")
+	if err := os.WriteFile(path, raw, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	// The keys as the program reads them, through the same parser.
+	cfg, err := config.LoadAPI(path)
+	if err != nil {
+		t.Fatalf("api.json of the joining server: %v", err)
+	}
+
+	// The issuing API reads the request as the contract does and then says no,
+	// so joinRun stops after the POST instead of waiting an hour for an admin.
+	cert, pin := trusttest.APITLS(0xE1, "api-1.test")
+	code := tunnel.JoinCode{Key: bytes.Repeat([]byte{0xE3}, 32), TLS: pin,
+		Secret: bytes.Repeat([]byte{7}, tunnel.SecretSize),
+		Anchor: trust.Anchor{Seq: 1, Hash: bytes.Repeat([]byte{0xAA}, sha256.Size)}}
+	arrived := make(chan tunnel.JoinRequest, 1)
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(io.LimitReader(r.Body, 64<<10))
+		if req, err := tunnel.ParseJoinRequest(body); err == nil && r.URL.Path == tunnel.PathJoin &&
+			req.Verify(code.Secret, code.Key) == nil {
+			select {
+			case arrived <- req:
+			default:
+			}
+		}
+		w.WriteHeader(http.StatusConflict)
+	}))
+	srv.TLS = &tls.Config{Certificates: []tls.Certificate{cert}, MinVersion: tls.VersionTLS13}
+	srv.StartTLS()
+	t.Cleanup(srv.Close)
+	code.URL = "wss://" + srv.Listener.Addr().String() + "/tunnel"
+
+	if got := joinRun(context.Background(), path, code.String()); got != 1 {
+		t.Fatalf("joinRun = %d, want 1 for a refused request", got)
+	}
+	var req tunnel.JoinRequest
+	select {
+	case req = <-arrived:
+	default:
+		t.Fatal("no valid join request arrived, so nothing here is measured")
+	}
+	noise, err := ecdh.X25519().NewPrivateKey(cfg.NoiseKey.Bytes())
+	if err != nil {
+		t.Fatalf("Noise key of api.json: %v", err)
+	}
+	if !bytes.Equal(req.Noise, noise.PublicKey().Bytes()) {
+		t.Error("the request lists a Noise key that is not the public half of the one in api.json")
+	}
+	if !bytes.Equal(req.Sign, ed25519.NewKeyFromSeed(cfg.SignKey.Bytes()).Public().(ed25519.PublicKey)) {
+		t.Error("the request lists a signing key that is not the public half of the one in api.json")
 	}
 }
 
