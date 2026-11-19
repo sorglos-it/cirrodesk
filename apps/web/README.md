@@ -22,7 +22,7 @@ framework, no build step, and npm only under `tests/`.
    `shared/testdata/`, no API needed. Is php installed but not on the PATH? Then write
    `CD_PHP=<path to php>` into `tools/local.env` (`tools/local.env.example` shows how);
    `npm test` and `tools/check.sh` both read it. Two runs at once: set `CD_WEB_TEST_PORT`.
-3. On a server, ulh does the rest: `scripts/cd-web.sh` in the ulh repository — it reads
+3. On a server, ulh does the rest: `apps/cli-ulh/assets/scripts/cd-web.sh` in the ulh repository — it reads
    `templates/apache-vhost.conf` out of the release and fills in the name, and it installs
    `php-fpm`. By hand instead: that same file carries six commands at the top, in order, with one
    name to fill in, and the section **HOW cd-web.sh BUILDS THE MACHINE** in its head says — with
@@ -65,7 +65,7 @@ thing.
 | `curl -skD - -o /dev/null https://HOST/irgendwas-das-es-nicht-gibt \| grep -ci '^strict-transport-security:'` | `1` | HSTS reaches an answer **outside** `/assets/` as well — that is what the host-wide line in the virtual host is for. `0` means an Apache error page still goes out without it; more than `1` means `always set` added beside `Page::headers`' own (same value, so no hole) |
 | `openssl s_client -connect HOST:443 -tls1_3 -ciphersuites TLS_AES_128_GCM_SHA256 </dev/null` | a handshake **failure** | the `SSLCipherSuite TLSv1.3 …` line really narrows. If it succeeds, Apache read it as the TLS-1.2 list and it narrows nothing. `openssl s_client -connect HOST:443 </dev/null \| grep -i Cipher` must name `TLS_AES_256_GCM_SHA384` |
 | `curl -sk "https://HOST/?cd-probe=GEHEIMNIS" -o /dev/null` then `grep -c GEHEIMNIS /var/log/apache2/cd-web-access.log` | `0` | the access log writes down no user input. Anything else means the format fell back to one that logs the request line, and then the log is a place secrets land |
-| `apachectl -M \| grep -c proxy_fcgi` then `apachectl -M \| grep -cE 'php[0-9]+_module'` | `1`, then `0` | PHP arrives as **php-fpm**, which is the package both ways install — `scripts/cd-web.sh` in the ulh repository has it in `CD_PACKAGES` (line 80 there), and step 1 of the template installs it too. Without `proxy_fcgi` the `SetHandler` reaches no pool and a `.php` goes out as text or a 500; a `php8_module` beside it means `libapache2-mod-php` got installed as well, and then two things claim `.php` — a **find** |
+| `apachectl -M \| grep -c proxy_fcgi` then `apachectl -M \| grep -cE 'php[0-9]+_module'` | `1`, then `0` | PHP arrives as **php-fpm**, which is the package both ways install — `apps/cli-ulh/assets/scripts/cd-web.sh` in the ulh repository has it in `CD_PACKAGES` (line 80 there), and step 1 of the template installs it too. Without `proxy_fcgi` the `SetHandler` reaches no pool and a `.php` goes out as text or a 500; a `php8_module` beside it means `libapache2-mod-php` got installed as well, and then two things claim `.php` — a **find** |
 | `grep -h '^expose_php' /etc/php/*/fpm/php.ini` | `expose_php = Off` | read off the disk and not over HTTP on purpose: `classes/Page.php` removes `X-Powered-By` from every answer `index.php` writes, so `curl` cannot tell — only an answer Apache writes alone would show it. `cd-web.sh` sets neither this nor `ServerTokens` (measured 10.10.2026: neither word is in the script), so on a machine ulh set up this line is the only way to find out. `fpm` and not `apache2` in that path: with php-fpm `/etc/php/*/apache2/php.ini` does not exist |
 
 Two more, if you want the whole picture: `curl -skI https://HOST/assets/js/` must be `403` and carry

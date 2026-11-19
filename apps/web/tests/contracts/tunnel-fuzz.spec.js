@@ -125,7 +125,7 @@ test(`fuzz: a code or BadCode, ${rounds} inputs from seed ${seed}`, async ({ she
     // (U+0085, which Go trims and the engine does not, and U+FEFF, the other
     // way round).
     const prefixes = [t.PAIR_PREFIX, t.JOIN_PREFIX, "cd-pair", "cd-pai", "cd-pair::",
-      "cd-pair:cd-pair:", "CirroDesk-PAIR:", "cd_pair:", "cd-join", ":", "", "cd-pair :"];
+      "cd-pair:cd-pair:", "CD-PAIR:", "cd_pair:", "cd-join", ":", "", "cd-pair :"];
     const spaces = ["", " ", "\t", "\n", "\r", "\v", "\f", "\u0085", " ", " ",
       " ", " ", " ", " ", " ", " ", "　", "﻿", "​"];
     const space = () => {

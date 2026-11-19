@@ -16,7 +16,7 @@ import (
 // panicSecret is what a panic value carries by accident. Every case below
 // looks for this string in the log, so a line that started printing the value
 // shows up as a failure.
-const panicSecret = "CirroDesk-TEST-SECRET-0123456789"
+const panicSecret = "CD-TEST-SECRET-0123456789"
 
 // catchLog puts a log of its own in place of the default one for one case.
 func catchLog(t *testing.T) *bytes.Buffer {

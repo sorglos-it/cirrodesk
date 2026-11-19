@@ -16,7 +16,7 @@ Oberfläche **0.2.0**, Stand 24.10.2026).
 > (`ssh ngc`, 10.2.3.208) wurde an jenem Tag um 12:37 vom Proxmox-Wirt aus angehalten und ist
 > aus. **Die Messungen in dieser Anleitung bleiben gültig** — sie wurden gemacht, als jene
 > Maschine lief, und ein ausgeschalteter Rechner macht eine richtige Messung nicht falsch.
-> Nachgemessen wird jetzt auf **`ngc-ein`** (VMID 307, 10.2.3.216, Name wieder `cd.test`),
+> Nachgemessen wird jetzt auf **`cd-ein`** (VMID 307, 10.2.3.216, Name wieder `cd.test`),
 > angelegt mit `tools/einzelmaschine.sh` aus der Vorlage und dem Release v0.2.2 — also
 > **nachbaubar**, was die alte nie war. Der Weg bis „die Oberfläche antwortet" ist dort am
 > 24.10.2026 noch einmal durchgelaufen und bestätigt: `https://cd.test/` gibt `http=200` mit
@@ -30,8 +30,8 @@ Oberfläche **0.2.0**, Stand 24.10.2026).
 
 | | **eine Maschine** — der Fall dieser Anleitung | **sechs Maschinen** — der andere Fall |
 |---|---|---|
-| Name der Anlage | `cd.test` (Beispiel, siehe Schritt 0) | `ngc.mein.lan` |
-| Maschine heute | `ngc-ein`, 10.2.3.216 (seit 24.10.2026) | api-1 … store |
+| Name der Anlage | `cd.test` (Beispiel, siehe Schritt 0) | `cd.mein.lan` |
+| Maschine heute | `cd-ein`, 10.2.3.216 (seit 24.10.2026) | api-1 … store |
 | Maschinen | eine, alle vier Rollen | sechs, siehe Schritt 0 |
 | Datenbank | SQLite, eine Datei je Programm | eigene Maschine |
 | Skript | `cd-all` | `cd-api`, `cd-db`, `cd-controller`, `cd-web` je Maschine |
@@ -74,7 +74,7 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 ### Der Store-Schlüssel
 
 - **Einen offiziellen CirroDesk-Store gibt es nicht.** Der Platzhalter
-  `CD_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY` steht am 24.10.2026
+  `CD_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-WITH-THE-CD-STORE-KEY` steht am 24.10.2026
   unverändert in `cd-all.sh` (Zeile 177, Zweig `cd-kette`).
 - **Also muss jede Installation ihren eigenen Store nennen**: `store_url` und `store_key`
   in `answer.yaml`, beide zusammen oder keins (`shared/ulh.md`).
@@ -91,7 +91,7 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 
 - Debian 13, systemd läuft, root.
 - [ulh](https://github.com/sorglos-it/unknown-helper) — die Skripte liegen dort unter
-  `apps/cli/assets/scripts/`. **Auf `main` liegen sie nicht:** am 24.10.2026 hat
+  `apps/cli-ulh/assets/scripts/`. **Auf `main` liegen sie nicht:** am 24.10.2026 hat
   `origin/main` **null** `cd-*`-Skripte, alle fünf liegen auf dem Zweig `cd-kette`
   (`cd-all.sh`, `cd-api.sh`, `cd-controller.sh`, `cd-db.sh`, `cd-web.sh`).
 - **Ein unterschriebenes Release.** Ohne Release geht nichts (siehe Stolperstein 4).
@@ -148,7 +148,7 @@ Anlage und der Name aus Schritt 2:
 ```
 
 Nicht abtippen, sondern einsetzen. So sieht die Zeile für die heutige Maschine des kleinen
-Falls aus (`ngc-ein`, seit 24.10.2026):
+Falls aus (`cd-ein`, seit 24.10.2026):
 
 ```
 10.2.3.216   cd.test
@@ -168,9 +168,9 @@ antwortet seit dem 24.10.2026 nicht mehr**; in älteren Messungen steht sie noch
    nichts sonst. Nachgesehen am 24.10.2026 an der verteilten Anlage:
 
    ```
-   subject=CN=ngc.mein.lan
+   subject=CN=cd.mein.lan
    X509v3 Subject Alternative Name:
-       DNS:ngc.mein.lan
+       DNS:cd.mein.lan
    ```
 
    **Keine einzige IP-Adresse steht darin.** Rufst du die Anlage über ihre Adresse auf, kann
@@ -179,7 +179,7 @@ antwortet seit dem 24.10.2026 nicht mehr**; in älteren Messungen steht sie noch
    unterschriebenen** Zertifikat und einem Browser, der es für den Lauf annimmt
    (`ignoreHTTPSErrors`); ein echter Browser nimmt es nicht ohne Weiteres an (Punkt 59).
 2. **Passschlüssel gehen über eine IP-Adresse gar nicht.** Ein Passschlüssel hängt an der
-   `rp.id`, und die ist ein **Name** — `cd.test` bei der einen Maschine, `ngc.mein.lan` bei
+   `rp.id`, und die ist ein **Name** — `cd.test` bei der einen Maschine, `cd.mein.lan` bei
    der verteilten Anlage. Eine IP-Adresse kann keine `rp.id` sein, und `origins` nennt genau
    die eine Adresse mit dem Namen. Über die IP lässt sich also kein Passschlüssel anlegen und
    keiner benutzen, egal wie man die Zertifikatswarnung wegklickt. Die Oberfläche empfiehlt
@@ -190,28 +190,28 @@ antwortet seit dem 24.10.2026 nicht mehr**; in älteren Messungen steht sie noch
 Diese sieben Zeilen hat Thomas am 24.10.2026 für die Anlage aus sechs Maschinen genannt:
 
 ```
-10.2.3.210 api-1.ngc.mein.lan api-1
-10.2.3.211 api-2.ngc.mein.lan api-2
-10.2.3.212 db-1.ngc.mein.lan db-1
-10.2.3.213 svc-1.ngc.mein.lan svc-1
-10.2.3.214 svc-2.ngc.mein.lan svc-2
-10.2.3.215 store.ngc.mein.lan store
-10.2.3.210 ngc.mein.lan
+10.2.3.210 api-1.cd.mein.lan api-1
+10.2.3.211 api-2.cd.mein.lan api-2
+10.2.3.212 db-1.cd.mein.lan db-1
+10.2.3.213 svc-1.cd.mein.lan svc-1
+10.2.3.214 svc-2.cd.mein.lan svc-2
+10.2.3.215 store.cd.mein.lan store
+10.2.3.210 cd.mein.lan
 ```
 
-**Der Name der Anlage ist `ngc.mein.lan`, und er zeigt auf dieselbe Adresse wie `api-1`.**
+**Der Name der Anlage ist `cd.mein.lan`, und er zeigt auf dieselbe Adresse wie `api-1`.**
 
 **Und du brauchst nicht nur ihn.** Nachgesehen an der laufenden verteilten Anlage, mit dem
-Namen erzwungen (`curl --resolve ngc.mein.lan:443:10.2.3.210`):
+Namen erzwungen (`curl --resolve cd.mein.lan:443:10.2.3.210`):
 
 ```json
-{"version":"0.2.1","anchor":{…},"rp":{"id":"ngc.mein.lan","origins":["https://ngc.mein.lan"]},
- "apis":["https://api-1.ngc.mein.lan:7443","https://api-2.ngc.mein.lan:7443"]}
+{"version":"0.2.1","anchor":{…},"rp":{"id":"cd.mein.lan","origins":["https://cd.mein.lan"]},
+ "apis":["https://api-1.cd.mein.lan:7443","https://api-2.cd.mein.lan:7443"]}
 ```
 
 `apis` nennt **Namen**, und der Browser verbindet sich zu ihnen **selbst** — nicht über die
 Oberfläche. Jeder davon trägt sein **eigenes** Zertifikat: auf `10.2.3.211:7443` steht
-`CN=api-2.ngc.mein.lan`, `SAN: DNS:api-2.ngc.mein.lan`. Fehlt `api-2.ngc.mein.lan` in deiner
+`CN=api-2.cd.mein.lan`, `SAN: DNS:api-2.cd.mein.lan`. Fehlt `api-2.cd.mein.lan` in deiner
 `hosts`-Datei, kommt die Oberfläche hoch und die zweite API ist für deinen Browser nicht da.
 **Also alle sieben Zeilen eintragen, nicht die letzte allein.**
 
@@ -227,7 +227,7 @@ durch den Tunnel hinaus.
 **Gemessen hier am 24.10.2026, und sie ist bösartig:** in diesem Netz lösen **alle sieben
 Namen** auf `10.2.3.102` auf — eine Maschine, auf der **kein CirroDesk** läuft (`https://…/` gibt
 `302`, `/config.json` gibt `401`). Der DNS-Server beantwortet also jeden Namen unter
-`ngc.mein.lan`, auch die, die er nicht kennt.
+`cd.mein.lan`, auch die, die er nicht kennt.
 
 Das heißt: **ohne die Zeilen in deiner `hosts`-Datei landest du auf einer fremden Maschine**,
 und zwar ohne Fehlermeldung, die das sagt. Was du siehst, ist eine Anmeldung, die nicht CirroDesks
@@ -691,7 +691,7 @@ nicht frisch aussehen.
   2. Der Dienst liegt in einer **Neustartschleife** (`restart counter is at 8`).
   3. Das Skript meldet **`RC=0`** und **„The API is running"**.
 - **Ursache:** in `api.json` stand
-  `"storeKey": "REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY"`.
+  `"storeKey": "REPLACE-THIS-LINE-WITH-THE-CD-STORE-KEY"`.
   Der Riegel gab es nur für den **Release**-Schlüssel, nicht für den **Store**-Schlüssel.
 - **Dazu:** die Fehlermeldung der API nennt **kein Feld**. Welches es war, kostete einen
   Blick in die Datei.
@@ -743,7 +743,7 @@ nicht frisch aussehen.
   Schlüsselpaar (Punkt 56, offener Punkt 1).
 - Punkt 56 wurde darum mit einem **Testschlüssel** gemessen, der nirgends eingecheckt ist.
 - **Seit Punkt 57 ist dieser Riegel auf:** der öffentliche Schlüssel steht in den vier
-  Skripten, `grep -l REPLACE-THIS-LINE-WITH-THE-CirroDesk-RELEASE-KEY *.sh` = **0**.
+  Skripten, `grep -l REPLACE-THIS-LINE-WITH-THE-CD-RELEASE-KEY *.sh` = **0**.
 - **Dazu die Rückdreh-Sperre:** `seq` des Release gegen die Zahl in
   `/var/lib/cd/release.seq`. Kleiner → Abbruch. Dieselbe Nummer darf zur Reparatur noch
   einmal installiert werden (`shared/ulh.md`).
@@ -863,7 +863,7 @@ Das steht hier, damit niemand es für geprüft hält.
   `:443` und auf `api-2:7443`, und welche der sechs auf Port 22 und 7443 antworten (alles
   24.10.2026). **Auf keiner der sechs war ich angemeldet**, und kein Schritt dieser Anleitung
   ist dort durchgegangen. Die Zuordnung Adresse → Name stammt von Thomas; dass sie stimmt, ist
-  für `api-1`, `api-2` und `ngc.mein.lan` aus den Zertifikaten und aus `config.json` bestätigt,
+  für `api-1`, `api-2` und `cd.mein.lan` aus den Zertifikaten und aus `config.json` bestätigt,
   für `db-1`, `svc-1`, `svc-2` und `store` **nicht** — dort antwortet von außen nichts, was
   seinen Namen nennt.
 - **Welches Skript beim verteilten Fall was macht.** Der kleine Fall nimmt `cd-all`; sechs
@@ -889,7 +889,7 @@ Nicht weggelassen, sondern hingeschrieben.
   über eine IP-Adresse keine Passschlüssel gibt, stand nirgends. Jetzt ist es Schritt 0.
 - **Die Anleitung sagte nicht, welche Anlage sie beschreibt.** Sie sagte „ein Rechner" und
   danach „`<host>`" — und es gibt inzwischen **zwei** Anlagen mit zwei verschiedenen Namen
-  (`cd.test` und `ngc.mein.lan`). Wer die verteilte vor sich hatte und diese Anleitung las,
+  (`cd.test` und `cd.mein.lan`). Wer die verteilte vor sich hatte und diese Anleitung las,
   trug den falschen Namen ein und bekam keinen Satz, der das sagt. Jetzt steht oben eine
   Tabelle, und der verteilte Fall ist an jeder abweichenden Stelle benannt.
 - **Die Reihenfolge der alten Schritte 4 bis 7 hielt nicht, was sie andeutete.** „Nicht neu
@@ -931,7 +931,7 @@ Außer den zwei Punkten aus Abschnitt 1:
   Anleitung dafür. Wer sie schreibt, muss die Reihenfolge der vier Skripte messen — sie steht
   nirgends.
 - **Der DNS, der jeden Namen beantwortet.** In diesem Netz lösen alle sieben Namen unter
-  `ngc.mein.lan` auf `10.2.3.102` auf, wo kein CirroDesk läuft (Schritt 0). Solange das so ist,
+  `cd.mein.lan` auf `10.2.3.102` auf, wo kein CirroDesk läuft (Schritt 0). Solange das so ist,
   braucht **jeder** Leser die Zeilen in seiner `hosts`-Datei, auch der mit DNS — und jeder
   Fehler sieht zuerst wie ein Fehler von CirroDesk aus. Das ist keine CirroDesk-Sache, aber es trifft
   jeden, der CirroDesk hier aufsetzt.

@@ -1,6 +1,6 @@
 # Webinterface
 
-Dein Ordner: `apps/web/`, dazu `scripts/cd-web.sh` im ulh-Repo (`shared/ulh.md`). Verträge: V1,
+Dein Ordner: `apps/web/`, dazu `apps/cli-ulh/assets/scripts/cd-web.sh` im ulh-Repo (`shared/ulh.md`). Verträge: V1,
 V2, V5, V6, V7 (`shared/README.md`). HTML, CSS, JavaScript und PHP, ohne Framework und ohne
 Build-Schritt.
 

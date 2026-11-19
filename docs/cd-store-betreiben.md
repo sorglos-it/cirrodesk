@@ -109,8 +109,8 @@ Erwartet: `200 application/json`.
 
 ## 6. ulh: der Platzhalter (nur Thomas schiebt dort)
 
-In ulh steht `CD_STORE_KEY_DEFAULT="REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY"` in
-`scripts/cd-api.sh:97` und `scripts/cd-all.sh:177`. Wenn Adresse und Schlüssel feststehen,
+In ulh steht `CD_STORE_KEY_DEFAULT="REPLACE-THIS-LINE-WITH-THE-CD-STORE-KEY"` in
+`apps/cli-ulh/assets/scripts/cd-api.sh:97` und `apps/cli-ulh/assets/scripts/cd-all.sh:177`. Wenn Adresse und Schlüssel feststehen,
 in **beiden** Dateien:
 
 ```sh

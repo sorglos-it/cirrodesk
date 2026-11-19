@@ -57,7 +57,7 @@ probe=$( (exit 7) >/dev/null 2>&1 || echo "$?")
 	exit 1
 }
 
-ZONE=${CD_ZONE:-ngc.mein.lan}
+ZONE=${CD_ZONE:-cd.mein.lan}
 WEB_IP=${CD_WEB_IP:-10.2.3.210}
 API1_IP=${CD_API1_IP:-10.2.3.210}
 API2_IP=${CD_API2_IP:-10.2.3.211}
@@ -147,7 +147,7 @@ ulh() {
 		auf "$ip" "command -v git >/dev/null || (DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git >/dev/null)"
 		auf "$ip" "[ -d /root/ulh/.git ] || git clone -q --branch $ULH_REF --single-branch $ULH_URL /root/ulh"
 		auf "$ip" "cd /root/ulh && git fetch -q origin $ULH_REF && git checkout -q FETCH_HEAD"
-		auf "$ip" "test -f /root/ulh/apps/cli/assets/scripts/cd-api.sh" ||
+		auf "$ip" "test -f /root/ulh/apps/cli-ulh/assets/scripts/cd-api.sh" ||
 			fehler "$ip: the CirroDesk scripts are not in the checkout - is $ULH_REF right?"
 		printf 'ulh: %s has %s at %s\n' "$ip" "$ULH_REF" "$(auf "$ip" "cd /root/ulh && git rev-parse --short HEAD")"
 	done
@@ -233,7 +233,7 @@ db() {
 			printf 'export CD_HOSTNAME=db-1.%s\n' '$ZONE'
 			printf 'export CD_NODES=db-1.%s:3306\n' '$ZONE'
 			printf 'export CD_BOOTSTRAP=yes\n'
-			printf 'export CD_PASSWORD_CirroDesk=%s\n' \"\$(openssl rand 24 | base64 | tr -d '=+/,')\"
+			printf 'export CD_PASSWORD_CD=%s\n' \"\$(openssl rand 24 | base64 | tr -d '=+/,')\"
 			printf 'export CD_PASSWORD_MIGRATE=%s\n' \"\$(openssl rand 24 | base64 | tr -d '=+/,')\"
 			printf 'export CD_CA_DIR=/etc/cd/db-ca\n'
 		} >> $ANTWORTEN
@@ -241,7 +241,7 @@ db() {
 	# A NAMED PIECE OF GROUNDWORK, AND IT IS A FINDING OF THIS RUN.
 	#
 	# cd-db.sh install dies on a FRESH Debian at its very first step:
-	#   "CirroDesk: MariaDB with Galera for db-1.ngc.mein.lan"
+	#   "CirroDesk: MariaDB with Galera for db-1.cd.mein.lan"
 	#   "chown: invalid group: 'root:mysql'"
 	# prepare() runs "ensure_dir $CD_TLS root:mysql 0710" and
 	# "ensure_dir $CD_KEYS root:mysql 0710", and install_cd_db() calls
@@ -257,7 +257,7 @@ db() {
 	auf "$DB_IP" "dpkg-query -W -f='\${Status}' mariadb-server 2>/dev/null | grep -q 'install ok installed' ||
 		DEBIAN_FRONTEND=noninteractive apt-get install -y -qq mariadb-server galera-4 mariadb-backup >/dev/null" ||
 		fehler "db-1: mariadb-server could not be installed"
-	auf "$DB_IP" "set -a; . $ANTWORTEN; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-db.sh install" ||
+	auf "$DB_IP" "set -a; . $ANTWORTEN; set +a; bash /root/ulh/apps/cli-ulh/assets/scripts/cd-db.sh install" ||
 		fehler "cd-db install failed on db-1 - look at the output above"
 	# /etc/cd/db-tls and NOT /etc/cd/tls: cd-db.sh keeps its own directory
 	# (CD_TLS="/etc/cd/db-tls" in the script), while cd-api and cd-web use
@@ -303,8 +303,8 @@ api() {
 		printf 'export CD_DB_NODES=db-1.%s:3306\n' "$ZONE"
 		printf 'export CD_DB_NAME=cd\n'
 		printf 'export CD_DB_USER=cd\n'
-		auf "$DB_IP" "grep '^export CD_PASSWORD_CirroDesk=' $ANTWORTEN" |
-			sed 's/CD_PASSWORD_CirroDesk=/CD_DB_PASSWORD=/'
+		auf "$DB_IP" "grep '^export CD_PASSWORD_CD=' $ANTWORTEN" |
+			sed 's/CD_PASSWORD_CD=/CD_DB_PASSWORD=/'
 		printf 'export CD_DB_CA=/etc/cd/db-ca.crt\n'
 		printf 'export CD_STORE_URL=https://store.%s\n' "$ZONE"
 		printf 'export CD_STORE_KEY=%s\n' "$(cat "$ARBEIT/store-key.txt")"
@@ -316,7 +316,7 @@ api() {
 			printf 'export CD_JOIN_CODE=\n'
 		fi
 	} | datei_hin "$ip" "$antwort" 0600
-	auf "$ip" "set -a; . $antwort; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-api.sh install" ||
+	auf "$ip" "set -a; . $antwort; set +a; bash /root/ulh/apps/cli-ulh/assets/scripts/cd-api.sh install" ||
 		fehler "cd-api install failed on $node - look at the output above"
 	printf 'api%s: ok\n' "$welche"
 }
@@ -360,7 +360,7 @@ web() {
 		printf 'export CD_APIS="%s"\n' "$adressen"
 		printf 'export CD_API_PINS="%s"\n' "$pins"
 	} | datei_hin "$WEB_IP" /root/cd-web.env 0600
-	auf "$WEB_IP" "set -a; . /root/cd-web.env; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-web.sh install" ||
+	auf "$WEB_IP" "set -a; . /root/cd-web.env; set +a; bash /root/ulh/apps/cli-ulh/assets/scripts/cd-web.sh install" ||
 		fehler "cd-web install failed - look at the output above"
 	echo "web: ok"
 }
@@ -429,7 +429,7 @@ controller() {
 		[ -s "$ARBEIT/db-ca.crt" ] || fehler "no $ARBEIT/db-ca.crt - run 'db' first"
 		datei_hin "$ip" /etc/cd/db-ca.crt 0644 <"$ARBEIT/db-ca.crt"
 	fi
-	auf "$ip" "set -a; . /root/cd-controller.env; set +a; bash /root/ulh/apps/cli/assets/scripts/cd-controller.sh install; rc=\$?; shred -u /root/cd-controller.env 2>/dev/null || rm -f /root/cd-controller.env; exit \$rc" ||
+	auf "$ip" "set -a; . /root/cd-controller.env; set +a; bash /root/ulh/apps/cli-ulh/assets/scripts/cd-controller.sh install; rc=\$?; shred -u /root/cd-controller.env 2>/dev/null || rm -f /root/cd-controller.env; exit \$rc" ||
 		fehler "cd-controller install failed on $name - look at the output above"
 	printf 'controller: %s is paired (roles: %s)\n' "$name" "$rollen"
 }

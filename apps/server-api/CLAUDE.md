@@ -1,7 +1,7 @@
 # API
 
 Deine Ordner: `apps/server-api/` und `apps/cli/` (Werkzeug `cd-store`, Anweisungen dort), dazu
-`scripts/cd-api.sh` im ulh-Repo (`shared/ulh.md`). Verträge: V1, V2, V4, V5, V6, V7.
+`apps/cli-ulh/assets/scripts/cd-api.sh` im ulh-Repo (`shared/ulh.md`). Verträge: V1, V2, V4, V5, V6, V7.
 
 Aufbau: `main.go` ist der Einstiegspunkt von `cd-api`, die Logik liegt in `classes/` (Regeln:
 `CLAUDE.md` im Stamm, Abschnitt „Aufbau“).

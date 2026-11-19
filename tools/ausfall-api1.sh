@@ -34,8 +34,8 @@ seite() { # host
   curl.exe -sk -o NUL -w "%{http_code}" --max-time 12 "https://$1:443/" 2>/dev/null || echo 000
 }
 ueber_namen() {
-  curl.exe -sk -o NUL -w "%{http_code}" --max-time 12 --resolve "ngc.mein.lan:443:$A1" \
-    https://ngc.mein.lan/ 2>/dev/null || echo 000
+  curl.exe -sk -o NUL -w "%{http_code}" --max-time 12 --resolve "cd.mein.lan:443:$A1" \
+    https://cd.mein.lan/ 2>/dev/null || echo 000
 }
 # Laufen die Apps weiter, waehrend niemand sie sehen kann?
 # Von root aus gemessen, nicht per su: rootloses podman findet als su-Kind sein
@@ -54,7 +54,7 @@ tunnel() { # knoten
 runde() {
   echo "--- $1 ($(date -u '+%H:%M:%S') UTC) ---"
   echo "    qm status api-1          : $(st)"
-  echo "(a) Oberflaeche ngc.mein.lan : $(ueber_namen)   (voller Betrieb: 200)"
+  echo "(a) Oberflaeche cd.mein.lan : $(ueber_namen)   (voller Betrieb: 200)"
   echo "    api-1:443 direkt         : $(seite $A1)   (voller Betrieb: 200)"
   echo "    api-2:443 direkt         : $(seite $A2)   (voller Betrieb: 000, dort liegt kein Web)"
   echo "    api-1:7443 login/start   : $(probe $A1 7443 /api/v1/login/start)   (voller Betrieb: 400)"

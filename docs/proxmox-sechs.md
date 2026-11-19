@@ -3,6 +3,13 @@
 Stand 24.10.2026. Gebaut und gemessen auf dem Wirt `pve` (10.2.3.2,
 pve-manager 9.2.3), VMIDs 300–306. Skripte:
 
+> **Umbenennung 19.11.2026:** Die VMs 300–309 heißen in Proxmox jetzt `cd-*` statt `ngc-*`;
+> Skripte und Doku nennen die Zone `cd.mein.lan`. In den laufenden Gästen gelten Hostnamen,
+> Zertifikate und `/etc/hosts` noch für `ngc.mein.lan`, weil dort NGC 0.2.x läuft. Sie bekommen
+> die neuen Namen, wenn die Anlage mit dem ersten cd-Release neu aufgesetzt wird. Bis dahin für die
+> alte Anlage `CD_ZONE=ngc.mein.lan` setzen; die Befehle in `tools/ausfall-*.sh` nennen den Namen
+> fest und gelten erst für die neue Anlage.
+
 ```bash
 bash tools/proxmox-sechs.sh pruefen          # jeden Wert gegen den Wirt halten
 bash tools/proxmox-sechs.sh vorlage          # Debian-Abbild holen, Vorlage 300
@@ -30,11 +37,11 @@ eigene Datei, Phase C neben deren Phase A und B.
 
 | # | VM | Rollen | Wofür es diese Maschine braucht |
 |---|---|---|---|
-| 1 | `ngc-web-api-1` (301) | `web api` | Oberfläche und eine API. Erst damit hat Apaches Lastverteilung überhaupt ein Mitglied und `web.json` einen echten Fingerabdruck. |
-| 2 | `ngc-api-2` (302) | `api` | Nur so lässt sich der Weg „beitretende API" (`join_code`) und der Riegel „das ist der einzige API-Server dieser Anlage" treffen. |
-| 3 | `ngc-db-1` (303) | `db` | Erst getrennt zeigt sich, ob die Anlage ohne Datenbank auf derselben Maschine lebt. |
-| 4 | `ngc-svc-1` (304) | `services` | Trägt die Apps, podman und die verschlüsselten App-Ordner. |
-| 5 | `ngc-svc-2` (305) | `services` | Die Oberfläche lässt beim Einrichten einen Rechner **auswählen**, und die Update-Runde geht über mehrere Knoten. Mit einem einzigen ist beides nur behauptet. |
+| 1 | `cd-web-api-1` (301) | `web api` | Oberfläche und eine API. Erst damit hat Apaches Lastverteilung überhaupt ein Mitglied und `web.json` einen echten Fingerabdruck. |
+| 2 | `cd-api-2` (302) | `api` | Nur so lässt sich der Weg „beitretende API" (`join_code`) und der Riegel „das ist der einzige API-Server dieser Anlage" treffen. |
+| 3 | `cd-db-1` (303) | `db` | Erst getrennt zeigt sich, ob die Anlage ohne Datenbank auf derselben Maschine lebt. |
+| 4 | `cd-svc-1` (304) | `services` | Trägt die Apps, podman und die verschlüsselten App-Ordner. |
+| 5 | `cd-svc-2` (305) | `services` | Die Oberfläche lässt beim Einrichten einen Rechner **auswählen**, und die Update-Runde geht über mehrere Knoten. Mit einem einzigen ist beides nur behauptet. |
 | 6 | `cd-store` (306) | — | **Der Laden gehört nicht zur Anlage.** Diese VM trägt kein CirroDesk und keinen Controller: nur nginx und signierte Dateien. |
 
 ---
@@ -62,7 +69,7 @@ Herkunft darüber. Nichts ist erfunden.
 1. **Die sechs Adressen.** Sie antworten auf keinen Ping — das heißt nicht, dass
    kein DHCP-Bereich sie abdeckt. Deckt er sie ab, ändere die Tabelle
    `MASCHINEN` im Skriptkopf.
-2. **Die Zone `ngc.mein.lan`.** Frei gewählt. Soll die Anlage anders heißen,
+2. **Die Zone `cd.mein.lan`.** Frei gewählt. Soll die Anlage anders heißen,
    ist `CD_ZONE` der eine Ort dafür.
 3. **Der Name im DNS.** Ich habe die Namen über `/etc/hosts` auf den sechs
    gesetzt (siehe unten). Auf deinem PC fehlt der Eintrag noch.
@@ -155,13 +162,13 @@ Maschine trägt den Block unten in `/etc/hosts` und heißt mit
 `C:\Windows\System32\drivers\etc\hosts`, als Administrator:
 
 ```
-10.2.3.210 api-1.ngc.mein.lan api-1
-10.2.3.211 api-2.ngc.mein.lan api-2
-10.2.3.212 db-1.ngc.mein.lan db-1
-10.2.3.213 svc-1.ngc.mein.lan svc-1
-10.2.3.214 svc-2.ngc.mein.lan svc-2
-10.2.3.215 store.ngc.mein.lan store
-10.2.3.210 ngc.mein.lan
+10.2.3.210 api-1.cd.mein.lan api-1
+10.2.3.211 api-2.cd.mein.lan api-2
+10.2.3.212 db-1.cd.mein.lan db-1
+10.2.3.213 svc-1.cd.mein.lan svc-1
+10.2.3.214 svc-2.cd.mein.lan svc-2
+10.2.3.215 store.cd.mein.lan store
+10.2.3.210 cd.mein.lan
 ```
 
 Die Alternative ohne hosts-Einträge: dieselben sieben Namen als Rewrites in
@@ -192,7 +199,7 @@ Repo — darum sind sie hier **gemeldet** und nicht behoben.
 
 **1. `cd-db install` stirbt auf einem frischen Debian am ersten Schritt.**
 ```
-▶ CirroDesk: MariaDB with Galera for db-1.ngc.mein.lan
+▶ CirroDesk: MariaDB with Galera for db-1.cd.mein.lan
 chown: invalid group: 'root:mysql'
 ```
 `prepare()` ruft `ensure_dir "$CD_TLS" root:mysql 0710`, und
@@ -248,7 +255,7 @@ sich nicht lesen; zuerst /etc/cd/trust-anchor.json prüfen, dann die Datenbank"
 ```
 `cd-api migrate` mit dem Konto aus `api.json` wird abgelehnt:
 ```
-Error 1142 (42000): CREATE command denied to user 'cd'@'api-1.ngc.mein.lan'
+Error 1142 (42000): CREATE command denied to user 'cd'@'api-1.cd.mein.lan'
 for table `cd`.`cd_schema`
 ```
 Der einzige dokumentierte Einspieler ist der **Controller mit der Rolle `db`**
@@ -281,17 +288,17 @@ Gemessen am 24.10.2026 auf der verteilten Anlage:
 - **Hürde 1 ist weg.** `cd-api.service` hat `ProtectSystem=strict` **und**
   `ReadWritePaths=/var/lib/cd /etc/cd` — `/etc/cd` ist dabei.
 - **Die API lebt ohne Datenbank auf ihrer Maschine.** Auf api-1 ist
-  `mariadb-server` nicht installiert, `api.json` nennt `db-1.ngc.mein.lan:3306`,
+  `mariadb-server` nicht installiert, `api.json` nennt `db-1.cd.mein.lan:3306`,
   und es steht eine Verbindung `10.2.3.210 → 10.2.3.212:3306`.
 - **Der Laden wird über Netz geholt, und das Zertifikat wird geprüft.** api-1
-  holt `https://store.ngc.mein.lan/catalog.json` mit `http=200 verify=0`; eine
+  holt `https://store.cd.mein.lan/catalog.json` mit `http=200 verify=0`; eine
   Maschine, die die CA des Ladens nie bekommen hat (db-1), wird mit `http=000`
   abgewiesen. Ohne diese Gegenprobe sagt die erste Zahl nichts.
-- **Der Durchstich steht.** `https://ngc.mein.lan/api/v1/setup` antwortet durch
+- **Der Durchstich steht.** `https://cd.mein.lan/api/v1/setup` antwortet durch
   Apache, die API und MariaDB mit dem Einrichtungsangebot: Anlagenkennung,
-  Knoten `api-1` mit `wss://api-1.ngc.mein.lan:7443/tunnel` und seinem
+  Knoten `api-1` mit `wss://api-1.cd.mein.lan:7443/tunnel` und seinem
   Fingerabdruck, der echte `releaseKey`, und als Store
-  `https://store.ngc.mein.lan` mit unserem Schlüssel.
+  `https://store.cd.mein.lan` mit unserem Schlüssel.
 
 ## Nach der Ersteinrichtung — was dabei noch aufgefallen ist
 
@@ -447,7 +454,7 @@ Ein Skript kann dieser Admin nicht sein, und ein Lauf, der es vorgäbe, würde
 seine eigene Vorrichtung messen.
 
 **Der nächste Schritt gehört darum dir:** den hosts-Block oben setzen,
-`https://ngc.mein.lan` öffnen, den Code aus
+`https://cd.mein.lan` öffnen, den Code aus
 `/var/lib/cd/setup-code` auf api-1 (`0600`, nur für root) eingeben und den
 ersten Admin anlegen. Danach laufen `api2`, `web` erneut und die Stationen 3
 bis 8.

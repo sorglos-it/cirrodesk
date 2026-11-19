@@ -12,7 +12,7 @@ import (
 // somebody put into an error or a formatted string. No case here lets it reach
 // a line, and every case looks for THIS string, so a line that grew a field
 // would show up as a failure and not as a nicer log.
-const secret = "CirroDesk-TEST-SECRET-0123456789"
+const secret = "CD-TEST-SECRET-0123456789"
 
 // catchLog puts a log of its own in place of the default one and gives back
 // what was written. It restores the default itself, so one case cannot carry

@@ -64,7 +64,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 grep -q "^[[:space:]]*AnchorFile[[:space:]]*= " "$root/shared/config/config.go" 2>/dev/null ||
 	root=""
 
-ZONE=${CD_ZONE:-ngc.mein.lan}
+ZONE=${CD_ZONE:-cd.mein.lan}
 WEB=${CD_WEB_IP:-10.2.3.210}
 API1=${CD_API1_IP:-10.2.3.210}
 API2=${CD_API2_IP:-10.2.3.211}
@@ -176,7 +176,7 @@ echo "erstlauf-verteilt: web=$WEB api-1=$API1 api-2=$API2 db=$DB svc=$SVC1,$SVC2
 # that points at the wrong machine still lands on the right one.
 #
 # Measured 24.10.2026 on these six, and it is the reason this station exists:
-# the DNS of this network (10.2.3.102) answers EVERY *.ngc.mein.lan name with
+# the DNS of this network (10.2.3.102) answers EVERY *.cd.mein.lan name with
 # an AAAA record "::" BESIDE the correct A record. getent, curl and every
 # other NSS client take the AAAA first, connect to "::" - which is the local
 # machine - and land on whatever listens on 443 there. On api-1 that is

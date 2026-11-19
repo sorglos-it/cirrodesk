@@ -208,7 +208,7 @@ messen() {
 		# So: the kernel configuration first, and the sysfs entry with -e.
 		kern=$(auf "$ip" "grep -qx CONFIG_FS_ENCRYPTION=y /boot/config-\$(uname -r) 2>/dev/null && echo yes || { [ -e /sys/fs/ext4/features/encryption ] && echo yes || echo no; }")
 		printf '   kernel can encrypt ext4: %s\n' "$kern"
-		printf '   name    %s -> %s\n' "$(auf "$ip" "hostname")" "$(auf "$ip" "getent hosts ngc.mein.lan | awk '{print \$1}'")"
+		printf '   name    %s -> %s\n' "$(auf "$ip" "hostname")" "$(auf "$ip" "getent hosts cd.mein.lan | awk '{print \$1}'")"
 		if hat_rolle "$rollen" services; then
 			fs=$(auf "$ip" "findmnt -no SOURCE,FSTYPE $APPS 2>/dev/null || echo '(not mounted)'")
 			printf '   %s on %s\n' "$APPS" "$fs"

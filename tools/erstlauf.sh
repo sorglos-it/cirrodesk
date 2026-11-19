@@ -222,8 +222,8 @@ else
 	[ -n "$ulh_ref" ] || broken 1 "$s1" "no usable ref in $ulh (tried cd-kette, main); pass --ulh-ref"
 
 	script=$work/cd-api.sh
-	command git -C "$ulh" -c safe.directory="$ulh" show "$ulh_ref:apps/cli/assets/scripts/cd-api.sh" >"$script" 2>/dev/null ||
-		unmeasurable 1 "$s1" "$ulh_ref of $ulh carries no apps/cli/assets/scripts/cd-api.sh - the CirroDesk scripts are on their own branches there"
+	command git -C "$ulh" -c safe.directory="$ulh" show "$ulh_ref:apps/cli-ulh/assets/scripts/cd-api.sh" >"$script" 2>/dev/null ||
+		unmeasurable 1 "$s1" "$ulh_ref of $ulh carries no apps/cli-ulh/assets/scripts/cd-api.sh - the CirroDesk scripts are on their own branches there"
 
 	if [ -s "$script" ]; then
 		# The preparation is checked before anything is concluded: if the unit

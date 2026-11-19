@@ -10,7 +10,7 @@
 # This file has a SECOND copy: cd-db.sh of the ulh repository carries it as a
 # here-document, because cd-db installs no CirroDesk program files and so has no
 # release to read this file from. A change here belongs there as well, and
-# apps/cli/tests/cd-db.test.sh of ulh builds a real CA and a real node
+# apps/cli-ulh/tests/cd-db.test.sh of ulh builds a real CA and a real node
 # certificate from that copy.
 
 [ca_dn]

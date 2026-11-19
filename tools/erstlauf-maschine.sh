@@ -103,7 +103,7 @@ done
 	echo "erstlauf-maschine: --ulh <dir> is needed and has to be a directory" >&2
 	exit 1
 }
-script=$ulhdir/apps/cli/assets/scripts/cd-all.sh
+script=$ulhdir/apps/cli-ulh/assets/scripts/cd-all.sh
 [ -f "$script" ] || {
 	echo "erstlauf-maschine: $script is missing - the CirroDesk scripts are not on ulh's main, use a branch that carries them (cd-kette)" >&2
 	exit 1
@@ -220,7 +220,7 @@ mit_testschluessel() {
 		broken 0 "installieren" "the copy of $(basename "$src") with the test key does not parse any more"
 }
 
-webscript=$ulhdir/apps/cli/assets/scripts/cd-web.sh
+webscript=$ulhdir/apps/cli-ulh/assets/scripts/cd-web.sh
 webrun=$webscript
 if [ -n "$testkey" ]; then
 	[ -f "$testkey" ] ||
@@ -382,7 +382,7 @@ fi
 # ---------------------------------------------------------------------------
 s2w="Oberflaeche installieren"
 if [ ! -f "$webscript" ]; then
-	unmeasurable 2w "$s2w" "$ulhdir carries no apps/cli/assets/scripts/cd-web.sh - the CirroDesk scripts are on their own branches of ulh (cd-kette)"
+	unmeasurable 2w "$s2w" "$ulhdir carries no apps/cli-ulh/assets/scripts/cd-web.sh - the CirroDesk scripts are on their own branches of ulh (cd-kette)"
 elif [ ! -f /etc/cd/tls/api.crt ]; then
 	unmeasurable 2w "$s2w" "there is no /etc/cd/tls/api.crt, so station 1 has to come off first"
 else

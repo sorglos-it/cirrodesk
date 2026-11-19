@@ -4,7 +4,7 @@ CirroDesk wird mit [ulh](https://github.com/sorglos-it/unknown-helper) installie
 Die Skripte liegen direkt im öffentlichen ulh-Repo: `apps/cli-ulh/assets/scripts/<skript>.sh`,
 eingetragen in dessen `apps/cli-ulh/assets/catalog.yaml` unter der Kategorie „CirroDesk", mit einem
 Test in `apps/cli-ulh/tests/<skript>.test.sh`. Aufbau nach einem vorhandenen Skript in
-`apps/cli-ulh/assets/scripts/` und ulhs `docs/guide.md`; `docs/scripts.md` wird nicht von Hand
+`apps/cli-ulh/assets/scripts/` und ulhs `docs/ulh/guide.md`; `docs/ulh/scripts.md` wird nicht von Hand
 gepflegt, sondern mit `bash tools/ulh/gen-scripts-doc.sh` erzeugt, und `CHANGELOG.md` bekommt eine
 Zeile. Der Eintrag im Katalog braucht alle fünf Sprachen (de, en, fr, it, es) — eine fehlende
 Übersetzung macht ulhs eigenen Test rot; was die Skripte selbst ausgeben, ist englisch.
