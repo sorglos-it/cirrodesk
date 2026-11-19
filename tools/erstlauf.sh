@@ -212,7 +212,7 @@ if [ -z "$ulh" ]; then
 	done
 fi
 if [ -z "$ulh" ] || [ ! -d "$ulh/.git" ]; then
-	unmeasurable 1 "$s1" "no ulh checkout found - the install scripts and the systemd units live in github.com/sorglos-it/ulh, not here; pass --ulh <path>"
+	unmeasurable 1 "$s1" "no ulh checkout found - the install scripts and the systemd units live in github.com/sorglos-it/unknown-helper, not here; pass --ulh <path>"
 else
 	if [ -z "$ulh_ref" ]; then
 		for cand in cd-kette main; do

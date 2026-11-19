@@ -388,7 +388,7 @@ Alle weiteren Entscheidungen stehen im Entwurf, Kapitel 6.
   (nicht im Repo)
 - Verträge: [`shared/README.md`](../shared/README.md), [`shared/ulh.md`](../shared/ulh.md)
 - Prototyp: [`docs/prototype.html`](prototype.html), Original unter `W:\cd\index.html`
-- Repo: <https://github.com/sorglos-it/cirrodesk> (privat)
+- Repo: <https://github.com/sorglos-it/cirrodesk> (öffentlich)
 - Facebook-Post: zurückgestellt, solange das Repo privat ist; Vermerk in
   `Z:\GitHub\facebook\README.md`, Abschnitt „Bestand“
 

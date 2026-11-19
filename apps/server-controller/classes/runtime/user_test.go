@@ -458,7 +458,7 @@ func TestEnsureUserReallyMakesTheUser(t *testing.T) {
 // distribution's tooling and not ours.
 func FuzzSubIDs(f *testing.F) {
 	f.Add("someone:100000:65536\n")
-	f.Add("cd-a:524288:65536\nngc-b:589824:65536\n")
+	f.Add("cd-a:524288:65536\ncd-b:589824:65536\n")
 	f.Add("a:0:4294967295\n")
 	f.Add("x:18446744073709551615:18446744073709551615\n")
 	f.Add("no colons at all\n:::\na::\n\n\n")

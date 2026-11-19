@@ -108,7 +108,7 @@ func TestAnActivationThatWorksWritesNoLine(t *testing.T) {
 func TestNoTextOfAnErrorReachesTheJournal(t *testing.T) {
 	s := newStand(t)
 	j := withJournal(s)
-	foreign := errors.New("\nngc-controller: every app of this server was removed by the admin")
+	foreign := errors.New("\ncd-controller: every app of this server was removed by the admin")
 	s.sys.fail, s.sys.failWith = "EnsureData", errors.Join(fs.ErrPermission, foreign)
 
 	if _, err := s.activate(); err == nil {

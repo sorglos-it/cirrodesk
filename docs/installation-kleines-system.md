@@ -90,7 +90,7 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 ## 2. Was du brauchst
 
 - Debian 13, systemd läuft, root.
-- [ulh](https://github.com/sorglos-it/ulh) — die Skripte liegen dort unter
+- [ulh](https://github.com/sorglos-it/unknown-helper) — die Skripte liegen dort unter
   `apps/cli/assets/scripts/`. **Auf `main` liegen sie nicht:** am 24.10.2026 hat
   `origin/main` **null** `cd-*`-Skripte, alle fünf liegen auf dem Zweig `cd-kette`
   (`cd-all.sh`, `cd-api.sh`, `cd-controller.sh`, `cd-db.sh`, `cd-web.sh`).

@@ -74,7 +74,7 @@ REPO=${CD_REPO:-sorglos-it/cirrodesk}
 # Measured 24.10.2026: cd-kette is on ulh's origin at afb2ea4. The local
 # checkout on the developer machine is AHEAD of it with work that is not pushed,
 # and a run must not depend on that - so the public branch is used and named.
-ULH_URL=${CD_ULH_URL:-https://github.com/sorglos-it/ulh}
+ULH_URL=${CD_ULH_URL:-https://github.com/sorglos-it/unknown-helper}
 ULH_REF=${CD_ULH_REF:-cd-kette}
 
 STAGED=/var/lib/cd/staged
