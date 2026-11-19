@@ -13,15 +13,15 @@ Installation oder Boot gearbeitet wird.
 
 | Teil | Ordner | ulh-Skript | Sitzung auf Server |
 |---|---|---|---|
-| Webinterface | `apps/web/` | `scripts/cd-web.sh` | Web |
-| API | `apps/server-api/`, Werkzeug `cd-store` in `apps/cli/` | `scripts/cd-api.sh` | API 1 |
-| Controller | `apps/server-controller/` | `scripts/cd-controller.sh` | Dienste |
-| Datenbank | `apps/server-db/` | `scripts/cd-db.sh` | DB 1 |
+| Webinterface | `apps/web/` | `cd-web.sh` | Web |
+| API | `apps/server-api/`, Werkzeug `cd-store` in `apps/cli/` | `cd-api.sh` | API 1 |
+| Controller | `apps/server-controller/` | `cd-controller.sh` | Dienste |
+| Datenbank | `apps/server-db/` | `cd-db.sh` | DB 1 |
 | Recovery-Modus (`docs/recovery-modus.md`): `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/`, `lib/rust/`, Images in `tools/` | – | – | Recovery |
 | Verträge (`shared/`), `tools/`, `docs/`, Zusammenführen | – | – | Koordinator (Thomas' Rechner) |
 
-Die ulh-Skripte liegen im öffentlichen ulh-Repo (`sorglos-it/ulh`), nicht hier; Regeln dafür in
-`shared/ulh.md`. `scripts/cd-all.sh` (alles auf einem Pi) kommt mit dem Plan für den Pi.
+Die ulh-Skripte liegen im öffentlichen ulh-Repo (`sorglos-it/unknown-helper`), nicht hier; Regeln dafür in
+`shared/ulh.md`. `cd-all.sh` (alles auf einem Pi) kommt mit dem Plan für den Pi.
 
 Fremde Ordner sind tabu. `shared/` ändert nur der Koordinator: Wer eine Änderung braucht, fragt
 ihn und wartet auf die neue Fassung. Fragen an einen Nachbarn gehen direkt an dessen Sitzung.

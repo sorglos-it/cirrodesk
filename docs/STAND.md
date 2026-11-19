@@ -182,6 +182,12 @@ Vollständig mit Messungen: `Z:\GitHub\claude-md\messen.md` (gilt für jedes Pro
 
 ## Auslieferungskette ulh ↔ Release (zwingende Reihenfolge, Stand 03.10.2026)
 
+**Nachtrag 19.11.2026, Umbenennung:** ulhs `main` holt `releases/latest` und erwartet `ngc-*`-Dateien
+und `ngc/`-Signaturen, wie sie `v0.2.2` trägt. Das erste Release mit `cd`-Namen bricht deshalb jede
+ulh-Installation, bis der ulh-Zweig `cd-umbenennung` in ulhs `main` liegt. **Release und dieser Zweig
+gehen nur zusammen raus**, beides macht Thomas. Alte Adressen von `sorglos-it/nextgencloud` leiten seit
+der Umbenennung des GitHub-Repos weiter (gemessen: ulhs `curl --location` kommt mit 206 an).
+
 Vier Stücke hängen aneinander, und **in der falschen Reihenfolge macht jedes
 einzelne die Installation kaputt**. Gemessen, nicht geschätzt:
 
@@ -388,7 +394,7 @@ Alle weiteren Entscheidungen stehen im Entwurf, Kapitel 6.
   (nicht im Repo)
 - Verträge: [`shared/README.md`](../shared/README.md), [`shared/ulh.md`](../shared/ulh.md)
 - Prototyp: [`docs/prototype.html`](prototype.html), Original unter `W:\cd\index.html`
-- Repo: <https://github.com/sorglos-it/cirrodesk> (privat)
+- Repo: <https://github.com/sorglos-it/cirrodesk> (öffentlich)
 - Facebook-Post: zurückgestellt, solange das Repo privat ist; Vermerk in
   `Z:\GitHub\facebook\README.md`, Abschnitt „Bestand“
 

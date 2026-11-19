@@ -14,7 +14,7 @@
 #             each part (cd-api-<arch>.tar, cd-controller-<arch>.tar). It is
 #             copied to /var/lib/cd/staged, the way shared/ulh.md describes for
 #             an installation without internet.
-#   --ulh     a checkout of github.com/sorglos-it/ulh that CARRIES the CirroDesk
+#   --ulh     a checkout of github.com/sorglos-it/unknown-helper that CARRIES the CirroDesk
 #             scripts. They are not on ulh's main (measured 23.10.2026); they
 #             live on the branches cd-kette / pruefsatz-cd-kette.
 #   --test-release-key  see THE ONE BOLT THIS RUN REPLACES below.
