@@ -24,14 +24,14 @@ public/assets/cd.js
 
 # A human needs it: the six commands at its head are the only documented way to
 # set CirroDesk up without ulh, and step 4 names its own unpacked path
-# (/var/www/cd/templates/apache-vhost.conf). cd-web.sh does NOT read it - it
-# writes its own virtual host, lines 978-1028 - and the task that makes it read
-# this one cannot start before the file is on the server.
+# (/var/www/cd/templates/apache-vhost.conf). cd-web.sh reads it too: it takes the
+# virtual host from the release (ensure_vhost_template), fills in the host name
+# and stops the install when the file is missing.
 templates/apache-vhost.conf
 
-# The form of /etc/cd/apache-apis.conf, for a human and for comparing. Like the
-# vhost, cd-web.sh does not read it: render_balancer (lines 927-939) writes
-# that file itself, "byte for byte the template of the CirroDesk repository".
+# The form of /etc/cd/apache-apis.conf, for a human and for comparing.
+# cd-web.sh does not read it: render_balancer writes that file itself, with the
+# lines of apps/server-controller/classes/apache/testdata/apache-apis.conf.
 templates/apache-apis.conf.example
 
 # The licence of the vendored code. It must travel with the code it covers, and

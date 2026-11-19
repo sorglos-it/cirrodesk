@@ -97,7 +97,7 @@ Das Repo folgt dem Projektstruktur-Standard: Teilprogramme unter `apps/`, die Ve
   Saatgroesse, und `FuzzUpload` in `appstore` lief durch `store.PackageUI` und war darum nicht
   gedeckt. Gemessen: 15 bis 637 474 Laeufe je 30 s am selben Code, und `execs` zaehlt die
   Minimierungslaeufe nicht mit. Wie eine Fuzz-Zahl zu melden ist, steht in
-  `Z:\GitHub\claude-md\messen.md`.
+  `Z:\GitHub\claude\docs\programmierung.md`, Abschnitt B7 „Was eine Fuzz-Zahl wert ist“.
 - In `shared/trust/trusttest` enthält `Genesis` zwei nach ID sortierte Admins: `Users[0]` ist der
   Passkey-Admin, `Users[1]` der Passwort-Admin aus `NewSigner(1)`.
 - `shared/trust/trusttest` nur in Tests importieren; `tools/check.sh` bricht sonst ab.
