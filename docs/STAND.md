@@ -19,7 +19,7 @@ ist es noch nicht** — was fehlt, steht in [`was-fehlt.md`](was-fehlt.md).
 | Was | Stand am 19.11.2026 | Gemessen mit |
 |---|---|---|
 | `main` | `b2262020`, 1612 Commits | `git rev-list --count origin/main` |
-| Offene Pull Requests | **einer:** #243 `labor-cd` (Testanlage auf `cd`-Namen, Reste der ulh-Umbenennung) | `gh pr list -R sorglos-it/cirrodesk` |
+| Offene Pull Requests | außer #244, der diese Fassung bringt, **einer:** #243 `labor-cd` (Labornamen auf `cd`, Reste der ulh-Umbenennung) | `gh pr list -R sorglos-it/cirrodesk` |
 | Zuletzt zusammengeführt | #242 am 19.11., davor #203–#241 am 14.–16.11. | `gh pr list --state merged` |
 | Prüfung auf GitHub | `b2262020` grün. Go: 3765 Fälle bestanden, 0 rot, 27 übersprungen. Web: chromium 612, firefox 609, webkit 604 bestanden, je 0 rot, 0 flatternd | `gh run view 44573010049 --log` |
 | Veröffentlicht | 0.2.0 (19.10.), 0.2.1 und **0.2.2** (beide 23.10.) | `gh release list` |
@@ -49,18 +49,30 @@ auf `main`:** `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/` u
 - **19.11.2026:** Das GitHub-Repo heißt **`sorglos-it/cirrodesk`** (öffentlich). Die alte Adresse
   `sorglos-it/nextgencloud` leitet weiter (`gh api repos/sorglos-it/nextgencloud` antwortet mit
   `sorglos-it/cirrodesk`).
-- **Das ulh-Repo ist `sorglos-it/unknown-helper`** (öffentlich). Seine Skripte heißen noch
-  `ngc-*.sh` (`apps/cli-ulh/assets/scripts/`, `main` = `2181c9bb` vom 07.11.2026). Dort entsteht der
-  Zweig **`cd-umbenennung`** (Partner-Thread ulh-cd); am 19.11.2026 um 18:36 lag er noch nicht auf
-  GitHub.
+- **Das ulh-Repo ist `sorglos-it/unknown-helper`** (öffentlich). In seinem `main` (`2181c9bb` vom
+  07.11.2026) heißen die Skripte noch `apps/cli-ulh/assets/scripts/ngc-*.sh`. Der Zweig
+  **`cd-umbenennung`** (Partner-Thread ulh-cd) ist fertig: 6 Commits vor ulh-`main`, zuletzt
+  `5146658` (cd-web schreibt die Balancer-Datei aus dem Vertrag) und `010cfdc` (CHANGELOG). Dort heißen
+  die Skripte `apps/cli-ulh/assets/scripts/cd-*.sh`, und er bringt die Balancer-Zeilen aus
+  `shared/ulh.md` mit, die ulh fehlten (`connectiontimeout=2`, `Retry-After`, `LogLevel`). **Er liegt
+  nur lokal** in `Z:\GitHub\unknown-helper`, nicht auf GitHub.
+- **Labor, laufende Arbeit (Entscheidung Thomas, 19.11.2026):** Auch die Laborbezeichnungen werden
+  umbenannt. Die Proxmox-VMs 300–309 heißen seit dem 19.11.2026 `cd-vorlage`, `cd-web-api-1`,
+  `cd-api-2`, `cd-db-1` bis `cd-db-3`, `cd-svc-1`, `cd-svc-2`, `cd-store` und `cd-ein` (Angabe des
+  Koordinators). PR #243 (`labor-cd`, offen) stellt `tools/` und die lebenden Dokumente auf
+  `cd.mein.lan` und `cd-*` um. **In den laufenden Gästen gelten Hostnamen, Zertifikate und
+  `/etc/hosts` noch für `ngc.mein.lan`** (dort läuft NGC 0.2.x), bis die Anlage mit dem ersten
+  `cd`-Release neu aufgesetzt wird. Historische Angaben (etwa `ssh ngc`, 10.2.3.208, datierte
+  Berichte) bleiben unverändert.
 - **Die drei Releases tragen `ngc-`Namen** (`ngc-api-*.tar`, `ngc-controller-*.tar`,
   `ngc-web-all.tar`; `gh release view v0.2.2`). Darum gehen das erste Release mit `cd`-Namen und
   `cd-umbenennung` nur **zusammen** raus — siehe Nachtrag unter „Auslieferungskette".
 
 ## Nächster Schritt
 
-1. **Umbenennung abschließen:** ulh-Zweig `cd-umbenennung` fertig bauen und prüfen; dann gehen das
-   erste `cd`-Release und dieser Zweig zusammen raus — **beides macht Thomas**.
+1. **Umbenennung abschließen:** Der ulh-Zweig `cd-umbenennung` ist fertig und liegt nur lokal; er und
+   das erste `cd`-Release gehen zusammen raus — **beides macht Thomas**. Dazu die Labornamen (PR #243);
+   die Anlage selbst wird mit dem ersten `cd`-Release neu aufgesetzt.
 2. **Die Sperren aus [`was-fehlt.md`](was-fehlt.md)**, Abschnitt „Stand am 15.11.2026". Danach
    zusammengeführt, laut PR-Titel: A24 (#224), A2 (#225), A25 (#227), A3 (#234) und S12, die
    Oberfläche in fünf Sprachen (#230, #233, #238–#241). **Erst nachsehen, dann anfangen** — eine
@@ -170,7 +182,8 @@ Gemessen am 19.11.2026 an ulh-`main` (`2181c9bb`):
   `RuntimeDirectory=ngc` (`ngc-api.sh:1050`, `ngc-controller.sh:1231`), aber nur der Controller
   behält das Verzeichnis (`ngc-controller.sh:1256`, `ngc-all.sh:1536`). Ohne die Zeile löscht systemd
   das Verzeichnis, wenn die Unit stoppt (`man systemd.exec`) — stoppt die API, ist `/run/ngc` also
-  auch für den Controller weg. Ein Nachtrag liegt auf `archiv/ulh/api-runtimedir-preserve`.
+  auch für den Controller weg. Ein Nachtrag liegt auf `archiv/ulh/api-runtimedir-preserve`. Auf
+  `cd-umbenennung` ist es genauso: die Zeile steht nur in `cd-controller.sh:1256` und `cd-all.sh:1536`.
 - **Die Vorlage für den virtuellen Host wird gelesen:** `ensure_vhost_template` in `ngc-web.sh`.
 - **Berichtigt gegenüber `stand-aktuell`:** Dass `Delegate=yes` in ulh-`main` fehlt, ist **kein
   Loch, sondern entschieden** — Punkt 101, Abschnitt „Warum nicht `Delegate=yes`": der Controller
@@ -390,7 +403,8 @@ der Umbenennung des GitHub-Repos weiter (gemessen: ulhs `curl --location` kommt 
 `ngc-web.sh`). Veröffentlicht sind drei Releases; ob 0.2.2 die Vorlage trägt, ist hier nicht
 nachgesehen. Die ulh-Namen unten (`cd-web-kopfzeilen`, `cd-web`, `cd-web.sh`) hat die Umbenennung vom
 15.11.2026 mitgeändert; damals hießen sie `ngc-…`, und das Skript heißt in ulh-`main` noch heute
-`ngc-web.sh`. `75c63f4` liegt nur noch auf `archiv/ulh/ngc-web-pruefung`. Der Kommentar aus dem
+`ngc-web.sh` (erst auf `cd-umbenennung` `cd-web.sh`). `75c63f4` liegt nur noch auf
+`archiv/ulh/ngc-web-pruefung`. Der Kommentar aus dem
 Nachtrag vom 10.10.2026 (unten) steht
 **noch unberichtigt** in `extra-web.txt` (Zeilen 27 und 33: „cd-web.sh does NOT read it").
 
@@ -508,7 +522,7 @@ weil `jq` auf diesem Rechner fehlt.
     ohne Endung und einer, die es nicht gibt; die Mock-API liest die Werte aus der Vorlage und
     prüft dabei, dass der Block unter dem DocumentRoot liegt – ein Block woanders bricht den Lauf.
   - **Offene Reste davon, drei:**
-    1. **`scripts/cd-web.sh` im ulh-Repo (Aufgabe 26) nachziehen.** Es schreibt einen eigenen
+    1. **`apps/cli-ulh/assets/scripts/cd-web.sh` im ulh-Repo (Aufgabe 26) nachziehen.** Es schreibt einen eigenen
        virtuellen Host unter demselben Namen und ist eine Aufgabe älter. Vier Unterschiede: *für*
        die Vorlage, dass das Skript für `assets/` **keine** Kopfzeile außer HSTS setzt (das Loch)
        und dass es `/assets/` aus seiner Rewrite-Regel nimmt, sodass eine fehlende Datei dort von
@@ -516,9 +530,10 @@ weil `jq` auf diesem Rechner fehlt.
        die Zertifikatserneuerung mit mod_md löst – ein bewegliches Teil weniger als certbot in der
        Vorlage – und dass es `cd-web.conf` bei jedem `install`/`configure` **überschreibt**: ein
        von Hand gehärteter Server verliert den Asset-Block ohne Warnung, bis das Skript ihn selbst
-       mitbringt. **Berichtigt 19.11.2026:** das Skript liest die Vorlage inzwischen
-       (`ensure_vhost_template` in ulh-`main`, dort `apps/cli-ulh/assets/scripts/ngc-web.sh`); ob
-       die zwei Punkte „gegen die Vorlage" damit erledigt sind, ist nicht nachgesehen.
+       mitbringt. **Berichtigt 19.11.2026:** Pfad berichtigt (hier stand `scripts/cd-web.sh`; in
+       ulh-`main` heißt die Datei bis `cd-umbenennung` noch `ngc-web.sh`). Das Skript liest die
+       Vorlage inzwischen (`ensure_vhost_template`); ob die zwei Punkte „gegen die Vorlage" damit
+       erledigt sind, ist nicht nachgesehen.
     2. **Kein Apache im Repo.** Fünf `curl`-Befehle in `apps/web/README.md` („What no test here can
        measure") machen aus „ungemessen" „gemessen"; der wichtigste klärt, ob
        `Header always set` auf dem Rückfall-404 **ergänzt** statt zu ersetzen. Ergebnis hierher.
