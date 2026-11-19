@@ -391,6 +391,12 @@ verengte Planer.
 
 ## Auslieferungskette ulh ↔ Release (zwingende Reihenfolge, Stand 03.10.2026)
 
+**Viertes Stück für das erste cd-Release (19.11.2026, aus dem Code gelesen, nicht ausprobiert):** Laut
+Entscheidung S7 legt das Web-Paket die Oberfläche unter `ui/` (`apps/cli/classes/contents.go` verlangt
+`ui/public/index.php`). ulhs `unpack_release` in `cd-web.sh` entpackt das Archiv aber unverändert und
+verlangt `public/index.php` an der Wurzel, auch auf `cd-umbenennung`. Ohne Änderung bricht die
+Installation des Web-Teils mit dem ersten cd-Release ab.
+
 **Nachtrag 19.11.2026, Umbenennung:** ulhs `main` holt `releases/latest` und erwartet `ngc-*`-Dateien
 und `ngc/`-Signaturen, wie sie `v0.2.2` trägt. Das erste Release mit `cd`-Namen bricht deshalb jede
 ulh-Installation, bis der ulh-Zweig `cd-umbenennung` in ulhs `main` liegt. **Release und dieser Zweig
@@ -400,8 +406,9 @@ der Umbenennung des GitHub-Repos weiter (gemessen: ulhs `curl --location` kommt 
 **Berichtigt 19.11.2026:** Von den vier Stücken unten liegen drei nachweislich — die Vorlage auf
 `main` (`apps/web/templates/apache-vhost.conf`), der Packer auf `main` (`tools/pack-release.sh`, Liste
 `tools/release/extra-web.txt`), und ulh-`main` liest die Vorlage (`ensure_vhost_template` in
-`ngc-web.sh`). Veröffentlicht sind drei Releases; ob 0.2.2 die Vorlage trägt, ist hier nicht
-nachgesehen. Die ulh-Namen unten (`cd-web-kopfzeilen`, `cd-web`, `cd-web.sh`) hat die Umbenennung vom
+`ngc-web.sh`). Veröffentlicht sind drei Releases. **0.2.2 trägt die Vorlage** (nachgesehen am
+19.11.2026: `ngc-web-all.tar` aus `gh release download v0.2.2`, 93 Einträge, darunter
+`templates/apache-vhost.conf` und `templates/apache-apis.conf.example`). Die ulh-Namen unten (`cd-web-kopfzeilen`, `cd-web`, `cd-web.sh`) hat die Umbenennung vom
 15.11.2026 mitgeändert; damals hießen sie `ngc-…`, und das Skript heißt in ulh-`main` noch heute
 `ngc-web.sh` (erst auf `cd-umbenennung` `cd-web.sh`). `75c63f4` liegt nur noch auf
 `archiv/ulh/ngc-web-pruefung`. Der Kommentar aus dem
@@ -557,7 +564,11 @@ Alle weiteren Entscheidungen stehen im Entwurf, Kapitel 6.
   ~~`C:\esp\tools\llvm-mingw\bin\gcc.exe`~~ **`D:\claude\sdk\esp-tools\llvm-mingw\bin\gcc.exe`**
   (clang 23.1.1, `x86_64-w64-windows-gnu`), also in der Werkzeugkette der ESP-Arbeit — darum hat ihn
   keine Suche an den „üblichen Orten" gefunden. **Berichtigt 19.11.2026:** `C:\esp\tools\` gibt es
-  nicht mehr; mit dem neuen Pfad ist `-race` hier nicht neu gemessen. Auf GitHub läuft `-race` bei
+  nicht mehr. **Mit dem neuen Pfad neu gemessen am 19.11.2026** über den ganzen Baum (`main`
+  `c3fc2139`, go1.27.4, `go test -race -count=1 -buildvcs=false -timeout 30m -json ./...`, 40 min):
+  3612 Fälle bestanden, 1 rot, 102 übersprungen, `DATA RACE` 0; 67 Pakete grün, rot nur
+  `shared/trust` mit `TestSignatureBeforeDecoding` (`Open: 65632 bytes allocated`, Grund unten).
+  Auf GitHub läuft `-race` bei
   jedem Push (Linux, `shared/trust` getrennt, `.github/workflows/linux.yml`).
   So lief es am 12.10.2026, selbst gemessen (`relay` und `link`: 0 DATA RACE, Code 0):
 
