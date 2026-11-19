@@ -74,7 +74,7 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 ### Der Store-Schlüssel
 
 - **Einen offiziellen CirroDesk-Store gibt es nicht.** Der Platzhalter
-  `CD_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY` steht am 24.10.2026
+  `CD_STORE_KEY_DEFAULT=REPLACE-THIS-LINE-WITH-THE-CD-STORE-KEY` steht am 24.10.2026
   unverändert in `cd-all.sh` (Zeile 177, Zweig `cd-kette`).
 - **Also muss jede Installation ihren eigenen Store nennen**: `store_url` und `store_key`
   in `answer.yaml`, beide zusammen oder keins (`shared/ulh.md`).
@@ -91,7 +91,7 @@ Diese zwei Dinge sind **keine Programmierarbeit**. Ohne sie geht nichts.
 
 - Debian 13, systemd läuft, root.
 - [ulh](https://github.com/sorglos-it/unknown-helper) — die Skripte liegen dort unter
-  `apps/cli/assets/scripts/`. **Auf `main` liegen sie nicht:** am 24.10.2026 hat
+  `apps/cli-ulh/assets/scripts/`. **Auf `main` liegen sie nicht:** am 24.10.2026 hat
   `origin/main` **null** `cd-*`-Skripte, alle fünf liegen auf dem Zweig `cd-kette`
   (`cd-all.sh`, `cd-api.sh`, `cd-controller.sh`, `cd-db.sh`, `cd-web.sh`).
 - **Ein unterschriebenes Release.** Ohne Release geht nichts (siehe Stolperstein 4).
@@ -691,7 +691,7 @@ nicht frisch aussehen.
   2. Der Dienst liegt in einer **Neustartschleife** (`restart counter is at 8`).
   3. Das Skript meldet **`RC=0`** und **„The API is running"**.
 - **Ursache:** in `api.json` stand
-  `"storeKey": "REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY"`.
+  `"storeKey": "REPLACE-THIS-LINE-WITH-THE-CD-STORE-KEY"`.
   Der Riegel gab es nur für den **Release**-Schlüssel, nicht für den **Store**-Schlüssel.
 - **Dazu:** die Fehlermeldung der API nennt **kein Feld**. Welches es war, kostete einen
   Blick in die Datei.
@@ -743,7 +743,7 @@ nicht frisch aussehen.
   Schlüsselpaar (Punkt 56, offener Punkt 1).
 - Punkt 56 wurde darum mit einem **Testschlüssel** gemessen, der nirgends eingecheckt ist.
 - **Seit Punkt 57 ist dieser Riegel auf:** der öffentliche Schlüssel steht in den vier
-  Skripten, `grep -l REPLACE-THIS-LINE-WITH-THE-CirroDesk-RELEASE-KEY *.sh` = **0**.
+  Skripten, `grep -l REPLACE-THIS-LINE-WITH-THE-CD-RELEASE-KEY *.sh` = **0**.
 - **Dazu die Rückdreh-Sperre:** `seq` des Release gegen die Zahl in
   `/var/lib/cd/release.seq`. Kleiner → Abbruch. Dieselbe Nummer darf zur Reparatur noch
   einmal installiert werden (`shared/ulh.md`).

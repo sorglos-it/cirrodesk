@@ -941,7 +941,7 @@ func (p *panicReader) Read(b []byte) (int, error) {
 }
 
 // callSecret is what the panic value carries by accident.
-const callSecret = "CirroDesk-TEST-SECRET-0123456789"
+const callSecret = "CD-TEST-SECRET-0123456789"
 
 // TestAPanicInTheFeederEndsTheCallAndNotTheServer is V1.2 point 38 for the one
 // goroutine of a service call: the input of a call is fed to the program from a

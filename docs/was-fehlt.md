@@ -71,7 +71,7 @@ Das ist der halbe Weg. Was bleibt, steht unten.
 
 | # | Worum | Wo gemessen | Was es braucht |
 |---|---|---|---|
-| **S1** | **Es gibt keinen Laden.** `CD_STORE_KEY_DEFAULT="REPLACE-THIS-LINE-WITH-THE-CirroDesk-STORE-KEY"` steht am 30.10.2026 unverändert auf ulh-`main` (`cd-api.sh:97`). Jede Installation muss ihren eigenen Store nennen — es gibt keine Apps von CirroDesk. | Punkt 56, 57 · Frage 4 | **Entscheidung** (Thomas), danach bauen |
+| **S1** | **Es gibt keinen Laden.** `CD_STORE_KEY_DEFAULT="REPLACE-THIS-LINE-WITH-THE-CD-STORE-KEY"` steht am 30.10.2026 unverändert auf ulh-`main` (`cd-api.sh:97`). Jede Installation muss ihren eigenen Store nennen — es gibt keine Apps von CirroDesk. | Punkt 56, 57 · Frage 4 | **Entscheidung** (Thomas), danach bauen |
 | **S2** | **Zwei Apps, und beide sind Beispiele.** Im Repo liegen `calculator` und `terminal`. Auf der Anlage läuft als zweite eine **Uhr**. CirroDesk verspricht einen Schreibtisch mit Apps in Containern. | Punkt 95 · B3 | bauen |
 | **S3** | **Der Release-Schlüssel ist eine Datei auf einer Testmaschine.** Der öffentliche Schlüssel in den vier Skripten ist der mit der Kennung `pN6Z6a9NR0aG6aEJIJ5EHg` — der dateibasierte, nicht der vom Stick. Drei veröffentlichte Fassungen sind damit unterschrieben. Wer auf dieser einen Maschine root ist, unterschreibt CirroDesk für alle. | Punkt 57 · H4 · Frage 2/3 | **Entscheidung** (Thomas) |
 | **S3a** | **Der Kommentar darüber sagt das Gegenteil.** „The placeholder below is not a key, so every install stops at the check" — darunter steht ein echter, gültiger Schlüssel. Es stoppt nichts, und das Repo ist jetzt öffentlich. | H4a, am 30.10. auf ulh-`main` nachgesehen | drei Zeilen |

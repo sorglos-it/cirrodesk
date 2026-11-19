@@ -45,7 +45,7 @@ Mensch ansieht, und bleibt **stderr** davon weg und landet im Journal.
 Das ist der Kern des Befundes, nicht eine Randbemerkung:
 
 1. **Hürde 1 — die systemd-Unit liegt in einem anderen Repo.** `cd-api.service` wird von
-   `apps/cli/assets/scripts/cd-api.sh` im **ulh**-Repo geschrieben. In `cirrodesk` gibt es
+   `apps/cli-ulh/assets/scripts/cd-api.sh` im **ulh**-Repo geschrieben. In `cirrodesk` gibt es
    keine einzige Datei mit `ProtectSystem` oder `ReadWritePaths` (gemessen: Treffer nur in drei
    Dokumenten unter `docs/`). `tools/check.sh` kann diese Hürde prinzipiell nicht sehen.
 2. **Hürde 2 — die Version kommt aus einem Bau-Flag, das nur ein Dokument verlangt.**

@@ -1341,7 +1341,7 @@ func (s *syncBuf) String() string {
 // panicSecret is what a panic value carries by accident: whatever the caller
 // that panicked had in hand. The case below looks for it in the log, so a line
 // that began printing the value shows up as a failure and not as a nicer log.
-const panicSecret = "CirroDesk-TEST-SECRET-0123456789"
+const panicSecret = "CD-TEST-SECRET-0123456789"
 
 // TestAPanickingHandlerEndsOnlyItsOwnChannel is V1.2 point 38 on this side of
 // the link, and the API's own case of that name is its twin.
