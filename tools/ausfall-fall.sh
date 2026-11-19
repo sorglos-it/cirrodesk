@@ -3,7 +3,7 @@
 #
 # Zwei Messregeln stecken hier drin, beide am 24.10.2026 an dieser Anlage
 # gemessen und beide teuer:
-#  1. Der DNS dieses Netzes liefert fuer jeden *.ngc.mein.lan neben dem A-Satz
+#  1. Der DNS dieses Netzes liefert fuer jeden *.cd.mein.lan neben dem A-Satz
 #     ein AAAA ::. Ein Werkzeug auf einem der Knoten nimmt das :: zuerst und
 #     landet auf der EIGENEN Maschine. Darum jede Sonde mit --resolve.
 #  2. Der Laden hat ein Ed25519-Zertifikat. Beide curl unter Windows scheitern
@@ -36,17 +36,17 @@ lebt() { ping -n 1 -w 1500 "$ADDR" >/dev/null 2>&1; }
 # (a) Oberflaeche: kommt die Seite, und von welcher Maschine.
 oberflaeche() {
   curl.exe -sk -o /dev/null -w "code=%{http_code} von=%{remote_ip} zeit=%{time_total}" \
-    --max-time 20 --resolve "ngc.mein.lan:443:$API1" https://ngc.mein.lan/ 2>&1 \
+    --max-time 20 --resolve "cd.mein.lan:443:$API1" https://cd.mein.lan/ 2>&1 \
     || echo "code=000 (keine Antwort)"
 }
 # Der Laden, von api-1 aus, mit --resolve: die ehrliche Frage.
 laden() {
-  $SSH "root@$API1" 'curl -sk -o /dev/null -w "code=%{http_code} von=%{remote_ip}" --max-time 8 --resolve store.ngc.mein.lan:443:10.2.3.215 https://store.ngc.mein.lan/catalog.json' 2>&1 \
+  $SSH "root@$API1" 'curl -sk -o /dev/null -w "code=%{http_code} von=%{remote_ip}" --max-time 8 --resolve store.cd.mein.lan:443:10.2.3.215 https://store.cd.mein.lan/catalog.json' 2>&1 \
     || echo "code=000 (keine Antwort)"
 }
 # Dieselbe Frage OHNE --resolve - genau das, was ein Mensch tippt.
 laden_naiv() {
-  $SSH "root@$API1" 'curl -sk -o /dev/null -w "code=%{http_code} von=%{remote_ip}" --max-time 8 https://store.ngc.mein.lan/catalog.json' 2>&1 \
+  $SSH "root@$API1" 'curl -sk -o /dev/null -w "code=%{http_code} von=%{remote_ip}" --max-time 8 https://store.cd.mein.lan/catalog.json' 2>&1 \
     || echo "code=000 (keine Antwort)"
 }
 # Die beiden API-Mitglieder des Lastverteilers, einzeln und direkt.
@@ -62,7 +62,7 @@ reihe() {
   local n=0 ok=0 schlecht=0 out=""
   for i in $(seq 1 10); do
     c=$(curl.exe -sk -o /dev/null -w "%{http_code}" --max-time 20 \
-      --resolve "ngc.mein.lan:443:$API1" https://ngc.mein.lan/ 2>/dev/null)
+      --resolve "cd.mein.lan:443:$API1" https://cd.mein.lan/ 2>/dev/null)
     out="$out $c"; n=$((n+1))
     [ "$c" = "200" ] && ok=$((ok+1)) || schlecht=$((schlecht+1))
   done

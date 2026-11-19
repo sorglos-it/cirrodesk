@@ -25,8 +25,8 @@ st() { q status "$VMID" | sed 's/^status: //'; }
 lebt() { ping -n 1 -w 1500 "$ADDR" >/dev/null 2>&1; }
 
 seite() {
-  curl.exe -sk -o NUL -w "%{http_code}" --max-time 15 --resolve "ngc.mein.lan:443:$A1" \
-    https://ngc.mein.lan/ 2>/dev/null || echo 000
+  curl.exe -sk -o NUL -w "%{http_code}" --max-time 15 --resolve "cd.mein.lan:443:$A1" \
+    https://cd.mein.lan/ 2>/dev/null || echo 000
 }
 # Zwanzig Anfragen in Folge durch den Lastverteiler: faellt jede zweite, bis
 # Apache das totes Mitglied merkt? (lbmethod=byrequests, retry=5, timeout=65)
@@ -34,7 +34,7 @@ reihe() {
   local ok=0 schlecht=0 out=""
   for i in $(seq 1 20); do
     c=$(curl.exe -sk -o NUL -w "%{http_code}" --max-time 20 \
-      --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/ 2>/dev/null)
+      --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/ 2>/dev/null)
     out="$out ${c:-000}"
     [ "$c" = "200" ] && ok=$((ok+1)) || schlecht=$((schlecht+1))
   done
@@ -43,7 +43,7 @@ reihe() {
 anmelden() {
   curl.exe -sk -w "|code=%{http_code}" --max-time 20 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null \
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null \
     | head -c 110 || echo "|code=000"
 }
 container() { # knoten

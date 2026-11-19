@@ -27,15 +27,15 @@ unten an der einen hängt und nicht an der anderen:
 - **Die Einzel-VM** (`cd`, 10.2.3.208, Fassung 0.2.0): alles auf einer Maschine — API,
   Controller, Shell und der Laden daneben. Dort steht die eine App, die es bisher gab, und
   dort sind die Befunde 2 bis 4 gemessen. Sie ist über Monate von Hand gewachsen.
-- **Die verteilte Anlage** (`ngc.mein.lan`, Fassung 0.2.1): sechs Maschinen.
+- **Die verteilte Anlage** (`cd.mein.lan`, Fassung 0.2.1): sechs Maschinen.
 
 ```
-10.2.3.210  ngc.mein.lan, api-1.ngc.mein.lan    Shell und erste API
-10.2.3.211  api-2.ngc.mein.lan                  zweite API
-10.2.3.212  db-1.ngc.mein.lan                   Datenbank
-10.2.3.213  svc-1.ngc.mein.lan                  Dienstknoten - hier laufen Apps
-10.2.3.214  svc-2.ngc.mein.lan                  Dienstknoten - hier laufen Apps
-10.2.3.215  store.ngc.mein.lan                  der Laden, eigene Maschine
+10.2.3.210  cd.mein.lan, api-1.cd.mein.lan    Shell und erste API
+10.2.3.211  api-2.cd.mein.lan                  zweite API
+10.2.3.212  db-1.cd.mein.lan                   Datenbank
+10.2.3.213  svc-1.cd.mein.lan                  Dienstknoten - hier laufen Apps
+10.2.3.214  svc-2.cd.mein.lan                  Dienstknoten - hier laufen Apps
+10.2.3.215  store.cd.mein.lan                  der Laden, eigene Maschine
 ```
 
 Gemessen wird **gegen die Namen**, nie gegen die IP: die Shell besteht auf ihrem Namen
@@ -426,8 +426,8 @@ Kette darum wirklich. Die beiden Skripte dafür liegen **nicht** im Repo; siehe 
 
 **Und genau da verdeckt dieser Prüfstand etwas.** Auf der Einzel-VM liegt der Laden auf
 derselben Maschine wie die API. Damit ist nie geprüft worden, was der Weg eigentlich verlangt:
-dass das Paket **über Netz** geholt werden kann. Die verteilte Anlage (`ngc.mein.lan`, Fassung
-0.2.1) hat dafür eine **eigene** Maschine, `store.ngc.mein.lan` — der ehrlichere Prüfstand.
+dass das Paket **über Netz** geholt werden kann. Die verteilte Anlage (`cd.mein.lan`, Fassung
+0.2.1) hat dafür eine **eigene** Maschine, `store.cd.mein.lan` — der ehrlichere Prüfstand.
 **Nicht gemessen:** ob dort heute schon etwas ausliefert; der Name löst auf (10.2.3.215), aber
 ein TLS-Handschlag von außen kam nicht zustande.
 
@@ -453,7 +453,7 @@ sagt sie nicht.
 ### Gemessen: eine zweite App in einen laufenden Laden
 
 Das ist der Weg, den dieses Papier belegt, auf der verteilten Anlage am 24.10.2026. Der Laden
-ist dort eine eigene Maschine (`store.ngc.mein.lan`), trug den Terminal und die Folge 6.
+ist dort eine eigene Maschine (`store.cd.mein.lan`), trug den Terminal und die Folge 6.
 
 Der geheime Schlüssel liegt dort, wo das Aufsetz-Skript ihn hingelegt hat —
 `/root/store/store.key` auf der Laden-Maschine — und `cd-store` liegt unter
@@ -464,7 +464,7 @@ unterschrieben:
 # auf der Laden-Maschine
 cp -n /var/www/store/catalog.json /root/store/catalog-vor-uhr-20261024.json
 # das Paket dazu (von einem Baurechner hergebracht)
-cd-store catalog /var/www/store /root/store/store.key global 7 https://store.ngc.mein.lan
+cd-store catalog /var/www/store /root/store/store.key global 7 https://store.cd.mein.lan
 cd-store check -store global /var/www/store
 ```
 
@@ -472,8 +472,8 @@ Das Ergebnis, aus dem Katalog gelesen, der danach dort lag:
 
 ```
 store global seq 7
-  org.sorglos.terminal 1.0.0 https://store.ngc.mein.lan/terminal.cd 108028416 needs=['root']
-  org.sorglos.uhr      1.0.0 https://store.ngc.mein.lan/uhr.cd       85623296 needs=None
+  org.sorglos.terminal 1.0.0 https://store.cd.mein.lan/terminal.cd 108028416 needs=['root']
+  org.sorglos.uhr      1.0.0 https://store.cd.mein.lan/uhr.cd       85623296 needs=None
 kid RPmRtyPJs5WQECAkiPeBsg
 ```
 
@@ -490,7 +490,7 @@ kid RPmRtyPJs5WQECAkiPeBsg
 Und der Abruf **über Netz**, von der API-Maschine aus, mit geprüftem Zertifikat:
 
 ```
-curl -4 https://store.ngc.mein.lan/catalog.json   http=200 verify=0 bytes=1116
+curl -4 https://store.cd.mein.lan/catalog.json   http=200 verify=0 bytes=1116
 ```
 
 Das ist der Teil, den die Einzel-VM nie prüfen konnte, weil der Laden dort danebenlag.
@@ -537,7 +537,7 @@ Abbild, Paket, unterschriebener Katalog, `check -store`. Dazu vier Fälle in
 `apps/uhr/classes/uhr_test.go`.
 
 **Gemessen auf der verteilten Anlage:** die Uhr liegt im laufenden Laden
-(`store.ngc.mein.lan`, Kennung `global`, Folge 7), neben dem Terminal und mit derselben
+(`store.cd.mein.lan`, Kennung `global`, Folge 7), neben dem Terminal und mit derselben
 Unterschrift, und der Katalog wird von der API-Maschine **über Netz** geholt, mit geprüftem
 Zertifikat (`http=200 verify=0`). Siehe Schritt 5, „Gemessen: eine zweite App in einen
 laufenden Laden".
@@ -943,17 +943,17 @@ die Einzel-VM ein Handbau ist.
 
 ### Befund 5: Jeder Name der Anlage zeigt zusätzlich auf `::`
 
-Gemessen am 24.10.2026 auf api-1: `store.ngc.mein.lan` löst auf **zwei** Adressen auf —
+Gemessen am 24.10.2026 auf api-1: `store.cd.mein.lan` löst auf **zwei** Adressen auf —
 `10.2.3.215` und `::`, die unbestimmte Adresse. Ein Client, der IPv6 vorzieht, und das ist die
 Vorgabe, landet damit nicht auf der Laden-Maschine, sondern auf der Maschine, von der er fragt:
 
 ```
-curl -4 https://store.ngc.mein.lan/catalog.json   http=200 verify=0 bytes=1116
-curl -6 https://store.ngc.mein.lan/catalog.json   http=000 verify=18
-curl    https://store.ngc.mein.lan/catalog.json   scheitert
+curl -4 https://store.cd.mein.lan/catalog.json   http=200 verify=0 bytes=1116
+curl -6 https://store.cd.mein.lan/catalog.json   http=000 verify=18
+curl    https://store.cd.mein.lan/catalog.json   scheitert
 ```
 
-Und das Zertifikat, das dabei zurückkommt, ist das der API selbst (`CN=ngc.mein.lan`,
+Und das Zertifikat, das dabei zurückkommt, ist das der API selbst (`CN=cd.mein.lan`,
 selbstunterschrieben) — nicht das des Ladens. Die Fehlersuche führt darum erst einmal in die
 falsche Richtung: es sieht aus wie eine kaputte CA oder ein falsches Ladenzertifikat. Beides war
 in Ordnung, `openssl s_client` von derselben Maschine sagte `Verify return code: 0 (ok)`.
@@ -972,7 +972,7 @@ ist") trifft womöglich die falsche Maschine.
 
 ### Befund 6: Die erste Anmeldung scheitert immer, die zweite nicht verlässlich
 
-Gemessen am 24.10.2026 auf `ngc.mein.lan`, in **einem** Browserprofil, auf **einer** Seite,
+Gemessen am 24.10.2026 auf `cd.mein.lan`, in **einem** Browserprofil, auf **einer** Seite,
 mit demselben Namen und demselben Kennwort:
 
 ```
@@ -994,7 +994,7 @@ brauchte. Aber es ist der erste Hinweis, dass 0.2.2 hier anders ist, und wer das
 fängt dort an.
 
 Thomas kannte das Bild und hielt es für die zwei APIs der Anlage — das ist es **nicht**: die
-Shell redet nicht mit `api-1` oder `api-2` unmittelbar, sondern über `ngc.mein.lan/api/v1/ws`,
+Shell redet nicht mit `api-1` oder `api-2` unmittelbar, sondern über `cd.mein.lan/api/v1/ws`,
 in jedem Versuch über denselben Weg.
 
 **Nicht gemessen: woran es liegt.** Der Verdacht geht auf die Vertrauensliste — der erste
@@ -1109,11 +1109,11 @@ Die Oberfläche sagte:
 Und auf `svc-1` sagte der Controller in derselben Sekunde:
 
 ```
-WARN tunnel failed api=wss://api-1.ngc.mein.lan:7443/tunnel
+WARN tunnel failed api=wss://api-1.cd.mein.lan:7443/tunnel
      err="link: the API broke the contract of the tunnel"
 INFO a service wrote to stderr app=org.sorglos.terminal service=terminal action=shell bytes=530
 WARN Die Verbindung einer App wurde abgebrochen. app=org.sorglos.terminal code=E_PROTOCOL
-INFO tunnel up api=wss://api-1.ngc.mein.lan:7443/tunnel
+INFO tunnel up api=wss://api-1.cd.mein.lan:7443/tunnel
 ```
 
 Der Tunnel kam eine Sekunde später zurück, aber die Einrichtung war gescheitert — **und es riss

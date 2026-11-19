@@ -339,7 +339,7 @@ zu („the six have to be up") statt sich selbst.
 ist, solange sie rot ist.** Auf einer Maschine hat die Frage keinen Inhalt: dort ist alles
 `localhost`, und ein Name, der auf die falsche Maschine zeigt, landet trotzdem auf der richtigen.
 
-Gemessen: der DNS dieses Netzes (10.2.3.102) antwortet auf **jeden** `*.ngc.mein.lan`-Namen mit
+Gemessen: der DNS dieses Netzes (10.2.3.102) antwortet auf **jeden** `*.cd.mein.lan`-Namen mit
 einem AAAA-Satz `::` **neben** dem richtigen A-Satz. `getent`, `curl` und alles andere über NSS
 nehmen das `::` zuerst, verbinden sich zur **eigenen** Maschine und treffen dort, was auf 443
 lauscht — auf api-1 ist das `apache`. Darum antwortete „holt api-1 den Katalog vom Laden?" mit
@@ -452,7 +452,7 @@ UNMEASURABLE mit ihrem Namen:
 1. **Die erste Einrichtung** einer Anlage. `GET/POST /api/v1/setup`, mit einem MAC über den
    Einmalcode aus `/var/lib/cd/setup-code`. Alles dahinter hängt an einem angemeldeten Admin.
    *(Auf dieser Anlage schon getan — `setup-code` ist weg.)*
-2. **Eine Anmeldung auf api-2.** `https://ngc.mein.lan` öffnen, anmelden, und das **zweimal mit
+2. **Eine Anmeldung auf api-2.** `https://cd.mein.lan` öffnen, anmelden, und das **zweimal mit
    einem Neuladen dazwischen**, weil `web.json` api-1 und api-2 abwechselnd herausgibt.
 3. **Eine App auf einen bestimmten Rechner schicken.** In der Oberfläche eine App einrichten,
    dabei **svc-2 mit Absicht** auswählen — und hinterher sagen, welche Maschine gewählt wurde.

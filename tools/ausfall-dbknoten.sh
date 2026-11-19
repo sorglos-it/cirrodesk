@@ -6,7 +6,7 @@
 # drei das Quorum halten UND beide APIs alle drei in db.nodes tragen.
 #
 # Gemessen wird von diesem PC aus, immer mit --resolve oder gegen die nackte
-# Adresse: der DNS dieses Netzes liefert für jeden *.ngc.mein.lan ein AAAA ::.
+# Adresse: der DNS dieses Netzes liefert für jeden *.cd.mein.lan ein AAAA ::.
 # Der Verbund wird von einem Knoten erfragt, der STEHT - nicht von dem, der
 # gerade aus ist, sonst misst man die ssh-Zeitüberschreitung.
 #
@@ -42,20 +42,20 @@ st() { q status "$VMID" | sed 's/^status: //'; }
 lebt() { ping -n 1 -w 1500 "$ADDR" >/dev/null 2>&1; }
 
 seite() {
-  curl.exe -sk -o NUL -w "%{http_code}" --max-time 15 --resolve "ngc.mein.lan:443:$A1" \
-    https://ngc.mein.lan/ 2>/dev/null || echo 000
+  curl.exe -sk -o NUL -w "%{http_code}" --max-time 15 --resolve "cd.mein.lan:443:$A1" \
+    https://cd.mein.lan/ 2>/dev/null || echo 000
 }
 # Eine Anmeldeanfrage, mit Zeit. login/start zählt laut Code keinen Fehlversuch.
 anm() {
   curl.exe -sk -o NUL -w "%{http_code} %{time_total}s" --max-time 20 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null \
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null \
     || echo "000 -"
 }
 anm_code() {
   curl.exe -sk -o NUL -w "%{http_code}" --max-time 20 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null || echo 000
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null || echo 000
 }
 vierzig() {
   local ok=0 bad=0 codes="" c

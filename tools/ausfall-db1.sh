@@ -34,8 +34,8 @@ st() { q status "$VMID" | sed 's/^status: //'; }
 lebt() { ping -n 1 -w 1500 "$DB" >/dev/null 2>&1; }
 
 seite() {
-  curl.exe -sk -o NUL -w "%{http_code}" --max-time 15 --resolve "ngc.mein.lan:443:$A1" \
-    https://ngc.mein.lan/ 2>/dev/null || echo 000
+  curl.exe -sk -o NUL -w "%{http_code}" --max-time 15 --resolve "cd.mein.lan:443:$A1" \
+    https://cd.mein.lan/ 2>/dev/null || echo 000
 }
 # Die eigentliche Frage: was antwortet die Anmeldung?
 anmelden() { # ziel (host:port oder name)
@@ -56,7 +56,7 @@ runde() {
   echo "    qm status db-1    : $(st)"
   echo "(a) Oberflaeche       : $(seite)   (voller Betrieb: 200)"
   echo "(b) Anmeldung ueber den Namen:"
-  echo "        $(anmelden https://ngc.mein.lan/api/v1/login/start 2>/dev/null)" 2>/dev/null
+  echo "        $(anmelden https://cd.mein.lan/api/v1/login/start 2>/dev/null)" 2>/dev/null
   echo "(b) Anmeldung direkt auf api-2:7443:"
   echo "        $(anmelden https://$A2:7443/api/v1/login/start)"
   echo "    Galera auf db-1   : $(galera)"
@@ -67,7 +67,7 @@ runde() {
 anmelden_name() {
   curl.exe -sk -w "|code=%{http_code}" --max-time 15 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null | head -c 220 || echo "|code=000"
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null | head -c 220 || echo "|code=000"
 }
 
 runde2() {

@@ -89,7 +89,7 @@ SEARCH=${CD_PVE_SEARCH:-mein.lan}
 # certificate and the passkeys hang on it, a browser warns over an IP and
 # passkeys do not work over one at all. docs/proxmox-sechs.md says what has to
 # resolve where.
-ZONE=${CD_ZONE:-ngc.mein.lan}
+ZONE=${CD_ZONE:-cd.mein.lan}
 WEBNAME=${CD_WEBNAME:-$ZONE}
 
 # vmid | node name (wire.ValidName) | DNS name | IP | MiB | cores | disk GB |
@@ -266,7 +266,7 @@ vorlage() {
 	# serial0 as the console: a Debian cloud image writes its boot to the
 	# serial line, and without it "qm terminal" shows nothing at all when
 	# something goes wrong early.
-	lauf qm create "$VORLAGE_ID" --name ngc-vorlage --machine q35 --ostype l26 \
+	lauf qm create "$VORLAGE_ID" --name cd-vorlage --machine q35 --ostype l26 \
 		--cpu "$CPUTYPE" --cores 2 --memory 2048 --numa 0 \
 		--scsihw virtio-scsi-single --agent 1 \
 		--serial0 socket --vga serial0 \

@@ -38,7 +38,7 @@ set -uo pipefail
 #
 #   - Ein Pfad in jemandes Dokumentenordner gehoert nicht in ein Repo, und er
 #     faellt erst beim Fahren auf, wenn er nicht stimmt. Die Maschinen stehen
-#     in der ssh-Konfiguration des Benutzers (`ssh -G ngc-api-1` nennt Adresse,
+#     in der ssh-Konfiguration des Benutzers (`ssh -G cd-api-1` nennt Adresse,
 #     Benutzer und Schluessel), also sucht ssh den Schluessel selbst.
 #   - `StrictHostKeyChecking=no` schaltet die Pruefung der Gegenstelle ab. In
 #     einem Repo, dessen eigene Regel "TLS zwischen CirroDesk-Teilen nie ungeprueft"
@@ -54,13 +54,13 @@ A1=10.2.3.210
 A2=10.2.3.211
 SVC1=10.2.3.213
 SVC2=10.2.3.214
-H_SVC1=ngc-svc-1
-H_SVC2=ngc-svc-2
-H_A1=ngc-api-1
+H_SVC1=cd-svc-1
+H_SVC2=cd-svc-2
+H_A1=cd-api-1
 
 case "${1:-}" in
-  M1) ADDR=$A2;   HOST=ngc-api-2; DIENST=cd-api;        KNOTEN=api-2; ART=einmal;    ;;
-  M2) ADDR=$A2;   HOST=ngc-api-2; DIENST=cd-api;        KNOTEN=api-2; ART=schleife;  ;;
+  M1) ADDR=$A2;   HOST=cd-api-2; DIENST=cd-api;        KNOTEN=api-2; ART=einmal;    ;;
+  M2) ADDR=$A2;   HOST=cd-api-2; DIENST=cd-api;        KNOTEN=api-2; ART=schleife;  ;;
   M3) ADDR=$SVC1; HOST=$H_SVC1;   DIENST=cd-controller; KNOTEN=svc-1; ART=einmal;    ;;
   *) echo "Aufruf: $0 M1|M2|M3   (M4 ist nicht freigegeben)"; exit 2;;
 esac
@@ -71,7 +71,7 @@ esac
 # war wertlos: `ssh -G` druckt auch fuer einen erfundenen Namen eine Zeile
 # `hostname <derselbe Name>`. Gemessen am 30.10.2026:
 #
-#   ssh -G ngc-api-2        ->  hostname=10.2.3.211
+#   ssh -G cd-api-2        ->  hostname=10.2.3.211
 #   ssh -G gibtsnicht-xyz   ->  hostname=gibtsnicht-xyz
 #
 # Eine Pruefung, die alles durchlaesst, prueft nichts. Geprueft wird darum
@@ -96,7 +96,7 @@ ergebnis() { $SSH -o ConnectTimeout=6 "$1" "systemctl show $2 -p Result -p NRest
 
 seite() {
   curl.exe -sk -o NUL -w "%{http_code} %{time_total}s" --max-time 20 \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/ 2>/dev/null || echo "000 -"
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/ 2>/dev/null || echo "000 -"
 }
 # Dieselbe Anfrage wie in tools/ausfall-mehrheit.sh und tools/ausfall-dienst.sh.
 # Sie ist bewusst nicht "verbessert": nur so sind diese Zahlen mit B1 und mit
@@ -105,7 +105,7 @@ anm_voll() {
   local out code t body
   out=$(curl.exe -sk -w '\n%{http_code} %{time_total}' --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null) \
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null) \
     || out=$'\n000 -'
   code=$(printf '%s' "$out" | tail -1 | cut -d' ' -f1)
   t=$(printf '%s' "$out" | tail -1 | cut -d' ' -f2)
@@ -115,7 +115,7 @@ anm_voll() {
 anm_code() {
   curl.exe -sk -o NUL -w "%{http_code}" --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null || echo 000
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null || echo 000
 }
 # Code UND Rumpf in einer Zeile, fuer die Reihen, in denen nur der Code
 # gezaehlt wird. Der Anmelde-Strang jagt einen Fehler, bei dem die erste
@@ -128,7 +128,7 @@ anm_paar() {
   local out code body
   out=$(curl.exe -sk -w '\n%{http_code}' --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null) \
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null) \
     || out=$'\n000'
   code=$(printf '%s' "$out" | tail -1 | tr -d ' \r')
   body=$(printf '%s' "$out" | sed '$d' | tr -d '\r\n' | cut -c1-160)
@@ -330,7 +330,7 @@ echo "    $DIENST sagt jetzt: $ENDSTAND  MainPID=$(hauptpid "$HOST" "$DIENST")"
 
 echo
 echo "    Was die beiden APIs im Journal sagen:"
-for a in $H_A1 ngc-api-2; do
+for a in $H_A1 cd-api-2; do
   echo "      --- $a:"
   $SSH "$a" "journalctl -u cd-api --since '$VOR' --no-pager 2>/dev/null | tail -8 | sed 's/^/        /'" 2>&1
 done

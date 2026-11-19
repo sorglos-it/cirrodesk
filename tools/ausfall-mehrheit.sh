@@ -47,17 +47,17 @@ st() { q status "$1" | sed 's/^status: //'; }
 lebt() { ping -n 1 -w 1500 "$1" >/dev/null 2>&1; }
 
 # ---- Die Anlage, von diesem PC aus. Immer mit --resolve: der DNS dieses
-# ---- Netzes liefert fuer jeden *.ngc.mein.lan ein AAAA ::.
+# ---- Netzes liefert fuer jeden *.cd.mein.lan ein AAAA ::.
 seite() {
   curl.exe -sk -o NUL -w "%{http_code} %{time_total}s" --max-time 20 \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/ 2>/dev/null || echo "000 -"
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/ 2>/dev/null || echo "000 -"
 }
 # Eine Anmeldeanfrage MIT RUMPF. login/start zaehlt laut Code keinen Fehlversuch.
 anm_voll() {
   local body code t out
   out=$(curl.exe -sk -w '\n%{http_code} %{time_total}' --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null) \
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null) \
     || out=$'\n000 -'
   code=$(printf '%s' "$out" | tail -1 | cut -d' ' -f1)
   t=$(printf '%s' "$out" | tail -1 | cut -d' ' -f2)
@@ -67,7 +67,7 @@ anm_voll() {
 anm_code() {
   curl.exe -sk -o NUL -w "%{http_code}" --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null || echo 000
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null || echo 000
 }
 vierzig() {
   local ok=0 bad=0 codes="" c
@@ -83,7 +83,7 @@ anm_falsch() {
   local out
   out=$(curl.exe -sk -w '\n%{http_code}' --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"gibtsnicht-xy7"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null) \
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null) \
     || out=$'\n000'
   printf '%s  Rumpf: %s' "$(printf '%s' "$out" | tail -1)" \
     "$(printf '%s' "$out" | sed '$d' | tr -d '\r\n' | cut -c1-200)"

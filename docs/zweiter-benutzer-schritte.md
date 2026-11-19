@@ -17,13 +17,13 @@ Es gibt seit dem 24.10.2026 **zwei**, und nur auf einer liegt dieser Stand.
   nicht. Gemessen am Aufgabenbuch des Wirts: um **12:37:27** hat ein `qmstop` sie hart
   angehalten — **kein Absturz**. **Wer die Schritte unten heute geht, kommt nirgends an**, und
   „nicht erreichbar" wäre dann kein Befund über CirroDesk.
-- **Neue Einzel-Maschine `ngc-ein`** (10.2.3.216, Name wieder `cd.test`, CirroDesk `0.2.2`, seit
+- **Neue Einzel-Maschine `cd-ein`** (10.2.3.216, Name wieder `cd.test`, CirroDesk `0.2.2`, seit
   24.10.2026): läuft, aber sie läuft **`origin/main`** und hat die beiden Formulare **nicht**.
   Die zwei geänderten Dateien sind dort **nicht** eingespielt. Die Schritte unten sind auch
   hier **nicht** zu gehen, solange dieser Zweig nicht verschmolzen und ausgerollt ist. Die
   Sicherung von vor der Änderung liegt auf der alten Platte und im Schnappschuss
   `vor-bergung-20261024` (siehe `docs/alte-vm-verweise.md`, Abschnitt 6).
-- **Verteilte Anlage `https://ngc.mein.lan`** (api-1 … store, CirroDesk `0.2.1`): läuft **exakt
+- **Verteilte Anlage `https://cd.mein.lan`** (api-1 … store, CirroDesk `0.2.1`): läuft **exakt
   `origin/main`** und hat die beiden Formulare **nicht**. Dort sind die Schritte unten
   **nicht** zu gehen, solange dieser Zweig nicht verschmolzen und ausgerollt ist.
 

@@ -57,7 +57,7 @@ probe=$( (exit 7) >/dev/null 2>&1 || echo "$?")
 	exit 1
 }
 
-ZONE=${CD_ZONE:-ngc.mein.lan}
+ZONE=${CD_ZONE:-cd.mein.lan}
 WEB_IP=${CD_WEB_IP:-10.2.3.210}
 API1_IP=${CD_API1_IP:-10.2.3.210}
 API2_IP=${CD_API2_IP:-10.2.3.211}
@@ -241,7 +241,7 @@ db() {
 	# A NAMED PIECE OF GROUNDWORK, AND IT IS A FINDING OF THIS RUN.
 	#
 	# cd-db.sh install dies on a FRESH Debian at its very first step:
-	#   "CirroDesk: MariaDB with Galera for db-1.ngc.mein.lan"
+	#   "CirroDesk: MariaDB with Galera for db-1.cd.mein.lan"
 	#   "chown: invalid group: 'root:mysql'"
 	# prepare() runs "ensure_dir $CD_TLS root:mysql 0710" and
 	# "ensure_dir $CD_KEYS root:mysql 0710", and install_cd_db() calls

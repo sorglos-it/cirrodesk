@@ -45,13 +45,13 @@ DAUER=${2:-180}
 
 seite() {
   curl.exe -sk -o NUL -w "%{http_code} %{time_total}s" --max-time 20 \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/ 2>/dev/null || echo "000 -"
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/ 2>/dev/null || echo "000 -"
 }
 anm_voll() {
   local out code t body
   out=$(curl.exe -sk -w '\n%{http_code} %{time_total}' --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null) \
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null) \
     || out=$'\n000 -'
   code=$(printf '%s' "$out" | tail -1 | cut -d' ' -f1)
   t=$(printf '%s' "$out" | tail -1 | cut -d' ' -f2)
@@ -61,7 +61,7 @@ anm_voll() {
 anm_code() {
   curl.exe -sk -o NUL -w "%{http_code}" --max-time 25 -X POST \
     -H "content-type: application/json" -d '{"name":"weiricth"}' \
-    --resolve "ngc.mein.lan:443:$A1" https://ngc.mein.lan/api/v1/login/start 2>/dev/null || echo 000
+    --resolve "cd.mein.lan:443:$A1" https://cd.mein.lan/api/v1/login/start 2>/dev/null || echo 000
 }
 vierzig() {
   local ok=0 bad=0 codes="" c langsam=0 t
