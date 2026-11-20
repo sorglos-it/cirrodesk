@@ -11,6 +11,32 @@
 // word the contract also uses for a database that is AWAY. 80 seconds of
 // waiting and then the wrong word.
 //
+// DRIVEN END TO END on 15.10.2026, which point 49 asked for three times and
+// could not do: two real API programs (then still named ngc-api) on ONE
+// encrypted SQLite file over HTTPS in WSL/ext4, a third program holding an
+// open write transaction against them. Before (the state of this file's own
+// parent commit then): tunnel/pair answered 403 E_VERIFY after 80,678 s and
+// tunnel/join 403 E_VERIFY after 80,566 s -- the figure above, at the live
+// program, with the wrong word. After: both answer 503 E_UNREACHABLE with
+// Retry-After: 5 after 5,016 s and 5,018 s, and both APIs log reason=db-busy
+// retry-after=5. The lock was proved to bite before any of that was taken (a
+// foreign writer against it waits 10,0003 s and then gets "database is
+// locked" = busy_timeout).
+//
+// That run predates A13: join.Accept spent the code with OnceUse as its first
+// store call then. Since A13 it reads with OncePeek first, a read that passes
+// the foreign lock under WAL, and the wait of a joining server lands at the
+// same OnceUse after the MAC check. The run was not repeated after that
+// change; join's TestAcceptAnswersBusyWithRetryAfter holds each of its arms.
+//
+// The measurement belongs to WSL/ext4 and to nothing else: shared/config
+// wants an absolute path with the prefix "/" and apps/server-db wants
+// filepath.IsAbs, so it cannot run on Windows at all. And one path of the
+// three is NOT covered by it -- GET /api/v1/setup answered 200 in 13 ms
+// through the whole lock, because under WAL a writer does not block readers
+// and that handler only reads. So setup.fault's "busy is E_UNREACHABLE and
+// not E_INTERNAL" is held by its own cases and not by a running program.
+//
 // Both halves are mended with one mechanism. A caller says what the waiting
 // is for -- User on a path a person is waiting on, Start on the path that
 // brings the program up -- and the deadline carries ErrBusy as its CAUSE
@@ -67,12 +93,43 @@ const (
 	// that loses one race still comes up, and one that is locked out for good
 	// ends with a word instead of hanging.
 	StartWait = 90 * time.Second
+	// RoundWait is the deadline of a background round -- the housekeeping of
+	// server.rounds, where nobody waits at a screen and nobody is answered at
+	// all. It is the one purpose of the three that may simply come back later,
+	// and the figure says so from three sides:
+	//
+	//   - UNDER the beat of the round (one minute, server.Minute), so a round
+	//     that cannot get the database frees it before the next tick is due.
+	//     That matters more here than anywhere else, because a round that
+	//     hangs holds its own lock (server.once) and drops its own ticks, and
+	//     the housekeeping is what logs expired sessions out. The two rounds
+	//     shared ONE lock when this was written, so a hang dropped the ticks
+	//     of both; they hold a lock each since the catalog round got its own
+	//     (server.Server.hourly), which narrows the damage and does not
+	//     remove it.
+	//   - OVER one busy_timeout (10 s, apps/server-db/classes/sqlite), so a
+	//     round that loses one race still does its work instead of giving the
+	//     turn away for a wait that was about to end.
+	//   - UNDER the full retry chain (80,6 s measured, point 48), because
+	//     waiting that chain out is exactly what a repeating round does not
+	//     have to do -- and the measurement says the waiting buys nothing:
+	//     four blocked writers already cost the first read 9,513 s.
+	//
+	// It is longer than UserWait for the one reason that holds here and
+	// nowhere else in this API: there is nobody to keep waiting.
+	RoundWait = 30 * time.Second
 )
 
 // User returns ctx with the deadline of a user path and ErrBusy as its cause.
 // The caller cancels it, as with every context of the standard library.
 func User(ctx context.Context) (context.Context, context.CancelFunc) {
 	return context.WithTimeoutCause(ctx, UserWait, ErrBusy)
+}
+
+// Round returns ctx with the deadline of a background round and ErrBusy as
+// its cause.
+func Round(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeoutCause(ctx, RoundWait, ErrBusy)
 }
 
 // Start returns ctx with the deadline of the start and ErrBusy as its cause.

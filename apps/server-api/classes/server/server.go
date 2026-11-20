@@ -129,20 +129,40 @@ type Server struct {
 
 	// spool is the directory of this run, SpoolDir unless a test moves it.
 	spool string
-	// round is held while a background round runs. DECISION on "how many at
-	// once": exactly one. A round that outlives its tick must not start a
-	// second one on top of itself -- the hourly round fetches catalogs over
-	// the network and writes their rows, and two of them would write the same
-	// rows against each other. A tick that finds the round busy is dropped and
-	// not queued: the next tick does the same work anyway.
-	round sync.Mutex
+	// round and hourly are held while the matching background round runs.
+	// DECISION on "how many at once": one OF EACH, and no longer one over
+	// both.
+	//
+	// What stays: a round that outlives its tick must not start a second one
+	// on top of itself. The hourly round fetches catalogs over the network
+	// and writes their rows, and two of them would write the same rows
+	// against each other. A tick that finds its round busy is dropped and not
+	// queued: the next tick does the same work anyway.
+	//
+	// What changed, and the reason is measured rather than argued: one lock
+	// over both rounds made a slow CATALOG round drop the HOUSEKEEPING ticks,
+	// and the catalog round is the one with an unbounded part in it. Measured
+	// on 15.10.2026 (appstore.Refresh): a store that accepts and never
+	// answers holds the fetch for 60,001 s -- Stores.Client's own Timeout,
+	// PER REQUEST -- so a trust list with four such stores holds the hourly
+	// round for four minutes, and every minute tick in them was dropped.
+	// Housekeeping is what logs expired sessions out, so that was expired
+	// sessions left standing for a reason that had nothing to do with them.
+	//
+	// Separating the locks is safe for exactly the reason the shared one was
+	// taken for: the rounds do not write the same rows. The minute round
+	// purges sessions and reads the trust list afresh; the hourly one writes
+	// catalog rows and the store notes. Each still has to be alone with
+	// ITSELF, which is what two locks say and one lock said too broadly.
+	round  sync.Mutex
+	hourly sync.Mutex
 	// trustSaid is the text of the last fault the minute round said about the
 	// trust list, "" after a round that read it. Written and read only there,
 	// under s.round; see Server.minute.
 	trustSaid string
 
 	// missing remembers which controllers had no tunnel in the last rounds
-	// (missing.go).
+	// (missing.go). Written and read only by the minute round, under s.round.
 	missing absence
 }
 
@@ -522,24 +542,27 @@ func (s *Server) rounds(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-minute.C:
-			s.once(func() { s.minute(ctx) })
+			s.once(&s.round, func() { s.minute(ctx) })
 		case <-first.C:
-			// Through s.once like every other round, so the first fetch
-			// cannot run beside a round that is already going.
-			s.once(func() { s.hour(ctx) })
+			// Through s.once like every other catalog round, so the first
+			// fetch cannot run beside a catalog round that is already going.
+			s.once(&s.hourly, func() { s.hour(ctx) })
 		case <-hour.C:
-			s.once(func() { s.hour(ctx) })
+			s.once(&s.hourly, func() { s.hour(ctx) })
 		}
 	}
 }
 
-// once runs fn unless a round is already running; see Server.round.
-func (s *Server) once(fn func()) {
-	if !s.round.TryLock() {
+// once runs fn unless the round that holds mu is already running; see
+// Server.round. The lock is handed in rather than read off the server,
+// because each round has one of its own now: the two rounds write different
+// rows and only ever have to be alone with themselves.
+func (s *Server) once(mu *sync.Mutex, fn func()) {
+	if !mu.TryLock() {
 		slog.Warn("a background round is still running, this tick is dropped")
 		return
 	}
-	defer s.round.Unlock()
+	defer mu.Unlock()
 	// The catch sits around ONE round, and that is the decision this line
 	// carries: a background round may not quietly stop. Caught around the
 	// loop alone, one panic in one minute round would end the housekeeping
@@ -555,6 +578,24 @@ func (s *Server) once(fn func()) {
 // minute is the housekeeping round: expired sessions out, trust list afresh,
 // and the count of caught programming errors said out loud if it has grown.
 //
+// It carries a deadline of its own (dbwait.Round, 30 s) where it carried none
+// at all, and both halves of that matter. Measured before: a store call of
+// this round waits busy_timeout times maxTries against a second program on
+// the file -- 80,6 s, point 48 -- and because minute and hour shared s.round
+// then (Server.once), that hang dropped the ticks of BOTH rounds.
+// Housekeeping is what logs expired sessions out, so an hour of it dropped is
+// an hour of sessions that should have ended standing. The rounds hold a lock
+// each now (Server.hourly), so a hang of this round is this round's alone.
+//
+// A round is the one purpose that may simply come back later: the next tick
+// is a minute away, so giving up costs one round and nothing else. That is
+// why the figure is RoundWait and not UserWait -- nobody is waiting at a
+// screen -- and why it is under the beat rather than over the retry chain.
+//
+// The two calls get a deadline EACH and not one over the pair, so a slow
+// purge cannot eat the refresh's time and leave the trust list unread for a
+// reason that is not its own.
+//
 // httpapi.Report stands beside guard.Report and for the same reason: it says
 // how many callers were turned away because the database was busy or away,
 // and without it those two counts would be numbers no running program ever
@@ -567,10 +608,18 @@ func (s *Server) once(fn func()) {
 // and not around each step. Put first, the call would report the state of the
 // minute before and read just as late.
 func (s *Server) minute(ctx context.Context) {
-	if err := s.login.Purge(ctx); err != nil {
-		slog.Warn("housekeeping failed", "error", err)
+	purge, cancel := dbwait.Round(ctx)
+	err := s.login.Purge(purge)
+	reason := roundReason(purge, err)
+	cancel()
+	if err != nil {
+		slog.Warn("housekeeping failed", "reason", reason, "error", err)
 	}
-	if _, err := s.State.Refresh(ctx); err != nil {
+	fresh, cancel := dbwait.Round(ctx)
+	defer cancel()
+	_, err = s.State.Refresh(fresh)
+	reason = roundReason(fresh, err)
+	if err != nil {
 		// Said when it CHANGES, not once a minute. Measured on the small
 		// plant on 18.10.2026: 54 identical lines in the 54 minutes one
 		// cd-api had been up, every one of them "state: no trust list yet"
@@ -591,12 +640,19 @@ func (s *Server) minute(ctx context.Context) {
 		// runs, and this round is the only reader and the only writer.
 		if msg := err.Error(); msg != s.trustSaid {
 			s.trustSaid = msg
-			slog.Warn("trust list could not be read", "error", err)
+			slog.Warn("trust list could not be read", "reason", reason, "error", err)
 		}
 	} else {
 		s.trustSaid = ""
 	}
-	if v, err := s.State.Trust(ctx); err == nil && v.List != nil {
+	// Under the refresh's OWN deadline, not under a new one and not without
+	// one. State.Trust answers out of its cache and goes to the database only
+	// when nothing is cached -- that is, right after the refresh above failed
+	// on an empty cache. With the round's bare context that was a second,
+	// unbounded wait (TestTheHousekeepingRoundBoundsItsSecondCallToo); under
+	// the spent deadline it gives up at once, and with a version cached it
+	// answers without a store call either way.
+	if v, err := s.State.Trust(fresh); err == nil && v.List != nil {
 		s.missing.check(v.List.Nodes, func(id string) bool {
 			_, ok := s.tunnels.Get(id)
 			return ok
@@ -607,10 +663,66 @@ func (s *Server) minute(ctx context.Context) {
 }
 
 // hour is the catalog round.
+//
+// It still gets no deadline of its OWN, and that is now a measurement and no
+// longer a gap. Measured on 15.10.2026 against the TLS store server of
+// appstore's fixture: the whole round takes a median of 0,525 ms and at most
+// 3,709 ms over twenty runs when the store answers; the fetch takes exactly
+// what the store takes (204,1 ms for a store delaying 200 ms); and the only
+// bound on a store that never answers is Stores.Client's own Timeout, 60,001 s
+// measured. So thirty seconds over the round would cut a fetch at half the
+// bound the client already holds, while the DATABASE calls underneath it had
+// no bound at all -- that measurement ran into its own cap of 20,003 s and
+// Refresh then answered nil, so this line logged reason=none for a database
+// nobody could reach.
+//
+// Both halves live where they belong now: appstore.Refresh bounds each of its
+// database calls with dbwait.Round and hands a database failure back, the
+// fetch keeps the client's own measured figure, and this round reads the
+// reason off the error it is finally given.
+//
+// What is NOT closed, and cannot be closed here: the client's bound is per
+// REQUEST, so N stores in the trust list are N times 60 s. That is why this
+// round no longer shares its lock with the minute one (Server.hourly) -- a
+// catalog round that is slow for four minutes now costs its own ticks and
+// none of the housekeeping's.
 func (s *Server) hour(ctx context.Context) {
 	if err := s.st.Refresh(ctx); err != nil {
-		slog.Warn("catalogs could not be fetched", "error", err)
+		slog.Warn("catalogs could not be fetched", "reason", roundReason(ctx, err), "error", err)
 	}
+}
+
+// roundReason is what a round puts in its log line instead of the error
+// itself, and it is the whole of what a round can say: it answers nobody, so
+// there is no status and no Retry-After to carry the difference the way
+// httpapi.FailCoded carries it on a request path.
+//
+// It is asked of the CONTEXT as well as the error, and that is the one thing
+// a round can do better than a handler. Point 49 had to teach apps/server-db
+// to hand its deadlines back by cause, because database/sql gives the bare
+// context.DeadlineExceeded and no line of ours is passed on the way out --
+// so a handler can only ask the error it was given. A round holds the context
+// it set itself, so it can ask the cause at the source and is right even for
+// a store that does not translate.
+//
+// The last arm is "other" and not "db-unreachable", which looks like a
+// detail and is the whole honesty of the line: the most common error of this
+// round is state.ErrNoTrust, "no trust list yet", which is the normal state
+// of an installation whose setup is still open and says nothing about any
+// database. Calling that one unreachable would put a fault in the log where
+// there is none -- the same kind of wrong word this change is here to remove,
+// written by the fix instead of by the bug.
+func roundReason(ctx context.Context, err error) string {
+	switch {
+	case err == nil:
+		return "none"
+	case dbwait.Busy(err), dbwait.Busy(context.Cause(ctx)):
+		return "db-busy"
+	case errors.Is(err, context.Canceled):
+		// The server is stopping; nothing is wrong with the database.
+		return "stopping"
+	}
+	return "other"
 }
 
 // rollouts is the beat of the update rounds, on a goroutine of its own beside
