@@ -152,6 +152,8 @@ export const BUILT_IN = Object.freeze({
   "desk.nolicense": "No valid licence.",
   "desk.appfailed": "This app could not be opened.",
   "desk.appfailed.hint": "Please close the window and try again.",
+  "logout.button": "Sign out",
+  "logout.failed": "CirroDesk could not sign you out. You are still signed in. Please try again.",
   "look.head": "Appearance",
   "look.theme.system": "Like the system",
   "look.theme.light": "Light",

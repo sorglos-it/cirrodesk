@@ -12,6 +12,8 @@
   "desk.nolicense": "Nessuna licenza valida.",
   "desk.appfailed": "Impossibile aprire questa app.",
   "desk.appfailed.hint": "Chiudi la finestra e riprova.",
+  "logout.button": "Esci",
+  "logout.failed": "CirroDesk non ha potuto disconnetterti. Sei ancora connesso. Riprova.",
   "look.head": "Aspetto",
   "look.theme.system": "Come il sistema",
   "look.theme.light": "Chiaro",
