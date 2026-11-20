@@ -881,6 +881,10 @@ export async function fakeWorld() {
     onNotice(fn) {
       if (typeof fn === "function") notices.add(fn);
     },
+    // Nothing to hang up - the stand-in has no socket. The door is here because
+    // this object has the shape net/world.js adapterFor() answers, and the
+    // desktop calls close() on whichever of the two it was handed.
+    close() {},
   };
 
   // A TEST HOOK, and it leaves with this file. The desktop's test sends a

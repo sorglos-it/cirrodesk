@@ -464,6 +464,7 @@ function own(bytes, what) {
 //     shell/fake-link.js's terminalStream has, because that is what a channel
 //     somebody writes into needs
 //   onNotice(fn)
+//   close()
 //
 // BOTH DOORS TAKE FIVE ARGUMENTS, and open() did not until Fixrunde 1: Task 25
 // gave shell/appframe.js the node of an app and it hands it over in the option
@@ -620,6 +621,16 @@ export function adapterFor(link, world = {}) {
 
     onNotice(fn) {
       if (typeof fn === "function") notices.add(fn);
+    },
+
+    // close hangs up the SESSION LINK under this adapter: "bye" on channel 0,
+    // then the socket (net/link.js close()). It is here because the desktop is
+    // handed this adapter and nothing else - the raw link stays in
+    // shell/main.js - so without this door signing out would end the session
+    // on the API and leave the socket open, holding a channel budget for
+    // nobody. A link without close() is no error: there is nothing to hang up.
+    close() {
+      if (typeof link?.close === "function") link.close();
     },
   };
 }
