@@ -266,7 +266,8 @@ class Store {
   //   FLOW_CALL, FLOW_TRANSFER  -> channel.call(link, action,
   //                                  {params, taskBytes, confirmBytes})
   //   FLOW_IN                   -> channel.sendIn(link, action,
-  //                                  {params, taskBytes, stream, onProgress})
+  //                                  {params, taskBytes, confirmBytes, stream,
+  //                                   onProgress})
   //
   // Those are net/channel.js as it stands since Task 17, member for member -
   // the option bag below is its, which is why it is the bag this hands over.
@@ -540,11 +541,17 @@ class Store {
       pair(t("store.up.sum"), b64encode(mine.packageSha256)),
       pair(t("store.up.uisum"), b64encode(mine.sha256)),
     );
+    // Signed, and confirmed where the trust list asks for it, BEFORE a byte
+    // goes out: upload is critical whatever its params, and the API refuses
+    // it unsigned with E_CONFIRM. The node is "": it runs on the API.
+    const signed = await this.signedTask(A.upload, null, "");
+    if (signed === null) return;
     const sending = el("p", "muted", t("store.up.sending"));
     zone.append(sending);
     let theirs;
     try {
       theirs = await this.ask(A.upload, null, {
+        ...signed,
         stream: file.stream(),
         onProgress: (n) => text(sending, t("store.up.progress", { kb: Math.round(n / 1024) })),
       });
@@ -876,67 +883,22 @@ class Store {
   // task without that signature, and the shell must not send one it knows
   // will be refused.
   //
-  // A GAP IN THE CONTRACT, NAMED HERE BECAUSE THIS IS WHERE IT SHOWS.
-  // wire.encodeOpen (and wire.parseOpen behind it) takes `confirm` only
-  // together with `task`: "if (confirm !== null) { if (task === null) return
-  // false }". So an action of service `api` - which carries no task - CANNOT
-  // BE CONFIRMED AT ALL, however the trust list's policy reads. The store
-  // therefore asks only for root tasks, and cd.store/api/set-update goes out
-  // unconfirmed even for a role at level `hardcore`, whose `changes` rule
-  // would ask for one. That is the contract as it stands, not an omission
-  // here; it is in the coordinator's register.
+  // WHAT THE CONTRACT SAYS ABOUT A CONFIRMATION. wire.encodeOpen (and
+  // wire.parseOpen behind it) takes `confirm` only together with `task`: "if
+  // (confirm !== null) { if (task === null) return false }". A confirmation
+  // alone is refused - but a task is allowed on an action of service `api`
+  // too, with node "", and the API checks it like any other (task.Check). Until
+  // 20.11.2026 this note read the rule as "an action of service api CANNOT BE
+  // CONFIRMED AT ALL", and the upload went out unsigned; see signedTask.
+  // cd.store/api/set-update still goes out without a task: it is not critical,
+  // so only a role at level `hardcore` would be asked, and nothing asks yet.
   async rootTask(action, params, node, done) {
-    const s = this.ctx.session;
-    if (!s) {
-      this.say("error", t("store.needlogin"));
-      return false;
-    }
-    let built, taskBytes;
-    try {
-      built = task.buildTask({
-        inst: s.inst, certHash: s.certHash, node,
-        app: action.app, service: action.service, action: action.name,
-        params: core.encodeParams(action, params),
-        now: Math.floor(Date.now() / 1000),
-      });
-      taskBytes = task.envelopeBytes(await task.signTask(s.signKey, built.bytes));
-    } catch {
-      this.say("error", t("store.nosign"));
-      return false;
-    }
-    let confirmBytes = null;
-    const { list } = this.ctx.trust?.current?.() ?? {};
-    // No list, no decision: the policy of what has to be confirmed lives in
-    // it, and a shell that cannot read the policy must not decide that
-    // nothing needs confirming. Nothing is sent - the safer of the two, and
-    // the API would refuse it a moment later anyway.
-    if (!list) {
-      this.say("error", t("store.notrust"));
-      return false;
-    }
-    if (needConfirm(list, s.user, {
-      app: action.app, action: action.name, node,
-      root: action.root === true, critical: core.critical(action, params),
-      changes: action.changes === true,
-    })) {
-      // The bytes of the task, not a sentence about it: what is confirmed is
-      // what runs.
-      const p = await askConfirm(built.bytes, { list, user: s.user, signal: this.abort.signal });
-      if (p === null) {
-        this.say("info", t("store.nochange"));
-        return false;
-      }
-      try {
-        confirmBytes = proofBytes(p);
-      } catch {
-        this.say("error", t("store.confirm.short"));
-        return false;
-      }
-    }
+    const signed = await this.signedTask(action, params, node);
+    if (signed === null) return false;
     try {
       // With a task the OPEN carries no params of its own: only the signed
       // ones count.
-      await this.ask(action, null, { taskBytes, confirmBytes });
+      await this.ask(action, null, signed);
     } catch (e) {
       // THE SENTENCE OF THE SERVER, WHERE IT HAS ONE, and it is marked as
       // his. This shell's own sentence says what happened and what to try;
@@ -957,6 +919,63 @@ class Store {
     }
     this.say("info", done);
     return true;
+  }
+
+  // signedTask signs the action and, where the trust list asks for it, gets
+  // the person's confirmation over the very same bytes. It answers
+  // {taskBytes, confirmBytes} for the option bag of net/channel.js, or null
+  // when it has already told the person why nothing goes out. It stands apart
+  // from rootTask because the upload needs it too, and the upload is no root
+  // task.
+  async signedTask(action, params, node) {
+    const s = this.ctx.session;
+    if (!s) {
+      this.say("error", t("store.needlogin"));
+      return null;
+    }
+    let built, taskBytes;
+    try {
+      built = task.buildTask({
+        inst: s.inst, certHash: s.certHash, node,
+        app: action.app, service: action.service, action: action.name,
+        params: core.encodeParams(action, params),
+        now: Math.floor(Date.now() / 1000),
+      });
+      taskBytes = task.envelopeBytes(await task.signTask(s.signKey, built.bytes));
+    } catch {
+      this.say("error", t("store.nosign"));
+      return null;
+    }
+    let confirmBytes = null;
+    const { list } = this.ctx.trust?.current?.() ?? {};
+    // No list, no decision: the policy of what has to be confirmed lives in
+    // it, and a shell that cannot read the policy must not decide that
+    // nothing needs confirming. Nothing is sent - the safer of the two, and
+    // the API would refuse it a moment later anyway.
+    if (!list) {
+      this.say("error", t("store.notrust"));
+      return null;
+    }
+    if (needConfirm(list, s.user, {
+      app: action.app, action: action.name, node,
+      root: action.root === true, critical: core.critical(action, params),
+      changes: action.changes === true,
+    })) {
+      // The bytes of the task, not a sentence about it: what is confirmed is
+      // what runs.
+      const p = await askConfirm(built.bytes, { list, user: s.user, signal: this.abort.signal });
+      if (p === null) {
+        this.say("info", t("store.nochange"));
+        return null;
+      }
+      try {
+        confirmBytes = proofBytes(p);
+      } catch {
+        this.say("error", t("store.confirm.short"));
+        return null;
+      }
+    }
+    return { taskBytes, confirmBytes };
   }
 }
 

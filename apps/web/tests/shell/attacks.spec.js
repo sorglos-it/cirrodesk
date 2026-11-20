@@ -307,6 +307,17 @@ for (const [what, twist] of TWISTS) {
     await page.locator(".store input[type=file]").setInputFiles({
       name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
     });
+    // THE QUESTION COMES FIRST: the upload is critical, and the stand-in's admin
+    // stands at the level the real setup writes, so the way to the answer this
+    // case is about leads through it.
+    {
+      const pw = await page.evaluate(async () => (await import("/assets/js/shell/fake-link.js")).PASSWORD);
+      const box = page.getByRole("dialog", { name: "Bitte bestätigen" });
+      await expect(box).toBeVisible();
+      await box.locator("input[type=password]").fill(pw);
+      await box.getByRole("button", { name: "Bestätigen", exact: true }).click();
+      await expect(box).toHaveCount(0);
+    }
 
     // The sentence does not name the field: which number the API got wrong is
     // the inside of a server, and there is one thing the person can do about
