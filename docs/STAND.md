@@ -95,10 +95,25 @@ das Blatt gibt den Stand vom 24.10. wieder und nennt dort noch `Updater: nil`.
 3. **Was nur Thomas entscheidet**, steht in [`was-fehlt.md`](was-fehlt.md), Abschnitt 5:
    Release-Schlüssel (S3), Laden (S1), ein Push nach ulh-`main`, P10, Verhaltensänderungen für
    fremde Anlagen, ein öffentlicher Name für die Messung S10.
-4. **Die 31 Zweige ohne Pull Request** (nächster Abschnitt): je Zweig entscheiden — Pull Request
-   oder löschen.
+4. ~~**Die 31 Zweige ohne Pull Request**: je Zweig entscheiden — Pull Request oder löschen.~~
+   **Gesichtet am 20.11.2026** (nächster Abschnitt): 27 können weg, einer bleibt bis zu seinem Bau,
+   drei warten auf Thomas.
+5. **Ohne Thomas baubar:** die Liste am Ende von [`was-fehlt.md`](was-fehlt.md), Abschnitt „Stand am
+   20.11.2026" (PR #254), nach Teilen geordnet.
 
 ## Zweige: was wirklich offen ist (gemessen am 19.11.2026)
+
+**Gesichtet am 20.11.2026** von vier Partner-Threads, je Zweig am Code und gegen `main`; die Belege
+stehen in ihren Notizen unter `D:\claude\side-session-notes\local_09105105-84d8-4761-814a-f7842c285333\`
+(`zweige-web.md`, `zweige-api.md`, `zweige-sichten-2026-11-20.md`, `zweige-doku-2026-11-20.md`).
+Gelöscht ist noch nichts; das entscheidet Thomas.
+
+| Ergebnis | Zweige |
+|---|---|
+| Rest als PR auf `main`, Zweig kann weg | `fristen-hintergrund` (#256), `ngc-rootrechte` (#259), `pool-schreibkanal` (#255), `ngc-ersteapp` (#260), `ngc-abmelden` (#258), `ngc-upload-bestaetigung` und `web-pruef-main` (#257), `web-reif` (#251, #257), `ngc-knotenfassung` (#251), `zeit-vm` (#249), `punkt54-paar-echt` und `messung-punkt53-paar` (#250), `docs-apps-bauen` (#252), `stand-aktuell` (#244, #246, #253), `ngc-join-keys` (#247) |
+| schon in anderer Form auf `main`, kann weg | `p-web-s12-store` (#238), `endgeraet-echo-merge`, `term-echo`, `web-lang` (S12 baute anders), `ngc-knotenkennung`, `ctl-aktivierung-kanalfall`, `ngc-fscrypt-echt`, `ngc-appweg`, `riegel-ed25519-messen`, `release-packer`, `pruefauftraege`, `pruefergebnisse` |
+| bleibt, bis gebaut | `api-knoten-kennung`: Abschnitt 9 nennt je Stelle die Zeile für A8c (Apache-Protokoll) |
+| Thomas fragen | `veroeffentlichungsliste` (Entscheidung 19.10. „neue Sprachschicht bleibt" gegen S12 auf `main`), `ngc-zweiter-mensch` (Blatt „eigener Zugang für Sitzungen"), `claude/elegant-thompson-6m2un0` (Plan Standard-Apps vom 25.09.) |
 
 200 Zweige liegen auf GitHub außer `main`:
 
