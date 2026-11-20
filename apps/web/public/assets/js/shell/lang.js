@@ -275,6 +275,7 @@ export const BUILT_IN = Object.freeze({
   "store.confirm.short": "The confirmation was not enough. Please try again.",
   "store.node.refused": "The machine did not accept that. Please try again.",
   "store.node.says": "The machine says: {text}",
+  "store.node.noroot": "System rights for this are missing on this server. They are given in “Users and rights”, tab “Servers”, with “Change system rights”.",
   "users.bad.list": "The installation's answer was not in order. Nothing is shown.",
   "users.bad.offer": "The installation's answer was not in order. Nothing is offered.",
   "users.noreach": "The installation is not answering right now.",

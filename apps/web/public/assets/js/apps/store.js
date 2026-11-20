@@ -900,6 +900,18 @@ class Store {
       // ones count.
       await this.ask(action, null, signed);
     } catch (e) {
+      // ONE REFUSAL HAS A SENTENCE OF ITS OWN: E_FORBIDDEN is what a root task
+      // gets on a server where the person holds no system rights (Go:
+      // shared/task, MayRoot; rights.check answers it). "Bitte es noch einmal
+      // versuchen." sends the person into a repeat that cannot work, and that
+      // is what it cost on the real Debian machine on 18.10.2026 -- a refusal
+      // for want of rights reads exactly like a server having a bad day. The
+      // code is read, never a text of the other side; every other code keeps
+      // the general sentence below.
+      if (e?.code === CODES.FORBIDDEN) {
+        this.say("error", t("store.node.noroot"));
+        return false;
+      }
       // THE SENTENCE OF THE SERVER, WHERE IT HAS ONE, and it is marked as
       // his. This shell's own sentence says what happened and what to try;
       // for a general code (wire.isGeneral - E_INTERNAL) it is all there is,

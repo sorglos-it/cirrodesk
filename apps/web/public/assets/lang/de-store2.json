@@ -43,5 +43,6 @@
   "store.notrust": "Die Vertrauensliste fehlt. Bitte neu anmelden.",
   "store.confirm.short": "Die Bestätigung hat nicht gereicht. Bitte es noch einmal versuchen.",
   "store.node.refused": "Das hat der Rechner nicht angenommen. Bitte es noch einmal versuchen.",
-  "store.node.says": "Der Rechner sagt: {text}"
+  "store.node.says": "Der Rechner sagt: {text}",
+  "store.node.noroot": "Auf diesem Server fehlen dafür die Systemrechte. Vergeben werden sie in „Benutzer und Rechte“, Reiter „Server“, mit „Systemrechte ändern“."
 }

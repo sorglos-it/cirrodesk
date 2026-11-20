@@ -43,5 +43,6 @@
   "store.notrust": "The trust list is missing. Please sign in again.",
   "store.confirm.short": "The confirmation was not enough. Please try again.",
   "store.node.refused": "The machine did not accept that. Please try again.",
-  "store.node.says": "The machine says: {text}"
+  "store.node.says": "The machine says: {text}",
+  "store.node.noroot": "System rights for this are missing on this server. They are given in “Users and rights”, tab “Servers”, with “Change system rights”."
 }
