@@ -55,7 +55,10 @@ auf `main`:** `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/` u
   `5146658` (cd-web schreibt die Balancer-Datei aus dem Vertrag) und `010cfdc` (CHANGELOG). Dort heißen
   die Skripte `apps/cli-ulh/assets/scripts/cd-*.sh`, und er bringt die Balancer-Zeilen aus
   `shared/ulh.md` mit, die ulh fehlten (`connectiontimeout=2`, `Retry-After`, `LogLevel`). **Er liegt
-  nur lokal** in `Z:\GitHub\unknown-helper`, nicht auf GitHub.
+  nur lokal** in `Z:\GitHub\unknown-helper`, nicht auf GitHub. **Nachtrag 20.11.2026:** jetzt 9 Commits
+  auf ulh-`main` `2181c9b`, dazugekommen `6747f07` (`RuntimeDirectoryPreserve=yes` auch für die API),
+  `32ef215` (viertes Stück, siehe „Auslieferungskette") und `7c1e554` (Unit-Kommentar nennt nur
+  `join-secret`); weiter nur lokal.
 - **Labor, laufende Arbeit (Entscheidung Thomas, 19.11.2026):** Auch die Laborbezeichnungen werden
   umbenannt. Die Proxmox-VMs 300–309 heißen seit dem 19.11.2026 `cd-vorlage`, `cd-web-api-1`,
   `cd-api-2`, `cd-db-1` bis `cd-db-3`, `cd-svc-1`, `cd-svc-2`, `cd-store` und `cd-ein` (Angabe des
@@ -106,9 +109,9 @@ Die drei, die schon am 10.11.2026 als dringend galten, tragen ihre Arbeit weiter
 
 - ~~**`ngc-join-keys`** (06.11.): „join: register the keys this server holds, and write none to
   `/run`" — kein privater Schlüssel mehr unter `/run`, also Sicherheit. 5 Dateien, +258 Zeilen.~~
-  **Erledigt 20.11.2026:** als Zweig `join-keys` über PR #247 auf `main` — Cherry-Pick, Konflikte nur
-  an Namen, dazu ein Fall, der auf `b7a21def` 5 von 5 rot war. `ngc-join-keys` selbst trägt nur noch
-  die alten Namen und kann weg.
+  **Erledigt 20.11.2026:** als Zweig `join-keys` über PR #247 auf `main` (Merge `35565572`) —
+  Cherry-Pick, Konflikte nur an Namen, dazu ein Fall, der auf `b7a21def` 5 von 5 rot war.
+  `ngc-join-keys` selbst trägt nur noch die alten Namen und kann weg.
 - **`fristen-hintergrund`** (16.10.): 13 Dateien, +1719 Zeilen; ein Commit darin nennt ein
   Datenrennen, das ein `-race`-Lauf gefunden hat.
 - **`ngc-rootrechte`** (19.10.): das Rechtemodell über Web, API und Controller, 30 Dateien, +1358
@@ -193,15 +196,17 @@ Gemessen am 19.11.2026 an ulh-`main` (`2181c9bb`):
   das Verzeichnis, wenn die Unit stoppt (`man systemd.exec`) — stoppt die API, ist `/run/ngc` also
   auch für den Controller weg. Ein Nachtrag liegt auf `archiv/ulh/api-runtimedir-preserve`. Auf
   `cd-umbenennung` ist es genauso: die Zeile steht nur in `cd-controller.sh:1256` und `cd-all.sh:1536`.
+  **Nachtrag 20.11.2026:** auf `cd-umbenennung` behoben mit `6747f07` — die Zeile steht jetzt auch in
+  der API-Unit (`cd-api.sh:1072`, `cd-all.sh:1430`); in ulh-`main` fehlt sie weiter.
 - **Die Vorlage für den virtuellen Host wird gelesen:** `ensure_vhost_template` in `ngc-web.sh`.
 - **Berichtigt gegenüber `stand-aktuell`:** Dass `Delegate=yes` in ulh-`main` fehlt, ist **kein
   Loch, sondern entschieden** — Punkt 101, Abschnitt „Warum nicht `Delegate=yes`": der Controller
   legt die cgroup selbst an.
 - **Nachtrag 20.11.2026, Beitritt:** Seit PR #247 schreibt `cd-api -join` weder `join-noise` noch
   `join-sign`, und ulh hat beide nie gelesen — `join_installation` liest nur `join-secret` und behält
-  `noiseKey`/`signKey` aus `api.json`. Veraltet sind nur Unit-Kommentare, die die zwei Dateien nennen
-  (auf `cd-umbenennung`: `cd-api.sh`, `cd-controller.sh`, `cd-all.sh` und die Bytevergleiche der drei
-  `*.test.sh`). Die übernimmt laut Koordinator der Partner-Thread ulh-ui auf `cd-umbenennung`.
+  `noiseKey`/`signKey` aus `api.json`. Die Unit-Kommentare, die die zwei Dateien nannten, sind auf
+  `cd-umbenennung` berichtigt: `7c1e554` vom Koordinator (`cd-api.sh`, `cd-controller.sh`, `cd-all.sh`
+  und die Bytevergleiche der drei `*.test.sh`; ulh-Tests 864 bestanden, 0 rot, laut Koordinator).
 
 ## Schon entschieden — nicht neu aufmachen
 
@@ -407,9 +412,14 @@ verengte Planer.
 
 **Viertes Stück für das erste cd-Release (19.11.2026, aus dem Code gelesen, nicht ausprobiert):** Laut
 Entscheidung S7 legt das Web-Paket die Oberfläche unter `ui/` (`apps/cli/classes/contents.go` verlangt
-`ui/public/index.php`). ulhs `unpack_release` in `cd-web.sh` entpackt das Archiv aber unverändert und
+`ui/public/index.php`). ~~ulhs `unpack_release` in `cd-web.sh` entpackt das Archiv aber unverändert und
 verlangt `public/index.php` an der Wurzel, auch auf `cd-umbenennung`. Ohne Änderung bricht die
-Installation des Web-Teils mit dem ersten cd-Release ab.
+Installation des Web-Teils mit dem ersten cd-Release ab.~~ **Erledigt 20.11.2026 auf `cd-umbenennung`**
+(`32ef215`): `unpack_release` nimmt nur Namen unter `ui/` an (auch kein `ui//…`, das nach dem
+Abstreifen ein absoluter Pfad wäre) und entpackt mit `--strip-components=1`; `public/index.php` und
+`templates/apache-vhost.conf` liegen wie bisher. Laut Koordinator ulh-Tests 864 bestanden, 0 rot, und
+die Gegenprobe ohne `--strip-components` 13 rot. Liegt wie der ganze Zweig nur lokal und geht mit ihm
+raus.
 
 **Nachtrag 19.11.2026, Umbenennung:** ulhs `main` holt `releases/latest` und erwartet `ngc-*`-Dateien
 und `ngc/`-Signaturen, wie sie `v0.2.2` trägt. Das erste Release mit `cd`-Namen bricht deshalb jede
