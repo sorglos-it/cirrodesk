@@ -446,6 +446,8 @@ test("a refusal for want of system rights says so, and where they are given", as
     name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
+  // The upload is signed and confirmed since #257, as in the case above.
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
   await expect(page.getByRole("alert")).toHaveText(
