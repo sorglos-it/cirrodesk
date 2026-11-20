@@ -529,6 +529,17 @@ func TestAPanicInTheHelloHookKeepsTheTunnel(t *testing.T) {
 	case <-time.After(readWait):
 		t.Fatal("the tunnel died with the hook")
 	}
+	// The counter moves in the hook's own goroutine, once the panic has
+	// unwound to its catch, and nothing orders that against the notice above,
+	// which the tunnel's reader delivers. Read at once, the case can be ahead
+	// of the catch - measured: the Linux -race job read "0 -> 0" once
+	// (20.11.2026), and a hook held back for 300 ms after signalling reads it
+	// every time. So the case waits for the count, as waitForTunnel waits for
+	// the registry, and still holds it at exactly one.
+	deadline := time.Now().Add(readWait)
+	for guard.Panics() == before && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
 	if got := guard.Panics(); got != before+1 {
 		t.Fatalf("the counter went %d -> %d; one panic must count once", before, got)
 	}
