@@ -990,7 +990,9 @@ einschließen können, statt ihn zu übersehen — deshalb steht der Zeitstempel
 Datenbank-Ausfall vom Morgen des 24.10. zu tun hat. Der Zeitstempel steht in Abschnitt 12, der
 Ausfall begann über eine Stunde vorher, und mehr habe ich dazu nicht gemessen.
 
-**Nicht gemessen und nicht abgewogen, sondern eine Entscheidung für Thomas:**
+**Nicht gemessen und nicht abgewogen, sondern eine Entscheidung für Thomas** (Nachtrag 20.11.2026: alle
+vier entschieden, vom Koordinator nach Thomas' Vorgabe; je Punkt im Protokoll des Entwurfs, Zeile A23
+vom 20.11.2026. VM 310 gibt es nicht mehr.):
 
 1. Ob die dbKeys bei einer Neuinstallation **vorgegeben** werden dürfen. Ohne das kann
    „dieselbe Maschine wiederherstellen" nicht funktionieren — und mit `tools/sicherung-zurueck`

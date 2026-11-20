@@ -92,12 +92,15 @@ das Blatt gibt den Stand vom 24.10. wieder und nennt dort noch `Updater: nil`.
    zusammengeführt, laut PR-Titel: A24 (#224), A2 (#225), A25 (#227), A3 (#234) und S12, die
    Oberfläche in fünf Sprachen (#230, #233, #238–#241). **Erst nachsehen, dann anfangen** — eine
    Sperre kann längst zu sein.
-3. **Was nur Thomas entscheidet**, steht in [`was-fehlt.md`](was-fehlt.md), Abschnitt 5:
-   Release-Schlüssel (S3), Laden (S1), ein Push nach ulh-`main`, P10, Verhaltensänderungen für
-   fremde Anlagen, ein öffentlicher Name für die Messung S10.
+3. **Was nur Thomas kann**, steht in [`was-fehlt.md`](was-fehlt.md), „Stand am 20.11.2026",
+   Abschnitt „Was nur Thomas kann": Release-Schlüssel (S3), Laden (S1), das erste cd-Release mit dem
+   Push nach ulh-`main`, die Anlage neu aufsetzen, ein öffentlicher Name für S10. **Alles andere
+   entscheidet der Koordinator** nach Thomas' Vorgabe vom 24.10.2026 (Stabilität vor Sicherheit vor
+   Leistung); seit dem 20.11.2026 gilt sie ausdrücklich auch für neue Fragen. Jede Entscheidung steht
+   im Protokoll des Entwurfs, Abschnitt 6.
 4. ~~**Die 31 Zweige ohne Pull Request**: je Zweig entscheiden — Pull Request oder löschen.~~
-   **Gesichtet am 20.11.2026** (nächster Abschnitt): 27 können weg, einer bleibt bis zu seinem Bau,
-   drei warten auf Thomas.
+   **Gesichtet am 20.11.2026** (nächster Abschnitt): 30 können weg, einer bleibt bis zu seinem Bau.
+   Die drei Fragen an Thomas sind am selben Tag entschieden (Protokoll).
 5. **Ohne Thomas baubar:** die Liste am Ende von [`was-fehlt.md`](was-fehlt.md), Abschnitt „Stand am
    20.11.2026" (PR #254), nach Teilen geordnet.
 
@@ -113,7 +116,7 @@ Gelöscht ist noch nichts; das entscheidet Thomas.
 | Rest als PR auf `main`, Zweig kann weg | `fristen-hintergrund` (#256), `ngc-rootrechte` (#259), `pool-schreibkanal` (#255), `ngc-ersteapp` (#260), `ngc-abmelden` (#258), `ngc-upload-bestaetigung` und `web-pruef-main` (#257), `web-reif` (#251, #257), `ngc-knotenfassung` (#251), `zeit-vm` (#249), `punkt54-paar-echt` und `messung-punkt53-paar` (#250), `docs-apps-bauen` (#252), `stand-aktuell` (#244, #246, #253), `ngc-join-keys` (#247) |
 | schon in anderer Form auf `main`, kann weg | `p-web-s12-store` (#238), `endgeraet-echo-merge`, `term-echo`, `web-lang` (S12 baute anders), `ngc-knotenkennung`, `ctl-aktivierung-kanalfall`, `ngc-fscrypt-echt`, `ngc-appweg`, `riegel-ed25519-messen`, `release-packer`, `pruefauftraege`, `pruefergebnisse` |
 | bleibt, bis gebaut | `api-knoten-kennung`: Abschnitt 9 nennt je Stelle die Zeile für A8c (Apache-Protokoll) |
-| Thomas fragen | `veroeffentlichungsliste` (Entscheidung 19.10. „neue Sprachschicht bleibt" gegen S12 auf `main`), `ngc-zweiter-mensch` (Blatt „eigener Zugang für Sitzungen"), `claude/elegant-thompson-6m2un0` (Plan Standard-Apps vom 25.09.) |
+| entschieden am 20.11.2026 (Protokoll), kann weg | `veroeffentlichungsliste` (es gilt die Sprachschicht auf `main`), `ngc-zweiter-mensch` (Weg (b): ein Konto für alle Sitzungen; das Blatt ist `c83da1d1`), `claude/elegant-thompson-6m2un0` (Plan Standard-Apps vom 25.09. nicht übernommen) |
 
 200 Zweige liegen auf GitHub außer `main`:
 

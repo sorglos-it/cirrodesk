@@ -21,11 +21,12 @@ stehen.
   macht Thomas. Schon beim Nutzer sind S13 (seit 0.2.0), A20 und U17 (auf ulh-`main`).
 - **Abschnitt 5 ist zum Teil überholt.** Thomas hat am 24.10.2026 geschrieben: „keine ahnung entscheide
   selbständig nach den grundsätzen stabilität vor sicherheit vor performance"
-  (`docs/thomas-entscheidet.md:5-6`). Danach sind dort 27 von 32 Fragen entschieden, darunter P10,
+  (`docs/thomas-entscheidet.md:5-6`). Danach sind dort 28 von 32 Fragen entschieden (hier stand 27), darunter P10,
   `noexec` (A15), der Digest (A16) und die Rohtasten im Terminal (A17). **Im Entscheidungsprotokoll des
-  Entwurfs fehlen diese Entscheidungen** (Zeile 1059 ist vom 23.10., Zeile 1060 vom 15.11.). Die
+  Entwurfs fehlten diese Entscheidungen**; am 20.11.2026 sind sie nachgetragen. Die
   stehende Zustimmung (S8) ist am 15.11. entschieden, der Push für A20 am 30.10. geschehen.
-- **Bei Thomas bleiben fünf Dinge und sieben offene Entscheidungen**, ohne ihn baubar ist der Rest,
+- **Bei Thomas bleiben fünf Dinge**; die sieben offenen Entscheidungen sind am 20.11.2026 gefallen. Ohne
+  ihn baubar ist der Rest,
   meist in kleinen Stücken. Beide Listen stehen am Ende dieses Abschnitts.
 
 **Abkürzungen in den Belegen.** `api/`, `ctl/`, `db/` = `apps/server-api/classes/`,
@@ -65,7 +66,7 @@ stehen.
 | S8 | **zu.** Ohne gespeicherte Fassung fragt der Controller das Programm oder liest `ui/VERSION`. Ein Lauf an der Anlage fehlt. | PR 210; Entwurf :1062; `ctl/update/install.go:396-455`; `TestInstallWithoutAWrittenVersionAsksTheProgram` (`install_test.go:1532`) | Lauf an der Anlage (Thomas) |
 | S9 | **teilweise.** `cd-db backup/restore` gibt es und wird gebaut, kommt aber auf keinen Datenbankknoten: kein Release-Teil, kein ulh-Skript. Nie gegen eine echte MariaDB gelaufen. | PR 198, 231; `tools/build-release.sh:202` (`api_progs="cd-api cd-store"`); `TestThereIsNoDatabasePart` (`tools/release/release_test.go:56`); in ulh installiert kein Skript `cd-db` (beide Stände) | Weg wählen: Koordinator; dann baubar, mittel · tools, cd-store, ulh. Lauf: Anlage |
 | S10 | **offen.** Entschieden ist ein Lauf mit echtem Namen vor der Veröffentlichung (Frage 32); gemacht ist er nicht. | TE :384 | Thomas: öffentlicher Name, Anlage |
-| S11 | **offen.** Nur VM 301 trägt die Rolle `web`. | `docs/proxmox-sechs.md:40`; kein Eintrag im Protokoll | Entscheidung fehlt; danach mittel · tools, docs |
+| S11 | **offen.** Nur VM 301 trägt die Rolle `web`. | `docs/proxmox-sechs.md:40`; kein Eintrag im Protokoll | entschieden 20.11.: zweiter Knoten, gleicher Name, gleiches Zertifikat; danach mittel · ulh, tools, docs |
 | S12 | **teilweise, fast zu.** Alle fünf Sprachen haben je 459 Schlüssel in 11 Dateien. Rund 15 Texte sind noch deutsch, etwa „im Monat" und „je Benutzer" an jedem Preis und die Terminal-App. | PR 230, 233, 238–241; `apps/web/public/assets/lang/` (mit node gezählt); `web/apps/store.js:1067,1069`; `apps/web/assets/apps/terminal/app.js:56-59` | baubar, klein · Web |
 | S13 | **zu, seit 0.2.0 auch beim Nutzer.** Eine Lizenz mit Ausstellungszeit in der Zukunft wird abgewiesen. War schon am 30.10. erledigt. | `api/appstore/license.go:101`; `TestALicenseIssuedInTheFutureIsRefused` (`license_test.go:736`); `a9592aa6` und `d1f0f175` sind Vorfahren von `v0.2.0` | — |
 | S14 | **zu.** Die Oberfläche öffnet die Vertrauensliste bei der neuesten Fassung. Auf `main` erst seit dem 08.11. (PR 164), nicht in 0.2.2. | `589324b8` ist Vorfahr von `main`, nicht von `v0.2.2`; `apps/web/tests/shell/trustgrowth.spec.js:47` | — |
@@ -84,7 +85,7 @@ stehen.
 | A7 | **teilweise.** Es war ein halber Vorgang; der Rest ist gebaut. Die Oberfläche fragt die Liste nach „Aufnehmen" nicht neu ab. Nicht nachgemessen. | `api/coreapp/users.go:266-339`; `TestAListedControllerLeavesTheWaitingList` (`users_test.go:1069`); `web/apps/users.js:1671-1676` | Liste neu abfragen: baubar, klein · Web. Messung: Anlage |
 | A8 | **offen, ohne Anlage lösbar.** Die „fünfte" Einstellung ist die HSTS-Zeile des ganzen Hosts, dieselbe wie die vierte. ulh zählt Zeilen statt Einstellungen und warnt darum ohne Grund. | `apps/web/templates/apache-vhost.conf:404`, `:640`; `ulh-main:ngc-web.sh:1084-1087` | baubar, klein · ulh-Zweig, docs |
 | A8a | **teilweise.** Fehlt ein Controller, steht nach zwei Runden eine Warnung im Journal. Die Oberfläche meldet es nicht, und fehlende API- oder Datenbankknoten prüft niemand. | PR 208; `api/server/missing.go:31-50`; `TestAbsenceSaysOnceGoneAndOnceBack` (`missing_test.go:12`); das Feld `online` gibt es (`shared/core/results.go:142`) | baubar, mittel · Web |
-| A8b | **teilweise.** Bei jedem Start meldet CirroDesk eine abweichende Spalte im Journal. Es startet trotzdem (Weg A nicht entschieden). | PR 159; `db/sqlstore/drift.go:25,110` (kam mit PR 198); `TestCheckColumnsFindsTheBentColumn` (`drift_test.go:15`); `docs/schema-pruefung-beim-start.md:330-339` | Weg A: Entscheidung fehlt. Blatt nachziehen: klein · docs |
+| A8b | **teilweise.** Bei jedem Start meldet CirroDesk eine abweichende Spalte im Journal. Es startet trotzdem, und so bleibt es (entschieden 20.11.). | PR 159; `db/sqlstore/drift.go:25,110` (kam mit PR 198); `TestCheckColumnsFindsTheBentColumn` (`drift_test.go:15`); `docs/schema-pruefung-beim-start.md:330-339` | entschieden 20.11.: Weg A wird nicht gebaut, das Blatt ist nachgezogen; der Fall für `OncePeek` (A19a) bleibt · Datenbank |
 | A8c | **teilweise.** Jede API-Anfrage hat jetzt eine Zeile mit dem Knoten. Apaches Protokoll nennt den Arbeiter des Lastverteilers weiter nicht. | PR 204; `api/server/reqlog.go:22-45`; `TestRequestLogNamesNodePathAndStatusOnly` (`reqlog_test.go:18`); `apache-vhost.conf:319`, `BALANCER_WORKER` 0 Treffer | baubar, klein · Web |
 | A9 | **zu.** Abgelaufene Lizenz: kein Container, `E_LICENSE`. | PR 200; `ctl/serve/app.go:245-259`; `TestAnAppWithoutALicenceReachesNoContainer` (`reason_test.go:400`) | — |
 | A10 | **zu im Code.** Jede App bekommt eine eigene cgroup mit `pids.max`, `memory.max` und `cpu.max`, und der Controller liest jede Zahl zurück. „Delegate oder linger" entfällt. | PR 155; Buch Punkt 101; `ctl/runtime/cgroup.go:199-339`; `cgroup_test.go:249,292` | Anlage (Thomas) |
@@ -96,19 +97,19 @@ stehen.
 | A16 | **teilweise.** Der Digest ist seit 15.10. festgenagelt, und wer ihn anhebt, ist geregelt. Es fehlt die Prüfung, die meldet, wenn er alt wird (Frage 26). | `apps/server-controller/templates/terminal/Containerfile:30`; `tools/pin-base.sh:11-24`; `pin-base` sonst 0 Treffer in `tools/` und `.github/` | baubar, klein · tools |
 | A17 | **offen, aber entschieden.** Rohtasten (Frage 27); gebaut ist weiter das Zeilenfeld. | TE :327; `apps/web/assets/apps/terminal/app.js:118-119,377-403` | baubar, mittel bis groß · Web |
 | A18 | **offen, nur an der Anlage.** Der Code schreibt `innodb_encrypt_log=ON`; das `OFF` auf db-3 kam aus einer Handdatei. | `cdu:cd-db.sh:517` (`ulh-main` gleich); `apps/server-db/templates/galera.cnf:62`; Buch Punkt 93 | Neuaufsetzen (Thomas) |
-| A19 | **offen.** `wsrep_dirty_reads` ist nirgends entschieden und nirgends gesetzt. | 0 Treffer in `apps/` beider Repos; Buch :6954 | Thomas: Entscheidung; danach klein · ulh-Zweig |
+| A19 | **offen.** `wsrep_dirty_reads` ist nirgends gesetzt (entschieden 20.11.: bleibt aus). | 0 Treffer in `apps/` beider Repos; Buch :6954 | eine Zeile `wsrep_dirty_reads=OFF` mit Grund in `apps/server-db/templates/galera.cnf`: klein · Datenbank |
 | A19a | **zu.** Der Ablauf eines Einmalwerts wird zusätzlich in Go geprüft. | PR 181; `db/sqlstore/once.go:163-169`; `TestOnceUseRefusesAnExpiredValueOnABentColumn` (`expiredtype_test.go:73`) | — |
 | A20 | **zu, auf ulh-`main`.** Die API darf `/etc/ngc` schreiben (seit 30.10., Merge `a61e3fc`); die `/etc/cd`-Form steht auf `cdu`. | `ulh-main:ngc-api.sh:57,1085`, `ngc-all.sh:1443`; `cdu:cd-api.sh:1094` | Push der Umbenennung (Thomas) |
 | A21 | **offen.** Kein Skript legt `/var/lib/cd/staged` an. | gelesen in `cdu:cd-api.sh:646-656`; `mkdir` oder `ensure_dir` darauf: 0 Treffer auf beiden ulh-Ständen | baubar, klein · ulh-Zweig |
 | A22 | **teilweise.** Sicherung und Rücksicherung gibt es als Befehle; `cd-db` kommt nicht zum Nutzer (S9). In der Oberfläche gibt es beides nicht. | `apps/server-api/main.go:73`; `db/dbcli/dbcli.go:47,112`; „backup" und „sicherung": 0 Treffer in `apps/web/public/`, `apps/web/assets/` | baubar, groß · shared/, API, Controller, Web |
-| A23 | **offen.** Das Wiederherstellen legt Benutzer und Datenordner einer App nicht an; die Form ist als Entscheidung für Thomas vermerkt. | `ctl/node/restore.go:139,216`; `docs/sicherung-und-weg-zurueck.md:993` | Entscheidung fehlt; danach mittel · Controller |
+| A23 | **offen.** Das Wiederherstellen legt Benutzer und Datenordner einer App nicht an; die Form ist am 20.11. entschieden: ein eigener Schritt, nicht `node.Restore`. | `ctl/node/restore.go:139,216`; `docs/sicherung-und-weg-zurueck.md:993` | dbKey über die alte `controller.json` vorgeben: Anleitung und ulh-Fall, klein · docs, ulh-Zweig |
 | A24 | **teilweise.** Gebaut wie am 15.11. entschieden: ein Kanalfehler schließt nur den Kanal. Ob das den gemessenen Fall trifft (Punkt 77, `ErrLink` im Controller), ist offen. | PR 224; `api/controllers/tunnel.go:203-225`; `TestAContractBreakOnOneChannelLeavesTheOthersAlone` (`tunnel_test.go:249`) | Nachmessung: Anlage (Thomas) |
 | A25 | **teilweise.** `cd.store/refresh` gibt es in Vertrag und API, höchstens einmal je Minute. Die Oberfläche ruft es nicht; der Knopf „Jetzt nachsehen" baut nur den Schirm neu. | PR 227; `shared/core/core.go:56`; `TestRefreshNowFetchesAtMostOnceAMinute` (`refresh_test.go:8`); `ACT_REFRESH` nur in `web/contracts/core.js:66,142`; `web/shell/stale.js:51` | baubar, klein · Web |
 | A26 | **teilweise.** Der Kopplungscode gilt 24 Stunden, und „Kopplungscode zeigen" gibt jederzeit einen neuen aus. Entschieden ist eine Stunde (Frage 18). | `shared/tunnel/tunnel.go:35` (`PairLifetime = 86400`); `web/apps/users.js:1530`; TE :215 | baubar, klein · shared/ (Koordinator) |
 | A27 | **offen.** Die Anleitung nennt vier WSL-Fallen, nicht das gemeinsame Netz. | `docs/installation-kleines-system.md:780-802` | baubar, klein · docs |
 | A28 | **offen.** Die Anleitung beginnt weiter mit „zwei Entscheidungen von Thomas" und beschreibt das Web-Paket in alter Form. | `docs/installation-kleines-system.md:57,94-96,281` | baubar, klein · docs (endgültig mit dem cd-Release) |
 | A28a | **offen.** Für `/assets/` setzt die Vorlage keinen `Cache-Control`; jede Anmeldung lädt ihr Rechenwerk neu. | `apache-vhost.conf:594` (nur Kommentar), `:636-642`; `web/contracts/proof.js:254` | baubar, mittel · Web |
-| A29 | **offen, neu.** Den Vertrauensanker außerhalb der Datenbank legt nur die Kopplung eines Controllers an; die API rückt ihn nur vor, wo die Datei schon liegt. Ein API-Server ohne gekoppelten Controller hat diesen Schutz nicht, auch ein beigetretener nicht: der Beitrittscode trägt den Anker, die API zeigt ihn nur an. Im Labor am 24.10. gemessen: api-1 und api-2 ohne Datei, die Liste auf Fassung 3. | `ctl/node/main.go:287`; `api/state/trust.go:228,239` (`advanceAnchor`), `:287-294` (`ResealAnchor`: „An installation without the file never gets one here"); `api/join/run.go:201`; `docs/proxmox-sechs.md:309-317` | Entscheidung fehlt (Entwurf vom 22.09.: die erste Kopplung schreibt ihn); danach mittel · API, ulh |
+| A29 | **offen, neu.** Den Vertrauensanker außerhalb der Datenbank legt nur die Kopplung eines Controllers an; die API rückt ihn nur vor, wo die Datei schon liegt. Ein API-Server ohne gekoppelten Controller hat diesen Schutz nicht, auch ein beigetretener nicht: der Beitrittscode trägt den Anker, die API zeigt ihn nur an. Im Labor am 24.10. gemessen: api-1 und api-2 ohne Datei, die Liste auf Fassung 3. | `ctl/node/main.go:287`; `api/state/trust.go:228,239` (`advanceAnchor`), `:287-294` (`ResealAnchor`: „An installation without the file never gets one here"); `api/join/run.go:201`; `docs/proxmox-sechs.md:309-317` | entschieden 20.11.: zuerst ein Rückweg für root (E), dann anlegen bei Einrichtung und Beitritt und vorrücken beim Auffrischen (B–D) in einem Zug; E mittel, B–D klein · API, docs |
 | A30 | **offen, neu; die Behebung liegt in PR #257 (offen).** Ein App-Paket lässt sich auf einer eingerichteten Anlage nicht hochladen. Hochladen ist immer „kritisch", der erste Verwalter steht auf Stufe `critical`, aber die Oberfläche schickt den Upload ohne unterschriebene Aufgabe und ohne Bestätigung; die API antwortet `E_CONFIRM`. Die Test-Attrappe stand auf Stufe `off`, darum fiel es in keinem Fall auf. Rest laut #257: `cd.store/api/set-update` geht weiter ohne Aufgabe. | `shared/core/core.go:310-318`; `web/auth/setup.js:181`; `web/apps/store.js:547` (`this.ask(A.upload, null, …)`), `:884-886`; `shared/task/task.go:175,183`; `api/rights/check.go:146,165-166`; `web/shell/fake-link.js:597`; PR #257 | #257 prüfen und zusammenführen (Koordinator) |
 
 ### 3. Stört uns — heute
@@ -125,14 +126,14 @@ stehen.
 | U8 | **offen, aber entschieden.** P1 (a). `store.ValidDownloadURL` gibt es nicht; Pfad und Query einer Download-Adresse prüft niemand. | TE :174; `shared/store/catalog.go:208`; `api/appstore/fetch.go:433-446` | baubar, klein im Umfang (Vertragsergänzung) · shared/, API |
 | U9 | **offen, aber entschieden.** P11, P12, P5, P14 und P15; keiner gebaut. | TE :185, :195, :205, :251, :262; `shared/dbapi/dbapi.go:83-99` (kein Verweisfeld) | P11, P12, P14: klein · shared/. P5: groß · shared/, DB, Controller. P15: groß, nach dem Schnitt |
 | U10 | **teilweise.** Entschieden ist eine eigene Release-Nummer (Frage 31). Gebaut ist eine Nummer, die in alle Programme gestempelt wird; im Vertrag steht es nicht. | TE :374; `tools/build-release.sh:5-6,223`; `shared/store/catalog.go:146` | Satz: klein · shared/. Ob das Gebaute zur Entscheidung passt: Koordinator |
-| U11 | **offen.** ulh legt `/var/lib/cd` mit `0755` und `release.seq` mit `0644` an. Ob enger, ist nicht entschieden. | `cdu:cd-api.sh:734,736` (ebenso die anderen drei Skripte, `ulh-main` gleich); Buch :7293 | Entscheidung fehlt; danach klein · ulh-Zweig |
+| U11 | **offen.** ulh legt `/var/lib/cd` mit `0755` und `release.seq` mit `0644` an. Entschieden 20.11.: `0711` und `0640`. | `cdu:cd-api.sh:734,736` (ebenso die anderen drei Skripte, `ulh-main` gleich); Buch :7293 | alle vier Skripte gleich ändern: klein · ulh-Zweig |
 | U12 | **zu.** Der Kommentar an `--read-only` sagt jetzt, was stimmt. | PR 155; `ctl/runtime/podman.go:270-286` | — |
 | U13 | **teilweise.** Die Herkunft ist geklärt: die Warnzeilen von rootless podman. Sie zählen weiter als stderr der App. | `ctl/runtime/cgroup.go:43-51`; `ctl/serve/call.go:207-210` | baubar, klein · Controller |
 | U14 | **teilweise.** Die Vorrichtung ist behoben (Punkt 85: danach 30 von 30 grün). Warum der Runner häufiger stückelt, ist ungemessen. | `ctl/terminal/terminal_test.go:683,712` (`7a946603`); Buch :6159 | baubar, klein · docs |
 | U15 | **zu.** `STAND.md` ist vom 19.11.2026, mit Nachträgen vom 20.11. | `docs/STAND.md:3`; PR 244, 246, 248 | — |
 | U16 | **zu, war kein Mangel.** Die Vertrauensliste kennt nur `api` und `controller`; `web` ist die Rolle eines Controllers. | `shared/trust/trust.go:50-53` | — |
 | U17 | **zu.** Einheit und Programm sagen beide `0711`. | `ulh-main:ngc-controller.sh:1244` (seit 25.10.); `cdu:cd-controller.sh:1244`; `ctl/runtime/run.go:65-67` | — |
-| U18 | **offen.** Die Oberfläche schickt den Anmeldebeweis weiter, bevor sie prüft, mit wem sie spricht; der Entwurf sagt nicht, ob das so gewollt ist. | `web/auth/login.js:177,195,201`; `api/login/trust.go:33` | Entscheidung fehlt |
+| U18 | **offen.** Die Oberfläche schickt den Anmeldebeweis weiter, bevor sie prüft, mit wem sie spricht; am 20.11. als gewollt entschieden (siehe U19). | `web/auth/login.js:177,195,201`; `api/login/trust.go:33` | nichts zu bauen |
 
 ### Was nur Thomas kann
 
@@ -146,20 +147,32 @@ stehen.
    (S8) und `cd-db` gegen eine echte MariaDB (S9).
 5. **Ein öffentlicher Name** für den einen Lauf mit echtem Zertifikat (S10, TE Frage 32).
 
-**Dazu sieben Entscheidungen, die nicht auf dem Blatt vom 24.10. standen:** `wsrep_dirty_reads` (A19), die Form des
-Wegs zurück (A23), Start verweigern bei abweichender Spalte (A8b, Weg A), ein zweiter Web-Knoten (S11),
-die Rechte von `/var/lib/cd` (U11), „erst beweisen, dann prüfen, wem" (U18) und ob ein API-Server
-seinen Vertrauensanker selbst anlegt (A29). **Offen ist, ob die
-Vorgabe vom 24.10. auch für sie gilt** — dann entscheidet der Koordinator nach der Rangfolge, und bei
-Thomas bleiben nur 1–5.
+**Die sieben Entscheidungen, die nicht auf dem Blatt vom 24.10. standen, sind am 20.11.2026 gefallen**
+(Nachtrag): Thomas hat bestätigt, dass seine Vorgabe vom 24.10. auch für sie gilt, und der Koordinator hat
+nach der Rangfolge entschieden. `wsrep_dirty_reads` (A19) bleibt aus; die Form des Wegs zurück (A23) ist
+festgelegt; bei abweichender Spalte (A8b) startet CirroDesk weiter und meldet es; die Rolle `web` bekommt
+einen zweiten Knoten (S11); `/var/lib/cd` wird `0711` (U11); „erst beweisen, dann prüfen, wem" (U18) ist
+gewollt; ein API-Server legt seinen Anker selbst an, sobald es einen Rückweg gibt (A29). Das Warum steht
+je Zeile im Protokoll des Entwurfs, Abschnitt 6. Bei Thomas bleiben nur 1–5.
+
+**Neu beim Entscheiden gefunden (20.11.2026), noch nicht eingeordnet:**
+- **U19: Jede Sitzung kann die Passwort-Prüfwerte aller Konten lesen.** Die Vertrauensliste trägt für
+  jedes Passwortkonto den abgeleiteten öffentlichen Schlüssel und die KDF-Parameter
+  (`shared/proof/proof.go`, `UserKey`: `pub`, `kdf`), und `api/login/trust.go` gibt die Kette jeder
+  Sitzung. Wer angemeldet ist, kann damit das Passwort jedes anderen Kontos offline raten (Argon2id mit
+  den echten Parametern). Passkey-Konten betrifft es nicht. Entscheidung fehlt; zuerst abwägen.
+- **Vermutet, nicht gemessen:** Der Testknoten `nodeNonPrimary` lehnt schon das `SET` beim Verbinden ab
+  (`db/mariadb/fakenode_test.go:51,243`); eine echte MariaDB erlaubt `SET` auf einem Knoten ohne
+  Mehrheit. Dann greift das Ausweichen auf den nächsten Knoten (`db/mariadb/nodes.go:107-144`) im Feld
+  vermutlich nicht. Messen an der Anlage nach dem Neuaufsetzen.
 
 ### Ohne Thomas baubar (Vorschlag)
 
 Nach Teilen. Größe grob: klein = eine Stelle, mittel = mehrere Dateien oder zwei Teile, groß = über
 mehrere Teile oder eine Vertragsänderung.
 
-- **Koordinator (`shared/`, Protokoll):** die Entscheidungen vom 24.10. ins Protokoll (klein, docs) ·
-  PR #257 prüfen und zusammenführen, A30 (gebaut) ·
+- **Koordinator (`shared/`, Protokoll):** ~~die Entscheidungen vom 24.10. ins Protokoll~~ (am 20.11.
+  nachgetragen) · ~~PR #257 prüfen und zusammenführen, A30~~ (am 20.11. zusammengeführt) ·
   P10 bauen, U5 (wenige Zeilen, aber Vertragsänderung; mit Web) · `PairLifetime` auf eine Stunde, A26
   (klein) · Sätze zu P11, P12, P14 und zur Release-Nummer, U9 und U10 (klein) · Fälle für U1 (klein) ·
   `store.ValidDownloadURL`, U8 (klein, mit API) · Zähler für falsche MACs, A13 (mittel, mit API) · Weg
@@ -167,25 +180,33 @@ mehrere Teile oder eine Vertragsänderung.
   von TE: P8 (U6), P9 (U7), P7 (U4), P5 (U9), je groß.
 - **Web:** Resttexte übersetzen, S12 · Knopf für `cd.store/refresh`, A25 · Liste nach „Aufnehmen" neu
   abfragen, A7 · Arbeiter des Lastverteilers ins Apache-Protokoll, A8c · Beispiel `calculator`
-  entfernen, S2 · ein Fall, der einen Passkey anlegt und sich damit anmeldet, S6 — alle klein. Meldung
+  entfernen, S2 · ein Fall, der einen Passkey anlegt und sich damit anmeldet, S6 · den Kommentar
+  „nothing is ticked" in `users.js` an den Code angleichen (Systemrechte, 20.11.) — alle klein. Meldung
   „mir fehlt ein Teil", A8a (mittel) · Zwischenspeicher für `/assets/`, A28a (mittel) · Terminal mit
   Rohtasten, A17 (mittel bis groß) · Sicherung und Rücksicherung in der Oberfläche, A22 (groß, mit
   `shared/`, API, Controller).
 - **API:** eigene Zeile beim Abweisen einer Aktivierung, A1 · Text „Der Beitrittscode ist verbraucht"
   berichtigen, A14 · die Kopplung prüft die MAC vor dem Verbrauch, A13 (nach dem Zähler) — alle klein.
-  Vertrauensanker auf API-Servern ohne Controller, A29 (nach der Entscheidung; mittel, mit ulh).
+  Vertrauensanker, A29: zuerst der Rückweg für root (E, mittel; vorher `docs/recovery-modus.md`
+  lesen), danach anlegen bei Einrichtung und Beitritt und vorrücken beim Auffrischen (B–D, klein) in
+  einem Zug.
 - **Controller:** `noexec` auf `/data`, A15 · podmans Warnzeilen nicht als stderr der App zählen, U13 ·
   stderr beim `create` behalten, A11 — alle klein.
-- **Datenbank:** ein Fall für `OncePeek` mit verbogener Spalte, A19a — klein.
+- **Datenbank:** ein Fall für `OncePeek` mit verbogener Spalte, A19a · `wsrep_dirty_reads=OFF` mit
+  Grund in `templates/galera.cnf`, A19 — beide klein.
 - **ulh-Zweig `cd-umbenennung`** (den Push macht Thomas): Berichtigung S3a nachziehen ·
-  `/var/lib/cd/staged` anlegen, A21 · die HSTS-Zeile nicht doppelt zählen, A8 — alle klein.
-  Unterbefehl `test-key <Datei>`, S5 — mittel.
+  `/var/lib/cd/staged` anlegen, A21 · die HSTS-Zeile nicht doppelt zählen, A8 · `/var/lib/cd` auf
+  `0711` und `release.seq` auf `0640`, in allen vier Skripten, U11 · ein Fall für den dbKey aus der
+  alten `controller.json`, A23 — alle klein. Unterbefehl `test-key <Datei>`, S5 · ein vorhandenes
+  Web-Zertifikat übernehmen, statt eines zu erzeugen, S11 — beide mittel.
 - **tools:** Altersprüfung des Digests, A16 · `govulncheck` und `release-gate.sh` Schritte 5–6 gegen
-  den Testvektor in die Prüfung, U3 — klein.
-- **docs:** WSL-Netz, A27 · Anleitung Abschnitt 1, A28 · Blatt zur Schema-Prüfung, A8b · Buch zu A8
+  den Testvektor in die Prüfung, U3 · den veralteten Kommentar in `tools/sicherung.sh:14-15`
+  berichtigen, A23 — klein. Zweiter Web-Knoten in `tools/proxmox-sechs*.sh`, S11 — mittel.
+- **docs:** WSL-Netz, A27 · Anleitung Abschnitt 1, A28 · Buch zu A8
   und U14 · `vertragsdeckung.md`, U1 · Zeilenangabe in `docs/cd-store-betreiben.md`, S1 ·
   `docs/zweiter-benutzer-schritte.md:21-28` nennt PR 118 als nicht verschmolzen (verschmolzen seit
-  24.10., ausgerollt erst mit dem cd-Release) — alle klein.
+  24.10., ausgerollt erst mit dem cd-Release) · Anleitung: der dbKey bei einer Neuinstallation über die
+  alte `controller.json`, A23 · `docs/proxmox-sechs.md` für den zweiten Web-Knoten, S11 — alle klein.
 
 **So gemessen.** Vier Lesedurchgänge (S, A1–A14, A15–A28a, U) haben jede Zeile am Code nachgesehen und
 nichts geändert; über 50 ihrer Belege sind danach einzeln nachgeprüft (`git grep`, `sed -n`, `gh`),
@@ -358,7 +379,7 @@ Das ist der halbe Weg. Was bleibt, steht unten.
 | **U15** | `docs/STAND.md` ist vom **10.10.2026** und beschreibt eine Lage, die es nicht mehr gibt („nichts davon ist je gelaufen"). Wer es zuerst liest, liest 20 Tage Rückstand. | eigener Vergleich 30.10. |
 | **U16** | `web-api-1` steht in der Vertrauensliste als `controller` statt als `web`. | am 30.10.2026 von einem anderen Strang gemessen |
 | **U17** | Die Einheit des Controllers verlangt `RuntimeDirectoryMode=0700`, danach steht der Ordner auf 711 — erklärt (der Controller setzt ihn selbst), heißt aber: **aus einem Dateimodus lässt sich nicht auf die aufgespielte Fassung schließen**. | am 30.10.2026 von einem anderen Strang gemessen |
-| **U18** | **Die Oberfläche prüft erst, mit wem sie spricht, nachdem sie den Anmeldebeweis geschickt hat.** Der Kettenpfad für die Vertrauensliste verlangt eine Sitzung (`login/trust.go:34` über `h.Live`), also läuft `verifyAPI` erst nach `loginFinish`. **Das ist kein Leck:** das Passwort verlässt den Browser nie — `contracts/proof.js` leitet im Worker einen Schlüssel ab und schickt eine Unterschrift über die Bytes der Client-Bescheinigung, an Nonce und Zweck gebunden; ein abgefangener Beweis gilt für diese eine Bescheinigung und diesen einen Nonce. Die Argon2-Parameter der ungeprüften Gegenstelle hält `proof.validateKDF` gegen den Vertrag, bevor abgeleitet wird. Bleibt eine **Frage an den Entwurf**: ist „erst beweisen, dann prüfen, wem" so gewollt? | am 30.10.2026 von einem anderen Strang gemessen |
+| **U18** | **Die Oberfläche prüft erst, mit wem sie spricht, nachdem sie den Anmeldebeweis geschickt hat.** Der Kettenpfad für die Vertrauensliste verlangt eine Sitzung (`login/trust.go:34` über `h.Live`), also läuft `verifyAPI` erst nach `loginFinish`. **Kein Passwort geht hinaus** (berichtigt am 20.11.2026; hier stand „Das ist kein Leck", hinaus geht aber ein Prüfwert zum Offline-Raten, siehe U19 im Stand vom 20.11.): das Passwort verlässt den Browser nie — `contracts/proof.js` leitet im Worker einen Schlüssel ab und schickt eine Unterschrift über die Bytes der Client-Bescheinigung, an Nonce und Zweck gebunden; ein abgefangener Beweis gilt für diese eine Bescheinigung und diesen einen Nonce. Die Argon2-Parameter der ungeprüften Gegenstelle hält `proof.validateKDF` gegen den Vertrag, bevor abgeleitet wird. Bleibt eine **Frage an den Entwurf**: ist „erst beweisen, dann prüfen, wem" so gewollt? | am 30.10.2026 von einem anderen Strang gemessen |
 
 **Das sind 18 Sachen.**
 

@@ -338,6 +338,10 @@ Migration startet – warten statt verweigern –, und die Frage einer Sollbruch
 eine falsche Prüfung keine gesunde Anlage dauerhaft unten hält. Beides ist nicht
 entschieden.
 
+**Nachtrag 20.11.2026: A wird nicht gebaut, B bleibt.** Entschieden vom Koordinator nach Thomas'
+Vorgabe (Stabilität vor Sicherheit vor Leistung, nicht die Rangfolge dieses Blatts); das Warum
+steht im Protokoll des Entwurfs, Zeile A8b vom 20.11.2026.
+
 **C bleibt in der Hinterhand**, für den Fall, dass eine Abweichung im Feld wirklich
 auftritt und A noch nicht reif ist.
 
