@@ -364,6 +364,28 @@ test("a sentence under a code that says what to do never reaches the screen", as
   await expect(page.getByRole("alert")).not.toContainText("f2fs");
 });
 
+test("a refusal for want of system rights says so, and where they are given", async ({ page }) => {
+  // E_FORBIDDEN is what a root task gets on a server where the person holds no
+  // system rights, and "Bitte es noch einmal versuchen." sends him into a
+  // repeat that cannot work (measured on the real Debian machine, 18.10.2026).
+  // The case above is the other half: every other code keeps the general
+  // sentence, so this one cannot pass by blaming the rights for everything.
+  // The stand-in's sentence must not show either: E_FORBIDDEN is no general
+  // code, so the real ChannelError keeps no text of the other side.
+  await store(page, { refuseActivate: "ignored", refuseActivateCode: "E_FORBIDDEN" });
+  await tab(page, "Hochladen").click();
+  await page.locator(".store input[type=file]").setInputFiles({
+    name: "notizen.cd", mimeType: "application/octet-stream",
+    buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
+  });
+  await expect(page.locator(".upfacts")).toBeVisible();
+  await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
+  await expect(page.getByRole("alert")).toHaveText(
+    "Auf diesem Server fehlen dafür die Systemrechte. Vergeben werden sie in "
+    + "„Benutzer und Rechte“, Reiter „Server“, mit „Systemrechte ändern“.",
+  );
+});
+
 // noFscryptText is the controller's own sentence, READ OUT OF THE GO SOURCE
 // and not copied here. It is the one occasion this whole change exists for -- a
 // controller whose data disk cannot encrypt a directory names the file systems
