@@ -5,7 +5,9 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
@@ -698,5 +700,48 @@ func TestBuildTakesTheAnchorFromThePackageVariable(t *testing.T) {
 	}
 	if srv.State.AnchorFile != AnchorFile {
 		t.Fatalf("Build reads %q, want %q", srv.State.AnchorFile, AnchorFile)
+	}
+}
+
+// TestBuildKeepsTheReasonTheCodeCouldNotBeMade holds that the start keeps the
+// reason the code could not be made. Without it the log said nothing but "der
+// Einmal-Code für die Ersteinrichtung lässt sich nicht anlegen" -- a sentence
+// that fits a file somebody laid out, a read-only disk AND a database that was
+// only busy. One of those is mended by removing a file and another by waiting,
+// and the admin could not tell which.
+//
+// That the sentence names nothing is not only the admin's loss: it was used as
+// evidence. 6 of 30 pairs on 13.10.2026 refusing "with this very sentence" was
+// taken to be the O_EXCL window of setup.EnsureCode, which the sentence cannot
+// show. A re-measurement on 16.10.2026 with two real cd-api on one SQLite
+// file over HTTP found that window 0 times in 100 pairs and 0 times in 100
+// against the stand before -- the refusals that did happen were the database,
+// and the wrapping this case holds is what made them readable.
+func TestBuildKeepsTheReasonTheCodeCouldNotBeMade(t *testing.T) {
+	db := memstore.New()
+	withStore(t, db)
+	_, _ = withDirs(t)
+	// Control first, so the refusal below is the code file and not a wall in
+	// front of it.
+	if _, err := Build(ctx, newConfig(t), "9.9.9"); err != nil {
+		t.Fatalf("control: %v", err)
+	}
+	SetupCodeFile = filepath.Join(t.TempDir(), "kein-verzeichnis", "setup-code")
+	// The case checks its own setup: a path that works after all would make
+	// the refusal below never come and the case measure nothing.
+	if _, err := os.Stat(filepath.Dir(SetupCodeFile)); !os.IsNotExist(err) {
+		t.Fatalf("the directory exists after all: %v", err)
+	}
+	srv, err := Build(ctx, newConfig(t), "9.9.9")
+	if err == nil || srv != nil {
+		t.Fatalf("Build came up without a code file: %v %v", srv, err)
+	}
+	// The sentence stays -- it is what the admin reads first.
+	if !strings.Contains(err.Error(), "Einmal-Code") {
+		t.Fatalf("the sentence of the start is gone: %v", err)
+	}
+	// And the reason is still in it, by its error and not by its wording.
+	if !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("the reason was thrown away: %v", err)
 	}
 }

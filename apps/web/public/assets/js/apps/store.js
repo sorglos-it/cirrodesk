@@ -266,7 +266,8 @@ class Store {
   //   FLOW_CALL, FLOW_TRANSFER  -> channel.call(link, action,
   //                                  {params, taskBytes, confirmBytes})
   //   FLOW_IN                   -> channel.sendIn(link, action,
-  //                                  {params, taskBytes, stream, onProgress})
+  //                                  {params, taskBytes, confirmBytes, stream,
+  //                                   onProgress})
   //
   // Those are net/channel.js as it stands since Task 17, member for member -
   // the option bag below is its, which is why it is the bag this hands over.
@@ -333,34 +334,7 @@ class Store {
     try {
       apps = await this.catalogOf(src);
     } catch (e) {
-      // FOUR different things go wrong here and each gets its own sentence,
-      // because each has a different thing to DO about it: a store nobody
-      // has vouched for yet, a store whose catalog this installation has not
-      // fetched yet, a store replaying an old catalog, and an answer nobody
-      // signed for. One sentence for all four would tell the person nothing
-      // they could act on.
-      //
-      // The empty case is the one that was missing, and it was the loudest:
-      // until the hourly round has run once there is no catalog row, so
-      // cd.store/catalog answers E_NOTFOUND (appstore.CodeFor over
-      // dbapi.ErrNotFound) -- and that answer used to fall through to "nicht
-      // echt", which tells a verified, healthy store's administrator that
-      // they are being attacked and leaves them nothing to do. Waiting is
-      // the thing to do, so the sentence says so (V1.2 point 65).
-      //
-      // E_NOTFOUND on THIS action can only mean "this API has nothing under
-      // that name yet" -- the missing row, or an API too old to carry the
-      // action at all. Neither is a forgery, and both are mended by waiting
-      // or by looking at the source list, so one sentence covers both. An ID
-      // the trust list does not name never gets here: it is refused before
-      // the request (Untrusted), and the API answers it E_UNREACHABLE.
-      out.push(el("p", "fail", e instanceof Untrusted
-        ? t("store.apps.untrusted")
-        : e?.code === CODES.NOTFOUND
-          ? t("store.apps.notfetched")
-          : e instanceof catalog.Rollback
-            ? t("store.apps.old")
-            : t("store.apps.fake")));
+      out.push(el("p", "fail", t(catalogFault(e))));
       return out;
     }
     const box = el("div", "rows");
@@ -540,11 +514,17 @@ class Store {
       pair(t("store.up.sum"), b64encode(mine.packageSha256)),
       pair(t("store.up.uisum"), b64encode(mine.sha256)),
     );
+    // Signed, and confirmed where the trust list asks for it, BEFORE a byte
+    // goes out: upload is critical whatever its params, and the API refuses
+    // it unsigned with E_CONFIRM. The node is "": it runs on the API.
+    const signed = await this.signedTask(A.upload, null, "");
+    if (signed === null) return;
     const sending = el("p", "muted", t("store.up.sending"));
     zone.append(sending);
     let theirs;
     try {
       theirs = await this.ask(A.upload, null, {
+        ...signed,
         stream: file.stream(),
         onProgress: (n) => text(sending, t("store.up.progress", { kb: Math.round(n / 1024) })),
       });
@@ -736,8 +716,8 @@ class Store {
     let apps;
     try {
       apps = await this.catalogOf(src);
-    } catch {
-      this.say("error", t("store.apps.fake"));
+    } catch (e) {
+      this.say("error", t(catalogFault(e)));
       return;
     }
     const e = apps.find((x) => x.id === u.target);
@@ -876,68 +856,35 @@ class Store {
   // task without that signature, and the shell must not send one it knows
   // will be refused.
   //
-  // A GAP IN THE CONTRACT, NAMED HERE BECAUSE THIS IS WHERE IT SHOWS.
-  // wire.encodeOpen (and wire.parseOpen behind it) takes `confirm` only
-  // together with `task`: "if (confirm !== null) { if (task === null) return
-  // false }". So an action of service `api` - which carries no task - CANNOT
-  // BE CONFIRMED AT ALL, however the trust list's policy reads. The store
-  // therefore asks only for root tasks, and cd.store/api/set-update goes out
-  // unconfirmed even for a role at level `hardcore`, whose `changes` rule
-  // would ask for one. That is the contract as it stands, not an omission
-  // here; it is in the coordinator's register.
+  // WHAT THE CONTRACT SAYS ABOUT A CONFIRMATION. wire.encodeOpen (and
+  // wire.parseOpen behind it) takes `confirm` only together with `task`: "if
+  // (confirm !== null) { if (task === null) return false }". A confirmation
+  // alone is refused - but a task is allowed on an action of service `api`
+  // too, with node "", and the API checks it like any other (task.Check). Until
+  // 20.11.2026 this note read the rule as "an action of service api CANNOT BE
+  // CONFIRMED AT ALL", and the upload went out unsigned; see signedTask.
+  // cd.store/api/set-update still goes out without a task: it is not critical,
+  // so only a role at level `hardcore` would be asked, and nothing asks yet.
   async rootTask(action, params, node, done) {
-    const s = this.ctx.session;
-    if (!s) {
-      this.say("error", t("store.needlogin"));
-      return false;
-    }
-    let built, taskBytes;
-    try {
-      built = task.buildTask({
-        inst: s.inst, certHash: s.certHash, node,
-        app: action.app, service: action.service, action: action.name,
-        params: core.encodeParams(action, params),
-        now: Math.floor(Date.now() / 1000),
-      });
-      taskBytes = task.envelopeBytes(await task.signTask(s.signKey, built.bytes));
-    } catch {
-      this.say("error", t("store.nosign"));
-      return false;
-    }
-    let confirmBytes = null;
-    const { list } = this.ctx.trust?.current?.() ?? {};
-    // No list, no decision: the policy of what has to be confirmed lives in
-    // it, and a shell that cannot read the policy must not decide that
-    // nothing needs confirming. Nothing is sent - the safer of the two, and
-    // the API would refuse it a moment later anyway.
-    if (!list) {
-      this.say("error", t("store.notrust"));
-      return false;
-    }
-    if (needConfirm(list, s.user, {
-      app: action.app, action: action.name, node,
-      root: action.root === true, critical: core.critical(action, params),
-      changes: action.changes === true,
-    })) {
-      // The bytes of the task, not a sentence about it: what is confirmed is
-      // what runs.
-      const p = await askConfirm(built.bytes, { list, user: s.user, signal: this.abort.signal });
-      if (p === null) {
-        this.say("info", t("store.nochange"));
-        return false;
-      }
-      try {
-        confirmBytes = proofBytes(p);
-      } catch {
-        this.say("error", t("store.confirm.short"));
-        return false;
-      }
-    }
+    const signed = await this.signedTask(action, params, node);
+    if (signed === null) return false;
     try {
       // With a task the OPEN carries no params of its own: only the signed
       // ones count.
-      await this.ask(action, null, { taskBytes, confirmBytes });
+      await this.ask(action, null, signed);
     } catch (e) {
+      // ONE REFUSAL HAS A SENTENCE OF ITS OWN: E_FORBIDDEN is what a root task
+      // gets on a server where the person holds no system rights (Go:
+      // shared/task, MayRoot; rights.check answers it). "Bitte es noch einmal
+      // versuchen." sends the person into a repeat that cannot work, and that
+      // is what it cost on the real Debian machine on 18.10.2026 -- a refusal
+      // for want of rights reads exactly like a server having a bad day. The
+      // code is read, never a text of the other side; every other code keeps
+      // the general sentence below.
+      if (e?.code === CODES.FORBIDDEN) {
+        this.say("error", t("store.node.noroot"));
+        return false;
+      }
       // THE SENTENCE OF THE SERVER, WHERE IT HAS ONE, and it is marked as
       // his. This shell's own sentence says what happened and what to try;
       // for a general code (wire.isGeneral - E_INTERNAL) it is all there is,
@@ -958,6 +905,93 @@ class Store {
     this.say("info", done);
     return true;
   }
+
+  // signedTask signs the action and, where the trust list asks for it, gets
+  // the person's confirmation over the very same bytes. It answers
+  // {taskBytes, confirmBytes} for the option bag of net/channel.js, or null
+  // when it has already told the person why nothing goes out. It stands apart
+  // from rootTask because the upload needs it too, and the upload is no root
+  // task.
+  async signedTask(action, params, node) {
+    const s = this.ctx.session;
+    if (!s) {
+      this.say("error", t("store.needlogin"));
+      return null;
+    }
+    let built, taskBytes;
+    try {
+      built = task.buildTask({
+        inst: s.inst, certHash: s.certHash, node,
+        app: action.app, service: action.service, action: action.name,
+        params: core.encodeParams(action, params),
+        now: Math.floor(Date.now() / 1000),
+      });
+      taskBytes = task.envelopeBytes(await task.signTask(s.signKey, built.bytes));
+    } catch {
+      this.say("error", t("store.nosign"));
+      return null;
+    }
+    let confirmBytes = null;
+    const { list } = this.ctx.trust?.current?.() ?? {};
+    // No list, no decision: the policy of what has to be confirmed lives in
+    // it, and a shell that cannot read the policy must not decide that
+    // nothing needs confirming. Nothing is sent - the safer of the two, and
+    // the API would refuse it a moment later anyway.
+    if (!list) {
+      this.say("error", t("store.notrust"));
+      return null;
+    }
+    if (needConfirm(list, s.user, {
+      app: action.app, action: action.name, node,
+      root: action.root === true, critical: core.critical(action, params),
+      changes: action.changes === true,
+    })) {
+      // The bytes of the task, not a sentence about it: what is confirmed is
+      // what runs.
+      const p = await askConfirm(built.bytes, { list, user: s.user, signal: this.abort.signal });
+      if (p === null) {
+        this.say("info", t("store.nochange"));
+        return null;
+      }
+      try {
+        confirmBytes = proofBytes(p);
+      } catch {
+        this.say("error", t("store.confirm.short"));
+        return null;
+      }
+    }
+    return { taskBytes, confirmBytes };
+  }
+}
+
+// catalogFault is the key of the sentence for a catalog that could not be
+// read, for the Apps tab and for the update row alike - the update row said
+// "nicht echt" for every one of these until 20.11.2026.
+//
+// FOUR different things go wrong here and each gets its own sentence, because
+// each has a different thing to DO about it: a store nobody has vouched for
+// yet, a store whose catalog this installation has not fetched yet, a store
+// replaying an old catalog, and an answer nobody signed for. One sentence for
+// all four would tell the person nothing they could act on.
+//
+// The empty case is the one that was missing, and it was the loudest: until
+// the hourly round has run once there is no catalog row, so cd.store/catalog
+// answers E_NOTFOUND (appstore.CodeFor over dbapi.ErrNotFound) -- and that
+// answer used to fall through to "nicht echt", which tells a verified, healthy
+// store's administrator that they are being attacked and leaves them nothing
+// to do. Waiting is the thing to do, so the sentence says so (V1.2 point 65).
+//
+// E_NOTFOUND on THIS action can only mean "this API has nothing under that
+// name yet" -- the missing row, or an API too old to carry the action at all.
+// Neither is a forgery, and both are mended by waiting or by looking at the
+// source list, so one sentence covers both. An ID the trust list does not name
+// never gets here: it is refused before the request (Untrusted), and the API
+// answers it E_UNREACHABLE.
+function catalogFault(e) {
+  if (e instanceof Untrusted) return "store.apps.untrusted";
+  if (e?.code === CODES.NOTFOUND) return "store.apps.notfetched";
+  if (e instanceof catalog.Rollback) return "store.apps.old";
+  return "store.apps.fake";
 }
 
 // serverSays is the sentence the other side sent along, or "". It reads

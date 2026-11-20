@@ -6,6 +6,7 @@
 // look and handling are taken from it, that habit is not.
 import { el, button, text, clear } from "./dom.js";
 import { t, language } from "./lang.js";
+import * as http from "../net/http.js";
 import * as core from "../contracts/core.js";
 import { Win, minSize } from "./window.js";
 import { storeApp } from "../apps/store.js";
@@ -122,6 +123,8 @@ class Desktop {
     // docs/gestaltung.md point 3 hangs on it - see renderEmpty.
     this.loaded = false;
     this.noticeTimer = 0;
+    // True while a logout request is out; see signOut().
+    this.goingOut = false;
     // Which tile of the start menu carries the one tabindex of the list.
     this.active = 0;
 
@@ -463,6 +466,11 @@ class Desktop {
     for (const b of this.paperRow.children) b.classList.toggle("on", b.style.background === bg);
   }
 
+  // The foot of the start menu: two things done to the windows, and the one
+  // thing done to the session. The way out is here because the start menu is
+  // where somebody who has never seen CirroDesk looks for it, and it is
+  // reached only on purpose, so no stray click ends a session. A plain button
+  // like the two beside it, so trapTab() walks it with no line added there.
   buildFoot() {
     const foot = el("div", null);
     foot.id = "smfoot";
@@ -476,8 +484,60 @@ class Desktop {
       this.closeAll();
       this.toggleMenu(false);
     });
-    foot.append(tile, closeAll);
+    const out = button(null, t("logout.button"), null);
+    out.id = "smlogout";
+    out.addEventListener("click", () => { this.signOut(); });
+    foot.append(tile, closeAll, out);
     return foot;
+  }
+
+  // ---- the way out ---------------------------------------------------------
+  //
+  // signOut ends the session: the API is told, and only its yes takes the
+  // screen down (point 50 of the contracts). A no - a busy or unreachable API,
+  // which is an ordinary answer and no rare one - leaves the desktop standing
+  // and says the person is STILL signed in. Both answers lie in one direction,
+  // and this one lies in the recoverable one: a login mask over a cookie that
+  // is still valid is the one state in which somebody believes they are out and
+  // walks away from a shared machine.
+  async signOut() {
+    // One at a time: a second click while the first request is out would tear
+    // the screen down twice.
+    if (this.goingOut) return;
+    this.goingOut = true;
+    try {
+      await http.logout();
+    } catch {
+      // No latch left behind: the next press is a real attempt again.
+      this.goingOut = false;
+      this.toggleMenu(false);
+      // "error", so the strip waits for the person: a session that is still
+      // open is no news that goes stale after eight seconds.
+      this.notice("error", t("logout.failed"));
+      return;
+    }
+    this.tearDown();
+  }
+
+  // tearDown takes this session off the page and reloads it. THE RELOAD IS THE
+  // PROOF: windows, tiles, the proven-interface cache, the trust list's
+  // listeners, the session and every timer live in this document, and ending
+  // the document is the only way to be sure none is left; shell/main.js then
+  // draws the login mask first. The link gets its "bye" and the windows close
+  // through their own close() before that, because a reload is not instant.
+  //
+  // What stays in this browser, on purpose: the look in localStorage and the
+  // verified trust list in indexedDB - facts about the machine and the
+  // installation, not about a session (trustlist.js #raise keeps the list for
+  // the same reason). The session cookie is HttpOnly; the API deletes it,
+  // which is why the API has to answer first.
+  tearDown() {
+    clearInterval(this.clockTimer);
+    clearTimeout(this.noticeTimer);
+    this.closeAll();
+    this.uiCache.clear();
+    if (typeof this.link?.close === "function") this.link.close();
+    location.reload();
   }
 
   buildDesktop(root) {

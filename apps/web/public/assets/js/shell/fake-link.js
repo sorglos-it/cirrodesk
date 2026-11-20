@@ -44,10 +44,14 @@
 // 17, 19 and 20 will hand it.
 //
 // It is not in contracts/ on purpose: nothing in there is a fake.
-import { b64encode } from "../contracts/b64.js";
+import { b64encode, fromUtf8 } from "../contracts/b64.js";
 import { UIWriter } from "../contracts/uitar.js";
-import { keyIDAsync, message as signedMessage, PURPOSE_CATALOG } from "../contracts/sign.js";
-import { encodeList, hash as listHash, parseList, parseSigned, validStore } from "../contracts/trust.js";
+import { keyIDAsync, message as signedMessage, parseEnvelope, PURPOSE_CATALOG } from "../contracts/sign.js";
+import {
+  encodeList, hash as listHash, LEVEL_CRITICAL, needsConfirm, parseList, parseSigned, validStore,
+} from "../contracts/trust.js";
+import { critical, lookup } from "../contracts/core.js";
+import { MAX_TASK, parseTask } from "../contracts/task.js";
 import { deriveSeed, publicFromSeed } from "../contracts/proof.js";
 import { packageUI } from "../contracts/pack.js";
 import { ChannelError } from "../net/channel.js";
@@ -594,7 +598,12 @@ export async function fakeWorld() {
       credId: new Uint8Array(0), kdf,
     }],
   };
-  const level = typeof knobs.level === "string" && knobs.level !== "" ? knobs.level : "off";
+  // THE LEVEL OF THE ADMIN'S ROLE, AND THE DEFAULT IS THE REAL ONE. It read
+  // "off" until 20.11.2026, where nothing is ever confirmed - a world the real
+  // surface never builds: auth/setup.js writes the first administrator's role
+  // at trust.LEVEL_CRITICAL, so that stands here, as the contract's own
+  // constant. A case that wants another world asks by the knob.
+  const level = typeof knobs.level === "string" && knobs.level !== "" ? knobs.level : LEVEL_CRITICAL;
 
   // TWO VERSIONS, NOT ONE, AND THAT IS THE WHOLE POINT OF THIS BLOCK.
   //
@@ -770,11 +779,46 @@ export async function fakeWorld() {
     return out;
   };
 
+  // refusalOf is the one decision of the API this stand-in makes itself: the
+  // part of shared/task/task.go Check that is about a confirmation, answered
+  // with the same E_CONFIRM. It returns the error to throw, or null. Without it
+  // every call was taken as it came, `level` defaults to "off" where nothing
+  // needs confirming, and the upload went out with neither task nor
+  // confirmation while every case of it was green - on a real installation the
+  // setup's admin is at level critical, upload is critical, and the API
+  // refuses it.
+  //
+  // The policy is read out of the list IN FORCE with the contract's own
+  // needsConfirm, and "critical" out of the SIGNED params where there is a
+  // task, as Go does, so a call cannot make a critical action look harmless.
+  // The params are the shell's own bytes, read with the shortcut appOf takes.
+  const refusalOf = (app, service, name, o) => {
+    const row = lookup(app, service, name);
+    // An app's own service: net/world.js signs a task where the server asks.
+    if (row === null) return null;
+    const hasTask = o.taskBytes instanceof Uint8Array && o.taskBytes.length > 0;
+    const hasConfirm = o.confirmBytes instanceof Uint8Array && o.confirmBytes.length > 0;
+    if (!hasTask && hasConfirm) {
+      return new Error(`fake-link: ${app}/${service}/${name} carries a confirmation without a task, which wire.encodeOpen refuses`);
+    }
+    if (!hasTask && row.root === true) return new ChannelError(CODES.CONFIRM, "");
+    const t = hasTask ? parseTask(parseEnvelope(o.taskBytes, MAX_TASK).payload) : null;
+    const signed = t !== null && t.params.length > 0 ? JSON.parse(fromUtf8(t.params)) : null;
+    const op = {
+      app, action: name, node: t?.node ?? "",
+      root: row.root === true, changes: row.changes === true, critical: critical(row, signed),
+    };
+    return !hasConfirm && needsConfirm(inForce.list, admin.id, op) ? new ChannelError(CODES.CONFIRM, "") : null;
+  };
+
   const link = {
     async call(app, service, name, params, opts) {
       window.__cdChannelsOpened++;
       const o = opts ?? {};
-      const body = await collect(o.stream);
+      // A refused OPEN is still one the shell sent, so it is recorded; its body
+      // never leaves, as on a channel the API closes before the first DATA.
+      const refused = refusalOf(app, service, name, o);
+      const body = refused === null ? await collect(o.stream) : new Uint8Array(0);
       o.onProgress?.(body.length);
       window.__cdSent.push({
         app, service, name,
@@ -783,6 +827,7 @@ export async function fakeWorld() {
         confirm: o.confirmBytes ? new TextDecoder().decode(o.confirmBytes) : "",
         body: b64encode(body),
       });
+      if (refused !== null) throw refused;
       const make = results[`${app}/${name}`];
       if (make === undefined) throw new Error(`fake-link: nothing for ${app}/${service}/${name}`);
       return await make(body, params);
@@ -836,6 +881,10 @@ export async function fakeWorld() {
     onNotice(fn) {
       if (typeof fn === "function") notices.add(fn);
     },
+    // Nothing to hang up - the stand-in has no socket. The door is here because
+    // this object has the shape net/world.js adapterFor() answers, and the
+    // desktop calls close() on whichever of the two it was handed.
+    close() {},
   };
 
   // A TEST HOOK, and it leaves with this file. The desktop's test sends a

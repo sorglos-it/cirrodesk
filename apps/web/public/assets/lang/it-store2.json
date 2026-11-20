@@ -43,5 +43,6 @@
   "store.notrust": "Manca l'elenco di fiducia. Accedi di nuovo.",
   "store.confirm.short": "La conferma non è bastata. Riprova.",
   "store.node.refused": "La macchina non l'ha accettato. Riprova.",
-  "store.node.says": "La macchina dice: {text}"
+  "store.node.says": "La macchina dice: {text}",
+  "store.node.noroot": "Su questo server mancano i diritti di sistema per farlo. Si assegnano in «Utenti e diritti», scheda «Server», con «Modifica diritti di sistema»."
 }

@@ -43,5 +43,6 @@
   "store.notrust": "La liste de confiance manque. Veuillez vous reconnecter.",
   "store.confirm.short": "La confirmation n'a pas suffi. Veuillez réessayer.",
   "store.node.refused": "La machine ne l'a pas accepté. Veuillez réessayer.",
-  "store.node.says": "La machine dit : {text}"
+  "store.node.says": "La machine dit : {text}",
+  "store.node.noroot": "Les droits système manquent pour cela sur ce serveur. Ils s'attribuent dans « Utilisateurs et droits », onglet « Serveurs », avec « Modifier les droits système »."
 }

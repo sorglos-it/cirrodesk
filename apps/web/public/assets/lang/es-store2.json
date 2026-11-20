@@ -43,5 +43,6 @@
   "store.notrust": "Falta la lista de confianza. Vuelve a iniciar sesión.",
   "store.confirm.short": "La confirmación no ha bastado. Inténtalo de nuevo.",
   "store.node.refused": "La máquina no lo ha aceptado. Inténtalo de nuevo.",
-  "store.node.says": "La máquina dice: {text}"
+  "store.node.says": "La máquina dice: {text}",
+  "store.node.noroot": "En este servidor faltan los derechos de sistema para esto. Se asignan en «Usuarios y derechos», pestaña «Servidores», con «Cambiar derechos de sistema»."
 }

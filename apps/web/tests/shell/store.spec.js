@@ -218,6 +218,8 @@ test("the upload shows the checksum, the version and the UI checksum the shell c
   await page.locator(".store input[type=file]").setInputFiles({
     name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
   });
+  // The upload is critical, so the question comes before the bytes move.
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   // The three numbers on screen are the ones pack.packageUI computed in this
   // page out of these very bytes - computed a second time here, out of the
@@ -245,10 +247,68 @@ test("an answer that names another package breaks the upload off and activates n
   await page.locator(".store input[type=file]").setInputFiles({
     name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
   });
+  await answerConfirm(page);
   await expect(page.locator(".upfail"))
     .toHaveText("Die Anlage hat ein anderes Paket bekommen, als geschickt wurde.");
   await expect(page.locator(".store").getByRole("button", { name: "Aktivieren" })).toHaveCount(0);
   expect(await names(page)).not.toContain("cd.store/activate");
+});
+
+// THE UPLOAD IS SIGNED AND CONFIRMED, and until 20.11.2026 it was neither.
+// auth/setup.js gives the admin role level critical, cd.store/api/upload is
+// critical (core.critical), so the trust list asks the person again, and the
+// API refuses an OPEN without a task and a confirmation with E_CONFIRM
+// (shared/task/task.go Check). Every case of the upload was green anyway,
+// because the stand-in put the admin's role at level "off", where nobody is
+// ever asked (docs/befunde-17-18-10-2026.md). Two holes that hid each other.
+test("the upload carries a signed task, and the person's confirmation with it", async ({ page }) => {
+  await store(page, { passwordKey: true });
+  await tab(page, "Hochladen").click();
+  await page.locator(".store input[type=file]").setInputFiles({
+    name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
+  });
+  await answerConfirm(page);
+  await expect(page.locator(".store").getByRole("button", { name: "Aktivieren" })).toBeVisible();
+  // SERVICE api AND NO NODE: the upload runs on the API, which checks the
+  // task against node "" (task.Input.Node). A task is allowed there; what
+  // wire.encodeOpen refuses is a confirmation WITHOUT one.
+  const t = await sentTask(page, "upload");
+  expect(t).toMatchObject({ app: "cd.store", service: "api", action: "upload", node: "", hasSignature: true });
+  // The confirmation travelled on the same OPEN. It is read back through
+  // wire.encodeOpen/parseOpen - the reader the API runs, which refuses a
+  // confirmation that is no proof and one without a task beside it.
+  const ok = await page.evaluate(async () => {
+    const b64 = await import("/assets/js/contracts/b64.js");
+    const wire = await import("/assets/js/contracts/wire.js");
+    const core = await import("/assets/js/contracts/core.js");
+    const action = core.lookup(core.APP_STORE, core.SERVICE_API, core.ACT_UPLOAD);
+    const rec = window.__cdSent.find((s) => s.name === "upload");
+    if (!rec || !rec.confirm) return { there: false, kind: "", critical: core.critical(action, null) };
+    const open = wire.parseOpen(wire.encodeOpen({
+      app: action.app, service: action.service, action: action.name,
+      params: null, window: wire.DEFAULT_WINDOW, e2e: null,
+      taskBytes: b64.utf8(rec.task), confirmBytes: b64.utf8(rec.confirm),
+    }));
+    return { there: true, kind: open.confirm.kind, critical: core.critical(action, null) };
+  });
+  expect(ok).toEqual({ there: true, kind: "password", critical: true });
+});
+
+// Asked BEFORE a byte goes out: a person who says no has sent nothing. The
+// stand-in records a refused OPEN too, so "nothing" means not even a try.
+test("saying no to the question sends no package", async ({ page }) => {
+  await store(page);
+  await tab(page, "Hochladen").click();
+  await page.locator(".store input[type=file]").setInputFiles({
+    name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(PKG),
+  });
+  const box = page.getByRole("dialog", { name: "Bitte bestätigen" });
+  await expect(box).toBeVisible();
+  await box.getByRole("button", { name: "Abbrechen", exact: true }).click();
+  await expect(box).toHaveCount(0);
+  await expect(page.getByRole("alert")).toContainText("Nichts geändert.");
+  expect(await names(page)).not.toContain("cd.store/upload");
+  await expect(page.locator(".store").getByRole("button", { name: "Aktivieren" })).toHaveCount(0);
 });
 
 // ------------------------------------------------------- 3. activate signs
@@ -260,11 +320,15 @@ test("the activate task carries the shell's own checksums and the manifest's nee
   await page.locator(".store input[type=file]").setInputFiles({
     name: "notizen.cd", mimeType: "application/octet-stream", buffer: Buffer.from(pkg),
   });
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   // Every right the manifest asks for has to be allowed by hand; the box is
   // named after the right, so nobody has to know which box means what.
   await page.locator(".store").getByRole("checkbox", { name: /Netz/ }).check();
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
+  // A SECOND QUESTION, about a second document: an activation that grants a
+  // right is critical (core.critical reads grants.length > 0).
+  await answerConfirm(page);
   await expect.poll(() => names(page)).toContain("cd.store/activate");
   const t = await sentTask(page, "activate");
   const mine = await page.evaluate(async (bytes) => {
@@ -291,6 +355,7 @@ test("a right the admin did not allow stops the activation", async ({ page }) =>
     mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: ["network"] }))),
   });
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   // The box stays empty on purpose.
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
@@ -333,9 +398,11 @@ test("a refusal shows the words of the machine, marked as the machine's",
       name: "notizen.cd", mimeType: "application/octet-stream",
       buffer: Buffer.from(buildPackage(manifest({ needs: ["network"] }))),
     });
+    await answerConfirm(page);
     await expect(page.locator(".upfacts")).toBeVisible();
     await page.locator(".store").getByRole("checkbox", { name: /Netz/ }).check();
     await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
+    await answerConfirm(page);
     // Whole and in this order: the shell's own first, then whose words follow,
     // then the words.
     await expect(page.getByRole("alert")).toHaveText(
@@ -356,12 +423,37 @@ test("a sentence under a code that says what to do never reaches the screen", as
     name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
   await expect(page.getByRole("alert"))
     .toHaveText("Das hat der Rechner nicht angenommen. Bitte es noch einmal versuchen.");
   await expect(page.getByRole("alert")).not.toContainText("Der Rechner sagt");
   await expect(page.getByRole("alert")).not.toContainText("f2fs");
+});
+
+test("a refusal for want of system rights says so, and where they are given", async ({ page }) => {
+  // E_FORBIDDEN is what a root task gets on a server where the person holds no
+  // system rights, and "Bitte es noch einmal versuchen." sends him into a
+  // repeat that cannot work (measured on the real Debian machine, 18.10.2026).
+  // The case above is the other half: every other code keeps the general
+  // sentence, so this one cannot pass by blaming the rights for everything.
+  // The stand-in's sentence must not show either: E_FORBIDDEN is no general
+  // code, so the real ChannelError keeps no text of the other side.
+  await store(page, { refuseActivate: "ignored", refuseActivateCode: "E_FORBIDDEN" });
+  await tab(page, "Hochladen").click();
+  await page.locator(".store input[type=file]").setInputFiles({
+    name: "notizen.cd", mimeType: "application/octet-stream",
+    buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
+  });
+  // The upload is signed and confirmed since #257, as in the case above.
+  await answerConfirm(page);
+  await expect(page.locator(".upfacts")).toBeVisible();
+  await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
+  await expect(page.getByRole("alert")).toHaveText(
+    "Auf diesem Server fehlen dafür die Systemrechte. Vergeben werden sie in "
+    + "„Benutzer und Rechte“, Reiter „Server“, mit „Systemrechte ändern“.",
+  );
 });
 
 // noFscryptText is the controller's own sentence, READ OUT OF THE GO SOURCE
@@ -394,6 +486,7 @@ test("the sentence of a disk that cannot encrypt arrives on the screen", async (
     name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
   await expect(page.getByRole("alert")).toHaveText(
@@ -414,6 +507,7 @@ test("the words of the machine go on the screen as text, never as markup", async
     name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
   await expect(page.getByRole("alert")).toContainText("Der Rechner sagt: " + said);
@@ -430,6 +524,7 @@ test("a refusal with nothing to say keeps the sentence the shell has", async ({ 
     name: "notizen.cd", mimeType: "application/octet-stream",
     buffer: Buffer.from(buildPackage(manifest({ needs: [] }))),
   });
+  await answerConfirm(page);
   await expect(page.locator(".upfacts")).toBeVisible();
   await page.locator(".store").getByRole("button", { name: "Aktivieren" }).click();
   // It went through, because an empty knob is no refusal - the control that
@@ -457,7 +552,11 @@ test("the target list offers only controllers that are online and run services",
       ui: null,
     }))),
   });
-  await expect(page.locator(".upfacts")).toBeVisible();
+  await answerConfirm(page);
+  // WAITED FOR THE SELECT, NOT FOR .upfacts: the numbers of the file stand on
+  // screen before anything is sent, and the box comes only after the question
+  // and the answer - a list read a moment too early is an empty one.
+  await expect(page.locator(".store select.target")).toBeVisible();
   const opts = page.locator(".store select.target option");
   expect(await opts.allTextContents()).toEqual(["pi-1", "pi-3"]);
 });
@@ -483,7 +582,8 @@ test("a controller whose version is unreadable is still offered as a target", as
       ui: null,
     }))),
   });
-  await expect(page.locator(".upfacts")).toBeVisible();
+  await answerConfirm(page);
+  await expect(page.locator(".store select.target")).toBeVisible();
   const opts = page.locator(".store select.target option");
   expect(await opts.allTextContents()).toEqual(["pi-1", "pi-2"]);
   await expect(page.locator(".installbox p.fail")).toHaveCount(0);
@@ -509,6 +609,7 @@ test("a role the contract does not know throws the list away, and the box names 
         ui: null,
       }))),
     });
+    await answerConfirm(page);
     await expect(page.locator(".upfacts")).toBeVisible();
     await expect(page.locator(".installbox p.fail")).toHaveText(
       "Eine Angabe dieses Servers ist unlesbar (roles).");
@@ -548,6 +649,32 @@ test("an update that wants new rights offers the activation and no update button
   await expect(page.locator(".store")
     .getByRole("button", { name: "Neue Version mit neuen Rechten aktivieren" })).toHaveCount(1);
 });
+
+test("an update with new rights says the catalog is not fetched yet, not that it is forged",
+  async ({ page }) => {
+    // The update row reads the store's catalog for the checksums of the new
+    // version, and its catch said "Der Katalog dieses Stores ist nicht echt."
+    // for every failure there is - also for the catalog this API has simply
+    // not fetched yet (E_NOTFOUND), which the Apps tab has told apart since
+    // V1.2 point 65. Both places now take their sentence from catalogFault.
+    await store(page, {
+      noCatalog: true,
+      updates: [{
+        target: "org.sorglos.terminal", node: "pi-1", installed: "1.0.0", available: "1.1.0",
+        sha256: "BgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgY", key: "", mode: "notify",
+        window: "", state: "needsgrants",
+      }],
+    });
+    await tab(page, "Updates").click();
+    await page.locator(".store")
+      .getByRole("button", { name: "Neue Version mit neuen Rechten aktivieren" }).click();
+    // The catalog was really asked for: what is measured is the answer to it.
+    await expect.poll(() => names(page)).toContain("cd.store/catalog");
+    await expect(page.getByRole("alert")).toHaveText(
+      "Der Katalog dieses Stores ist noch nicht geholt. CirroDesk sieht stündlich nach; "
+      + "unter Quellen steht, wann es das letzte Mal geklappt hat.",
+    );
+  });
 
 // ----------------------------------------------------------- 6. standing yes
 
