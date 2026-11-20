@@ -6,14 +6,15 @@ Landkarte.
 ## Stand am 20.11.2026 (nachgemessen)
 
 Jede Zeile der Abschnitte 1–3 ist am 20.11.2026 neu gemessen: am CirroDesk-Code auf `main`
-(`b7a21def`) und an ulh, dem Installationswerkzeug. Was danach auf `main` kam (#247 Beitritt, #248
-`STAND.md`), ändert keinen Eintrag; alle Zeilenangaben gelten für `eb6a65b6`. Die Tabellen ab „Stand
-am 15.11.2026" bleiben als Geschichte stehen.
+(`b7a21def`) und an ulh, dem Installationswerkzeug. Was danach auf `main` kam (#247 bis #252), ändert
+keinen dieser Einträge; alle Zeilenangaben gelten für `d359b96a`. Dazu kommen zwei neue Zeilen aus der
+Sichtung der API-Zweige (A29, A30). Die Tabellen ab „Stand am 15.11.2026" bleiben als Geschichte
+stehen.
 
 **Das Wichtigste**
 
-- **67 Zeilen** (16 sperren, 33 halten auf, 18 stören uns; die Zahlen 14 und 32 unten zählten
-  anders): **22 zu, 21 teilweise, 24 offen.**
+- **69 Zeilen** (16 sperren, 35 halten auf, 18 stören uns; A29 und A30 sind neu, die Zahlen 14 und 32
+  unten zählten anders): **22 zu, 21 teilweise, 26 offen.**
 - **„Zu" heißt: im Code.** Beim Nutzer ist davon fast nichts. Das letzte Release ist 0.2.2 vom
   23.10.2026 (`gh release list`), ulh-`main` steht seit dem 07.11. still. Was danach gebaut wurde, kommt
   erst mit dem **ersten cd-Release** und dem **Push von `cd-umbenennung`** an — nur zusammen, beides
@@ -24,7 +25,7 @@ am 15.11.2026" bleiben als Geschichte stehen.
   `noexec` (A15), der Digest (A16) und die Rohtasten im Terminal (A17). **Im Entscheidungsprotokoll des
   Entwurfs fehlen diese Entscheidungen** (Zeile 1059 ist vom 23.10., Zeile 1060 vom 15.11.). Die
   stehende Zustimmung (S8) ist am 15.11. entschieden, der Push für A20 am 30.10. geschehen.
-- **Bei Thomas bleiben fünf Dinge und sechs offene Entscheidungen**, ohne ihn baubar ist der Rest,
+- **Bei Thomas bleiben fünf Dinge und sieben offene Entscheidungen**, ohne ihn baubar ist der Rest,
   meist in kleinen Stücken. Beide Listen stehen am Ende dieses Abschnitts.
 
 **Abkürzungen in den Belegen.** `api/`, `ctl/`, `db/` = `apps/server-api/classes/`,
@@ -81,10 +82,10 @@ am 15.11.2026" bleiben als Geschichte stehen.
 | A5 | **zu.** Eine Zeile, wenn ein Laden ausfällt, und eine, wenn er wiederkommt. | PR 204; `api/appstore/fetch.go:195,209-227`; `TestJournalSaysAChangeOnce` (`journal_test.go:14`) | — |
 | A6 | **zu.** Die Kanalnummer wird frei, sobald beide CLOSE da sind; das nächste OPEN geht nicht mehr verloren. | PR 205, 236; `ctl/link/channel.go:571,713`; `TestOpenWhileOwnCloseIsStillBeingWritten` (`channel_test.go:1424`) | — |
 | A7 | **teilweise.** Es war ein halber Vorgang; der Rest ist gebaut. Die Oberfläche fragt die Liste nach „Aufnehmen" nicht neu ab. Nicht nachgemessen. | `api/coreapp/users.go:266-339`; `TestAListedControllerLeavesTheWaitingList` (`users_test.go:1069`); `web/apps/users.js:1671-1676` | Liste neu abfragen: baubar, klein · Web. Messung: Anlage |
-| A8 | **offen, ohne Anlage lösbar.** Die „fünfte" Einstellung ist die HSTS-Zeile des ganzen Hosts, dieselbe wie die vierte. ulh zählt Zeilen statt Einstellungen und warnt darum ohne Grund. | `apps/web/templates/apache-vhost.conf:401`, `:637`; `ulh-main:ngc-web.sh:1084-1087` | baubar, klein · ulh-Zweig, docs |
+| A8 | **offen, ohne Anlage lösbar.** Die „fünfte" Einstellung ist die HSTS-Zeile des ganzen Hosts, dieselbe wie die vierte. ulh zählt Zeilen statt Einstellungen und warnt darum ohne Grund. | `apps/web/templates/apache-vhost.conf:404`, `:640`; `ulh-main:ngc-web.sh:1084-1087` | baubar, klein · ulh-Zweig, docs |
 | A8a | **teilweise.** Fehlt ein Controller, steht nach zwei Runden eine Warnung im Journal. Die Oberfläche meldet es nicht, und fehlende API- oder Datenbankknoten prüft niemand. | PR 208; `api/server/missing.go:31-50`; `TestAbsenceSaysOnceGoneAndOnceBack` (`missing_test.go:12`); das Feld `online` gibt es (`shared/core/results.go:142`) | baubar, mittel · Web |
 | A8b | **teilweise.** Bei jedem Start meldet CirroDesk eine abweichende Spalte im Journal. Es startet trotzdem (Weg A nicht entschieden). | PR 159; `db/sqlstore/drift.go:25,110` (kam mit PR 198); `TestCheckColumnsFindsTheBentColumn` (`drift_test.go:15`); `docs/schema-pruefung-beim-start.md:330-339` | Weg A: Entscheidung fehlt. Blatt nachziehen: klein · docs |
-| A8c | **teilweise.** Jede API-Anfrage hat jetzt eine Zeile mit dem Knoten. Apaches Protokoll nennt den Arbeiter des Lastverteilers weiter nicht. | PR 204; `api/server/reqlog.go:22-45`; `TestRequestLogNamesNodePathAndStatusOnly` (`reqlog_test.go:18`); `apache-vhost.conf:316`, `BALANCER_WORKER` 0 Treffer | baubar, klein · Web |
+| A8c | **teilweise.** Jede API-Anfrage hat jetzt eine Zeile mit dem Knoten. Apaches Protokoll nennt den Arbeiter des Lastverteilers weiter nicht. | PR 204; `api/server/reqlog.go:22-45`; `TestRequestLogNamesNodePathAndStatusOnly` (`reqlog_test.go:18`); `apache-vhost.conf:319`, `BALANCER_WORKER` 0 Treffer | baubar, klein · Web |
 | A9 | **zu.** Abgelaufene Lizenz: kein Container, `E_LICENSE`. | PR 200; `ctl/serve/app.go:245-259`; `TestAnAppWithoutALicenceReachesNoContainer` (`reason_test.go:400`) | — |
 | A10 | **zu im Code.** Jede App bekommt eine eigene cgroup mit `pids.max`, `memory.max` und `cpu.max`, und der Controller liest jede Zahl zurück. „Delegate oder linger" entfällt. | PR 155; Buch Punkt 101; `ctl/runtime/cgroup.go:199-339`; `cgroup_test.go:249,292` | Anlage (Thomas) |
 | A11 | **zu.** Eine Grenze, die nicht greift, fällt auf; ein Container außerhalb seiner cgroup wird angehalten. Rest: beim `create` geht podmans stderr verloren. | PR 155; `cgroup.go:317-339`; `TestEnsureCgroupRefusesWhenTheKernelDoesNotHoldTheLimit` (`cgroup_test.go:292`); `ctl/runtime/podman.go:350` | Rest: baubar, klein · Controller |
@@ -106,7 +107,9 @@ am 15.11.2026" bleiben als Geschichte stehen.
 | A26 | **teilweise.** Der Kopplungscode gilt 24 Stunden, und „Kopplungscode zeigen" gibt jederzeit einen neuen aus. Entschieden ist eine Stunde (Frage 18). | `shared/tunnel/tunnel.go:35` (`PairLifetime = 86400`); `web/apps/users.js:1530`; TE :215 | baubar, klein · shared/ (Koordinator) |
 | A27 | **offen.** Die Anleitung nennt vier WSL-Fallen, nicht das gemeinsame Netz. | `docs/installation-kleines-system.md:780-802` | baubar, klein · docs |
 | A28 | **offen.** Die Anleitung beginnt weiter mit „zwei Entscheidungen von Thomas" und beschreibt das Web-Paket in alter Form. | `docs/installation-kleines-system.md:57,94-96,281` | baubar, klein · docs (endgültig mit dem cd-Release) |
-| A28a | **offen.** Für `/assets/` setzt die Vorlage keinen `Cache-Control`; jede Anmeldung lädt ihr Rechenwerk neu. | `apache-vhost.conf:591` (nur Kommentar), `:633-639`; `web/contracts/proof.js:254` | baubar, mittel · Web |
+| A28a | **offen.** Für `/assets/` setzt die Vorlage keinen `Cache-Control`; jede Anmeldung lädt ihr Rechenwerk neu. | `apache-vhost.conf:594` (nur Kommentar), `:636-642`; `web/contracts/proof.js:254` | baubar, mittel · Web |
+| A29 | **offen, neu.** Den Vertrauensanker außerhalb der Datenbank legt nur die Kopplung eines Controllers an; die API rückt ihn nur vor, wo die Datei schon liegt. Ein API-Server ohne gekoppelten Controller hat diesen Schutz nicht, auch ein beigetretener nicht: der Beitrittscode trägt den Anker, die API zeigt ihn nur an. Im Labor am 24.10. gemessen: api-1 und api-2 ohne Datei, die Liste auf Fassung 3. | `ctl/node/main.go:287`; `api/state/trust.go:228,239` (`advanceAnchor`), `:287-294` (`ResealAnchor`: „An installation without the file never gets one here"); `api/join/run.go:201`; `docs/proxmox-sechs.md:309-317` | Entscheidung fehlt (Entwurf vom 22.09.: die erste Kopplung schreibt ihn); danach mittel · API, ulh |
+| A30 | **offen, neu; die Behebung liegt in PR #257 (offen).** Ein App-Paket lässt sich auf einer eingerichteten Anlage nicht hochladen. Hochladen ist immer „kritisch", der erste Verwalter steht auf Stufe `critical`, aber die Oberfläche schickt den Upload ohne unterschriebene Aufgabe und ohne Bestätigung; die API antwortet `E_CONFIRM`. Die Test-Attrappe stand auf Stufe `off`, darum fiel es in keinem Fall auf. Rest laut #257: `cd.store/api/set-update` geht weiter ohne Aufgabe. | `shared/core/core.go:310-318`; `web/auth/setup.js:181`; `web/apps/store.js:547` (`this.ask(A.upload, null, …)`), `:884-886`; `shared/task/task.go:175,183`; `api/rights/check.go:146,165-166`; `web/shell/fake-link.js:597`; PR #257 | #257 prüfen und zusammenführen (Koordinator) |
 
 ### 3. Stört uns — heute
 
@@ -143,9 +146,10 @@ am 15.11.2026" bleiben als Geschichte stehen.
    (S8) und `cd-db` gegen eine echte MariaDB (S9).
 5. **Ein öffentlicher Name** für den einen Lauf mit echtem Zertifikat (S10, TE Frage 32).
 
-**Dazu sechs Entscheidungen, die nicht auf dem Blatt vom 24.10. standen:** `wsrep_dirty_reads` (A19), die Form des
+**Dazu sieben Entscheidungen, die nicht auf dem Blatt vom 24.10. standen:** `wsrep_dirty_reads` (A19), die Form des
 Wegs zurück (A23), Start verweigern bei abweichender Spalte (A8b, Weg A), ein zweiter Web-Knoten (S11),
-die Rechte von `/var/lib/cd` (U11) und „erst beweisen, dann prüfen, wem" (U18). **Offen ist, ob die
+die Rechte von `/var/lib/cd` (U11), „erst beweisen, dann prüfen, wem" (U18) und ob ein API-Server
+seinen Vertrauensanker selbst anlegt (A29). **Offen ist, ob die
 Vorgabe vom 24.10. auch für sie gilt** — dann entscheidet der Koordinator nach der Rangfolge, und bei
 Thomas bleiben nur 1–5.
 
@@ -155,6 +159,7 @@ Nach Teilen. Größe grob: klein = eine Stelle, mittel = mehrere Dateien oder zw
 mehrere Teile oder eine Vertragsänderung.
 
 - **Koordinator (`shared/`, Protokoll):** die Entscheidungen vom 24.10. ins Protokoll (klein, docs) ·
+  PR #257 prüfen und zusammenführen, A30 (gebaut) ·
   P10 bauen, U5 (wenige Zeilen, aber Vertragsänderung; mit Web) · `PairLifetime` auf eine Stunde, A26
   (klein) · Sätze zu P11, P12, P14 und zur Release-Nummer, U9 und U10 (klein) · Fälle für U1 (klein) ·
   `store.ValidDownloadURL`, U8 (klein, mit API) · Zähler für falsche MACs, A13 (mittel, mit API) · Weg
@@ -168,6 +173,7 @@ mehrere Teile oder eine Vertragsänderung.
   `shared/`, API, Controller).
 - **API:** eigene Zeile beim Abweisen einer Aktivierung, A1 · Text „Der Beitrittscode ist verbraucht"
   berichtigen, A14 · die Kopplung prüft die MAC vor dem Verbrauch, A13 (nach dem Zähler) — alle klein.
+  Vertrauensanker auf API-Servern ohne Controller, A29 (nach der Entscheidung; mittel, mit ulh).
 - **Controller:** `noexec` auf `/data`, A15 · podmans Warnzeilen nicht als stderr der App zählen, U13 ·
   stderr beim `create` behalten, A11 — alle klein.
 - **Datenbank:** ein Fall für `OncePeek` mit verbogener Spalte, A19a — klein.
@@ -177,11 +183,14 @@ mehrere Teile oder eine Vertragsänderung.
 - **tools:** Altersprüfung des Digests, A16 · `govulncheck` und `release-gate.sh` Schritte 5–6 gegen
   den Testvektor in die Prüfung, U3 — klein.
 - **docs:** WSL-Netz, A27 · Anleitung Abschnitt 1, A28 · Blatt zur Schema-Prüfung, A8b · Buch zu A8
-  und U14 · `vertragsdeckung.md`, U1 · Zeilenangabe in `docs/cd-store-betreiben.md`, S1 — alle klein.
+  und U14 · `vertragsdeckung.md`, U1 · Zeilenangabe in `docs/cd-store-betreiben.md`, S1 ·
+  `docs/zweiter-benutzer-schritte.md:21-28` nennt PR 118 als nicht verschmolzen (verschmolzen seit
+  24.10., ausgerollt erst mit dem cd-Release) — alle klein.
 
 **So gemessen.** Vier Lesedurchgänge (S, A1–A14, A15–A28a, U) haben jede Zeile am Code nachgesehen und
 nichts geändert; über 50 ihrer Belege sind danach einzeln nachgeprüft (`git grep`, `sed -n`, `gh`),
-alle stimmten. CirroDesk-Tests wurden nicht gestartet; die Linux-Prüfung auf GitHub ist für `b7a21def`
+alle stimmten. A29 und A30 hat der Partner „Zweige API" am 20.11. gefunden; beide sind am Code von
+`d359b96a` nachgesehen. CirroDesk-Tests wurden nicht gestartet; die Linux-Prüfung auf GitHub ist für `b7a21def`
 grün (`gh run view 44636049436`). **Nicht gemessen:** alles an der Anlage (sie fährt noch NGC 0.2.x),
 der Inhalt der Release-Archive und ob `store.cirrodesk.org` erreichbar ist.
 
