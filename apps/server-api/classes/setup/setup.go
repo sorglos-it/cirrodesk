@@ -18,6 +18,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -114,7 +115,8 @@ var errKey = errors.New("setup: key of the wrong size")
 
 // ErrNoCode reports a code file that is there and holds no code: a start cut
 // short between making the file and writing it, or a file somebody else put
-// under that name. The file is never written through (O_EXCL), so the setup
+// under that name. The file is never written through -- the real name comes
+// into being by a hard link onto a free one (EnsureCode) -- so the setup
 // stays shut until it is removed by hand -- and whoever starts the API has to
 // be told, or the admin sees nothing but 404 for good and never learns why.
 //
@@ -166,53 +168,103 @@ func (h *Handler) EnsureCode() (made bool, err error) {
 	if _, err := h.S.EnsureInstallation(ctx); err != nil {
 		return false, err
 	}
-	// O_EXCL, and no look at the name before it: a name that is taken is
-	// never written through, so a link somebody laid out cannot catch the
-	// code, and of two starts at once only one makes one. What is there
-	// stays, and what it holds decides whether a code exists.
-	var f *os.File
-	f, err = os.OpenFile(h.CodeFile, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if errors.Is(err, fs.ErrExist) {
-		// What the file holds decides, and how it failed to say goes on to
-		// the start unchanged: ErrNoCode is the one case that is mended by
-		// removing the file.
+	// What is there decides, and it is read before anything is made: a code
+	// that stands is the code the admin was given, and ErrNoCode or a
+	// reading that fails goes on to the start unchanged.
+	//
+	// It READS a name somebody may have laid out, and that is the one thing
+	// this look adds over the O_EXCL it replaces. It never writes through it,
+	// at most maxCodeFile+1 bytes are taken, and neither ErrNoCode nor the
+	// error of the reading carries a byte of what stood there -- so a symlink
+	// to somebody else's file buys a refused start and no word about its
+	// contents. It is kept rather than dropped because the alternative is to
+	// draw a code into a temporary file at EVERY start and remove it again,
+	// which puts a secret on the disk that nobody was ever given.
+	switch _, err := h.readCode(); {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, fs.ErrNotExist):
+		// Nothing there yet; one is made below.
+	default:
+		return false, err
+	}
+	// The code is written under a name of our own and the real name comes
+	// into being by a HARD LINK, so that name never exists half written.
+	//
+	// It was O_EXCL on the real name, and that leaves a window: O_EXCL creates
+	// the name BEFORE the code is in it, so another start can find the name
+	// there and EMPTY, read ErrNoCode out of it and refuse to start while
+	// nothing is broken -- and the admin is then sent to remove a file that
+	// holds the code of the start that won. That much is the code itself and
+	// needs no run to see; the link below closes it.
+	//
+	// What is NOT established is that this window is what the two cd-api of
+	// 13.10.2026 ran into. The commit that made this change said so, and the
+	// only evidence was the refusal "der Einmal-Code für die Ersteinrichtung
+	// lässt sich nicht anlegen" -- the very sentence that commit wrapped a
+	// reason into, BECAUSE on its own it covers every failure of EnsureCode
+	// alike and names none of them. It cannot say which one it was.
+	//
+	// Re-measured on 16.10.2026 on the same ground (WSL/ext4, two real cd-api
+	// on one SQLite file over HTTP, 100 pairs started in the same moment, and
+	// 100 more against the stand before this change): 0 refusals of this
+	// window in either set, before or after. What did fire was 7 of 100 after
+	// and 5 of 100 before, all of them "die Datenbank ist nicht erreichbar",
+	// plus one seen in a separate run of 30 that failed in EnsureInstallation
+	// ("state: another API is at this step") -- a step BEFORE the code file,
+	// which is why this window is hard to reach at all.
+	// So the loser of two simultaneous starts still does NOT always come up,
+	// and the reason is contention over the database, not this name.
+	//
+	// What the O_EXCL bought is bought here too, and that is why it is a link
+	// and not a rename. A name that is taken is still never written through
+	// -- link fails with EEXIST, so a file or a symlink somebody laid out
+	// cannot catch the code -- and of two starts at once still only one makes
+	// one: the loser removes its own and reads the winner's.
+	dir, name := filepath.Split(h.CodeFile)
+	if dir == "" {
+		dir = "."
+	}
+	// CreateTemp makes the file with mode 0600, so the code is never readable
+	// for others, not even for a moment.
+	f, err := os.CreateTemp(dir, "."+name+"-*")
+	if err != nil {
+		return false, err
+	}
+	tmp := f.Name()
+	// The temporary name goes in every case: it carries a code nobody was
+	// given, and one left lying is one more copy of a secret on the disk.
+	defer os.Remove(tmp)
+	defer f.Close()
+	// The code is drawn once the file that takes it is open and only ours:
+	// one that is never written is one that nobody could have been given.
+	code, err := secrets.SetupCode()
+	if err != nil {
+		return false, err
+	}
+	if _, err := f.WriteString(code + "\n"); err != nil {
+		return false, err
+	}
+	// Synced and closed BEFORE the link, so the name that appears carries the
+	// code on the disk and not only in a buffer.
+	if err := f.Sync(); err != nil {
+		return false, err
+	}
+	if err := f.Close(); err != nil {
+		return false, err
+	}
+	switch err := os.Link(tmp, h.CodeFile); {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, fs.ErrExist):
+		// Somebody was quicker, and what HE wrote is the code that counts.
 		if _, err := h.readCode(); err != nil {
 			return false, err
 		}
 		return true, nil
-	}
-	if err != nil {
+	default:
 		return false, err
 	}
-	// A file that was not written to the end holds no code anybody can use,
-	// and O_EXCL would keep the next start from writing one: it goes at once.
-	defer func() {
-		if cerr := f.Close(); err == nil {
-			err = cerr
-		}
-		if err != nil {
-			made = false
-			_ = h.removeCode()
-		}
-	}()
-	// The mode is set before the first byte, so the code is never readable
-	// for others, not even for a moment.
-	if err = f.Chmod(0o600); err != nil {
-		return false, err
-	}
-	// The code is drawn once the file that takes it is open and only ours:
-	// one that is never written is one that nobody could have been given.
-	var code string
-	if code, err = secrets.SetupCode(); err != nil {
-		return false, err
-	}
-	if _, err = f.WriteString(code + "\n"); err != nil {
-		return false, err
-	}
-	if err = f.Sync(); err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 // code reads the one-time code; a file that holds none and one that cannot be
