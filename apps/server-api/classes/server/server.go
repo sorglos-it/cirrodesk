@@ -598,9 +598,9 @@ func (s *Server) minute(ctx context.Context) {
 		slog.Warn("housekeeping failed", "reason", reason, "error", err)
 	}
 	fresh, cancel := dbwait.Round(ctx)
+	defer cancel()
 	_, err = s.State.Refresh(fresh)
 	reason = roundReason(fresh, err)
-	cancel()
 	if err != nil {
 		// Said when it CHANGES, not once a minute. Measured on the small
 		// plant on 18.10.2026: 54 identical lines in the 54 minutes one
@@ -627,7 +627,14 @@ func (s *Server) minute(ctx context.Context) {
 	} else {
 		s.trustSaid = ""
 	}
-	if v, err := s.State.Trust(ctx); err == nil && v.List != nil {
+	// Under the refresh's OWN deadline, not under a new one and not without
+	// one. State.Trust answers out of its cache and goes to the database only
+	// when nothing is cached -- that is, right after the refresh above failed
+	// on an empty cache. With the round's bare context that was a second,
+	// unbounded wait (TestTheHousekeepingRoundBoundsItsSecondCallToo); under
+	// the spent deadline it gives up at once, and with a version cached it
+	// answers without a store call either way.
+	if v, err := s.State.Trust(fresh); err == nil && v.List != nil {
 		s.missing.check(v.List.Nodes, func(id string) bool {
 			_, ok := s.tunnels.Get(id)
 			return ok
