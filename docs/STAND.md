@@ -24,6 +24,7 @@ ist es noch nicht** — was fehlt, steht in [`was-fehlt.md`](was-fehlt.md).
 | Prüfung auf GitHub | `b2262020` grün. Go: 3765 Fälle bestanden, 0 rot, 27 übersprungen. Web: chromium 612, firefox 609, webkit 604 bestanden, je 0 rot, 0 flatternd | `gh run view 44573010049 --log` |
 | Veröffentlicht | 0.2.0 (19.10.), 0.2.1 und **0.2.2** (beide 23.10.) | `gh release list` |
 | Entscheidungsbuch | bis **Punkt 102** | [`vertraege-v1.2.md`](vertraege-v1.2.md) |
+| Playwright (Web-Prüfsatz) | **1.65.0** seit #192 (09.11.2026). Der Sprung von 1.55.1 machte aus rund 290 übersprungenen Fällen je Engine gemessene. Für Firefox belegt, warum: Firefox 141 (zu 1.55.1) warf bei `exportKey("jwk")` eines Ed25519-Schlüssels `OperationError`, Firefox 159 (zu 1.65.0) nicht | `apps/web/tests/package-lock.json`; Nachricht von `681d4880` (#192) |
 
 ### Die Teile
 
@@ -40,6 +41,11 @@ ist es noch nicht** — was fehlt, steht in [`was-fehlt.md`](was-fehlt.md).
 Fassung aus `VERSION`, bei den Store-Apps aus `manifest.json`. **Der Recovery-Modus liegt noch nicht
 auf `main`:** `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/` und `lib/rust/` aus
 [`recovery-modus.md`](recovery-modus.md) gibt es dort nicht.
+
+**Der Updater ist verdrahtet:** `apps/server-controller/classes/node/run.go:718`
+(`Updater: updater{…}`), seit `5ff4bc89` vom 24.10.2026 („controller: wire the updater, and serve
+the stage channel"). Frage 1 aus [`thomas-entscheidet.md`](thomas-entscheidet.md) ist damit gebaut;
+das Blatt gibt den Stand vom 24.10. wieder und nennt dort noch `Updater: nil`.
 
 ## Neuer Name: NGC → CirroDesk
 
@@ -317,7 +323,7 @@ Die, die am meisten gekostet haben:
   mitten im Lauf von einem anderen Strang überschrieben. Je Strang ein eigener Unterordner, und
   eine Zahl aus einer überschriebenen Datei wird **neu gemessen**, nicht geborgen.
 
-### Nachträge bis 19.11.2026
+### Nachträge bis 20.11.2026
 
 - **Der Hauptcheckout stand nicht immer auf `main`.** Am 10.11.2026 stand er auf
   `feldzug-echter-server`, 912 Commits hinter `main` (gemessen im Zweig `stand-aktuell`); am
@@ -340,6 +346,18 @@ Die, die am meisten gekostet haben:
   zuletzt am 16.11.2026: `85244a0d` `cancelled`, gleich danach `2e7bc052` `success`.
 - **Flatternd zählt rot.** `tools/ci-count-web.mjs` wertet einen Fall, der erst im zweiten Versuch
   grün wird, als rot.
+- **Einen Flatterer zuerst am Protokoll zuordnen:** eine gefallene Zusicherung heißt Code — im
+  Quelltext suchen; nur Verbindungsfehler oder eine wandernde Zahl übersprungener Fälle heißen
+  Umgebung. Gemessen in [`arbeitsweise.md`](arbeitsweise.md), „Sechs Messungen gleichzeitig messen
+  die Maschine, nicht den Code": zwei rote Läufe mit 9 und 15 Fällen, keine einzige gefallene
+  Zusicherung, nur „Could not connect to server" — und ein Serverausfall macht aus einem
+  übersprungenen Fall einen laufenden.
+- **Die Testanlage startet jede Nacht durch.** Der Sicherungsauftrag des Proxmox-Wirts läuft mit
+  `mode stop` ab 03:00 (`/etc/pve/jobs.cfg`) und hält dabei jede Maschine an; die CirroDesk-VMs
+  trifft es gegen 04:40 Ortszeit des Wirts. Gemessen am 25.10.2026,
+  [`sicherung-und-weg-zurueck.md`](sicherung-und-weg-zurueck.md), Abschnitt 12. Der Zustand „läuft
+  seit Tagen" kommt dort also nicht vor, und ein Fehler, der sich über Stunden anhäuft, ist morgens
+  weggewischt.
 
 ### Ein dritter Zeitflattrer: `TestStartTakesTheSameTimeForAnUnknownName`
 

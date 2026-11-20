@@ -126,10 +126,11 @@ Prüfsummen-Datenbank), dann `diff -rq` gegen das Repo – **0 Unterschiede**. D
 
 | Stück | Version | Wofür |
 |---|---|---|
-| @playwright/test | 1.55.1 | der Browser-Prüfsatz unter `apps/web/tests/` |
+| @playwright/test | 1.65.0 | der Browser-Prüfsatz unter `apps/web/tests/` |
 
 **Benannt, weil es die eine Ausnahme ist.** Es kommt per npm (`apps/web/tests/package.json`) und
 lädt zusätzlich Browser nach, statt im Repo zu liegen. Begründung: es wird nicht ausgeliefert, kein
 Byte davon läuft auf einer Anlage, und ein Prüfwerkzeug im Repo zu pflegen wäre teurer als der
-Gewinn. Am 18.10.2026 ist draußen **1.64.1** – wir sind neun Minor-Fassungen hinter, bewusst und
-ohne Eile, weil nichts davon ausgeliefert wird.
+Gewinn. Am 18.10.2026 war draußen **1.64.1**, bei uns 1.55.1 – neun Minor-Fassungen dahinter,
+bewusst und ohne Eile, weil nichts davon ausgeliefert wird. Seit #192 (09.11.2026) ist es 1.65.0
+(`apps/web/tests/package-lock.json`).

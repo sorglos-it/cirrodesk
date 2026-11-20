@@ -112,7 +112,7 @@ erwartete Liste prüfen, committen, **dann** prüfen lassen.
 |---|---|---|---|
 | `@noble/hashes` (JS, Argon2id im Browser) | 2.4.0 | `apps/web/public/assets/vendor/noble-hashes/` – zur Messung nur auf dem Zweig `web`, **seit dem 18.10.2026 auch auf `main`** (Punkt 63); 114 KB in 9 Dateien | **ja, vorbildlich**: `SOURCE.md` nennt Quelle, Datum, Grund, SHA-256 je Datei, den Registry-Hash und den Weg, es nachzuprüfen |
 | `debian:13-slim` (Abbild der Terminal-App) | Digest `sha256:a29215f6…` | [apps/server-controller/templates/terminal/Containerfile:30](apps/server-controller/templates/terminal/Containerfile) | ja, festgenagelt; `tools/pin-base.sh` ist der einzige Weg, die Zeile zu ändern |
-| `@playwright/test` (nur Tests) | 1.55.1 | `apps/web/tests/package.json` – **per npm installiert, nicht im Repo** | nein → siehe Punkt 6 |
+| `@playwright/test` (nur Tests) | 1.55.1 (**Nachtrag 20.11.2026:** seit #192 vom 09.11.2026 **1.65.0**) | `apps/web/tests/package.json` – **per npm installiert, nicht im Repo** | nein → siehe Punkt 6 |
 
 ## 2. Je Modul der Preis in beide Richtungen
 
@@ -333,7 +333,8 @@ Drei kleinere Funde, keiner davon ein stiller Fremdcode-Einbau:
   *Zu entscheiden bleibt:* gilt die Regel auch für Werkzeug, das nur testet? Ich schlage vor: nein.
   **Benannt ist es jetzt** – `THIRD-PARTY.md` hat am 18.10.2026 einen Abschnitt „Nur zum Testen,
   und nicht im Repo" bekommen, mit Fassung, Begründung und dem Abstand nach draußen. Eine benannte
-  Ausnahme ist keine stille mehr.
+  Ausnahme ist keine stille mehr. **Nachtrag 20.11.2026:** seit #192 (09.11.2026) steht
+  `apps/web/tests/package-lock.json` auf **1.65.0**.
 - **`THIRD-PARTY.md` nannte den JS-Teil nur im Vorwort**, ohne Zeile in einer der beiden Tabellen –
   also ohne Fassung und ohne Lizenz. **Behoben am 18.10.2026:** eigener Abschnitt „JavaScript, von
   Hand kopiert" mit `@noble/hashes` 2.4.0, MIT, Übernahmedatum und dem Verweis auf `SOURCE.md`.
