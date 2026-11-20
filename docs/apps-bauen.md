@@ -226,9 +226,11 @@ nicht braucht.
 - **Nicht auf einen Dienstknoten.** Wo eine App liegt, liest man nach dem Einrichten nach, statt
   es aus einem Namen zu schließen. Es gab einen Stand, auf dem `db-1` einen Controller trug und
   `store` gar kein CirroDesk.
-- **Nicht auf Laufzeit.** Die Testanlage schaltete **jede Nacht gegen 03:45 UTC** alle Maschinen
-  sauber aus und wieder an (gemessen, Stand 04.11.2026). Was eine App im Arbeitsspeicher hält,
-  ist morgens weg; was in `/data` liegt, ist da.
+- **Nicht auf Laufzeit.** Die Testanlage hält **jede Nacht** jede Maschine an und fährt sie
+  wieder an: der Sicherungsauftrag des Proxmox-Wirts läuft mit `mode stop` ab 03:00 und trifft die
+  CirroDesk-VMs gegen 04:40 Ortszeit (gemessen am 25.10.2026,
+  [`sicherung-und-weg-zurueck.md`](sicherung-und-weg-zurueck.md), Abschnitt 12). Was eine App im
+  Arbeitsspeicher hält, ist morgens weg; was in `/data` liegt, ist da.
 - **Nicht auf einen überlebenden Prozess.** Ein Neustart des Dienstknotens oder des Controllers
   kann die App beenden und neu starten. Ein `start`-Lauf muss also **wiederholbar** sein und darf
   nicht annehmen, dass er der erste ist.
