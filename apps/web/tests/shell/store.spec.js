@@ -648,6 +648,32 @@ test("an update that wants new rights offers the activation and no update button
     .getByRole("button", { name: "Neue Version mit neuen Rechten aktivieren" })).toHaveCount(1);
 });
 
+test("an update with new rights says the catalog is not fetched yet, not that it is forged",
+  async ({ page }) => {
+    // The update row reads the store's catalog for the checksums of the new
+    // version, and its catch said "Der Katalog dieses Stores ist nicht echt."
+    // for every failure there is - also for the catalog this API has simply
+    // not fetched yet (E_NOTFOUND), which the Apps tab has told apart since
+    // V1.2 point 65. Both places now take their sentence from catalogFault.
+    await store(page, {
+      noCatalog: true,
+      updates: [{
+        target: "org.sorglos.terminal", node: "pi-1", installed: "1.0.0", available: "1.1.0",
+        sha256: "BgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgY", key: "", mode: "notify",
+        window: "", state: "needsgrants",
+      }],
+    });
+    await tab(page, "Updates").click();
+    await page.locator(".store")
+      .getByRole("button", { name: "Neue Version mit neuen Rechten aktivieren" }).click();
+    // The catalog was really asked for: what is measured is the answer to it.
+    await expect.poll(() => names(page)).toContain("cd.store/catalog");
+    await expect(page.getByRole("alert")).toHaveText(
+      "Der Katalog dieses Stores ist noch nicht geholt. CirroDesk sieht stündlich nach; "
+      + "unter Quellen steht, wann es das letzte Mal geklappt hat.",
+    );
+  });
+
 // ----------------------------------------------------------- 6. standing yes
 
 test("a standing approval takes its key from the trust list, never from the answer", async ({ page }) => {
