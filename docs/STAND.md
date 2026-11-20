@@ -64,6 +64,12 @@ auf `main`:** `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/` u
   `/etc/hosts` noch für `ngc.mein.lan`** (dort läuft NGC 0.2.x), bis die Anlage mit dem ersten
   `cd`-Release neu aufgesetzt wird. Historische Angaben (etwa `ssh ngc`, 10.2.3.208, datierte
   Berichte) bleiben unverändert.
+  **Nachtrag 20.11.2026:** api-2 ist am 24.10.2026 beigetreten
+  ([`proxmox-sechs.md`](proxmox-sechs.md)), also mit dem alten `-join` von vor PR #247, der ein
+  eigenes Schlüsselpaar meldete statt der Schlüssel aus `api.json`. api-2 steht darum vermutlich
+  unter Schlüsseln in der Vertrauensliste, die er nicht hat — **nicht gemessen**. Unbemerkt, weil
+  nichts zu api-2 durchkommt ([`ausfall-je-maschine.md`](ausfall-je-maschine.md)). Das bleibt so,
+  bis die Anlage neu aufgesetzt wird.
 - **Die drei Releases tragen `ngc-`Namen** (`ngc-api-*.tar`, `ngc-controller-*.tar`,
   `ngc-web-all.tar`; `gh release view v0.2.2`). Darum gehen das erste Release mit `cd`-Namen und
   `cd-umbenennung` nur **zusammen** raus — siehe Nachtrag unter „Auslieferungskette".
@@ -98,8 +104,11 @@ auf `main`:** `apps/cli-recovery/`, `apps/cli-stick/`, `apps/server-recovery/` u
 
 Die drei, die schon am 10.11.2026 als dringend galten, tragen ihre Arbeit weiterhin:
 
-- **`ngc-join-keys`** (06.11.): „join: register the keys this server holds, and write none to
-  `/run`" — kein privater Schlüssel mehr unter `/run`, also Sicherheit. 5 Dateien, +258 Zeilen.
+- ~~**`ngc-join-keys`** (06.11.): „join: register the keys this server holds, and write none to
+  `/run`" — kein privater Schlüssel mehr unter `/run`, also Sicherheit. 5 Dateien, +258 Zeilen.~~
+  **Erledigt 20.11.2026:** als Zweig `join-keys` über PR #247 auf `main` — Cherry-Pick, Konflikte nur
+  an Namen, dazu ein Fall, der auf `b7a21def` 5 von 5 rot war. `ngc-join-keys` selbst trägt nur noch
+  die alten Namen und kann weg.
 - **`fristen-hintergrund`** (16.10.): 13 Dateien, +1719 Zeilen; ein Commit darin nennt ein
   Datenrennen, das ein `-race`-Lauf gefunden hat.
 - **`ngc-rootrechte`** (19.10.): das Rechtemodell über Web, API und Controller, 30 Dateien, +1358
@@ -114,7 +123,7 @@ sagt die Zahl nicht — unter den 31 ist auch `stand-aktuell`, den diese Fassung
 |---|---|---:|---:|
 | `p-web-s12-store` | 15.11.2026 | 1 | 66 |
 | `stand-aktuell` | 13.11.2026 | 2 | 170 |
-| `ngc-join-keys` | 06.11.2026 | 1 | 333 |
+| ~~`ngc-join-keys`~~ über #247 auf `main` (20.11.) | 06.11.2026 | 1 | 333 |
 | `docs-apps-bauen` | 04.11.2026 | 1 | 359 |
 | `api-knoten-kennung` | 03.11.2026 | 4 | 463 |
 | `ngc-zweiter-mensch` | 29.10.2026 | 3 | 200 |
@@ -188,6 +197,11 @@ Gemessen am 19.11.2026 an ulh-`main` (`2181c9bb`):
 - **Berichtigt gegenüber `stand-aktuell`:** Dass `Delegate=yes` in ulh-`main` fehlt, ist **kein
   Loch, sondern entschieden** — Punkt 101, Abschnitt „Warum nicht `Delegate=yes`": der Controller
   legt die cgroup selbst an.
+- **Nachtrag 20.11.2026, Beitritt:** Seit PR #247 schreibt `cd-api -join` weder `join-noise` noch
+  `join-sign`, und ulh hat beide nie gelesen — `join_installation` liest nur `join-secret` und behält
+  `noiseKey`/`signKey` aus `api.json`. Veraltet sind nur Unit-Kommentare, die die zwei Dateien nennen
+  (auf `cd-umbenennung`: `cd-api.sh`, `cd-controller.sh`, `cd-all.sh` und die Bytevergleiche der drei
+  `*.test.sh`). Die übernimmt laut Koordinator der Partner-Thread ulh-ui auf `cd-umbenennung`.
 
 ## Schon entschieden — nicht neu aufmachen
 
